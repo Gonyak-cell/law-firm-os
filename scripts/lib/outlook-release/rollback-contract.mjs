@@ -18,6 +18,10 @@ const EXPECTED_EVENTS = {
   "matter-full": ["OnMessageSend:onMessageSendHandler:PromptUser"],
   "inquiry-only": [],
 };
+const EXPECTED_PERMISSIONS = {
+  "matter-full": "ReadItem",
+  "inquiry-only": "ReadItem",
+};
 
 function protectedRef(value, name) {
   const ref = assertSafeRelativePath(value, name);
@@ -93,7 +97,7 @@ export function validateRollbackContract(rollback, baseline, contract) {
     if (profile.profile !== expected.profile || profile.rollback_version !== contract.rollback_version
       || profile.source_sha !== baseline.source_sha || !GIT_OID.test(profile.source_sha ?? "")
       || profile.rollback_manifest_sha256 !== deployed.manifest_sha256
-      || profile.permission !== expected.permission
+      || profile.permission !== EXPECTED_PERMISSIONS[expected.profile]
       || JSON.stringify(profile.launch_events) !== JSON.stringify(EXPECTED_EVENTS[expected.profile])) {
       throw new Error(`${expected.profile} rollback identity/baseline drifted`);
     }

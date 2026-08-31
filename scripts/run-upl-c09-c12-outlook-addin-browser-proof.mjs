@@ -1676,9 +1676,12 @@ try {
   const releaseManifestPass = releaseManifestProbe.length === RELEASE_MANIFEST_PATHS.length
     && releaseManifestProbe.every((entry) => (
       RELEASE_CONTRACT.manifests.includes(entry.path)
-      && RELEASE_CONTRACT.profiles.some((profile) => profile.profile === entry.profile && profile.product_id === entry.product_id)
+      && RELEASE_CONTRACT.profiles.some((profile) => (
+        profile.profile === entry.profile
+        && profile.product_id === entry.product_id
+        && profile.permission === entry.permission
+      ))
       && entry.source_locations.length === 1
-      && entry.permission === "ReadItem"
       && JSON.stringify(entry.client_outlook_oauth_scopes) === JSON.stringify(RELEASE_CONTRACT.client_outlook_oauth_scopes)
       && JSON.stringify(entry.client_outlook_graph_connection_scopes) === JSON.stringify(RELEASE_CONTRACT.client_outlook_graph_connection_scopes)
     ));

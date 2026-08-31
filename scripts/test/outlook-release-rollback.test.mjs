@@ -36,7 +36,7 @@ test("rollback reads each manifest, inventory, and artifact byte before acceptin
   ]);
 });
 
-test("1.3.0.2 forward rollback is bound to the complete prior static closure", async () => {
+test("1.3.0.4 forward rollback is bound to the complete prior static closure", async () => {
   const rollbackManifestBytes = await readFile(new URL(
     "../../apps/addin/manifest.canary.rollback.production.xml",
     import.meta.url,
@@ -51,7 +51,7 @@ test("1.3.0.2 forward rollback is bound to the complete prior static closure", a
     { profile: "matter-full", artifact_count: 10 },
     { profile: "inquiry-only", artifact_count: 3 },
   ]);
-  assert.equal(result.forward_rollback_version, "1.3.0.2");
+  assert.equal(result.forward_rollback_version, "1.3.0.4");
 });
 
 test("protected inquiry rollback rejects a Matter-namespace module dependency", async (t) => {

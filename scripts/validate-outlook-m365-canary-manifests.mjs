@@ -13,12 +13,12 @@ const defaultContractPath = "contracts/outlook-m365-canary-manifest-set.json";
 const releaseContractPath = "contracts/outlook-addin-release-gates.json";
 const PRODUCT_ID = "8f3cc90d-56dd-4c1c-b9c2-0a1100500101";
 const INQUIRY_PRODUCT_ID = "952431be-51b8-42a2-9bf6-769a15934e85";
-const ARTIFACT_VERSION = "1.3.0.1";
-const PRIOR_KNOWN_MANIFEST_VERSION = "1.2.0.2";
-const TASKPANE_MANIFEST_VERSION = "1.3.0.0";
-const CANDIDATE_MANIFEST_VERSION = "1.3.0.1";
-const ROLLBACK_MANIFEST_VERSION = "1.3.0.2";
-const TASKPANE_SEMANTIC_SHA256 = "850786886c41350c5ca8a96f71991b41418baf50a601ec1955cd9543692a5a42";
+const ARTIFACT_VERSION = "1.3.0.3";
+const PRIOR_KNOWN_MANIFEST_VERSION = "1.3.0.1";
+const TASKPANE_MANIFEST_VERSION = "1.3.0.2";
+const CANDIDATE_MANIFEST_VERSION = "1.3.0.3";
+const ROLLBACK_MANIFEST_VERSION = "1.3.0.4";
+const TASKPANE_SEMANTIC_SHA256 = "d1040be810b92308e1f7080b87d3a7d3bb88b96ff80d042586b3b266a439cd52";
 const PINNED_V11_TASKPANES = [
   "VersionOverridesV1_1:MessageComposeCommandSurface:ShowTaskpane:true",
   "VersionOverridesV1_1:MessageReadCommandSurface:ShowTaskpane:true",
@@ -179,7 +179,7 @@ function validateStages(contract, hashes) {
         "exact_one_signed_canary_assignment",
         "exact_one_trusted_active_non_revoked_installation",
         "provider_pre_assignment_zero_readback",
-        "provider_manifest_absent_or_version_below_1_3_0_0",
+        "provider_manifest_absent_or_version_below_1_3_0_2",
       ],
     },
     {
@@ -265,7 +265,7 @@ function validateManifestSemantics(
     || rollback.version !== ROLLBACK_MANIFEST_VERSION
     || taskpane.provider_name !== "AMIC OS"
     || taskpane.display_name !== "AMIC OS"
-    || taskpane.permission !== "ReadItem"
+    || taskpane.permission !== "ReadWriteItem"
   ) fail("manifest identity or least-privilege permission drifted");
   exact(taskpane.app_domains, [ORIGIN], "manifest AppDomains");
   exact(taskpane.form_source_locations, [TASKPANE], "manifest taskpane SourceLocation");
@@ -276,7 +276,7 @@ function validateManifestSemantics(
     "MessageReadCommandSurface", "MessageReadCommandSurface",
   ], "rollback taskpane-only extension points");
   exact(rollback.launch_events, [], "rollback taskpane-only launch events");
-  exact(rollback.semantic_manifest_sha256, "323542ab35c10cca6053cc166802e0a4a118f1771cb730ac0fa99804453a148d", "rollback taskpane-only semantic capabilities");
+  exact(rollback.semantic_manifest_sha256, "2a3a0c41baac81e64bd414f9b53dee828aff8624414103077a2849100e25c411", "rollback taskpane-only semantic capabilities");
   exact(rollback.supports_pinning, [], "rollback pinned taskpanes");
   exact(rollback.url_resources, [
     `Commands.Url=${COMMANDS}`, `Commands.Url=${COMMANDS}`,
@@ -301,7 +301,7 @@ async function validateReleaseBinding(repoRoot) {
   const release = JSON.parse(await readFile(path.join(repoRoot, releaseContractPath), "utf8"));
   if (release.release_version !== ARTIFACT_VERSION) fail("release artifact version is not shared");
   const matter = release.profiles?.find((profile) => profile.product_id === PRODUCT_ID);
-  if (!matter || matter.production_manifest !== CANDIDATE_MANIFEST || matter.permission !== "ReadItem") {
+  if (!matter || matter.production_manifest !== CANDIDATE_MANIFEST || matter.permission !== "ReadWriteItem") {
     fail("taskpane-only candidate is not the canonical Matter release manifest");
   }
   const requiredStatic = new Set(release.build?.required_static_paths ?? []);

@@ -9,7 +9,7 @@ const PRODUCTION_ORIGIN = "https://d2mthcc8vp3cr2.cloudfront.net";
 const FORWARD_ROLLBACK_OPERATIONS = [
   "restore_prior_static_aliases_from_verified_snapshot",
   "readback_prior_static_hashes",
-  "central_update_to_1.3.0.2",
+  "central_update_to_1.3.0.4",
   "readback_launch_events_zero",
 ];
 const SECRET_VALUE = /-----BEGIN (?:RSA )?PRIVATE KEY-----|\b(?:access_token|client_secret|refresh_token)\s*[:=]\s*["']?[A-Za-z0-9._~+/=-]{16,}/iu;
@@ -126,14 +126,14 @@ export function validateForwardStaticRollbackContract(forward, releaseContract, 
   const projection = parseOutlookManifest(manifestBytes.toString("utf8"));
   if (rollback.profile !== matter.profile || rollback.product_id !== matter.product_id
     || rollback.manifest_path !== "apps/addin/manifest.canary.rollback.production.xml"
-    || rollback.manifest_version !== "1.3.0.2" || rollback.manifest_sha256 !== sha256(manifestBytes)
+    || rollback.manifest_version !== "1.3.0.4" || rollback.manifest_sha256 !== sha256(manifestBytes)
     || rollback.semantic_sha256 !== projection.semantic_manifest_sha256
     || projection.product_id !== rollback.product_id || projection.version !== rollback.manifest_version
     || projection.permission !== matter.permission || projection.launch_events.length !== 0
     || projection.supports_pinning.length !== 0
     || JSON.stringify(rollback.source_locations) !== JSON.stringify(projection.form_source_locations)
     || JSON.stringify(rollback.operations) !== JSON.stringify(FORWARD_ROLLBACK_OPERATIONS)) {
-    throw new Error("1.3.0.2 forward rollback manifest identity or semantics drifted");
+    throw new Error("1.3.0.4 forward rollback manifest identity or semantics drifted");
   }
   for (const location of rollback.source_locations) {
     const url = validateProductionUrl(location, forward.origin, "forward rollback SourceLocation");
@@ -148,7 +148,7 @@ export function validateForwardStaticRollbackContract(forward, releaseContract, 
   if (!matterProfile || !rollback.source_locations.every((location) => (
     new URL(location).pathname.slice(1) === matterProfile.taskpane_path
   ))) {
-    throw new Error("1.3.0.2 forward rollback does not point to the prior Matter taskpane inventory");
+    throw new Error("1.3.0.4 forward rollback does not point to the prior Matter taskpane inventory");
   }
   return {
     forward_rollback_version: rollback.manifest_version,

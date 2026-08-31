@@ -11,7 +11,7 @@ import { assertEqual, canonical, sorted } from "./primitives.mjs";
 
 export function validateReleaseContract(contract) {
   if (contract?.schema_version !== 2) throw new Error("Outlook release gate schema_version must be 2");
-  if (contract.release_version !== "1.3.0.1" || contract.rollback_version !== "1.0.1.1") {
+  if (contract.release_version !== "1.3.0.3" || contract.rollback_version !== "1.0.1.1") {
     throw new Error("Outlook release and rollback versions drifted");
   }
   assertEqual(contract.automatic_send_policy, {
@@ -25,10 +25,10 @@ export function validateReleaseContract(contract) {
   const profiles = contract.profiles ?? [];
   assertEqual(sorted(profiles.map(({ product_id }) => product_id)), sorted(PRODUCT_IDS), "release ProductIds");
   assertEqual(sorted(profiles.map(({ profile }) => profile)), sorted(PROFILE_NAMES), "release profiles");
-  if (profiles.some(({ permission }) => permission !== "ReadItem")) throw new Error("release permission broadened");
   for (const profile of profiles) {
     const expected = PROFILE_CONTRACTS[profile.product_id];
     if (!expected || profile.profile !== expected.profile
+      || profile.permission !== expected.permission
       || profile.mailbox_min_version !== expected.mailbox_min_version
       || profile.release_version !== expected.release_version
       || profile.production_manifest !== expected.production_manifest

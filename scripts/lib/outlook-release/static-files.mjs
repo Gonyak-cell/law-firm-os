@@ -9,19 +9,19 @@ const MANIFEST_BINDINGS = [
     path: "apps/addin/manifest.canary.taskpane.production.xml",
     profile: "matter-full",
     stage: "taskpane_only",
-    version: "1.3.0.0",
+    version: "1.3.0.2",
   },
   {
     path: "apps/addin/manifest.canary.rollback.production.xml",
     profile: "matter-full",
     stage: "forward_rollback",
-    version: "1.3.0.2",
+    version: "1.3.0.4",
   },
   {
     path: "apps/addin/manifest.production.xml",
     profile: "matter-full",
     stage: "candidate_taskpane",
-    version: "1.3.0.1",
+    version: "1.3.0.3",
   },
   {
     path: "apps/addin/manifest.inquiry.production.xml",
@@ -198,7 +198,7 @@ function expectedStaticFilesReceipt({
   if (!rollbackBinding || rollbackBinding.sha256 !== forwardRollbackResult.manifest_sha256
     || rollbackBinding.semantic_sha256 !== forwardRollbackResult.semantic_sha256
     || canaryManifestSet.rollback_manifest.manifest_sha256 !== rollbackBinding.sha256
-    || canaryManifestSet.rollback_manifest.manifest_version !== "1.3.0.2"
+    || canaryManifestSet.rollback_manifest.manifest_version !== "1.3.0.4"
     || canaryManifestSet.provider_mutation_performed !== false) {
     throw new Error("forward rollback manifest is not sealed to the canary manifest set");
   }

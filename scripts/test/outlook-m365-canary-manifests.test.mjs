@@ -101,29 +101,29 @@ test("one-user canary manifest set is exact, staged, least-privilege, and non-ex
     schema_version: "amic-os.outlook-m365-canary-manifest-set-validation.v1",
     verdict: "PASS",
     product_id: "8f3cc90d-56dd-4c1c-b9c2-0a1100500101",
-    artifact_version: "1.3.0.1",
-    prior_known_manifest_version: "1.2.0.2",
-    manifest_set_sha256: "60554677f7617af4ac6590b5d95af24b45ebf6aa3824109d19cb172e2df68b8c",
+    artifact_version: "1.3.0.3",
+    prior_known_manifest_version: "1.3.0.1",
+    manifest_set_sha256: "f00297a3b205ceab9baf2ca1e6dcdab6f32571de9b1814fca312cfe9c8470bb4",
     stages: [
       {
         id: "taskpane_only",
         manifest_path: "apps/addin/manifest.canary.taskpane.production.xml",
-        manifest_sha256: "652e06ec95e12b248bfa42fccc0cf5881a52f310ed4c51189500593c2d74fe9c",
-        manifest_version: "1.3.0.0",
+        manifest_sha256: "02a8c63f9ecf1fcf9cd0667251bc0a27594c89c123e2b1d343e7bf120de7a905",
+        manifest_version: "1.3.0.2",
         launch_events: [],
       },
       {
         id: "candidate_taskpane",
         manifest_path: "apps/addin/manifest.production.xml",
-        manifest_sha256: "57faac9f6b2aa407480f84ae617009913f8aec36ff2d9f287285beb87b4c0c26",
-        manifest_version: "1.3.0.1",
+        manifest_sha256: "5ae386b5d43a0a1dabc5093cf08e9164ac611cbe59f577b6ed3d6c997f10aa5d",
+        manifest_version: "1.3.0.3",
         launch_events: [],
       },
     ],
     rollback_manifest: {
       manifest_path: "apps/addin/manifest.canary.rollback.production.xml",
-      manifest_sha256: "57359b429af519d2dbec28230e73445e3898d47ced4c1e7add1eb68733c68ad9",
-      manifest_version: "1.3.0.2",
+      manifest_sha256: "b725fdae04a7706632577aac529c61e1e9ed849dc0d1612f4cacd646c6e6a811",
+      manifest_version: "1.3.0.4",
       launch_events: [],
     },
     canary_user_count: 1,
@@ -146,7 +146,7 @@ test("candidate stage rejects a hidden automatic-send launch event", async () =>
       contractOverride: mutated,
       fileOverrides: { "apps/addin/manifest.production.xml": retiredEventfulManifest },
     }),
-    /candidate taskpane-only extension points/u,
+    /forward manifest permission|candidate taskpane-only extension points/u,
   );
 });
 
@@ -196,7 +196,7 @@ test("pinning and monotonic-version mutations fail closed after contract reseal"
     {
       name: "reuse 1.2 version",
       manifestPath: "apps/addin/manifest.canary.taskpane.production.xml",
-      mutate: (source) => source.replace("<Version>1.3.0.0</Version>", "<Version>1.2.0.0</Version>"),
+      mutate: (source) => source.replace("<Version>1.3.0.2</Version>", "<Version>1.2.0.0</Version>"),
       expected: /manifest (?:identity|product_id)/u,
     },
     {

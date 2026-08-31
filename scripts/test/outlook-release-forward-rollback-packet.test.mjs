@@ -110,7 +110,7 @@ async function protectedEvidenceFixture(t) {
 
 test("cross-surface packet is monotonic, immutable, data-preserving, and desktop-noop", () => {
   const result = validate();
-  assert.equal(result.forward_manifest_version, "1.3.0.2");
+  assert.equal(result.forward_manifest_version, "1.3.0.4");
   assert.equal(result.api_published_version, "11");
   assert.equal(result.external_mutations, 0);
   assert.equal(result.data_mutations, 0);

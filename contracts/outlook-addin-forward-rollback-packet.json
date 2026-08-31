@@ -7,7 +7,7 @@
     "static": {
       "action": "restore_prior_aliases_from_verified_snapshot",
       "contract_ref": "contracts/outlook-addin-forward-static-rollback.json",
-      "contract_sha256": "a9b951c582cdbd9d214e906b7c37c6b0b65eaed0f5ec207d9d0564388e8d0be2",
+      "contract_sha256": "39ed701a3f24d85168b98474af25e482ec28133d35af5d1c7b211e027cda8a29",
       "snapshot_inventory_sha256": "a37b05476b9243a3af01f51992b82f920202d2eed62a3ada876f0a7eae3e194d",
       "snapshot_inventory_canonical_sha256": "27e7b6fe79b547742e2ac5433796be3db059fdddb841f2832f490f184a99126d",
       "restore_profiles": [
@@ -20,12 +20,12 @@
       "action": "central_manifest_forward_update",
       "product_id": "8f3cc90d-56dd-4c1c-b9c2-0a1100500101",
       "candidate_manifest_versions": [
-        "1.3.0.0",
-        "1.3.0.1"
+        "1.3.0.2",
+        "1.3.0.3"
       ],
       "forward_manifest_path": "apps/addin/manifest.canary.rollback.production.xml",
-      "forward_manifest_version": "1.3.0.2",
-      "forward_manifest_sha256": "57359b429af519d2dbec28230e73445e3898d47ced4c1e7add1eb68733c68ad9",
+      "forward_manifest_version": "1.3.0.4",
+      "forward_manifest_sha256": "b725fdae04a7706632577aac529c61e1e9ed849dc0d1612f4cacd646c6e6a811",
       "launch_event_count": 0,
       "assignment_policy": "reconcile_to_fresh_same_authorized_single_principal",
       "assignment_count": 1,

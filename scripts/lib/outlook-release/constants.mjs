@@ -8,7 +8,8 @@ export const PROFILE_NAMES = ["inquiry-only", "matter-full"];
 export const PROFILE_CONTRACTS = {
   [PRODUCT_IDS[0]]: {
     profile: "matter-full",
-    release_version: "1.3.0.1",
+    release_version: "1.3.0.3",
+    permission: "ReadWriteItem",
     mailbox_min_version: "1.14",
     production_manifest: "apps/addin/manifest.production.xml",
     taskpane_html: "index.html",
@@ -17,6 +18,7 @@ export const PROFILE_CONTRACTS = {
   [PRODUCT_IDS[1]]: {
     profile: "inquiry-only",
     release_version: "1.1.0.0",
+    permission: "ReadItem",
     mailbox_min_version: "1.3",
     production_manifest: "apps/addin/manifest.inquiry.production.xml",
     taskpane_html: "outlook-addin/index.html",
