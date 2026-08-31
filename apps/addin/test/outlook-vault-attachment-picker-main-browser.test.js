@@ -94,8 +94,8 @@ test("sealed build flag controls the compose picker; flag-on cancellation, exact
     const attachments = [];
     const compose = {
       itemId: "office-vault-picker-compose",
-      internetMessageId: "<vault-picker-compose@example.invalid>",
-      conversationId: "vault-picker-compose-conversation",
+      internetMessageId: null,
+      conversationId: null,
       subject: {
         getAsync(callback) { callback({ status: "succeeded", value: "Vault picker compose" }); },
       },
@@ -279,6 +279,16 @@ test("sealed build flag controls the compose picker; flag-on cancellation, exact
     await page.waitForFunction((matterId) => Boolean(document.querySelector(`#matter-select option[value='${matterId}']`)), MATTER);
     await page.locator("#matter-select").selectOption(MATTER);
     await page.waitForResponse((response) => new URL(response.url()).pathname === `/api/outlook/matters/${MATTER}/documents`);
+    assert.equal(
+      requests.some(({ path: value }) => value === "/api/outlook/messages/identity"),
+      false,
+      "compose drafts must not invoke read-message canonical identity recovery",
+    );
+    assert.equal(
+      requests.some(({ path: value }) => value === "/api/outlook/operation-receipts/readback"),
+      false,
+      "compose drafts must not invoke read-message receipt recovery",
+    );
     await page.locator("[data-testid='outlook-overlay-close']").click();
     await page.waitForSelector("[data-testid='outlook-overlay']", { state: "detached" });
     await page.waitForFunction(() => document.querySelector("[data-feature-id='vault.attach-exact-version']")?.disabled === false);

@@ -15,10 +15,18 @@ export function outlookItemIdentityKey(snapshot) {
   return values.every(Boolean) ? values.join("\u001f") : "";
 }
 
+function outlookComposeDraftIdentityKey(snapshot) {
+  if (!snapshot || typeof snapshot !== "object") return "";
+  const restMessageId = text(snapshot.rest_message_id);
+  return restMessageId ? `draft-rest:${restMessageId}` : "";
+}
+
 export function outlookItemContextKey({ item, mode, provenance } = {}) {
-  const itemKey = outlookItemIdentityKey(item);
   const nextMode = text(mode);
   const nextProvenance = text(provenance);
+  const itemKey = nextMode === "compose" && nextProvenance === "draft"
+    ? outlookComposeDraftIdentityKey(item)
+    : outlookItemIdentityKey(item);
   return itemKey
     && OUTLOOK_ITEM_MODES.has(nextMode)
     && OUTLOOK_ITEM_PROVENANCE.has(nextProvenance)
@@ -180,6 +188,17 @@ export function outlookItemChangeDisposition({
 }
 
 export function isSameOutlookItem(left, right) {
+  const leftIsDraft = text(left?.mode) === "compose"
+    && text(left?.provenance) === "draft";
+  const rightIsDraft = text(right?.mode) === "compose"
+    && text(right?.provenance) === "draft";
+  if (leftIsDraft || rightIsDraft) {
+    const leftDraftKey = outlookComposeDraftIdentityKey(left);
+    return leftIsDraft
+      && rightIsDraft
+      && Boolean(leftDraftKey)
+      && leftDraftKey === outlookComposeDraftIdentityKey(right);
+  }
   const leftKey = outlookItemIdentityKey(left);
   return Boolean(leftKey) && leftKey === outlookItemIdentityKey(right);
 }

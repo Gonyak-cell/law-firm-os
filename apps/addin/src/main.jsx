@@ -1588,6 +1588,11 @@ function App() {
       matterId,
     });
     if (!isBusinessReadCurrent(readFence, { currentItem: sourceItem, matterId })) return;
+    if (sourceItem.mode === "compose" && sourceItem.provenance === "draft") {
+      setReceiptRecovery(null);
+      await refreshMatter(matterId, { businessReadFence: readFence });
+      return;
+    }
     let pinnedItem = sourceItem;
     if (!pinnedItem.canonical_graph_message_id) {
       const identityRequest = createOutlookCanonicalMessageIdentityRequest({

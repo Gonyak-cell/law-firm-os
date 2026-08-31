@@ -29,6 +29,21 @@ function context(suffix = "001", overrides = {}) {
   });
 }
 
+function draftContext(suffix = "001") {
+  return Object.freeze({
+    item: Object.freeze({
+      rest_message_id: `rest-draft-${suffix}`,
+      graph_message_id: `rest-draft-${suffix}`,
+      internet_message_id: null,
+      conversation_id: null,
+      mode: "compose",
+      provenance: "draft",
+    }),
+    mode: "compose",
+    provenance: "draft",
+  });
+}
+
 const matter = Object.freeze({
   matter_id: "matter-outlook-001",
   matter_code: "OUTLOOK/LIT/001",
@@ -139,6 +154,28 @@ test("Matter selection is explicit, canonical, and retained for only one Outlook
       (error) => error.safe_error_code === "OUTLOOK_MATTER_SELECTION_REQUIRED",
     );
   }
+});
+
+test("저장된 작성 중 초안은 REST ID에 결합한 Matter 선택을 유지한다", () => {
+  const selection = createOutlookMatterSelection({
+    itemContext: draftContext(),
+    matter,
+  });
+
+  assert.strictEqual(
+    outlookMatterSelectionForContext({
+      selection,
+      itemContext: draftContext(),
+    }),
+    selection,
+  );
+  assert.equal(
+    outlookMatterSelectionForContext({
+      selection,
+      itemContext: draftContext("002"),
+    }),
+    null,
+  );
 });
 
 test("Every write revalidation requires the same item key and an exact fresh canonical Matter result", () => {

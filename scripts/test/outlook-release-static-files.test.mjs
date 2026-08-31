@@ -249,7 +249,7 @@ test("sealed static receipt binds content-addressed candidate and prior snapshot
   assert.deepEqual(validateStaticFilesReleaseReceipt(receipt, options), {
     verdict: "PASS",
     candidate_artifact_count: candidate.artifact_count,
-    prior_artifact_count: 15,
+    prior_artifact_count: 13,
     alias_mutation_count: 0,
     external_mutations: 0,
   });

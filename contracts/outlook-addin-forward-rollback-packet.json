@@ -7,7 +7,7 @@
     "static": {
       "action": "restore_prior_aliases_from_verified_snapshot",
       "contract_ref": "contracts/outlook-addin-forward-static-rollback.json",
-      "contract_sha256": "996b63708e09f0435405ac31e06a28c185872a4c5a365bbdd69befc186ca7f04",
+      "contract_sha256": "a9b951c582cdbd9d214e906b7c37c6b0b65eaed0f5ec207d9d0564388e8d0be2",
       "snapshot_inventory_sha256": "a37b05476b9243a3af01f51992b82f920202d2eed62a3ada876f0a7eae3e194d",
       "snapshot_inventory_canonical_sha256": "27e7b6fe79b547742e2ac5433796be3db059fdddb841f2832f490f184a99126d",
       "restore_profiles": [
