@@ -33,8 +33,8 @@
       "target_prefix": "addin/",
       "taskpane_path": "addin/index.html",
       "entry_bundle_path": "addin/assets/index-DC9vmN9U.js",
-      "artifact_count": 12,
-      "inventory_sha256": "1af919cbfdad5930acfb8cb499e95ac125bc8fe2a286d423f443ffc7ed7d9345",
+      "artifact_count": 10,
+      "inventory_sha256": "5fb36a2a9387317008c23cac82d393ccee9b049f04e6e6ba05f05536cffca822",
       "artifacts": [
         {
           "path": "addin/amic-law-icon.png",
@@ -60,16 +60,6 @@
           "path": "addin/assets/main-D7Fd2vxP.css",
           "byte_size": 10291,
           "sha256": "994903cc3bb3b960c76864dc88cdc14210cf8a3979689e3bbfeb14d259d1e2ee"
-        },
-        {
-          "path": "addin/event-runtime.html",
-          "byte_size": 283,
-          "sha256": "868944d2a2c2114bed40be663632dfb5eb17a9475f3ec00cffe31de6f9467e70"
-        },
-        {
-          "path": "addin/event-runtime.js",
-          "byte_size": 275337,
-          "sha256": "3ca7a628bcc49c9dbbb314da027c44a609785a4561f577ed0406b0c54fbb8f70"
         },
         {
           "path": "addin/index.html",
