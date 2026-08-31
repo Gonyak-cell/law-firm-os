@@ -17,6 +17,8 @@ export function outlookItemIdentityKey(snapshot) {
 
 function outlookComposeDraftIdentityKey(snapshot) {
   if (!snapshot || typeof snapshot !== "object") return "";
+  const composeContextId = text(snapshot.compose_context_id);
+  if (composeContextId) return `draft-session:${composeContextId}`;
   const restMessageId = text(snapshot.rest_message_id);
   return restMessageId ? `draft-rest:${restMessageId}` : "";
 }
