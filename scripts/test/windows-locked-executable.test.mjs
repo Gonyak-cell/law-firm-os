@@ -446,7 +446,7 @@ test("Windows locked executable session keeps the stream across launch, adopt, w
   assert.equal(child.requests[1].process_tree_policy, "contained");
 });
 
-test("verified NSIS bootstrap may finish cleanup outside the kill-on-close job", async () => {
+test("verified NSIS install or uninstall bootstrap may finish cleanup outside the kill-on-close job", async () => {
   const child = new FakePowerShell();
   const session = await openWindowsLockedExecutable({
     executablePath: "C:\\runner\\matter.exe",

@@ -114,7 +114,10 @@ function waitUntilSync(predicate, message, timeoutMs = 45_000) {
 
 async function installPackage(lockedSession) {
   assert.ok(lockedSession, "NSIS install must use a held executable lock");
-  const processRecord = await lockedSession.launch(["/S", `/D=${installDir}`], { cwd: ROOT });
+  const processRecord = await lockedSession.launch(["/S", `/D=${installDir}`], {
+    cwd: ROOT,
+    processTreePolicy: "verified-bootstrap",
+  });
   const result = await lockedSession.waitForProcessExit(processRecord.pid);
   assert.equal(result.exit_code, 0, "NSIS installer failed while its exact executable was locked");
   const executablePath = path.join(installDir, "matter.exe");

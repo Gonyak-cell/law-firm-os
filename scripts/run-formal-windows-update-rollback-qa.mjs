@@ -542,7 +542,10 @@ async function main() {
           lockedSession.inspection.authenticode,
           { expectedCertificateSha1 },
         );
-        processRecord = await lockedSession.launch(["/S", `/D=${installDir}`], { cwd: artifactRoot });
+        processRecord = await lockedSession.launch(["/S", `/D=${installDir}`], {
+          cwd: artifactRoot,
+          processTreePolicy: "verified-bootstrap",
+        });
         const result = await lockedSession.waitForProcessExit(processRecord.pid);
         if (result.exit_code !== 0) fail("WINDOWS_INSTALLER_EXIT", "locked NSIS installer returned a non-zero exit code");
       } finally {
