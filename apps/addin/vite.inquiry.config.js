@@ -13,6 +13,11 @@ const inquiryProfile = Object.freeze({
   itemModes: ["read"],
   actions: ["inquiry.create", "inquiry.link"],
 });
+const configuredBuildRevision = process.env.LAWOS_OUTLOOK_ADDIN_BUILD_REVISION;
+const buildRevision = configuredBuildRevision === undefined ? "local" : configuredBuildRevision;
+if (buildRevision !== buildRevision.trim() || !/^[A-Za-z0-9._-]{1,128}$/u.test(buildRevision)) {
+  throw new TypeError("LAWOS_OUTLOOK_ADDIN_BUILD_REVISION is invalid");
+}
 
 export default defineConfig(({ mode }) => ({
   root: inquiryRoot,
@@ -20,6 +25,7 @@ export default defineConfig(({ mode }) => ({
   define: {
     __LAWOS_OUTLOOK_BUILD_PROFILE__: JSON.stringify(inquiryProfile),
     __LAWOS_OUTLOOK_NAA_REDIRECT_PATH__: JSON.stringify("/outlook-addin/index.html"),
+    __LAWOS_OUTLOOK_ADDIN_BUILD__: JSON.stringify(`addin@${buildRevision}`),
   },
   plugins: [react()],
   server: {

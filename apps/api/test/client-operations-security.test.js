@@ -24,8 +24,15 @@ import {
 import { createAnalyticsRuntimeContext } from "../src/analytics-runtime-context.js";
 import { evaluateRouteDecision } from "../src/permission-gate.js";
 import { createApiSessionAuth } from "../src/session-auth.js";
-import { startApiServer } from "../src/server.js";
+import {
+  createApiServer,
+  createDefaultCrmIntakeRuntime,
+  createDefaultFinanceRuntime,
+  createDefaultMasterDataRuntime,
+  startApiServer,
+} from "../src/server.js";
 import { apiSessionHeaders } from "./helpers/session.js";
+import { createTrustedOutlookInstallationTestAuthority } from "./helpers/outlook-trusted-installation-runtime.js";
 
 const TENANT = MATTER_VAULT_REGISTERED_TENANT_ID;
 const AS_OF = "2026-07-30T03:00:00.000Z";
@@ -225,17 +232,63 @@ function securityFixture({ aggregate = false } = {}) {
 }
 
 async function withServer(fixture, callback, { emailDmsRuntime = null, sessionAuth = null } = {}) {
-  const started = await startApiServer({
-    port: 0,
-    runtimeProfile: "local-dev",
-    sessionAuth: sessionAuth ?? createOperationalSessionAuth(),
-    masterDataRepository: fixture?.masterDataRepository,
-    crmRepository: fixture?.crmRepository,
-    crmMasterDataRepository: fixture?.masterDataRepository,
-    financeRepository: fixture?.financeRepository,
-    analyticsRuntime: fixture?.analyticsRuntime,
-    emailDmsRuntime: emailDmsRuntime ?? undefined,
-  });
+  const baseSessionAuth = sessionAuth ?? createOperationalSessionAuth();
+  let started;
+  let additionalRepositories = [];
+  if (emailDmsRuntime) {
+    const outlookPrincipal = {
+      tenant_id: TENANT,
+      user_id: account("yjlee@amic.kr").user_id,
+    };
+    const installationAuthority =
+      createTrustedOutlookInstallationTestAuthority([outlookPrincipal]);
+    const masterDataRuntime = createDefaultMasterDataRuntime({
+      repository: fixture?.masterDataRepository,
+    });
+    const crmIntakeRuntime = createDefaultCrmIntakeRuntime({
+      crmRepository: fixture?.crmRepository,
+      crmMasterDataRepository: fixture?.masterDataRepository,
+      emailDmsRepository: emailDmsRuntime.repository,
+    });
+    const financeRuntime = createDefaultFinanceRuntime({
+      repository: fixture?.financeRepository,
+      masterDataRepository: fixture?.masterDataRepository,
+      crmRepository: fixture?.crmRepository,
+    });
+    const resolvedSessionAuth =
+      installationAuthority.wrapSessionAuth(baseSessionAuth);
+    const server = createApiServer({
+      masterDataRuntime,
+      crmIntakeRuntime,
+      financeRuntime,
+      analyticsRuntime: fixture?.analyticsRuntime,
+      emailDmsRuntime,
+      outlookDesktopRuntime: installationAuthority.runtime,
+      sessionAuth: resolvedSessionAuth,
+    });
+    await new Promise((resolve, reject) => {
+      server.once("error", reject);
+      server.listen(0, "127.0.0.1", resolve);
+    });
+    started = {
+      server,
+      host: "127.0.0.1",
+      port: server.address().port,
+      sessionAuth: resolvedSessionAuth,
+    };
+    additionalRepositories = [crmIntakeRuntime.intakeRepository];
+  } else {
+    started = await startApiServer({
+      port: 0,
+      runtimeProfile: "local-dev",
+      sessionAuth: baseSessionAuth,
+      masterDataRepository: fixture?.masterDataRepository,
+      crmRepository: fixture?.crmRepository,
+      crmMasterDataRepository: fixture?.masterDataRepository,
+      financeRepository: fixture?.financeRepository,
+      analyticsRuntime: fixture?.analyticsRuntime,
+    });
+  }
   try {
     return await callback(started, `http://${started.host}:${started.port}`);
   } finally {
@@ -248,6 +301,7 @@ async function withServer(fixture, callback, { emailDmsRuntime = null, sessionAu
       fixture?.financeRepository,
       fixture?.analyticsRepository,
       emailDmsRuntime?.repository,
+      ...additionalRepositories,
     ]) {
       repository?.close?.();
     }

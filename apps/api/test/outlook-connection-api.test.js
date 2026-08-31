@@ -2,7 +2,10 @@ import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import test from "node:test";
 import { createEmailDmsRepository } from "../../../packages/email-dms/src/repository.js";
-import { M365_GRAPH_REQUIRED_SCOPES } from "../../../packages/email-dms/src/m365-connection-model.js";
+import {
+  M365_GRAPH_REQUIRED_SCOPES,
+  hashMailboxAddress,
+} from "../../../packages/email-dms/src/m365-connection-model.js";
 import { M365_GRAPH_CALLBACK_MODES } from "../../../packages/email-dms/src/m365-graph-connection-service.js";
 import { handleOutlookAddinApiRequest } from "../src/outlook-addin-runtime-context.js";
 import {
@@ -384,6 +387,14 @@ test("CL-P3-W00-T01 Outlook 연결 API는 PKCE 시작·본인 연결·조회·pr
     runtime,
   });
   assert.equal(connected.body.item.connection.state_version, 1);
+  assert.equal(
+    connected.body.item.connection.mailbox_address_hash,
+    hashMailboxAddress("api.synthetic@example.invalid"),
+  );
+  assert.equal(
+    Object.hasOwn(connected.body.item.connection, "mailbox_address"),
+    false,
+  );
   assert.equal(connected.body.item.shared_mailbox_enabled, false);
   assert.equal(
     connected.body.item.automatic_mailbox_scan_enabled,

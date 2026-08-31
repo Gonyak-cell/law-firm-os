@@ -44,6 +44,7 @@ import {
   createLambdaPasswordResetEmailDelivery,
   handler,
   resolveLambdaHrxStepUpSecrets,
+  resolveLambdaAmicVaultProviders,
   resolveLambdaSessionSecret,
 } from "../src/lambda.js";
 import {
@@ -443,6 +444,98 @@ test("Lambda HTTP proxy logs only safe Outlook failure metadata", async () => {
     status: 409,
   });
   assert.equal(logs[3].includes("CLIENT_SECRET_ABC123"), false);
+
+  await lambdaHandler({
+    rawPath: "/api/desktop/installations/odi_PRIVATE_DEVICE_ID/heartbeat",
+    requestContext: {
+      requestId: "aws-request-outlook-5",
+      http: { method: "POST" },
+    },
+  });
+  assert.deepEqual(JSON.parse(logs[4]), {
+    event: "lawos.outlook.request_failed",
+    method: "POST",
+    operation: "desktop_installation_heartbeat",
+    path: "/api/desktop/installations/:id/heartbeat",
+    request_id: "aws-request-outlook-5",
+    safe_error_codes: ["OUTLOOK_ADDIN_ATTACHMENT_PROVENANCE_MISMATCH"],
+    status: 409,
+  });
+  assert.equal(logs[4].includes("PRIVATE_DEVICE_ID"), false);
+});
+
+test("Lambda HTTP proxy preserves exact Outlook Vault delivery bytes as API Gateway base64", async () => {
+  const bytes = Buffer.from([0, 255, 1, 2, 128, 64, 10]);
+  const token = "lawos_ovd_v1.opaque-token-part.ciphertext-part.auth-tag-part";
+  let forwardedUrl = null;
+  const lambdaHandler = createLambdaHttpHandler({
+    runtimeCache: Object.freeze({
+      async get() { return { port: 32123 }; },
+    }),
+    fetchFn: async (url) => {
+      forwardedUrl = url;
+      return new Response(bytes, {
+        status: 200,
+        headers: {
+          "content-type": "application/pdf",
+          "content-disposition": "attachment; filename=exact.pdf",
+          "cache-control": "private, max-age=60, immutable",
+        },
+      });
+    },
+  });
+
+  const response = await lambdaHandler({
+    rawPath: `/api/outlook/vault/attachments/delivery/${token}`,
+    requestContext: { http: { method: "GET" } },
+  });
+  assert.equal(
+    forwardedUrl,
+    `http://127.0.0.1:32123/api/outlook/vault/attachments/delivery/${token}`,
+  );
+  assert.equal(response.statusCode, 200);
+  assert.equal(response.isBase64Encoded, true);
+  assert.deepEqual(Buffer.from(response.body, "base64"), bytes);
+  assert.equal(response.headers["content-type"], "application/pdf");
+  assert.equal(response.headers["cache-control"], "private, max-age=60, immutable");
+});
+
+test("Lambda Outlook Vault delivery failure logs no opaque delivery token", async () => {
+  const logs = [];
+  const privateToken = "lawos_ovd_v1.PRIVATE_TOKEN_PART.ciphertext.auth-tag";
+  const lambdaHandler = createLambdaHttpHandler({
+    runtimeCache: Object.freeze({
+      async get() { return { port: 32123 }; },
+    }),
+    fetchFn: async () => new Response(JSON.stringify({
+      outcome: "blocked",
+      safe_error_codes: ["OUTLOOK_VAULT_DELIVERY_TOKEN_INVALID"],
+    }), {
+      status: 403,
+      headers: { "content-type": "application/json" },
+    }),
+    logFn: (entry) => logs.push(entry),
+  });
+  const response = await lambdaHandler({
+    rawPath: `/api/outlook/vault/attachments/delivery/${privateToken}`,
+    requestContext: {
+      requestId: "aws-request-vault-delivery-1",
+      http: { method: "GET" },
+    },
+  });
+  assert.equal(response.statusCode, 403);
+  assert.equal(response.isBase64Encoded, false);
+  assert.equal(logs.length, 1);
+  assert.deepEqual(JSON.parse(logs[0]), {
+    event: "lawos.outlook.request_failed",
+    method: "GET",
+    operation: "outlook_route",
+    path: "/api/outlook/:other",
+    request_id: "aws-request-vault-delivery-1",
+    safe_error_codes: ["OUTLOOK_VAULT_DELIVERY_TOKEN_INVALID"],
+    status: 403,
+  });
+  assert.equal(logs[0].includes("PRIVATE_TOKEN_PART"), false);
 });
 
 async function createDurableStorePaths(root) {
@@ -495,6 +588,41 @@ test("Lambda bootstrap derives separated HRX step-up keys from an exact secret r
   assert.equal(resolved.hrxStepUpSecret, expected("token-signing"));
   assert.equal(resolved.hrxStepUpTotpSecret, expected("totp"));
   assert.notEqual(resolved.hrxStepUpSecret, resolved.hrxStepUpTotpSecret);
+});
+
+test("Lambda bootstrap resolves one exact Vault provider secret without exposing token material", async () => {
+  const token = "vault-provider-token-that-is-longer-than-thirty-two-bytes";
+  const resolved = await resolveLambdaAmicVaultProviders({
+    env: {
+      LAWOS_RUNTIME_PROFILE: "operational",
+      LAWOS_AMIC_VAULT_PROVIDER_TOKEN_SECRET_ID:
+        "/amic-vault/prod/api/provider-token",
+      LAWOS_AMIC_VAULT_UPLOAD_PROVIDER_ENABLED: "true",
+      LAWOS_AMIC_VAULT_UPLOAD_PROVIDER_ORIGIN: "https://vault.example.test",
+      LAWOS_AMIC_VAULT_EXPORT_PROVIDER_ENABLED: "true",
+      LAWOS_AMIC_VAULT_EXPORT_PROVIDER_ORIGIN: "https://vault.example.test",
+    },
+    client: {
+      async send(command) {
+        assert.equal(command.constructor.name, "GetSecretValueCommand");
+        assert.deepEqual(command.input, {
+          SecretId: "/amic-vault/prod/api/provider-token",
+        });
+        return { SecretString: token };
+      },
+    },
+    fetchFn: async () => {
+      throw new Error("provider transport must not run during bootstrap");
+    },
+  });
+
+  assert.equal(resolved.vaultUploadProvider.authority_kind, "amic-vault-api");
+  assert.equal(resolved.vaultExportProvider.authority_kind, "amic-vault-api");
+  assert.equal(JSON.stringify(resolved).includes(token), false);
+  assert.deepEqual(Object.keys(resolved).sort(), [
+    "vaultExportProvider",
+    "vaultUploadProvider",
+  ]);
 });
 
 test("Lambda password reset email delivery uses SESv2 simple content and never returns token material", async () => {

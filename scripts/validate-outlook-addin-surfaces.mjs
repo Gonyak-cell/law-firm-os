@@ -57,7 +57,7 @@ function validateProjection({ profile, environment, projection, contract, mode }
   assertEqual(projection.product_id, profile.product_id, `${prefix} product_id`);
   assertEqual(
     projection.version,
-    mode === "candidate" ? contract.release_candidate_version : contract.deployed_baseline_version,
+    mode === "candidate" ? profile.candidate_version : contract.deployed_baseline_version,
     `${prefix} version`,
   );
   assertEqual(projection.provider_name, profile.provider_name, `${prefix} provider_name`);
@@ -138,6 +138,7 @@ export async function validateOutlookAddinSurfaces({
         manifestOverrides[profile.manifests.production]
           ?? (await readFile(path.join(repoRoot, profile.manifests.production), "utf8")),
       ),
+      semantic_sha256: projections.production.semantic_manifest_sha256,
     });
   }
   return { mode, profiles: results, permission_event_diff: "none" };

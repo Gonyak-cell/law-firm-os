@@ -32,6 +32,9 @@ const npxExecutable = process.platform === "win32" ? (process.env.ComSpec ?? "cm
 const scriptDir = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(scriptDir, "..");
 const desktopRoot = join(repoRoot, "apps/desktop");
+const classicOutlookProjectPath = join(repoRoot, "apps/outlook-classic-native/AMIC.OS.Vault.Outlook.csproj");
+const classicOutlookDllName = "AMIC.OS.Vault.Outlook.dll";
+const classicOutlookDllPath = join(repoRoot, "apps/outlook-classic-native/bin/Release/net48", classicOutlookDllName);
 const packageJson = JSON.parse(await readFile(join(desktopRoot, "package.json"), "utf8"));
 const sourceIdentity = readDesktopBuildSourceIdentity(repoRoot);
 const builderConfigPath = join(desktopRoot, "electron-builder.yml");
@@ -88,7 +91,7 @@ assertDesktopFormalBuildProvenance({
   expectedSourceSha: process.env.MATTER_DESKTOP_EXPECTED_SOURCE_SHA,
 });
 const appId = channelConfig.appId;
-const artifactName = `${channelConfig.artifactPrefix}-${packageJson.version}`;
+const artifactName = `${channelConfig.windowsArtifactPrefix}-${packageJson.version}`;
 const installerPath = join(desktopRoot, "dist", `${artifactName}-win-x64.exe`);
 const blockmapPath = `${installerPath}.blockmap`;
 const unpackedPath = join(desktopRoot, "dist", "win-unpacked");
@@ -151,6 +154,17 @@ async function authenticodeRecord(filePath) {
   return JSON.parse(stdout);
 }
 
+await execFileAsync(
+  "dotnet",
+  ["build", classicOutlookProjectPath, "--configuration", "Release", "--nologo"],
+  {
+    cwd: repoRoot,
+    env: process.env,
+    maxBuffer: 1024 * 1024 * 20,
+  },
+);
+const classicOutlookSourceDll = await fileRecord(classicOutlookDllPath);
+
 await rm(installerPath, { force: true });
 await rm(blockmapPath, { force: true });
 await rm(unpackedPath, { recursive: true, force: true });
@@ -168,6 +182,9 @@ try {
   await cp(join(desktopRoot, "build"), join(stagingProjectRoot, "build"), { recursive: true });
   const provenanceRoot = join(stagingProjectRoot, ".release-provenance");
   await mkdir(provenanceRoot, { recursive: true });
+  const classicOutlookResourceRoot = join(provenanceRoot, "classic-outlook");
+  await mkdir(classicOutlookResourceRoot, { recursive: true });
+  await cp(classicOutlookDllPath, join(classicOutlookResourceRoot, classicOutlookDllName));
   await writeFile(
     join(provenanceRoot, buildManifestName),
     `${JSON.stringify(installerBuildManifest, null, 2)}\n`,
@@ -204,6 +221,10 @@ try {
           `    to: ${formalReleaseMarkerName}`,
         ]
       : []),
+    "  - from: .release-provenance/classic-outlook",
+    "    to: classic-outlook",
+    "    filter:",
+    '      - "**/*"',
     "",
   ].join("\n");
   const builderConfiguration = injectMatterDesktopAuthenticodeConfiguration(
@@ -222,6 +243,8 @@ try {
     "--publish",
     "never",
     `-c.appId=${appId}`,
+    `-c.productName=${channelConfig.windowsProductName}`,
+    `-c.executableName=${channelConfig.windowsExecutableName}`,
     `-c.artifactName=${artifactName}-\${os}-\${arch}.\${ext}`,
     "-c.electronVersion=42.7.0",
     ...(explicitElectronDist ? [`-c.electronDist=${explicitElectronDist}`] : []),
@@ -258,6 +281,14 @@ try {
     formalRelease,
     "Windows installer formal marker must match the release channel",
   );
+  const packagedClassicOutlookDll = await fileRecord(
+    join(packagedResources, "classic-outlook", classicOutlookDllName),
+  );
+  assert.equal(
+    packagedClassicOutlookDll.sha256,
+    classicOutlookSourceDll.sha256,
+    "Windows installer Classic Outlook adapter must match the exact built DLL",
+  );
   await verifyDesktopMainRuntimeDependencies({
     targetAppSourceDir: join(packagedResources, "app"),
     repoRoot,
@@ -283,10 +314,18 @@ for (const assetPath of runtimeAssetPaths) {
 
 const installer = await fileRecord(installerPath);
 const blockmap = await fileRecord(blockmapPath);
+const classicOutlookNativeDll = await fileRecord(
+  join(unpackedPath, "resources", "classic-outlook", classicOutlookDllName),
+);
+assert.equal(
+  classicOutlookNativeDll.sha256,
+  classicOutlookSourceDll.sha256,
+  "copied Windows package Classic Outlook adapter must match the exact built DLL",
+);
 const authenticodeResult = authenticodeConfiguration
   ? validateMatterDesktopAuthenticodeSignatures([
       await authenticodeRecord(installerPath),
-      await authenticodeRecord(join(unpackedPath, "matter.exe")),
+      await authenticodeRecord(join(unpackedPath, `${channelConfig.windowsExecutableName}.exe`)),
     ], { expectedCertificateSha1: authenticodeConfiguration.certificate_sha1 })
   : null;
 const packagedBuildManifestPath = join(unpackedPath, "resources", buildManifestName);
@@ -295,7 +334,7 @@ const nativeInstallSmoke = `not_run_on_${process.platform}`;
 const relativeInstallerPath = "apps/desktop/dist/" + `${artifactName}-win-x64.exe`;
 const relativeBlockmapPath = `${relativeInstallerPath}.blockmap`;
 const priorReceipt = existsSync(receiptPath) ? await readFile(receiptPath, "utf8") : "";
-const receiptSection = `\n## Installer Package\n\n- Windows installer: \`${relativeInstallerPath}\`\n- Windows installer sha256: \`${installer.sha256}\`\n- Windows installer bytes: ${installer.bytes}\n- Windows installer blockmap: \`${relativeBlockmapPath}\`\n- Windows installer blockmap sha256: \`${blockmap.sha256}\`\n- Windows installer blockmap bytes: ${blockmap.bytes}\n- Windows installer packaging: nsis-x64\n- Windows renderer runtime assets: verified (${runtimeAssetPaths.length})\n- Windows installer build manifest: verified (${installerBuildManifest.source_sha})\n- Windows installer renderer sha256: \`${installerBuildManifest.renderer.sha256}\`\n- Windows installer formal marker: ${formalRelease ? "verified" : "not_applicable"}\n- Windows native install smoke: ${nativeInstallSmoke}\n- Windows Authenticode signing: ${Boolean(authenticodeResult)}\n- Windows Authenticode timestamp verified: ${authenticodeResult?.timestamp_verified === true}\n- Windows Authenticode signer certificate SHA-1: \`${authenticodeResult?.signer_certificate_sha1 ?? "not_applicable"}\`\n- Windows Authenticode signer subject: \`${authenticodeResult?.signer.subject ?? "not_applicable"}\`\n- Windows Authenticode signer code-signing EKU verified: ${authenticodeResult?.signer_code_signing_eku_verified === true}\n- Windows Authenticode timestamp EKU verified: ${authenticodeResult?.timestamp_eku_verified === true}\n`;
+const receiptSection = `\n## Installer Package\n\n- Windows product name: \`${channelConfig.windowsProductName}\`\n- Windows artifact prefix: \`${channelConfig.windowsArtifactPrefix}\`\n- Windows executable name: \`${channelConfig.windowsExecutableName}.exe\`\n- Windows installer: \`${relativeInstallerPath}\`\n- Windows installer sha256: \`${installer.sha256}\`\n- Windows installer bytes: ${installer.bytes}\n- Windows installer blockmap: \`${relativeBlockmapPath}\`\n- Windows installer blockmap sha256: \`${blockmap.sha256}\`\n- Windows installer blockmap bytes: ${blockmap.bytes}\n- Windows installer packaging: nsis-x64\n- Windows renderer runtime assets: verified (${runtimeAssetPaths.length})\n- Windows installer build manifest: verified (${installerBuildManifest.source_sha})\n- Windows installer renderer sha256: \`${installerBuildManifest.renderer.sha256}\`\n- Windows Classic Outlook adapter: bundled\n- Windows Classic Outlook adapter sha256: \`${classicOutlookNativeDll.sha256}\`\n- Windows Classic Outlook user registration: NSIS HKCU 32-bit and 64-bit registry views\n- Windows installer formal marker: ${formalRelease ? "verified" : "not_applicable"}\n- Windows native install smoke: ${nativeInstallSmoke}\n- Windows Authenticode signing: ${Boolean(authenticodeResult)}\n- Windows Authenticode timestamp verified: ${authenticodeResult?.timestamp_verified === true}\n- Windows Authenticode signer certificate SHA-1: \`${authenticodeResult?.signer_certificate_sha1 ?? "not_applicable"}\`\n- Windows Authenticode signer subject: \`${authenticodeResult?.signer.subject ?? "not_applicable"}\`\n- Windows Authenticode signer code-signing EKU verified: ${authenticodeResult?.signer_code_signing_eku_verified === true}\n- Windows Authenticode timestamp EKU verified: ${authenticodeResult?.timestamp_eku_verified === true}\n`;
 
 await mkdir(dirname(receiptPath), { recursive: true });
 await writeFile(receiptPath, `${priorReceipt.trimEnd()}${receiptSection}`);
@@ -312,7 +351,13 @@ console.log(
       blockmap_bytes: blockmap.bytes,
       release_channel: releaseChannel,
       app_id: appId,
+      product_name: channelConfig.windowsProductName,
+      artifact_prefix: channelConfig.windowsArtifactPrefix,
+      executable_name: `${channelConfig.windowsExecutableName}.exe`,
       runtime_asset_sha256: runtimeAssetSha256,
+      classic_outlook_adapter_bundled: true,
+      classic_outlook_adapter_sha256: classicOutlookNativeDll.sha256,
+      classic_outlook_user_registration: "nsis_hkcu_registry_views_32_and_64",
       installer_build_manifest: relative(repoRoot, packagedBuildManifestPath),
       installer_source_sha: installerBuildManifest.source_sha,
       installer_source_tree: installerBuildManifest.source_tree,

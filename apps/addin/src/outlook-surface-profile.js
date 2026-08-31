@@ -19,13 +19,12 @@ export const OUTLOOK_SURFACE_PROFILES = deepFreeze({
       hosts: ["Mailbox"],
       itemForms: ["Message:Edit", "Message:Read"],
       extensionPoints: [
-        "LaunchEvent",
         "MessageComposeCommandSurface",
         "MessageComposeCommandSurface",
         "MessageReadCommandSurface",
         "MessageReadCommandSurface",
       ],
-      launchEvents: ["OnMessageSend:onMessageSendHandler:PromptUser"],
+      launchEvents: [],
     },
     itemModes: ["read", "compose"],
     actions: [
@@ -35,7 +34,7 @@ export const OUTLOOK_SURFACE_PROFILES = deepFreeze({
       "matter.file-sent",
       "matter.save-attachments",
       "matter.create-follow-up",
-      "matter.evaluate-smart-alerts",
+      "matter.review-send-explicitly",
     ],
   },
   [OUTLOOK_PRODUCT_IDS.inquiryOnly]: {

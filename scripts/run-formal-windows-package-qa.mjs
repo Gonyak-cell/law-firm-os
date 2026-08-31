@@ -53,6 +53,7 @@ const UNPACKED_EXECUTABLE = path.join(ROOT, "apps/desktop/dist/win-unpacked/matt
 const UNPACKED_RESOURCES = path.join(ROOT, "apps/desktop/dist/win-unpacked/resources");
 const INSTALLER_MANIFEST_PATH = path.join(UNPACKED_RESOURCES, "matter-build-manifest.json");
 const FORMAL_MARKER_PATH = path.join(UNPACKED_RESOURCES, "matter-formal-release.json");
+const UNPACKED_LOCAL_RUNTIME = path.join(UNPACKED_RESOURCES, "app", "runtime");
 const PRIVATE_ROSTER_SOURCE = path.join(ROOT, "docs/reorganization/client-matter-os/matter-vault-r4/launch/hrx-member-roster-source-of-truth.json");
 const ARTIFACT_DIR = path.resolve(process.env.MATTER_FORMAL_WINDOWS_QA_ARTIFACT_DIR
   ?? path.join(ROOT, "artifacts", "manual-qa", "formal-windows-package"));
@@ -324,6 +325,7 @@ for (const requiredPath of [
   UNPACKED_EXECUTABLE,
   PRIVATE_ROSTER_SOURCE,
 ]) assert.equal(existsSync(requiredPath), true, `missing QA prerequisite: ${path.relative(ROOT, requiredPath)}`);
+assert.equal(existsSync(UNPACKED_LOCAL_RUNTIME), false, "formal package must not bundle the local API runtime tree");
 assert.ok(account?.email && account?.local_dev?.synthetic_token);
 
 const packageManifest = readJson(PACKAGE_MANIFEST_PATH);
@@ -559,7 +561,7 @@ try {
       uninstaller: uninstallerReceipt,
       build_manifest_embedded: true,
       formal_marker_embedded: true,
-      bundled_local_api_present: existsSync(path.join(UNPACKED_RESOURCES, "app", "runtime", "apps", "api", "src", "server.js")),
+      bundled_local_api_present: existsSync(UNPACKED_LOCAL_RUNTIME),
       formal_local_api_default_disabled: true,
     },
     runtime: {

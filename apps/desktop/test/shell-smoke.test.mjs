@@ -6,12 +6,16 @@ import { join } from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
 import { APPROVED_DEV_RENDERER_URL } from "../src/main/origin-policy.js";
+import { FILE_BRIDGE_CHANNELS } from "../src/main/fileBridge.js";
 import {
   PASSWORD_RESET_DEEP_LINK_CHANNEL,
   authCallbackDeepLinkIntent,
   collectMatterDeepLinkArgs,
   configureDesktopAppIcon,
   configureDesktopProtocol,
+  createDesktopFileBridgePermissionClient,
+  createDesktopVaultDocumentProvider,
+  createDesktopVaultUploadProvider,
   desktopSecureStoreForRuntime,
   desktopPreloadPath,
   desktopWindowIconPath,
@@ -101,7 +105,8 @@ class FakeIpcMain {
 
   invoke(channel, payload) {
     return this.handlers.get(channel)?.({
-      senderFrame: { url: packagedRendererUrl() }
+      sender: { id: 17 },
+      senderFrame: { url: packagedRendererUrl(), routingId: 3 }
     }, payload);
   }
 }
@@ -121,6 +126,7 @@ test("desktop shell starts with packaged renderer target, preload, and hardened 
   assert.equal(window.options.webPreferences.contextIsolation, true);
   assert.equal(window.options.webPreferences.sandbox, true);
   assert.equal(window.options.webPreferences.webSecurity, true);
+  assert.equal(window.options.title, "AMIC OS");
   assert.equal(window.options.webPreferences.preload, desktopPreloadPath());
   assert.equal(window.options.icon, desktopWindowIconPath());
   assert.equal(window.readyEvent.eventName, "ready-to-show");
@@ -133,6 +139,390 @@ test("desktop shell starts with packaged renderer target, preload, and hardened 
   assert.match(preloadSource, /claimLogoIntro/);
   assert.match(preloadSource, /api: "session:api"/);
   assert.match(preloadSource, /api: \(payload\) => invokeAllowed\("api", payload\)/);
+  assert.match(preloadSource, /contextBridge\.exposeInMainWorld\("amicFileBridge"/);
+});
+
+test("desktop shell registers the active file bridge on the same trusted renderer boundary", async () => {
+  const ipcMain = new FakeIpcMain();
+  const calls = [];
+  const fileBridgeController = {
+    status: () => ({ bridgeExposed: true, uploadReady: false }),
+    precheckUpload: async (request, owner) => {
+      calls.push({ request, owner });
+      return { state: "allowed", preflightId: "file-preflight-001" };
+    },
+    chooseFileForUpload: async () => ({ state: "cancelled" }),
+    cancelUpload: async () => ({ state: "cancelled" }),
+    uploadSelectedFile: async () => ({ state: "uploaded" }),
+    saveDocumentAs: async () => ({ state: "cancelled" }),
+    openDocumentPreview: async () => ({ state: "opened" })
+  };
+  const shell = await startDesktopShell({
+    BrowserWindowConstructor: FakeBrowserWindow,
+    ipcMain,
+    fileBridgeController
+  });
+
+  assert.deepEqual(shell.fileBridgeIpc.channels.slice().sort(), Object.values(FILE_BRIDGE_CHANNELS).sort());
+  assert.deepEqual(await ipcMain.invoke(FILE_BRIDGE_CHANNELS.status), {
+    bridgeExposed: true,
+    uploadReady: false
+  });
+  assert.deepEqual(
+    await ipcMain.invoke(FILE_BRIDGE_CHANNELS.precheckUpload, { matterId: "matter_001" }),
+    { state: "allowed", preflightId: "file-preflight-001" }
+  );
+  assert.deepEqual(calls[0], {
+    request: { matterId: "matter_001" },
+    owner: { ownerId: "web-contents:17:frame:3" }
+  });
+  shell.fileBridgeIpc.dispose();
+  assert.equal(ipcMain.handlers.size, 0);
+});
+
+test("desktop file bridge permission adapter accepts only a server-enabled exact upload preflight", async () => {
+  const calls = [];
+  let writeEnabled = false;
+  const permissionClient = createDesktopFileBridgePermissionClient({
+    async precheckVaultUpload(request) {
+      calls.push(request);
+      return {
+        http_status: 200,
+        ok: true,
+        outcome: "preflight_passed",
+        item: {
+          permission_checked: true,
+          vault_document_write_enabled: writeEnabled,
+          operation_id: "operation-001",
+          max_upload_bytes: 1048576
+        },
+        vault_document_write_enabled: writeEnabled,
+        safe_error_codes: writeEnabled ? [] : ["VAULT_DOCUMENT_WRITE_DISABLED"]
+      };
+    }
+  });
+  const request = {
+    actionId: "precheck_file_upload",
+    matterId: "matter_001",
+    workspaceId: "workspace_001",
+    folderId: "folder_001"
+  };
+
+  assert.deepEqual(await permissionClient.precheckFileBridgeAction(request), {
+    allowed: false,
+    reason: "VAULT_DOCUMENT_WRITE_DISABLED",
+    operationId: null,
+    maxUploadBytes: null
+  });
+  writeEnabled = true;
+  assert.deepEqual(await permissionClient.precheckFileBridgeAction(request), {
+    allowed: true,
+    reason: null,
+    operationId: "operation-001",
+    maxUploadBytes: 1048576
+  });
+  assert.deepEqual(calls[1], {
+    matterId: "matter_001",
+    workspaceId: "workspace_001",
+    folderId: "folder_001"
+  });
+  assert.equal(JSON.stringify(calls).includes("tenant"), false);
+  assert.equal(JSON.stringify(calls).includes("actor"), false);
+  assert.deepEqual(
+    await permissionClient.precheckFileBridgeAction({ actionId: "save_document_as" }),
+    { allowed: false, reason: "vault_export_precheck_unavailable" }
+  );
+});
+
+test("desktop file bridge export adapters preserve exact version binding and keep bytes in main", async () => {
+  const bytes = Buffer.from("exact desktop bytes");
+  const exactVersion = {
+    document_id: "document-001",
+    version_id: "version-007",
+    file_object_id: "file-object-007",
+    sha256: "c".repeat(64),
+    byte_size: bytes.byteLength,
+    mime_type: "application/pdf",
+  };
+  const coordinator = {
+    async precheckVaultUpload() { throw new Error("not used"); },
+    async precheckVaultExport(request) {
+      assert.deepEqual(request, { matterId: "matter-001", exactVersion });
+      return {
+        http_status: 200,
+        ok: true,
+        outcome: "preflight_passed",
+        request_id: "request-export-preflight",
+        exact_version: exactVersion,
+        lawos_permission_checked: true,
+        provider_authority_checked: false,
+        provider_grant_created: false,
+      };
+    },
+    async downloadVaultExactVersion(request) {
+      assert.deepEqual(request, { matterId: "matter-001", exactVersion });
+      return {
+        http_status: 200,
+        ok: true,
+        operation_id: "vaultop_ffffffffffffffffffffffffffffffff",
+        attachment_name: "contract.pdf",
+        exact_version: exactVersion,
+        bytes,
+      };
+    },
+    async completeVaultExport(request) {
+      assert.deepEqual(request, {
+        operationId: "vaultop_ffffffffffffffffffffffffffffffff",
+        exactVersion,
+      });
+      return {
+        http_status: 200,
+        ok: true,
+        outcome: "delivered",
+        operation_id: request.operationId,
+        receipt: { stage: "delivered", receipt_id: "receipt-export-001" },
+      };
+    },
+  };
+  const permission = createDesktopFileBridgePermissionClient(coordinator);
+  assert.deepEqual(await permission.precheckFileBridgeAction({
+    actionId: "save_document_as",
+    matterId: "matter-001",
+    exactVersion,
+  }), {
+    allowed: true,
+    reason: null,
+    decisionId: "request-export-preflight",
+  });
+  assert.deepEqual(await permission.precheckFileBridgeAction({
+    actionId: "open_temp_preview",
+    matterId: "matter-001",
+    exactVersion,
+  }), {
+    allowed: true,
+    reason: null,
+    decisionId: "request-export-preflight",
+  });
+  const provider = createDesktopVaultDocumentProvider(coordinator);
+  const downloaded = await provider.fetchDocumentForSave({
+    matterId: "matter-001",
+    exactVersion,
+  });
+  assert.equal(downloaded.bytes, bytes);
+  assert.equal(downloaded.operationId, "vaultop_ffffffffffffffffffffffffffffffff");
+  assert.deepEqual(await provider.completeDocumentSave({
+    operationId: downloaded.operationId,
+    exactVersion,
+  }), {
+    state: "delivered",
+    operationId: downloaded.operationId,
+    receiptId: "receipt-export-001",
+  });
+});
+
+test("desktop Vault upload provider returns only the exact server receipt projection", async () => {
+  const provider = createDesktopVaultUploadProvider({
+    async uploadVaultFile(request) {
+      assert.equal(request.operationId, "vaultop_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+      assert.equal(request.stream.kind, "test-stream");
+      return {
+        ok: true,
+        http_status: 201,
+        request_id: "request-001",
+        item: {
+          operation_id: request.operationId,
+          document_id: "document-001",
+          version_id: "version-001",
+          file_object_id: "file-object-001",
+          sha256: "b".repeat(64),
+          byte_size: 12,
+          mime_type: "text/plain",
+          audit_event_id: "audit-001",
+          exact_readback_verified: true,
+          raw_path: "/must/not/cross"
+        }
+      };
+    },
+    async continueVaultUpload() { throw new Error("unexpected continuation"); },
+    async rememberPendingVaultUpload() { throw new Error("unexpected pending state"); },
+    async pendingVaultUploads() { return []; },
+    async forgetPendingVaultUpload() { return { forgotten: false }; },
+  });
+  const receipt = await provider.uploadSelectedFile({
+    stream: { kind: "test-stream" },
+    file: { name: "note.txt", mimeType: "text/plain", size: 12 },
+    operationId: "vaultop_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  });
+  assert.deepEqual(receipt, {
+    state: "uploaded",
+    requestId: "request-001",
+    operationId: "vaultop_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    documentId: "document-001",
+    versionId: "version-001",
+    fileObjectId: "file-object-001",
+    sha256: "b".repeat(64),
+    byteSize: 12,
+    mimeType: "text/plain",
+    auditEventId: "audit-001"
+  });
+  assert.equal(JSON.stringify(receipt).includes("/must/not/cross"), false);
+});
+
+test("desktop Vault upload provider polls continuation without passing the file stream again", async () => {
+  const operationId = "vaultop_dddddddddddddddddddddddddddddddd";
+  const sha256 = "c".repeat(64);
+  const calls = [];
+  const pending = new Map();
+  const provider = createDesktopVaultUploadProvider({
+    async uploadVaultFile(request) {
+      calls.push({ method: "upload", request });
+      return {
+        ok: true,
+        http_status: 202,
+        outcome: "processing",
+        local_stream_sha256: sha256,
+        local_stream_byte_size: 12,
+        item: {
+          operation_id: operationId,
+          stage: "scanning",
+          retry_after_ms: 250,
+          exact_readback_verified: false,
+        },
+      };
+    },
+    async continueVaultUpload(request) {
+      calls.push({ method: "status", request });
+      return {
+        ok: true,
+        http_status: 201,
+        outcome: "readback_verified",
+        request_id: "request-status-complete",
+        item: {
+          operation_id: operationId,
+          document_id: "document-status-001",
+          version_id: "version-status-001",
+          file_object_id: "file-status-001",
+          sha256,
+          byte_size: 12,
+          mime_type: "text/plain",
+          audit_event_id: "audit-status-001",
+          exact_readback_verified: true,
+        },
+      };
+    },
+    async rememberPendingVaultUpload(request) {
+      calls.push({ method: "remember", request });
+      pending.set(request.operationId, request.expected);
+    },
+    async pendingVaultUploads() { return []; },
+    async forgetPendingVaultUpload(request) {
+      calls.push({ method: "forget", request });
+      return { forgotten: pending.delete(request.operationId) };
+    },
+  }, { wait: async () => {} });
+  const stream = { kind: "one-use-stream" };
+  const receipt = await provider.uploadSelectedFile({
+    stream,
+    file: { name: "note.txt", mimeType: "text/plain", size: 12 },
+    operationId,
+  });
+  assert.equal(receipt.versionId, "version-status-001");
+  assert.deepEqual(calls.map(({ method }) => method), ["upload", "remember", "status", "forget"]);
+  assert.equal(calls[0].request.stream, stream);
+  assert.equal("stream" in calls[2].request, false);
+  assert.deepEqual(calls[2].request.expected, {
+    sha256,
+    byteSize: 12,
+    mimeType: "text/plain",
+  });
+  assert.equal(pending.size, 0);
+});
+
+test("desktop Vault upload provider resumes a persisted pending operation after provider recreation", async () => {
+  const operationId = "vaultop_eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee";
+  const sha256 = "d".repeat(64);
+  const pending = new Map();
+  const calls = [];
+  let statusCalls = 0;
+  const coordinator = {
+    async uploadVaultFile(request) {
+      calls.push({ method: "upload", request });
+      return {
+        ok: true,
+        http_status: 202,
+        outcome: "processing",
+        request_id: "request-persisted-pending",
+        local_stream_sha256: sha256,
+        local_stream_byte_size: 12,
+        item: {
+          operation_id: operationId,
+          stage: "quarantined",
+          retry_after_ms: 250,
+          exact_readback_verified: false,
+        },
+      };
+    },
+    async continueVaultUpload(request) {
+      calls.push({ method: "status", request });
+      statusCalls += 1;
+      return {
+        ok: true,
+        http_status: 201,
+        outcome: "readback_verified",
+        request_id: `request-resumed-${statusCalls}`,
+        item: {
+          operation_id: operationId,
+          document_id: "document-resumed-001",
+          version_id: "version-resumed-001",
+          file_object_id: "file-resumed-001",
+          sha256,
+          byte_size: 12,
+          mime_type: "text/plain",
+          audit_event_id: "audit-resumed-001",
+          exact_readback_verified: true,
+        },
+      };
+    },
+    async rememberPendingVaultUpload(request) {
+      pending.set(request.operationId, Object.freeze({
+        schema_version: "law-firm-os.desktop-vault-upload-pending.v1",
+        operation_id: request.operationId,
+        expected: Object.freeze({
+          sha256: request.expected.sha256,
+          byte_size: request.expected.byteSize,
+          mime_type: request.expected.mimeType,
+        }),
+      }));
+    },
+    async pendingVaultUploads() { return Object.freeze([...pending.values()]); },
+    async forgetPendingVaultUpload(request) {
+      return { forgotten: pending.delete(request.operationId) };
+    },
+  };
+  const firstProcessProvider = createDesktopVaultUploadProvider(coordinator, {
+    wait: async () => {},
+    maxStatusChecks: 0,
+  });
+  const accepted = await firstProcessProvider.uploadSelectedFile({
+    stream: { kind: "single-stream" },
+    file: { name: "resume.txt", mimeType: "text/plain", size: 12 },
+    operationId,
+  });
+  assert.equal(accepted.state, "processing");
+  assert.equal(accepted.operationId, operationId);
+  assert.equal(accepted.pathVisibleToRenderer, false);
+  assert.equal(pending.size, 1);
+
+  const recreatedProvider = createDesktopVaultUploadProvider(coordinator, {
+    wait: async () => {},
+  });
+  const resumed = await recreatedProvider.resumePendingUploads();
+  assert.equal(resumed.length, 1);
+  assert.equal(resumed[0].state, "uploaded");
+  assert.equal(resumed[0].versionId, "version-resumed-001");
+  assert.equal(pending.size, 0);
+  assert.deepEqual(calls.map(({ method }) => method), ["upload", "status"]);
+  assert.equal("stream" in calls[1].request, false);
 });
 
 test("desktop logo intro claim remains pending until the hidden main window is shown", async () => {

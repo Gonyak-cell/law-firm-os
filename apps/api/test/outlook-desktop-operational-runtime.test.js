@@ -3,9 +3,13 @@ import test from "node:test";
 
 import {
   assertPostgresOutlookDesktopOperationalControlPorts,
+  createOutlookDesktopTrustedCurrentCompatibilityService,
   createPostgresOutlookDesktopOperationalControlPorts,
   createPostgresOutlookDesktopOperationalRuntime,
 } from "../src/outlook-desktop-operational-runtime.js";
+import {
+  parseOutlookDesktopAutoconnectRoster,
+} from "../src/outlook-desktop-entitlement.js";
 import {
   OUTLOOK_DESKTOP_LIFECYCLE_VERIFIER_ACTION,
   OUTLOOK_DESKTOP_LIFECYCLE_VERIFIER_EVENT_SCHEMA,
@@ -17,6 +21,119 @@ const PRINCIPAL = Object.freeze({
   tenant_id: TENANT_ID,
   user_id: "user-outlook-operational-a",
   entra_subject_id: "subject-outlook-operational-a",
+});
+
+function exactRoster() {
+  return parseOutlookDesktopAutoconnectRoster({
+    schema_version: "lawos.outlook-desktop-autoconnect-roster.v1",
+    roster_version: "roster-operational-exact-ten",
+    entries: Array.from({ length: 10 }, (_, index) => ({
+      tenant_id: TENANT_ID,
+      user_id: index === 0
+        ? PRINCIPAL.user_id
+        : `user-outlook-operational-${index}`,
+      entra_subject_id: index === 0
+        ? PRINCIPAL.entra_subject_id
+        : `subject-outlook-operational-${index}`,
+      enabled: true,
+    })),
+  });
+}
+
+function authorityService(readTrustedCurrent, readCurrent = async () => null) {
+  const noop = async () => null;
+  return Object.freeze({
+    authority: "postgres-outlook-desktop-installation-authority",
+    register: noop,
+    heartbeat: noop,
+    retire: noop,
+    read: noop,
+    readCurrent,
+    readTrustedCurrent,
+    projectAssignmentState: noop,
+  });
+}
+
+test("trusted-current compatibility reuses the existing principal-bound read for the exact-ten internal canary", async () => {
+  const internalCanaryCurrent = Object.freeze({
+    installation_id: "odi_operational_canary_000001",
+    status: "active",
+    platform: "win32",
+    app_version: "0.1.29",
+    source_sha: "4df77e1848b52ea455f20b41b9b1c64961bfa1cf",
+    registered_at: "2026-08-27T00:00:00.000Z",
+    last_seen_at: "2026-08-28T00:00:00.000Z",
+    state_version: 2,
+    lease_expires_at: "2099-01-08T00:00:00.000Z",
+    retired_at: null,
+    retire_reason: null,
+  });
+  let fallbackCalls = 0;
+  const readCurrent = async (input) => {
+      fallbackCalls += 1;
+      assert.equal(input.principal, PRINCIPAL);
+      return internalCanaryCurrent;
+  };
+  const compatibility =
+    createOutlookDesktopTrustedCurrentCompatibilityService({
+      authority_service: authorityService(async () => null, readCurrent),
+      entitlement_roster: exactRoster(),
+    });
+  const compatible = await compatibility.readTrustedCurrent({
+    principal: PRINCIPAL,
+  });
+  assert.deepEqual(compatible, {
+    installation_id: internalCanaryCurrent.installation_id,
+    status: "active",
+    state_version: 2,
+    lease_expires_at: internalCanaryCurrent.lease_expires_at,
+    retired_at: null,
+    release_trusted: true,
+    authority_snapshot_at: compatible.authority_snapshot_at,
+  });
+  assert.equal(
+    new Date(compatible.authority_snapshot_at).toISOString(),
+    compatible.authority_snapshot_at,
+  );
+  assert.equal(fallbackCalls, 1);
+
+  const strict = Object.freeze({ ...compatible, state_version: 9 });
+  const strictFirst = createOutlookDesktopTrustedCurrentCompatibilityService({
+    authority_service: authorityService(async () => strict, readCurrent),
+    entitlement_roster: exactRoster(),
+  });
+  assert.equal(
+    await strictFirst.readTrustedCurrent({ principal: PRINCIPAL }),
+    strict,
+  );
+  assert.equal(fallbackCalls, 1);
+
+  const strictFailure = Object.assign(new Error("strict authority unavailable"), {
+    safe_error_code: "OUTLOOK_DESKTOP_INSTALLATION_RUNTIME_UNAVAILABLE",
+  });
+  const failClosed = createOutlookDesktopTrustedCurrentCompatibilityService({
+    authority_service: authorityService(
+      async () => { throw strictFailure; },
+      async () => null,
+    ),
+    entitlement_roster: exactRoster(),
+  });
+  await assert.rejects(
+    failClosed.readTrustedCurrent({ principal: PRINCIPAL }),
+    (error) => error === strictFailure,
+  );
+
+  const wrongPackage = createOutlookDesktopTrustedCurrentCompatibilityService({
+    authority_service: authorityService(
+      async () => null,
+      async () => ({ ...internalCanaryCurrent, source_sha: "5".repeat(40) }),
+    ),
+    entitlement_roster: exactRoster(),
+  });
+  assert.equal(
+    await wrongPackage.readTrustedCurrent({ principal: PRINCIPAL }),
+    null,
+  );
 });
 
 test("default factory eagerly binds the exact 007 authority and write-capable assignment projector", async () => {
@@ -57,6 +174,12 @@ test("default factory eagerly binds the exact 007 authority and write-capable as
   assert.equal(
     runtime.installation_service.authority,
     "postgres-outlook-desktop-installation-authority",
+  );
+  assert.deepEqual(
+    ["register", "heartbeat", "retire"].map(
+      (method) => typeof runtime.legacy_installation_service[method],
+    ),
+    ["function", "function", "function"],
   );
   assert.equal("installation_service_factory" in runtime, false);
   assert.deepEqual(

@@ -282,6 +282,8 @@ test("matter filing home keeps its fixed action reachable in a short Outlook pan
       await button.waitFor({ state: "visible" });
       assert.equal(await page.locator("[data-outlook-layout='filing']").count(), 1);
       assert.equal(await page.locator(".outlook-filing-header img").getAttribute("alt"), "AMIC Law");
+      assert.equal(await page.locator(".outlook-filing-header img").evaluate((logo) => getComputedStyle(logo).width), "92px");
+      assert.equal(await page.locator(".outlook-filing-header img").evaluate((logo) => getComputedStyle(logo).filter), "brightness(0) invert(1)");
       assert.equal(await page.locator(".outlook-filing-tab").innerText(), "메일 저장");
       assert.equal(await page.locator("[data-testid='outlook-filing-overview']").count(), 1);
       assert.deepEqual(

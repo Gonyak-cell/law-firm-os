@@ -21,9 +21,22 @@ const PRELOAD_CHANNEL_ALLOWLIST = Object.freeze({
   logout: "session:logout"
 });
 
+const FILE_BRIDGE_CHANNEL_ALLOWLIST = Object.freeze({
+  status: "fileBridge:status",
+  precheckUpload: "fileBridge:precheck-upload",
+  chooseFileForUpload: "fileBridge:choose-file-for-upload",
+  cancelUpload: "fileBridge:cancel-upload",
+  uploadSelectedFile: "fileBridge:upload-selected-file",
+  resumePendingUploads: "fileBridge:resume-pending-uploads",
+  saveDocumentAs: "fileBridge:save-document-as",
+  openDocumentPreview: "fileBridge:open-document-preview",
+  attachDocumentToClassicOutlook: "fileBridge:attach-document-to-classic-outlook"
+});
+
 const PRELOAD_EVENT_ALLOWLIST = Object.freeze({
   passwordResetDeepLink: "desktop:password-reset:confirm",
-  outlookConnectionResult: "desktop:outlook-connection:result"
+  outlookConnectionResult: "desktop:outlook-connection:result",
+  classicOutlookAttachRequested: "desktop:classic-outlook-attach:requested"
 });
 
 const OUTLOOK_CONNECTION_RESULT_STATUSES = new Set([
@@ -35,6 +48,7 @@ const OUTLOOK_CONNECTION_RESULT_STATUSES = new Set([
 ]);
 const SAFE_OUTLOOK_RESULT_ID = /^[A-Za-z0-9._:-]{1,160}$/;
 const SAFE_OUTLOOK_ERROR_CODE = /^[A-Z0-9_]{1,160}$/;
+const SAFE_CLASSIC_OUTLOOK_REQUEST_HANDLE = /^classic-outlook-[a-f0-9]{32}$/;
 
 function invokeAllowed(command, payload) {
   const channel = PRELOAD_CHANNEL_ALLOWLIST[command];
@@ -42,8 +56,41 @@ function invokeAllowed(command, payload) {
   return ipcRenderer.invoke(channel, payload);
 }
 
+function invokeFileBridge(command, payload) {
+  const channel = FILE_BRIDGE_CHANNEL_ALLOWLIST[command];
+  if (!channel) throw new Error(`Blocked preload file bridge command: ${command}`);
+  return ipcRenderer.invoke(channel, payload);
+}
+
+function assertNoRendererFileBytes(request = {}) {
+  if (!request || typeof request !== "object") return;
+  const forbidden = ["bytes", "fileBytes", "documentBytes", "content", "blob", "arrayBuffer"];
+  const field = forbidden.find((candidate) => Object.prototype.hasOwnProperty.call(request, candidate));
+  if (field) throw new Error(`Renderer-supplied document bytes are forbidden: ${field}`);
+}
+
+function pickFileBridgeFields(request = {}, fields = []) {
+  assertNoRendererFileBytes(request);
+  const safe = {};
+  for (const field of fields) {
+    if (Object.prototype.hasOwnProperty.call(request, field) && request[field] !== undefined) {
+      safe[field] = request[field];
+    }
+  }
+  return safe;
+}
+
+function activeUserInteraction() {
+  if (globalThis.navigator?.userActivation?.isActive !== true) {
+    throw new Error("AMIC OS file action requires an active user interaction");
+  }
+  return { userActivation: true };
+}
+
 const pendingOutlookConnectionResults = [];
 let outlookConnectionResultHandler = null;
+const pendingClassicOutlookAttachRequests = [];
+let classicOutlookAttachRequestHandler = null;
 
 function safeOutlookConnectionResult(payload) {
   if (
@@ -89,6 +136,42 @@ ipcRenderer.on(PRELOAD_EVENT_ALLOWLIST.outlookConnectionResult, (_event, payload
   }
 });
 
+function safeClassicOutlookAttachRequest(payload) {
+  if (payload?.type !== "classic_outlook_attach_request"
+      || !SAFE_CLASSIC_OUTLOOK_REQUEST_HANDLE.test(payload.request_handle ?? "")
+      || payload.source !== "classic_outlook_compose"
+      || payload.exact_version_required !== true
+      || payload.raw_path_included !== false
+      || payload.raw_bytes_included !== false
+      || payload.token_material_returned !== false
+      || !Number.isFinite(Date.parse(payload.expires_at))) return null;
+  return Object.freeze({
+    type: payload.type,
+    request_handle: payload.request_handle,
+    expires_at: payload.expires_at,
+    source: payload.source,
+    exact_version_required: true,
+    raw_path_included: false,
+    raw_bytes_included: false,
+    token_material_returned: false,
+  });
+}
+
+ipcRenderer.on(PRELOAD_EVENT_ALLOWLIST.classicOutlookAttachRequested, (_event, payload) => {
+  const request = safeClassicOutlookAttachRequest(payload);
+  if (!request) return;
+  if (!classicOutlookAttachRequestHandler) {
+    if (pendingClassicOutlookAttachRequests.length >= 16) pendingClassicOutlookAttachRequests.shift();
+    pendingClassicOutlookAttachRequests.push(request);
+    return;
+  }
+  try {
+    classicOutlookAttachRequestHandler(request);
+  } catch {
+    pendingClassicOutlookAttachRequests.push(request);
+  }
+});
+
 function onAllowedEvent(eventName, handler) {
   const channel = PRELOAD_EVENT_ALLOWLIST[eventName];
   if (!channel) throw new Error(`Blocked preload session event: ${eventName}`);
@@ -106,6 +189,23 @@ function onAllowedEvent(eventName, handler) {
     }
     return () => {
       if (outlookConnectionResultHandler === handler) outlookConnectionResultHandler = null;
+    };
+  }
+  if (eventName === "classicOutlookAttachRequested") {
+    classicOutlookAttachRequestHandler = handler;
+    while (pendingClassicOutlookAttachRequests.length > 0) {
+      const request = pendingClassicOutlookAttachRequests.shift();
+      try {
+        handler(request);
+      } catch {
+        pendingClassicOutlookAttachRequests.unshift(request);
+        break;
+      }
+    }
+    return () => {
+      if (classicOutlookAttachRequestHandler === handler) {
+        classicOutlookAttachRequestHandler = null;
+      }
     };
   }
   const listener = (_event, payload) => {
@@ -137,7 +237,51 @@ const sessionApi = Object.freeze({
   api: (payload) => invokeAllowed("api", payload),
   logout: () => invokeAllowed("logout"),
   onPasswordResetDeepLink: (handler) => onAllowedEvent("passwordResetDeepLink", handler),
-  onOutlookConnectionResult: (handler) => onAllowedEvent("outlookConnectionResult", handler)
+  onOutlookConnectionResult: (handler) => onAllowedEvent("outlookConnectionResult", handler),
+  onClassicOutlookAttachRequested: (handler) => onAllowedEvent(
+    "classicOutlookAttachRequested",
+    handler,
+  )
 });
 
+const fileBridgeApi = Object.freeze({
+  status: () => invokeFileBridge("status"),
+  precheckUpload: (request = {}) => invokeFileBridge(
+    "precheckUpload",
+    pickFileBridgeFields(request, ["matterId", "workspaceId", "folderId"])
+  ),
+  chooseFileForUpload: (preflightId) => invokeFileBridge("chooseFileForUpload", {
+    preflightId,
+    ...activeUserInteraction()
+  }),
+  cancelUpload: (handleId) => invokeFileBridge("cancelUpload", { handleId }),
+  uploadSelectedFile: (handleId) => invokeFileBridge("uploadSelectedFile", { handleId }),
+  resumePendingUploads: () => invokeFileBridge("resumePendingUploads", {}),
+  saveDocumentAs: (request = {}) => invokeFileBridge("saveDocumentAs", {
+    ...pickFileBridgeFields(request, [
+      "matterId", "documentId", "versionId", "fileObjectId", "sha256",
+      "byteSize", "mimeType", "suggestedName", "title",
+    ]),
+    ...activeUserInteraction()
+  }),
+  openDocumentPreview: (request = {}) => invokeFileBridge("openDocumentPreview", {
+    ...pickFileBridgeFields(request, [
+      "matterId", "documentId", "versionId", "fileObjectId", "sha256",
+      "byteSize", "mimeType", "suggestedName",
+    ]),
+    ...activeUserInteraction()
+  }),
+  attachDocumentToClassicOutlook: (request = {}) => invokeFileBridge(
+    "attachDocumentToClassicOutlook",
+    {
+      ...pickFileBridgeFields(request, [
+        "requestHandle", "matterId", "documentId", "versionId", "fileObjectId",
+        "sha256", "byteSize", "mimeType", "suggestedName",
+      ]),
+      ...activeUserInteraction()
+    }
+  )
+});
+
+contextBridge.exposeInMainWorld("amicFileBridge", fileBridgeApi);
 contextBridge.exposeInMainWorld("matterSession", sessionApi);

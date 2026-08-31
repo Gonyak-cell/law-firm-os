@@ -154,6 +154,57 @@ test("encrypted file secure store persists session token without plaintext token
   assert.equal(existsSync(filePath), false);
 });
 
+test("auth coordinator persists only the opaque Vault upload operation and exact fingerprint", async () => {
+  const filePath = join(mkdtempSync(join(tmpdir(), "matter-desktop-vault-pending-")), "secure-session-store.json");
+  const secureStore = encryptedFileSecureStore({ filePath, safeStorage: fakeSafeStorage() });
+  const operationId = "vaultop_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+  const coordinator = new MainProcessAuthCoordinator({
+    secureStore,
+    now: () => 1_777_777_777_000,
+  });
+  await coordinator.rememberPendingVaultUpload({
+    operationId,
+    expected: {
+      sha256: "b".repeat(64),
+      byteSize: 4_096,
+      mimeType: "application/pdf",
+    },
+    filePath: "/must/not/persist/client-contract.pdf",
+    filename: "client-contract.pdf",
+    bytes: "must-not-persist",
+  });
+
+  const raw = readFileSync(filePath, "utf8");
+  for (const forbidden of [
+    operationId,
+    "/must/not/persist/client-contract.pdf",
+    "client-contract.pdf",
+    "must-not-persist",
+  ]) assert.equal(raw.includes(forbidden), false, forbidden);
+
+  const reloadedStore = encryptedFileSecureStore({ filePath, safeStorage: fakeSafeStorage() });
+  const reloadedCoordinator = new MainProcessAuthCoordinator({
+    secureStore: reloadedStore,
+    now: () => 1_777_777_777_500,
+  });
+  assert.deepEqual(await reloadedCoordinator.pendingVaultUploads(), [{
+    schema_version: "law-firm-os.desktop-vault-upload-pending.v1",
+    operation_id: operationId,
+    expected: {
+      sha256: "b".repeat(64),
+      byte_size: 4_096,
+      mime_type: "application/pdf",
+    },
+    created_at: 1_777_777_777_000,
+    updated_at: 1_777_777_777_000,
+    raw_path_included: false,
+    raw_bytes_included: false,
+    filename_included: false,
+  }]);
+  await reloadedCoordinator.forgetPendingVaultUpload({ operationId });
+  assert.deepEqual(await reloadedCoordinator.pendingVaultUploads(), []);
+});
+
 test("encrypted file secure store preserves persisted file when parsing fails", () => {
   const filePath = join(mkdtempSync(join(tmpdir(), "matter-desktop-secure-store-")), "secure-session-store.json");
   writeFileSync(filePath, "{not-json");

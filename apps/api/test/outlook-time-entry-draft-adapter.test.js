@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 import { createFinanceRepository } from "../../../packages/billing/src/finance-repository.js";
-import { startApiServer } from "../src/server.js";
+import { createApiServer } from "../src/server.js";
 import {
   ACTOR,
   TENANT,
@@ -16,6 +16,7 @@ import {
   requestBody,
   runtime,
 } from "./helpers/outlook-time-entry-draft-fixture.js";
+import { createTrustedOutlookInstallationTestAuthority } from "./helpers/outlook-trusted-installation-runtime.js";
 
 test("Outlook draft uses the existing finance writer, replays after restart, and never approves WIP", async (t) => {
   const directory = mkdtempSync(join(tmpdir(), "lawos-outlook-time-entry-"));
@@ -73,16 +74,24 @@ test("HTTP route rejects browser actor_id instead of accepting it as finance aut
   const finance = createFinanceRepository({ seedRecords: financeSeed() });
   const context = permissionContext();
   const routeRuntime = runtime({ finance, matters });
-  const started = await startApiServer({
-    port: 0,
+  const installationAuthority = createTrustedOutlookInstallationTestAuthority([
+    context.principal,
+  ]);
+  const server = createApiServer({
     matterRuntime: routeRuntime.matterRuntime,
     financeRuntime: routeRuntime.financeRuntime,
-    sessionAuth: {
+    outlookDesktopRuntime: installationAuthority.runtime,
+    sessionAuth: installationAuthority.wrapSessionAuth({
       async resolvePermissionContextFromHeaders() {
         return { ok: true, principal: context.principal, context, token_payload: { surface: "outlook_addin" } };
       },
-    },
+    }),
   });
+  await new Promise((resolve, reject) => {
+    server.once("error", reject);
+    server.listen(0, "127.0.0.1", resolve);
+  });
+  const started = { server, host: "127.0.0.1", port: server.address().port };
   t.after(async () => {
     await new Promise((resolve) => started.server.close(resolve));
     finance.close();

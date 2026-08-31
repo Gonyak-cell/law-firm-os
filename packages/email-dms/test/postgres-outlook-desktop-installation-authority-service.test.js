@@ -12,8 +12,21 @@ const PRINCIPAL = Object.freeze({
   user_id: "user-authority-adapter",
   entra_subject_id: "subject-authority-adapter",
 });
+const TRUSTED_CURRENT = Object.freeze({
+  installation_id: "odi_authority_adapter_000001",
+  status: "active",
+  state_version: 4,
+  lease_expires_at: "2026-08-26 01:02:03.004+00",
+  retired_at: null,
+  release_trusted: true,
+  authority_snapshot_at: "2026-08-25 01:02:03.004+00",
+});
 
-function authorityPool({ heartbeatUntrusted = false } = {}) {
+function authorityPool({
+  heartbeatUntrusted = false,
+  trustedCurrent = TRUSTED_CURRENT,
+  trustedCurrentError = null,
+} = {}) {
   const calls = [];
   const pool = {
     [POSTGRES_TENANT_CONTEXT_SECRET]: Buffer.alloc(32, 7),
@@ -35,7 +48,17 @@ function authorityPool({ heartbeatUntrusted = false } = {}) {
               detail: "private detail",
             });
           }
-          return { rows: match ? [{ value: { function: match[1] } }] : [] };
+          if (trustedCurrentError
+              && match?.[1] ===
+                "read_trusted_current_outlook_desktop_installation") {
+            throw trustedCurrentError;
+          }
+          return { rows: match ? [{
+            value: match[1] ===
+              "read_trusted_current_outlook_desktop_installation"
+              ? trustedCurrent
+              : { function: match[1] },
+          }] : [] };
         },
         release() {
           calls.push({ statement: "RELEASE", values: [] });
@@ -79,6 +102,11 @@ test("installation authority adapter uses only exact SECDEF functions and transa
   })).function, "read_outlook_desktop_installation");
   assert.equal((await service.readCurrent({ principal: PRINCIPAL })).function,
     "read_current_outlook_desktop_installation");
+  assert.deepEqual(await service.readTrustedCurrent({ principal: PRINCIPAL }), {
+    ...TRUSTED_CURRENT,
+    lease_expires_at: "2026-08-26T01:02:03.004Z",
+    authority_snapshot_at: "2026-08-25T01:02:03.004Z",
+  });
   assert.equal((await service.projectAssignmentState({ principal: PRINCIPAL })).function,
     "read_outlook_desktop_assignment_state");
 
@@ -91,12 +119,80 @@ test("installation authority adapter uses only exact SECDEF functions and transa
     "BEGIN ISOLATION LEVEL SERIALIZABLE",
     "BEGIN ISOLATION LEVEL SERIALIZABLE READ ONLY",
     "BEGIN ISOLATION LEVEL SERIALIZABLE READ ONLY",
+    "BEGIN ISOLATION LEVEL SERIALIZABLE READ ONLY",
     "BEGIN ISOLATION LEVEL SERIALIZABLE",
   ]);
   const functionCalls = fixture.calls.filter(({ statement }) =>
     statement.includes("SELECT lawos_email_dms."));
-  assert.equal(functionCalls.length, 6);
+  assert.equal(functionCalls.length, 7);
   assert.equal(functionCalls.every(({ values }) => values[0] === TENANT), true);
+});
+
+test("trusted-current result snapshots seven primitives and fails closed", async () => {
+  const valid = { ...TRUSTED_CURRENT };
+  for (const value of [
+    new Proxy(valid, {}),
+    { ...valid, token: "secret" },
+    { ...valid, release_trusted: false },
+    { ...valid, authority_snapshot_at: new Date() },
+    { ...valid, lease_expires_at: "invalid" },
+    { ...valid, lease_expires_at: valid.authority_snapshot_at },
+  ]) {
+    const fixture = authorityPool({ trustedCurrent: value });
+    const service = createPostgresOutlookDesktopInstallationAuthorityService({
+      pool: fixture.pool,
+      tenant_id: TENANT,
+    });
+    await assert.rejects(service.readTrustedCurrent({ principal: PRINCIPAL }),
+      (error) => error?.safe_error_code ===
+        "OUTLOOK_DESKTOP_INSTALLATION_RUNTIME_UNAVAILABLE"
+        && error?.status === 503);
+  }
+  let reads = 0;
+  const accessor = { ...valid };
+  Object.defineProperty(accessor, "state_version", {
+    enumerable: true,
+    get() {
+      reads += 1;
+      return reads;
+    },
+  });
+  const fixture = authorityPool({ trustedCurrent: accessor });
+  const service = createPostgresOutlookDesktopInstallationAuthorityService({
+    pool: fixture.pool,
+    tenant_id: TENANT,
+  });
+  await assert.rejects(service.readTrustedCurrent({ principal: PRINCIPAL }),
+    (error) => error?.safe_error_code ===
+      "OUTLOOK_DESKTOP_INSTALLATION_RUNTIME_UNAVAILABLE"
+      && error?.status === 503);
+  assert.equal(reads, 0);
+});
+
+test("trusted-current malformed rows and PostgreSQL failures map to one sanitized 503", async () => {
+  for (const options of [
+    { trustedCurrent: { ...TRUSTED_CURRENT, token: "secret" } },
+    { trustedCurrentError: Object.assign(new Error("private database row"), {
+      code: "XX999",
+      detail: "private detail",
+    }) },
+  ]) {
+    const fixture = authorityPool(options);
+    const service = createPostgresOutlookDesktopInstallationAuthorityService({
+      pool: fixture.pool,
+      tenant_id: TENANT,
+    });
+    await assert.rejects(service.readTrustedCurrent({ principal: PRINCIPAL }),
+      (error) => {
+        assert.equal(error.code,
+          "LAWOS_OUTLOOK_DESKTOP_INSTALLATION_RUNTIME_UNAVAILABLE");
+        assert.equal(error.safe_error_code,
+          "OUTLOOK_DESKTOP_INSTALLATION_RUNTIME_UNAVAILABLE");
+        assert.equal(error.status, 503);
+        assert.doesNotMatch(JSON.stringify(error), /secret|private|detail/iu);
+        return true;
+      });
+  }
 });
 
 test("adapter rejects tenant or principal drift before opening PostgreSQL", async () => {

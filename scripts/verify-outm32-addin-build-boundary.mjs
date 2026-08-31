@@ -46,7 +46,8 @@ for (const edge of importEdges) {
 }
 
 assert.equal(existsSync(join(DIST, "index.html")), true, "Add-in application build is missing dist/index.html");
-assert.equal(existsSync(join(DIST, "event-runtime.js")), true, "Add-in event runtime build is missing dist/event-runtime.js");
+assert.equal(existsSync(join(DIST, "event-runtime.html")), false, "Add-in build must not ship an automatic-send HTML runtime");
+assert.equal(existsSync(join(DIST, "event-runtime.js")), false, "Add-in build must not ship an automatic-send JavaScript runtime");
 const bundles = filesBelow(DIST, (path) => extname(path) === ".js");
 assert.ok(bundles.length > 0, "Add-in build produced no JavaScript bundles");
 for (const path of bundles) {

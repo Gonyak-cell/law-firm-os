@@ -31,7 +31,7 @@ test("both Outlook candidates remain bound to their independently deployed ident
       {
         profile: "matter-full",
         product_id: "8f3cc90d-56dd-4c1c-b9c2-0a1100500101",
-        version: "1.1.0.0",
+        version: "1.3.0.1",
       },
       {
         profile: "inquiry-only",

@@ -1,0 +1,134 @@
+{
+  "schema_version": "amic-os.outlook-forward-static-rollback.v1",
+  "save_id": "OUTLOOK-INFRA-CONNECTIONS-SAVE-20260824-01",
+  "application_checkpoint": "OUTLOOK-SAVE-20260824-03B93BFF",
+  "origin": "https://d2mthcc8vp3cr2.cloudfront.net",
+  "snapshot_inventory": {
+    "ref": "aws/s3/static-inventory.json",
+    "sha256": "a37b05476b9243a3af01f51992b82f920202d2eed62a3ada876f0a7eae3e194d",
+    "canonical_sha256": "27e7b6fe79b547742e2ac5433796be3db059fdddb841f2832f490f184a99126d",
+    "object_count": 79
+  },
+  "forward_rollback": {
+    "profile": "matter-full",
+    "product_id": "8f3cc90d-56dd-4c1c-b9c2-0a1100500101",
+    "manifest_path": "apps/addin/manifest.canary.rollback.production.xml",
+    "manifest_version": "1.3.0.2",
+    "manifest_sha256": "57359b429af519d2dbec28230e73445e3898d47ced4c1e7add1eb68733c68ad9",
+    "semantic_sha256": "323542ab35c10cca6053cc166802e0a4a118f1771cb730ac0fa99804453a148d",
+    "source_locations": [
+      "https://d2mthcc8vp3cr2.cloudfront.net/addin/index.html"
+    ],
+    "operations": [
+      "restore_prior_static_aliases_from_verified_snapshot",
+      "readback_prior_static_hashes",
+      "central_update_to_1.3.0.2",
+      "readback_launch_events_zero"
+    ]
+  },
+  "profiles": [
+    {
+      "profile": "matter-full",
+      "product_id": "8f3cc90d-56dd-4c1c-b9c2-0a1100500101",
+      "target_prefix": "addin/",
+      "taskpane_path": "addin/index.html",
+      "entry_bundle_path": "addin/assets/index-DC9vmN9U.js",
+      "artifact_count": 12,
+      "inventory_sha256": "1af919cbfdad5930acfb8cb499e95ac125bc8fe2a286d423f443ffc7ed7d9345",
+      "artifacts": [
+        {
+          "path": "addin/amic-law-icon.png",
+          "byte_size": 46459,
+          "sha256": "19722c977aa783616b75769a87f4186416d64f2969c4669e9e15303606dd3916"
+        },
+        {
+          "path": "addin/amic-law-logo.svg",
+          "byte_size": 2428,
+          "sha256": "88dfdf3149f0e26ce2d70418bfd24129a2ce47aedfa8756454bf4b7a17452d94"
+        },
+        {
+          "path": "addin/assets/index-DC9vmN9U.js",
+          "byte_size": 3688,
+          "sha256": "8a1cfd58b6228472aded2dc8c077b830813513651883f028d3f2d81f8d4d3832"
+        },
+        {
+          "path": "addin/assets/main-BQDfSokG.js",
+          "byte_size": 740571,
+          "sha256": "68fb7c598d526a195095b8edef8523a2fce9460df6eb3d7bb927e46541e44b6c"
+        },
+        {
+          "path": "addin/assets/main-D7Fd2vxP.css",
+          "byte_size": 10291,
+          "sha256": "994903cc3bb3b960c76864dc88cdc14210cf8a3979689e3bbfeb14d259d1e2ee"
+        },
+        {
+          "path": "addin/event-runtime.html",
+          "byte_size": 283,
+          "sha256": "868944d2a2c2114bed40be663632dfb5eb17a9475f3ec00cffe31de6f9467e70"
+        },
+        {
+          "path": "addin/event-runtime.js",
+          "byte_size": 275337,
+          "sha256": "3ca7a628bcc49c9dbbb314da027c44a609785a4561f577ed0406b0c54fbb8f70"
+        },
+        {
+          "path": "addin/index.html",
+          "byte_size": 411,
+          "sha256": "3709fcba9191931569a7075519cc9f5bc9101cd0a110ee55f914985aeb317a13"
+        },
+        {
+          "path": "addin/oauth-callback.html",
+          "byte_size": 767,
+          "sha256": "c88310367397556776f500dbd762b971ff26f3cca60845df14de473af2752870"
+        },
+        {
+          "path": "addin/oauth-callback.js",
+          "byte_size": 2264,
+          "sha256": "1ae8a5d5131f967102078b990760039685d8f4634e013d896b9d727c915da4da"
+        },
+        {
+          "path": "addin/oauth-start.html",
+          "byte_size": 624,
+          "sha256": "8c8726ce00dfb24a7773025defc524b948237344da632ba9d49594191e0bc09e"
+        },
+        {
+          "path": "addin/oauth-start.js",
+          "byte_size": 837,
+          "sha256": "59ca7c2645d54903615c125991e4e3b3aadd47b306b5c8b5bc528750e5c5f940"
+        }
+      ]
+    },
+    {
+      "profile": "inquiry-only",
+      "product_id": "952431be-51b8-42a2-9bf6-769a15934e85",
+      "target_prefix": "outlook-addin/",
+      "taskpane_path": "outlook-addin/index.html",
+      "entry_bundle_path": "outlook-addin/assets/index-YTbo0Pnv.js",
+      "artifact_count": 3,
+      "inventory_sha256": "c1dbbaa561acaa28f1a3715c16711e52375206ce944c27d58344278ed649107a",
+      "artifacts": [
+        {
+          "path": "outlook-addin/assets/index-D7Fd2vxP.css",
+          "byte_size": 10291,
+          "sha256": "994903cc3bb3b960c76864dc88cdc14210cf8a3979689e3bbfeb14d259d1e2ee"
+        },
+        {
+          "path": "outlook-addin/assets/index-YTbo0Pnv.js",
+          "byte_size": 512113,
+          "sha256": "9a05a130decf67268a37304a525b9b40af72528306574ea9722028167b86f5e4"
+        },
+        {
+          "path": "outlook-addin/index.html",
+          "byte_size": 524,
+          "sha256": "afd31ab3ad2679edee6116481b97602a5731b90ccb796fe61450aaf438d6fc9e"
+        }
+      ]
+    }
+  ],
+  "claims": {
+    "prior_snapshot_read_only": true,
+    "candidate_alias_overwrite_authorized": false,
+    "external_mutation_performed": false,
+    "data_mutation_performed": false
+  }
+}

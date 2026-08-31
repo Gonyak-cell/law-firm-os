@@ -8,13 +8,15 @@ export const PROFILE_NAMES = ["inquiry-only", "matter-full"];
 export const PROFILE_CONTRACTS = {
   [PRODUCT_IDS[0]]: {
     profile: "matter-full",
+    release_version: "1.3.0.1",
     mailbox_min_version: "1.14",
     production_manifest: "apps/addin/manifest.production.xml",
     taskpane_html: "index.html",
-    required_static_paths: ["event-runtime.html", "event-runtime.js", "index.html"],
+    required_static_paths: ["index.html"],
   },
   [PRODUCT_IDS[1]]: {
     profile: "inquiry-only",
+    release_version: "1.1.0.0",
     mailbox_min_version: "1.3",
     production_manifest: "apps/addin/manifest.inquiry.production.xml",
     taskpane_html: "outlook-addin/index.html",
@@ -150,6 +152,8 @@ export const REQUIRED_RELEASE_PATHS = [
   "apps/addin/src/outlook-task-datetime.js",
   "apps/addin/src/styles.css",
   "apps/addin/public/amic-law-logo.svg",
+  "apps/addin/vite.config.js",
+  "apps/addin/vite.inquiry.config.js",
   "apps/api/src/json-postgres-program-admin-lambda.js",
   "apps/api/src/outlook-addin-runtime-context.js",
   "apps/api/src/matter-runtime-context.js",
@@ -181,9 +185,19 @@ export const REQUIRED_RELEASE_PATHS = [
   "packages/matter/src/document-publication-reconciliation.js",
   "packages/matter/src/document-publication-service.js",
   "packages/matter/src/outlook-task-adapter.js",
+  "contracts/outlook-addin-forward-rollback-packet.json",
+  "contracts/outlook-addin-forward-static-rollback.json",
   "scripts/lib/upl-proof-runner.mjs",
+  "scripts/lib/outlook-release/forward-rollback-packet.mjs",
+  "scripts/lib/outlook-release/forward-static-rollback.mjs",
   "scripts/lib/outlook-release/m365-distribution.mjs",
+  "scripts/lib/outlook-release/static-files.mjs",
+  "scripts/lib/outlook-release/static-plan.mjs",
+  "scripts/plan-outlook-static-deploy.mjs",
   "scripts/run-upl-c09-c12-outlook-addin-browser-proof.mjs",
+  "scripts/validate-outlook-release-candidate.mjs",
+  "scripts/validate-outlook-release-forward-rollback-packet.mjs",
+  "scripts/validate-outlook-release-static-files.mjs",
   "scripts/validate-upl-c09-c12-outlook-addin.mjs",
 ];
 export const REQUIRED_TEST_PATHS = [
@@ -227,6 +241,7 @@ export const REQUIRED_TEST_PATHS = [
   "apps/addin/test/outlook-profile-build-artifact.mjs",
   "apps/addin/test/outlook-shell-contract.test.js",
   "apps/addin/test/outlook-shell-responsive.test.js",
+  "apps/addin/test/outlook-startup-runtime-flight.test.js",
   "apps/addin/test/outlook-task-datetime.test.js",
   "apps/addin/test/outlook-ui-contract.test.js",
   "apps/addin/test/profile-bootstrap.test.js",
@@ -266,12 +281,16 @@ export const REQUIRED_TEST_PATHS = [
   "packages/matter/test/document-builder-publication.test.js",
   "packages/matter/test/outlook-task-adapter.test.js",
   "scripts/test/outlook-release-candidate.test.mjs",
+  "scripts/test/outlook-release-api-static.test.mjs",
   "scripts/test/outlook-release-cli-workflow.test.mjs",
   "scripts/test/outlook-release-gates.test.mjs",
   "scripts/test/outlook-release-profile-artifacts.test.mjs",
+  "scripts/test/outlook-release-rollback.test.mjs",
+  "scripts/test/outlook-release-forward-rollback-packet.test.mjs",
+  "scripts/test/outlook-release-static-files.test.mjs",
 ];
 export const REQUIRED_STATIC_PATHS = [
-  "amic-law-icon.png", "amic-law-logo.svg", "event-runtime.html", "event-runtime.js", "index.html",
+  "amic-law-icon.png", "amic-law-logo.svg", "index.html",
   "oauth-callback.html", "oauth-callback.js", "oauth-start.html", "oauth-start.js",
   "outlook-addin/index.html",
 ];
@@ -284,5 +303,7 @@ export const STATIC_NAMESPACES = [
   { excluded_source_prefixes: ["outlook-addin/"], invalidation_path: "/addin/*", product_id: PRODUCT_IDS[0], profile: "matter-full", source_prefix: "", target_prefix: "addin/" },
   { excluded_source_prefixes: [], invalidation_path: "/outlook-addin/*", product_id: PRODUCT_IDS[1], profile: "inquiry-only", source_prefix: "outlook-addin/", target_prefix: "outlook-addin/" },
 ];
+export const STATIC_IMMUTABLE_SEGMENT = "_objects/sha256/";
+export const STATIC_CUTOVER_MODE = "separate_authorized_exact_copy";
 export const CANDIDATE_ALLOWED_CLAIM = "Exact source, deterministic local build, four official manifest validations, frozen profile drift, rollback metadata, and dependency licenses passed.";
 export const CANDIDATE_BLOCKED_CLAIM = "This receipt is not API/static/M365 deployment, propagation, real Outlook host, Graph delivery, DocuSign sandbox, or go-live evidence.";

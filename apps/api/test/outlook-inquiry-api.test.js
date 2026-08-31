@@ -30,6 +30,7 @@ import {
 import {
   handleOutlookAddinApiRequest,
 } from "../src/outlook-addin-runtime-context.js";
+import { createTrustedOutlookInstallationTestAuthority } from "./helpers/outlook-trusted-installation-runtime.js";
 
 const TENANT = "tenant_outlook_inquiry_api";
 const USER = "user_outlook_inquiry_api";
@@ -913,9 +914,13 @@ test("CL-P3-W01-T03 격리된 원본은 권한이 있어도 열리지 않는다"
 
 test("CL-P3-W01-T03 실제 HTTP 라우팅은 민감 조회 응답에 no-store·nosniff·sandbox를 적용한다", async () => {
   const fixture = await storedEvidenceRuntime();
+  const installationAuthority = createTrustedOutlookInstallationTestAuthority([
+    evidencePermissionContext().principal,
+  ]);
   const server = createApiServer({
     emailDmsRuntime: fixture.value.emailDmsRuntime,
-    sessionAuth: {
+    outlookDesktopRuntime: installationAuthority.runtime,
+    sessionAuth: installationAuthority.wrapSessionAuth({
       async resolvePermissionContextFromHeaders() {
         const context = evidencePermissionContext();
         return {
@@ -924,7 +929,7 @@ test("CL-P3-W01-T03 실제 HTTP 라우팅은 민감 조회 응답에 no-store·n
           context,
         };
       },
-    },
+    }),
   });
   await new Promise((resolve, reject) => {
     server.once("error", reject);

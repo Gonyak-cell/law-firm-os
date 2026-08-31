@@ -34,8 +34,9 @@ const HISTORICAL_GAP_IDS = Object.freeze([
 
 function clientOperationsPrefixThrough305() {
   const catalog = listClientOperationsPostgresMigrations();
-  assert.equal(catalog.at(-1).id, ASSIGNMENT);
-  return catalog.slice(0, -1);
+  const assignmentIndex = catalog.findIndex(({ id }) => id === ASSIGNMENT);
+  assert.ok(assignmentIndex > 0);
+  return catalog.slice(0, assignmentIndex);
 }
 
 function runClientOperationsPrefixThrough305(pool, { appliedBy } = {}) {

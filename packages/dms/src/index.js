@@ -38,6 +38,7 @@ export * from "./search/acl-filter.js";
 export * from "./search/search-service.js";
 export * from "./rag-evidence.js";
 export * from "./audit.js";
+export * from "./vault-operation-receipt.js";
 export * from "./vault-workspace-service.js";
 export * from "./folder-template-service.js";
 export * from "./vault-workspace-repository.js";

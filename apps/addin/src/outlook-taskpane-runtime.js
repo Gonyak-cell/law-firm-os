@@ -117,15 +117,10 @@ export function createOutlookTaskPaneRuntime({
       isCurrentItem: itemRuntime.isCurrentItem,
     };
     try {
-      let result;
-      try {
-        result = await actionHandler(actionContext);
-      } catch (error) {
-        if (error?.status !== 401) throw error;
-        await auth.acquireLawosSession({ interactive: false, force: true });
-        if (state.itemPending || !itemRuntime.isCurrentItem(capturedItem)) throw itemChangedError();
-        result = await actionHandler(actionContext);
-      }
+      // The auth request layer owns the single silent 401 recovery and replays
+      // only the failed HTTP request. Replaying the whole capability action here
+      // could duplicate a multi-request business operation.
+      const result = await actionHandler(actionContext);
       update({ result });
       return result;
     } catch (error) {

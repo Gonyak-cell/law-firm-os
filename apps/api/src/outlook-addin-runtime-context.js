@@ -23,6 +23,7 @@ import { createM365MailPort } from "../../../packages/email-dms/src/m365-graph-p
 import {
   createSafeInquiryDisplayCopy,
   createInquiryEvidenceStorageService,
+  extractInquiryMimeAttachments,
   INQUIRY_EVIDENCE_STORAGE_ERROR_CODES,
 } from "../../../packages/email-dms/src/inquiry-evidence-storage-service.js";
 import {
@@ -31,6 +32,7 @@ import {
 import { uploadDocument } from "../../../packages/dms/src/document-service.js";
 import { createDmsFolder, createDmsWorkspace } from "../../../packages/dms/src/model.js";
 import { serializeFileObjectSafe } from "../../../packages/dms/src/file-object-service.js";
+import { assertNoVaultBoundarySecrets } from "../../../packages/dms/src/vault-operation-receipt.js";
 import {
   OUTLOOK_TASK_ERROR_CODES,
   createMatterActivityCalendarChannelService,
@@ -74,6 +76,19 @@ import {
   resolveOutlookDesktopInstallationService,
 } from "./outlook-desktop-installation-runtime-context.js";
 import { deriveOutlookReadiness } from "./outlook-readiness.js";
+import {
+  parseOutlookTrustedCurrentInstallation,
+} from "./outlook-trusted-current-installation.js";
+import { requireAmicVaultUploadProvider } from "./amic-vault-upload-provider.js";
+import {
+  continueServerOwnedSourceVaultSave,
+  saveServerOwnedSourceToAmicVault,
+} from "./amic-vault-source-save-runtime.js";
+
+export const OUTLOOK_VAULT_EMAIL_SAVE_PATH = "/api/outlook/vault/email/save";
+export const OUTLOOK_VAULT_SENT_SAVE_PATH = "/api/outlook/vault/sent/save";
+export const OUTLOOK_VAULT_ATTACHMENT_SAVE_PATH = "/api/outlook/vault/attachments/save";
+export const OUTLOOK_VAULT_SOURCE_STATUS_PATH = "/api/outlook/vault/source/status";
 
 export const OUTLOOK_ADDIN_BOUNDED_CONTEXT = Object.freeze({
   bounded_context: "outlook-addin",
@@ -98,10 +113,17 @@ export const OUTLOOK_ADDIN_BOUNDED_CONTEXT = Object.freeze({
     "POST /api/outlook/messages/identity",
     "POST /api/outlook/operation-receipts/readback",
     "POST /api/outlook/email/file",
+    `POST ${OUTLOOK_VAULT_EMAIL_SAVE_PATH}`,
+    `POST ${OUTLOOK_VAULT_SENT_SAVE_PATH}`,
     "POST /api/outlook/email/corrections",
     "GET /api/outlook/email/corrections/current",
     "POST /api/outlook/sent/file",
     "POST /api/outlook/attachments/save",
+    `POST ${OUTLOOK_VAULT_ATTACHMENT_SAVE_PATH}`,
+    `POST ${OUTLOOK_VAULT_SOURCE_STATUS_PATH}`,
+    "POST /api/outlook/vault/attachments/authorize",
+    "GET /api/outlook/vault/attachments/delivery/:delivery_token",
+    "POST /api/outlook/vault/attachments/complete",
     "POST /api/outlook/tasks",
     "PATCH /api/outlook/tasks/:task_id",
     "POST /api/outlook/followups",
@@ -1739,6 +1761,48 @@ function safeMatterDocument(document = {}) {
   });
 }
 
+function safeMatterDocumentExactVersion({
+  document = {},
+  version = null,
+  fileObject = null,
+} = {}) {
+  const byteSize = Number(fileObject?.byte_size);
+  const mimeType = String(
+    fileObject?.content_type ?? fileObject?.mime_type ?? document.mime_type ?? "",
+  ).toLowerCase();
+  const sha256 = version?.sha256 ?? document.latest_sha256 ?? null;
+  const exactVersionAvailable = Boolean(
+    document.document_id
+    && document.current_version_id
+    && version?.version_id === document.current_version_id
+    && (version?.document_id === undefined
+      || version.document_id === document.document_id)
+    && version?.file_object_id
+    && fileObject?.file_object_id === version.file_object_id
+    && (fileObject?.status === undefined || fileObject.status === "committed")
+    && /^[a-f0-9]{64}$/u.test(sha256 ?? "")
+    && (!document.latest_sha256 || document.latest_sha256 === sha256)
+    && fileObject.sha256 === sha256
+    && Number.isSafeInteger(byteSize)
+    && byteSize > 0
+    && /^[A-Za-z0-9!#$&^_.+-]+\/[A-Za-z0-9!#$&^_.+-]+$/u.test(mimeType)
+  );
+  return Object.freeze({
+    ...safeMatterDocument(document),
+    exact_version_available: exactVersionAvailable,
+    exact_version: exactVersionAvailable
+      ? Object.freeze({
+          document_id: document.document_id,
+          version_id: version.version_id,
+          file_object_id: version.file_object_id,
+          sha256,
+          byte_size: byteSize,
+          mime_type: mimeType,
+        })
+      : null,
+  });
+}
+
 function safeAttachmentDocument(document = {}) {
   const {
     source_email_thread_id: _sourceEmailThreadId,
@@ -1753,6 +1817,45 @@ function listMatterDocuments({ repository, tenant_id, matter_id } = {}) {
     repository
       .list({ tenant_id, model_type: "DmsDocument", matter_id })
       .map(safeMatterDocument),
+  );
+}
+
+async function listMatterDocumentsWithExactVersions({
+  dmsRuntime,
+  tenant_id,
+  matter_id,
+  actor_id,
+} = {}) {
+  if (typeof dmsRuntime?.upload_runtime?.listDocuments === "function") {
+    const entries = await dmsRuntime.upload_runtime.listDocuments({
+      tenant_id,
+      matter_id,
+      actor_id,
+    });
+    return Object.freeze(entries.map((entry) => safeMatterDocumentExactVersion({
+      document: entry.document,
+      version: entry.version,
+      fileObject: entry.file_object,
+    })));
+  }
+  return Object.freeze(
+    dmsRuntime.repository
+      .list({ tenant_id, model_type: "DmsDocument", matter_id })
+      .map((document) => {
+        const version = dmsRuntime.repository.get({
+          tenant_id,
+          model_type: "DmsDocumentVersion",
+          version_id: document.current_version_id,
+        });
+        const fileObject = version?.file_object_id
+          ? dmsRuntime.repository.get({
+              tenant_id,
+              model_type: "DmsFileObject",
+              file_object_id: version.file_object_id,
+            })
+          : null;
+        return safeMatterDocumentExactVersion({ document, version, fileObject });
+      }),
   );
 }
 
@@ -1919,13 +2022,15 @@ async function handleOutlookReadiness({
 
     let installation;
     let installationBinding = "verified";
+    let installationReleaseTrusted = false;
+    let installationAuthoritySnapshotAt = null;
     let delegatedConnection;
     if (entitlement.eligible && identityComplete) {
       const service = resolveOutlookDesktopInstallationService(
         runtime?.outlookDesktopRuntime,
       );
       const readInstallation = installationId === undefined
-        ? service?.readCurrent
+        ? service?.readTrustedCurrent
         : service?.read;
       if (
         typeof service?.projectAssignmentState !== "function"
@@ -1968,25 +2073,33 @@ async function handleOutlookReadiness({
         );
       }
       try {
-        installation = await readInstallation.call(service, {
+        const installationResult = await readInstallation.call(service, {
           principal: authorityPrincipal,
           ...(installationId === undefined
             ? {}
             : { installation_id: installationId }),
         });
-        if (
-          installationId !== undefined
-          && installation != null
-          && installation.installation_id !== installationId
-        ) {
-          throw Object.assign(
-            new Error("Outlook desktop installation projection mismatch"),
-            {
-              safe_error_code:
-                "OUTLOOK_DESKTOP_INSTALLATION_RUNTIME_UNAVAILABLE",
-              status: 503,
-            },
-          );
+        if (installationId === undefined) {
+          const trustedCurrent = parseOutlookTrustedCurrentInstallation(installationResult);
+          installation = trustedCurrent?.installation ?? null;
+          if (trustedCurrent) {
+            installationReleaseTrusted = true;
+            installationAuthoritySnapshotAt =
+              trustedCurrent.authority_snapshot_at;
+          }
+        } else {
+          installation = installationResult;
+          if (installation != null
+              && installation.installation_id !== installationId) {
+            throw Object.assign(
+              new Error("Outlook desktop installation projection mismatch"),
+              {
+                safe_error_code:
+                  "OUTLOOK_DESKTOP_INSTALLATION_RUNTIME_UNAVAILABLE",
+                status: 503,
+              },
+            );
+          }
         }
       } catch (error) {
         if (
@@ -2015,9 +2128,11 @@ async function handleOutlookReadiness({
       delegatedConnection = connectionResult.body.item.connection;
     }
     const snapshotClock = runtime?.outlookDesktopRuntime?.snapshot_clock;
-    const snapshotAt = (typeof snapshotClock === "function"
-      ? snapshotClock()
-      : new Date()).toISOString();
+    const snapshotAt = installationAuthoritySnapshotAt ?? (
+      typeof snapshotClock === "function"
+        ? snapshotClock()
+        : new Date()
+    ).toISOString();
     const item = deriveOutlookReadiness({
       principal,
       roster: runtime?.outlookDesktopRuntime?.entitlement_roster,
@@ -2027,6 +2142,10 @@ async function handleOutlookReadiness({
       external_evidence:
         runtime?.outlookDesktopRuntime?.readiness_evidence,
       snapshot_at: snapshotAt,
+      // A caller-selected diagnostic installation is not startup authority;
+      // only the query-less trusted-current projection can seed the cache.
+      include_installation_id: installationId === undefined,
+      installation_release_trusted: installationReleaseTrusted,
     });
     const result = success(200, {
       request_id: requestId,
@@ -2811,6 +2930,375 @@ async function handleOutlookOperationReceiptReadback({ body, context, requestId,
       count_leak_prevented: true,
     })
     : emptyOutlookOperationReceiptReadback({ requestId });
+}
+
+function vaultOutlookSourceFilename(value, fallback, extension = "") {
+  const suffix = extension && !extension.startsWith(".") ? `.${extension}` : extension;
+  const fallbackName = `${fallback}${suffix}`;
+  const normalized = String(value ?? "")
+    .normalize("NFC")
+    .replace(/[\\/\u0000-\u001f\u007f]/gu, "_")
+    .replace(/\s+/gu, " ")
+    .trim();
+  if (!normalized) return fallbackName;
+  const withoutDuplicateSuffix = suffix && normalized.toLowerCase().endsWith(suffix.toLowerCase())
+    ? normalized.slice(0, -suffix.length)
+    : normalized;
+  const maxBaseLength = Math.max(1, 240 - suffix.length);
+  return `${withoutDuplicateSuffix.slice(0, maxBaseLength).trim() || fallback}${suffix}`;
+}
+
+function vaultOutlookSourceBlocked(requestId, error) {
+  const supplied = typeof error?.safe_error_code === "string"
+    ? error.safe_error_code
+    : "";
+  const safeCode = supplied.startsWith("VAULT_")
+    || [
+      OUTLOOK_ADDIN_ERROR_CODES.attachment_provenance_mismatch,
+      OUTLOOK_ADDIN_ERROR_CODES.email_identity_conflict,
+      OUTLOOK_ADDIN_ERROR_CODES.sent_message_provenance_mismatch,
+      OUTLOOK_ADDIN_ERROR_CODES.matter_not_found,
+      OUTLOOK_ADDIN_ERROR_CODES.matter_inactive,
+    ].includes(supplied)
+    ? supplied
+    : "VAULT_OUTLOOK_SOURCE_SAVE_FAILED";
+  const status = Number.isInteger(error?.status) ? error.status : 500;
+  return errorResponse(status, requestId, [safeCode], {
+    count_leak_prevented: true,
+    raw_bytes_included: false,
+    mail_pii_included: false,
+    token_material_returned: false,
+    production_ready_claim: false,
+  });
+}
+
+async function requireOutlookVaultUploadAuthority({ runtime, context, requestId }) {
+  requireAmicVaultUploadProvider(runtime?.vaultUploadProvider);
+  if (typeof runtime?.sessionAuth?.resolveVaultCapabilities !== "function") {
+    throw Object.assign(new Error("Vault capability authority is unavailable"), {
+      safe_error_code: "VAULT_AUTHORITY_UNAVAILABLE",
+      status: 503,
+    });
+  }
+  const projection = await runtime.sessionAuth.resolveVaultCapabilities({
+    principal: context?.principal,
+    requestId,
+  });
+  const upload = Array.isArray(projection?.capabilities)
+    ? projection.capabilities.find((item) => item.id === "upload")
+    : null;
+  if (projection?.authoritative !== true || upload?.allowed !== true) {
+    throw Object.assign(new Error("Vault upload capability is unavailable"), {
+      safe_error_code: upload?.safe_reason_code ?? "VAULT_AUTHORITY_UNAVAILABLE",
+      status: 403,
+    });
+  }
+  return projection;
+}
+
+async function resolveVaultOutlookCanonical({
+  body,
+  context,
+  runtime,
+  mode,
+}) {
+  const tenantId = requiredString(body.tenant_id ?? context?.principal?.tenant_id, "tenant_id");
+  const matterId = requiredString(body.matter_id ?? body.matterId, "matter_id");
+  const requestedSourceIdentity = parseCapturedOutlookSourceIdentity(body.email);
+  const expectedCanonicalGraphMessageId = requiredString(
+    body.email?.canonical_graph_message_id,
+    "email.canonical_graph_message_id",
+  );
+  const requestedThread = normalizeEmailThread({
+    input: body,
+    sourceIdentity: requestedSourceIdentity,
+    tenant_id: tenantId,
+    matter_id: matterId,
+    actor_id: actorFrom(context),
+    mode,
+  });
+  const canonical = await resolveCanonicalMessage({
+    thread: requestedThread,
+    context,
+    runtime,
+  });
+  if (
+    normalizedOpaqueIdentity(
+      expectedCanonicalGraphMessageId,
+      "email.canonical_graph_message_id",
+    ) !== normalizedOpaqueIdentity(
+      canonical.thread.graph_message_id,
+      "provider.immutable_message_id",
+    )
+  ) {
+    throw emailIdentityConflictError(
+      "Current Outlook canonical Graph identity changed before Vault save",
+    );
+  }
+  const canonicalSourceIdentity = parseExactOutlookSourceIdentity({
+    canonical_graph_message_id: canonical.thread.graph_message_id,
+    rest_message_id: requestedSourceIdentity.rest_message_id,
+    internet_message_id: canonical.thread.internet_message_id,
+    conversation_id: canonical.thread.conversation_id,
+    item_key: outlookSourceItemKey({
+      rest_message_id: requestedSourceIdentity.rest_message_id,
+      internet_message_id: canonical.thread.internet_message_id,
+      conversation_id: canonical.thread.conversation_id,
+    }),
+  });
+  try {
+    assertExactOutlookSourceIdentity(requestedSourceIdentity, canonicalSourceIdentity);
+  } catch {
+    throw attachmentProvenanceError(
+      "Microsoft Graph source identity does not exactly match the captured Outlook item",
+    );
+  }
+  if (mode === "manual" && canonical.is_in_sent_items === true) {
+    throw sentMessageProvenanceError(
+      "Microsoft Graph Sent Items messages require the explicit sent Vault save route",
+    );
+  }
+  if (mode === "sent") {
+    if (!canonical.sender_address) {
+      throw sentMessageProvenanceError("Microsoft Graph sender is required for Sent Items Vault save");
+    }
+    if (
+      normalizedMessageIdentity(canonical.sender_address, "provider.sender.address")
+      !== normalizedMessageIdentity(canonical.mailbox_address, "provider.mailbox_address")
+    ) {
+      throw sentMessageProvenanceError(
+        "Microsoft Graph sender does not match the signed-in Outlook mailbox",
+      );
+    }
+    if (canonical.is_in_sent_items !== true || canonical.is_draft !== false) {
+      throw sentMessageProvenanceError(
+        "Microsoft Graph item is not a non-draft message in the signed-in mailbox Sent Items folder",
+      );
+    }
+  }
+  return Object.freeze({
+    tenantId,
+    matterId,
+    requestedSourceIdentity,
+    canonicalSourceIdentity,
+    canonical,
+  });
+}
+
+async function saveOutlookEmailToVault({ body, context, requestId, runtime, mode = "manual" }) {
+  try {
+    const tenantId = requiredString(body.tenant_id ?? context?.principal?.tenant_id, "tenant_id");
+    const matterId = requiredString(body.matter_id ?? body.matterId, "matter_id");
+    const requestedSourceIdentity = parseCapturedOutlookSourceIdentity(body.email);
+    const gate = () => matterWriteGate({
+      runtime,
+      context,
+      requestId,
+      auditHintRef: body.audit_hint_ref,
+      tenantId,
+      matterId,
+      resourceType: "email_thread",
+      resourceId: requestedSourceIdentity.rest_message_id,
+      action: "outlook:email:file",
+    });
+    let writeGate = gate();
+    if (writeGate.response) return writeGate.response;
+    await requireOutlookVaultUploadAuthority({ runtime, context, requestId });
+    const resolved = await resolveVaultOutlookCanonical({ body, context, runtime, mode });
+    writeGate = gate();
+    if (writeGate.response) return writeGate.response;
+    const sourceRefSha256 = hashDomainValue({
+      authority: "microsoft_graph_mime",
+      ...resolved.canonicalSourceIdentity,
+    });
+    const targetRefSha256 = hashDomainValue({
+      lawos_matter_id: matterId,
+      source_kind: "outlook_original_mime",
+    });
+    const saved = await saveServerOwnedSourceToAmicVault({
+      principal: context?.principal,
+      dmsRuntime: runtime.dmsRuntime,
+      vaultUploadProvider: runtime.vaultUploadProvider,
+      operationKind: "save_email",
+      matterId,
+      sourceRefSha256,
+      targetRefSha256,
+      filename: vaultOutlookSourceFilename(
+        resolved.canonical.thread.subject,
+        `Outlook-${sourceRefSha256.slice(0, 12)}`,
+        ".eml",
+      ),
+      mimeType: "message/rfc822",
+      bytes: resolved.canonical.mime_bytes,
+      maxBytes: OUTLOOK_ADDIN_MAX_MIME_BYTES,
+      requestId,
+    });
+    const responseBody = Object.freeze({
+      ...saved,
+      filing_operation: mode,
+      source_binding_sha256: sourceRefSha256,
+      provider_authority_verified: true,
+    });
+    assertNoVaultBoundarySecrets(responseBody);
+    return Object.freeze({
+      status: saved.outcome === "processing"
+        ? 202
+        : saved.idempotent_replay
+          ? 200
+          : 201,
+      body: responseBody,
+    });
+  } catch (error) {
+    return vaultOutlookSourceBlocked(requestId, error);
+  }
+}
+
+async function saveOutlookAttachmentToVault({ body, context, requestId, runtime }) {
+  try {
+    const tenantId = requiredString(body.tenant_id ?? context?.principal?.tenant_id, "tenant_id");
+    const matterId = requiredString(body.matter_id ?? body.matterId, "matter_id");
+    const requestedSourceIdentity = parseCapturedOutlookSourceIdentity(body.email);
+    const selectedIds = Array.isArray(body.selected_attachment_ids)
+      ? body.selected_attachment_ids.map((value) => requiredString(value, "selected_attachment_id"))
+      : [];
+    if (selectedIds.length !== 1) {
+      throw new TypeError("exactly one selected attachment is required per request");
+    }
+    const [attachmentId] = selectedIds;
+    const gate = () => matterWriteGate({
+      runtime,
+      context,
+      requestId,
+      auditHintRef: body.audit_hint_ref,
+      tenantId,
+      matterId,
+      resourceType: "email_attachment",
+      resourceId: attachmentId,
+      action: "outlook:attachment:save",
+    });
+    let writeGate = gate();
+    if (writeGate.response) return writeGate.response;
+    await requireOutlookVaultUploadAuthority({ runtime, context, requestId });
+    const resolved = await resolveVaultOutlookCanonical({
+      body,
+      context,
+      runtime,
+      mode: body.filing_mode === "sent" ? "sent" : "manual",
+    });
+    const sourceAttachment = resolved.canonical.thread.attachment_metadata.find(
+      (attachment) => (attachment.attachment_id ?? attachment.id) === attachmentId,
+    );
+    if (!sourceAttachment) {
+      throw new TypeError("attachment_id is not present on the filed Outlook email");
+    }
+    const extracted = extractInquiryMimeAttachments({
+      mime_bytes: resolved.canonical.mime_bytes,
+      max_mime_bytes: OUTLOOK_ADDIN_MAX_MIME_BYTES,
+      max_total_attachment_bytes: OUTLOOK_ADDIN_MAX_ATTACHMENT_BYTES,
+    });
+    const occurrence = sourceAttachment.source_provenance?.occurrence;
+    const canonicalAttachment = Number.isSafeInteger(occurrence)
+      ? extracted[occurrence]
+      : null;
+    if (
+      !canonicalAttachment
+      || canonicalAttachment.file_name !== sourceAttachment.name
+      || canonicalAttachment.mime_type !== sourceAttachment.content_type
+      || canonicalAttachment.sha256 !== sourceAttachment.source_provenance?.sha256
+      || canonicalAttachment.byte_size !== sourceAttachment.source_provenance?.byte_size
+    ) {
+      throw attachmentProvenanceError(
+        "Selected Outlook attachment does not match the canonical Microsoft Graph MIME part",
+      );
+    }
+    const verifiedSha256 = verifySourceAttachmentBytes(
+      sourceAttachment,
+      canonicalAttachment.content_bytes,
+    );
+    writeGate = gate();
+    if (writeGate.response) return writeGate.response;
+    const sourceRefSha256 = hashDomainValue({
+      authority: "microsoft_graph_mime_attachment",
+      ...resolved.canonicalSourceIdentity,
+      occurrence,
+      file_name: canonicalAttachment.file_name.normalize("NFC"),
+      mime_type: canonicalAttachment.mime_type,
+      byte_size: canonicalAttachment.byte_size,
+      sha256: verifiedSha256,
+    });
+    const targetRefSha256 = hashDomainValue({
+      lawos_matter_id: matterId,
+      source_kind: "outlook_attachment",
+      parent_message_ref_sha256: sourceAttachment.source_provenance.message_ref,
+    });
+    const saved = await saveServerOwnedSourceToAmicVault({
+      principal: context?.principal,
+      dmsRuntime: runtime.dmsRuntime,
+      vaultUploadProvider: runtime.vaultUploadProvider,
+      operationKind: "save_email_attachment",
+      matterId,
+      sourceRefSha256,
+      targetRefSha256,
+      filename: vaultOutlookSourceFilename(
+        canonicalAttachment.file_name,
+        `Outlook-attachment-${sourceRefSha256.slice(0, 12)}`,
+      ),
+      mimeType: canonicalAttachment.mime_type,
+      bytes: canonicalAttachment.content_bytes,
+      maxBytes: OUTLOOK_ADDIN_MAX_ATTACHMENT_BYTES,
+      requestId,
+    });
+    const responseBody = Object.freeze({
+      ...saved,
+      selected_attachment_id: attachmentId,
+      source_binding_sha256: sourceRefSha256,
+      source_provenance_authority: "microsoft_graph_mime",
+      provider_authority_verified: true,
+    });
+    assertNoVaultBoundarySecrets(responseBody);
+    return Object.freeze({
+      status: saved.outcome === "processing"
+        ? 202
+        : saved.idempotent_replay
+          ? 200
+          : 201,
+      body: responseBody,
+    });
+  } catch (error) {
+    return vaultOutlookSourceBlocked(requestId, error);
+  }
+}
+
+async function continueOutlookVaultSourceSave({ body, context, requestId, runtime }) {
+  try {
+    if (!body || Array.isArray(body) || Object.keys(body).length !== 1) {
+      throw new TypeError("Vault source status requires only operation_id");
+    }
+    const operationId = requiredString(body.operation_id, "operation_id");
+    await requireOutlookVaultUploadAuthority({ runtime, context, requestId });
+    const saved = await continueServerOwnedSourceVaultSave({
+      principal: context?.principal,
+      dmsRuntime: runtime.dmsRuntime,
+      vaultUploadProvider: runtime.vaultUploadProvider,
+      operationId,
+      requestId,
+    });
+    const responseBody = Object.freeze({
+      ...saved,
+      provider_authority_verified: true,
+    });
+    assertNoVaultBoundarySecrets(responseBody);
+    return Object.freeze({
+      status: saved.outcome === "processing"
+        ? 202
+        : saved.idempotent_replay
+          ? 200
+          : 201,
+      body: responseBody,
+    });
+  } catch (error) {
+    return vaultOutlookSourceBlocked(requestId, error);
+  }
 }
 
 async function fileEmail({ body, context, requestId, runtime, mode = "manual", resolvedCanonical = null, filingActorId = null }) {
@@ -4012,6 +4500,17 @@ function hasOnlyBodyFields(body, allowedFields) {
 
 export async function handleOutlookAddinApiRequest({ pathname, method, query = {}, body = {}, headers = {}, context, requestId, runtime } = {}) {
   try {
+    if (
+      runtime?.vaultUploadProvider
+      && method === "POST"
+      && [
+        "/api/outlook/email/file",
+        "/api/outlook/sent/file",
+        "/api/outlook/attachments/save",
+      ].includes(pathname)
+    ) {
+      return errorResponse(403, requestId, ["OUTLOOK_LEGACY_VAULT_WRITE_RETIRED"]);
+    }
     if (isOutlookConversationPolicyPath(pathname)) {
       return await handleOutlookConversationPolicyApiRequest({
         pathname,
@@ -4237,7 +4736,12 @@ export async function handleOutlookAddinApiRequest({ pathname, method, query = {
         documentId: matterId,
       });
       if (decision.effect !== "allow") return permissionDeniedResponse({ requestId, decision, auditHintRef: query.audit_hint_ref });
-      const items = listMatterDocuments({ repository: runtime.dmsRuntime.repository, tenant_id: tenantId, matter_id: matterId })
+      const items = (await listMatterDocumentsWithExactVersions({
+        dmsRuntime: runtime.dmsRuntime,
+        tenant_id: tenantId,
+        matter_id: matterId,
+        actor_id: actorFrom(context),
+      }))
         .filter((document) => outlookDocumentReadDecision({
           context,
           tenantId,
@@ -4253,6 +4757,12 @@ export async function handleOutlookAddinApiRequest({ pathname, method, query = {
     }
     if (pathname === "/api/outlook/email/file" && method === "POST") {
       return await fileEmail({ body, context, requestId, runtime, mode: "manual" });
+    }
+    if (pathname === OUTLOOK_VAULT_EMAIL_SAVE_PATH && method === "POST") {
+      return await saveOutlookEmailToVault({ body, context, requestId, runtime, mode: "manual" });
+    }
+    if (pathname === OUTLOOK_VAULT_SENT_SAVE_PATH && method === "POST") {
+      return await saveOutlookEmailToVault({ body, context, requestId, runtime, mode: "sent" });
     }
     if (
       (pathname === "/api/outlook/email/corrections" && method === "POST")
@@ -4272,6 +4782,12 @@ export async function handleOutlookAddinApiRequest({ pathname, method, query = {
     }
     if (pathname === "/api/outlook/attachments/save" && method === "POST") {
       return await saveAttachments({ body, context, requestId, runtime });
+    }
+    if (pathname === OUTLOOK_VAULT_ATTACHMENT_SAVE_PATH && method === "POST") {
+      return await saveOutlookAttachmentToVault({ body, context, requestId, runtime });
+    }
+    if (pathname === OUTLOOK_VAULT_SOURCE_STATUS_PATH && method === "POST") {
+      return await continueOutlookVaultSourceSave({ body, context, requestId, runtime });
     }
     if (pathname === "/api/outlook/tasks" && method === "POST") {
       return createEditableOutlookTask({ body, context, requestId, runtime });

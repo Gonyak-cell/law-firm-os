@@ -153,7 +153,7 @@ test("compact record rows keep low-value metadata on the primary line across pro
   assert.doesNotMatch(sources[3], /searchDocumentsLabel[\s\S]{0,100}item\.searched_at/);
 });
 
-test("post-login product UI shows Home, Client, Matter, People, Search, and Portal", async () => {
+test("post-login product UI shows Home, Client, Matter, People, Vault, and Portal", async () => {
   const navSource = await readWebFile("src/data/nav.js");
   const appSource = await readWebFile("src/App.jsx");
   const shellSource = await readWebFile("src/components/Shell.jsx");
@@ -197,12 +197,12 @@ test("post-login product UI shows Home, Client, Matter, People, Search, and Port
     assert.match(navSource, new RegExp(`id: "${view}"`));
     assert.match(appSource, new RegExp(`view === "${view}"`));
   }
-  assert.match(navSource, /label: "Home"[\s\S]*label: "Client"[\s\S]*label: "Matter"[\s\S]*label: "People"[\s\S]*label: "Search"[\s\S]*label: "Portal"/);
+  assert.match(navSource, /label: "Home"[\s\S]*label: "Client"[\s\S]*label: "Matter"[\s\S]*label: "People"[\s\S]*label: "Vault"[\s\S]*label: "Portal"/);
   assert.match(navSource, /id: "people", label: "People"/);
-  assert.match(navSource, /id: "vault", label: "Search"/);
-  assert.match(i18nSource, /vaultAxisLabel: "Search"/);
+  assert.match(navSource, /id: "vault", label: "Vault"/);
+  assert.match(i18nSource, /vaultAxisLabel: "Vault"/);
   assert.match(shellSource, /people:\s*\{[\s\S]*?title:\s*"People"/);
-  assert.match(shellSource, /aria-label="Home Client Matter People Search Portal"/);
+  assert.match(shellSource, /aria-label="Home Client Matter People Vault Portal"/);
   assert.match(appSource, /view === "home"/);
   assert.match(appSource, /view === "auth"/);
   for (const view of removedViews) {
@@ -380,15 +380,16 @@ test("post-login product UI shows Home, Client, Matter, People, Search, and Port
   assert.doesNotMatch(appSource, /MatterModal|initialVariant|initialDataMode|setModal|mockData/);
 });
 
-test("Search workspace keeps vault compatibility while adding dashboard, grouped navigation, and global search handoff", async () => {
+test("Vault workspace keeps search compatibility while adding capability-filtered navigation and global search handoff", async () => {
   const appSource = await readWebFile("src/App.jsx");
   const shellSource = await readWebFile("src/components/Shell.jsx");
   const vaultSource = await readWebFile("src/components/VaultSurface.jsx");
   const stylesSource = await readWebFile("src/styles.css");
 
-  assert.match(appSource, /const vaultFallbackSection = "vault-search-home"/);
+  assert.match(appSource, /const vaultFallbackSection = "vault-home"/);
   assert.match(appSource, /function normalizeVaultRoute\(route\)/);
-  assert.match(appSource, /"vault-documents": "vault-search-documents"/);
+  assert.match(appSource, /"vault-search-home": "vault-home"/);
+  assert.match(appSource, /"vault-documents": "vault-files"/);
   assert.match(appSource, /<VaultSurface[\s\S]*initialQuery=\{query\}[\s\S]*onNavigateSection=/);
   assert.match(appSource, /current_version/);
   assert.match(appSource, /date_from/);
@@ -397,14 +398,31 @@ test("Search workspace keeps vault compatibility while adding dashboard, grouped
   const viteServer = await createServer({ configFile: false, root: webRoot, server: { middlewareMode: true, hmr: false }, appType: "custom", logLevel: "error" });
   try {
     const { buildContextualNavigation } = await viteServer.ssrLoadModule("/src/components/Shell.jsx");
-    const searchNavigation = buildContextualNavigation().vault;
-    assert.equal(searchNavigation.title, "Search");
-    assert.deepEqual(searchNavigation.items.map((item) => item.label), ["검색", "내 검색"]);
+    const vaultCapabilities = {
+      authoritative: true,
+      capabilityMap: Object.fromEntries(["read", "upload", "download", "attach", "work", "governance", "audit"].map((id) => [id, true]))
+    };
+    const searchNavigation = buildContextualNavigation({ vaultCapabilities }).vault;
+    assert.equal(searchNavigation.title, "Vault");
+    assert.deepEqual(searchNavigation.items.map((item) => item.label), ["문서 관리", "검색", "문서 업무", "연동", "거버넌스"]);
     assert.deepEqual(searchNavigation.items.flatMap((item) => item.children.map((child) => child.section)), [
-      "vault-search-home",
+      "vault-home",
+      "vault-files",
+      "vault-recent",
+      "vault-favorites",
+      "vault-upload",
       "vault-search-all",
       "vault-search-recent",
-      "vault-search-saved"
+      "vault-search-saved",
+      "vault-work",
+      "vault-checkout",
+      "vault-review",
+      "vault-outlook",
+      "vault-email",
+      "vault-audit",
+      "vault-ethical-wall",
+      "vault-records",
+      "vault-dlp"
     ]);
   } finally {
     await viteServer.close();
@@ -412,7 +430,9 @@ test("Search workspace keeps vault compatibility while adding dashboard, grouped
 
   assert.match(shellSource, /searchInWorkspace[\s\S]*trimmedQuery/);
   assert.match(shellSource, /setView\("vault", "vault-search-all", \{ query: trimmedQuery \}\)/);
-  assert.match(vaultSource, /<ForestHero title="Search" image=\{heroVaultArchitecture\} imageOpacity=\{0\.24\} \/>/);
+  assert.match(vaultSource, /<ForestHero title="Vault" image=\{heroVaultArchitecture\} imageOpacity=\{0\.24\} \/>/);
+  assert.match(vaultSource, /vaultSectionAllowed\(section, capabilities\)/);
+  assert.match(vaultSource, /data-vault-capability-boundary=/);
   assert.match(vaultSource, /data-search-scope="documents-ocr"/);
   assert.match(vaultSource, /searchCurrentVersionOnly/);
   assert.doesNotMatch(vaultSource, /searchOcrSidecarNotice|문서\/OCR|Document\/OCR/);
@@ -828,7 +848,7 @@ test("desktop post-login route skips repeated logo splash before the global rail
   assert.doesNotMatch(stylesSource, /\.app-frame\.sidebar-expanded|\.rail-logo|\.nav-toggle\.active/);
 });
 
-test("six photographic product heroes stay unique while Vault is renamed to Search", async () => {
+test("six photographic product heroes stay unique with the Vault product name", async () => {
   const sources = await Promise.all([
     readWebFile("src/components/HomeSurface.jsx"),
     readWebFile("src/components/ClientsSurface.jsx"),
@@ -850,7 +870,7 @@ test("six photographic product heroes stay unique while Vault is renamed to Sear
   for (const source of sources.slice(1)) {
     assert.match(source, /<ForestHero[^>]*image=\{hero[A-Z][A-Za-z]+Architecture\}[^>]*imageOpacity=\{0\.24\}/);
   }
-  assert.match(sources[4], /<ForestHero title="Search" image=\{heroVaultArchitecture\} imageOpacity=\{0\.24\} \/>/);
+  assert.match(sources[4], /<ForestHero title="Vault" image=\{heroVaultArchitecture\} imageOpacity=\{0\.24\} \/>/);
 });
 
 test("Home dashboard Stage 4 keeps action counts on the single Home inbox source", async () => {
@@ -1831,19 +1851,19 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
   assert.match(rosterSource, /MATTER_ONBOARDING_GATE_REQUIRED|온보딩 완료 후 배정 가능/);
   assert.doesNotMatch(openingSource, /tenant_rp|matter_ui_|M-UI|party_rp|user_rp/);
   assert.doesNotMatch(rosterSource, /tenant_rp|member_ui|emp-002|user_rp/);
-  assert.match(vaultSource, /data-amic-search-surface="true"/);
-  assert.match(vaultSource, /<ForestHero title="Search" image=\{heroVaultArchitecture\} imageOpacity=\{0\.24\} \/>/);
+  assert.match(vaultSource, /data-amic-vault-surface="true"/);
+  assert.match(vaultSource, /<ForestHero title="Vault" image=\{heroVaultArchitecture\} imageOpacity=\{0\.24\} \/>/);
   assert.doesNotMatch(vaultSource, /search-hero|searchHeroSubtitle/);
   assert.match(vaultSource, /fetchVaultDocuments/);
   assert.match(vaultSource, /fetchVaultSearch/);
   assert.doesNotMatch(`${vaultSource}\n${shellSource}\n${i18nSource}`, /AMIC Search/);
-  assert.match(vaultSource, /aria-label="Search"/);
+  assert.match(vaultSource, /aria-label=\{vaultLabel\(labels, "searchSubmit", "검색"\)\}/);
   assert.match(vaultSource, /문서 제목, 본문, Matter 검색/);
   assert.match(vaultSource, /searchFormTitle", "전체 검색/);
   assert.doesNotMatch(vaultSource, /문서\/OCR|Document\/OCR|searchOcrSidecarNotice/);
-  assert.match(vaultSource, /data-amic-search-section=\{section\}/);
+  assert.match(vaultSource, /data-amic-vault-section=\{section\}/);
   assert.doesNotMatch(vaultSource, /item\?\.document_id \?\?/);
-  assert.doesNotMatch(vaultSource, /Matter 연결 상태|문서 작업 기준|권한 필터|확인 필요/);
+  assert.match(vaultSource, /data-vault-exact-target-mismatch="true"/);
   assert.doesNotMatch(vaultSource, /fetchVaultBridgeStatus|fetchVaultMatterLookup|fetchVaultUploadPreflight|uploadVaultDocumentFile/);
   assert.match(documentDetailSource, /registered_account/);
   assert.match(apiClientSource, /fetchVaultBridgeStatus/);

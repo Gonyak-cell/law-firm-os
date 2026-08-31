@@ -16,6 +16,8 @@ test("CL-P3-W00-T01 M365Connection migration은 token 열 없이 사용자 고�
       "005_outlook_desktop_installation",
       "006_outlook_desktop_release_trust",
       "007_outlook_desktop_assignment",
+      "008_outlook_desktop_trusted_current_read",
+      "009_outlook_desktop_legacy_windows_compatibility",
     ],
   );
   assert.equal(migrations[0].id, "001_m365_connection");

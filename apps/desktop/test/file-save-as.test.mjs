@@ -1,19 +1,25 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
+import { mkdtemp, readFile, readdir, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join, resolve } from "node:path";
 import test from "node:test";
-import { FileBridgeError, createFileBridgeController } from "../src/main/fileBridge.js";
+import { FileBridgeError, createAtomicDocumentWriter, createFileBridgeController } from "../src/main/fileBridge.js";
+import { OWNER_A, fakeDialog, inactiveTimer } from "./file-bridge-fixtures.mjs";
 
 function saveAsHarness({ allowed = true, canceled = false, providerBytes = new Uint8Array([1, 2, 3]) } = {}) {
   const order = [];
   const fetches = [];
+  const completions = [];
   const writes = [];
   const auditEvents = [];
-  const dialog = {
-    calls: [],
-    async showSaveDialog(options) {
-      order.push("dialog");
-      this.calls.push(options);
-      return canceled ? { canceled: true } : { canceled: false, filePath: "/Users/example/Downloads/matter-export.pdf" };
-    }
+  const dialog = fakeDialog();
+  dialog.showSaveDialog = async (options) => {
+    order.push("dialog");
+    dialog.saveCalls.push(options);
+    return canceled
+      ? { canceled: true }
+      : { canceled: false, filePath: resolve("test-output", "vault-export.pdf") };
   };
   const permissionClient = {
     async precheckFileBridgeAction(request) {
@@ -23,116 +29,172 @@ function saveAsHarness({ allowed = true, canceled = false, providerBytes = new U
         : { allowed: false, reason: "download_denied" };
     }
   };
-  const auditLogger = {
-    async record(event) {
-      auditEvents.push(event);
-    }
-  };
-  const documentWriter = {
-    async writeUserSelectedFile(payload) {
-      order.push("writer");
-      writes.push(payload);
-    }
-  };
-  const documentProvider = {
-    async fetchDocumentForSave(payload) {
-      order.push("provider");
-      fetches.push(payload);
-      return { bytes: providerBytes };
-    }
-  };
-
   const controller = createFileBridgeController({
     dialog,
     permissionClient,
-    auditLogger,
-    documentWriter,
-    documentProvider
+    auditLogger: { async record(event) { auditEvents.push(event); } },
+    documentWriter: {
+      async writeUserSelectedFile(payload) {
+        order.push("writer");
+        writes.push(payload);
+      }
+    },
+    documentProvider: {
+      async fetchDocumentForSave(payload) {
+        order.push("provider");
+        fetches.push(payload);
+        return {
+          bytes: providerBytes,
+          operationId: "vaultop_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          exactVersion: payload.exactVersion,
+        };
+      },
+      async completeDocumentSave(payload) {
+        order.push("complete");
+        completions.push(payload);
+        return { state: "delivered" };
+      }
+    },
+    setTimeoutImpl: inactiveTimer
   });
-
-  return { auditEvents, controller, dialog, fetches, order, providerBytes, writes };
+  return { auditEvents, completions, controller, dialog, fetches, order, providerBytes, writes };
 }
 
-test("save-document-as fetches bytes in main process before writing user-selected path", async () => {
-  const harness = saveAsHarness();
-  const result = await harness.controller.saveDocumentAs({
-    userGesture: true,
-    gestureToken: "gesture:click:save",
+function saveRequest(overrides = {}) {
+  return {
+    userActivation: true,
     documentId: "doc_123",
+    versionId: "version_123_7",
+    fileObjectId: "file_object_123_7",
+    sha256: createHash("sha256").update(new Uint8Array([1, 2, 3])).digest("hex"),
+    byteSize: 3,
+    mimeType: "application/pdf",
     matterId: "matter_123",
-    tenantIdHash: "tenant_hash_001",
-    suggestedName: "matter-summary.pdf"
-  });
+    suggestedName: "matter-summary.pdf",
+    ...overrides
+  };
+}
 
-  assert.deepEqual(harness.order, ["precheck", "dialog", "provider", "writer"]);
-  assert.equal(harness.dialog.calls[0].defaultPath, "matter-summary.pdf");
+test("save-document-as fetches bytes in main process before writing the user-selected path", async () => {
+  const harness = saveAsHarness();
+  const result = await harness.controller.saveDocumentAs(saveRequest(), OWNER_A);
+
+  assert.deepEqual(harness.order, ["precheck", "dialog", "provider", "writer", "complete"]);
+  assert.equal(harness.dialog.saveCalls[0].defaultPath, "matter-summary.pdf");
   assert.deepEqual(harness.fetches[0], {
     actionId: "save_document_as",
     documentId: "doc_123",
     matterId: "matter_123",
-    tenantIdHash: "tenant_hash_001",
+    exactVersion: {
+      document_id: "doc_123",
+      version_id: "version_123_7",
+      file_object_id: "file_object_123_7",
+      sha256: createHash("sha256").update(new Uint8Array([1, 2, 3])).digest("hex"),
+      byte_size: 3,
+      mime_type: "application/pdf",
+    },
     permissionDecisionId: "decision-save_document_as"
   });
-  assert.equal(harness.writes[0].filePath, "/Users/example/Downloads/matter-export.pdf");
+  assert.equal(harness.writes[0].filePath, resolve("test-output", "vault-export.pdf"));
   assert.equal(harness.writes[0].documentId, "doc_123");
   assert.equal(harness.writes[0].bytes, harness.providerBytes);
+  assert.equal(harness.completions[0].operationId, "vaultop_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
   assert.equal(result.state, "saved");
-  assert.equal(result.file.name, "matter-export.pdf");
+  assert.equal(result.file.name, "vault-export.pdf");
   assert.equal(result.file.pathVisibleToRenderer, false);
   assert.equal(result.backendDownload.actionId, "save_document_as");
-  assert.equal(result.backendDownload.permissionDecisionId, "decision-save_document_as");
-  assert.equal(JSON.stringify(result).includes("/Users/example"), false);
+  assert.equal(result.backendDownload.versionId, "version_123_7");
+  assert.equal(result.backendDownload.sha256, saveRequest().sha256);
+  assert.equal(JSON.stringify(result).includes("test-output"), false);
   assert.equal(harness.auditEvents.some((event) => event.eventName === "file_bridge.download.save-as.completed"), true);
+  harness.controller.dispose();
 });
 
-test("save-document-as rejects renderer-supplied bytes before precheck dialog or write", async () => {
+test("save-document-as rejects renderer bytes and renderer-selected tenant before precheck or write", async () => {
   const harness = saveAsHarness();
 
   await assert.rejects(
-    () =>
-      harness.controller.saveDocumentAs({
-        userGesture: true,
-        gestureToken: "gesture:click:save",
-        documentId: "doc_123",
-        bytes: new Uint8Array([9, 9, 9])
-      }),
+    () => harness.controller.saveDocumentAs(saveRequest({ bytes: new Uint8Array([9, 9, 9]) }), OWNER_A),
     (error) => error instanceof FileBridgeError && error.code === "RENDERER_FILE_BYTES_FORBIDDEN"
+  );
+  await assert.rejects(
+    () => harness.controller.saveDocumentAs(saveRequest({ tenantId: "renderer-tenant" }), OWNER_A),
+    (error) => error instanceof FileBridgeError && error.code === "RENDERER_AUTHORITY_FIELD_FORBIDDEN"
   );
 
   assert.deepEqual(harness.order, []);
-  assert.equal(harness.dialog.calls.length, 0);
+  assert.equal(harness.dialog.saveCalls.length, 0);
   assert.equal(harness.fetches.length, 0);
   assert.equal(harness.writes.length, 0);
+  harness.controller.dispose();
 });
 
-test("save-document-as denied precheck does not open save dialog or write default path", async () => {
+test("save-document-as requires active user interaction and exact Matter/document binding", async () => {
+  const harness = saveAsHarness();
+
+  await assert.rejects(
+    () => harness.controller.saveDocumentAs({
+      documentId: "doc_123",
+      versionId: "version_123_7",
+      fileObjectId: "file_object_123_7",
+      sha256: saveRequest().sha256,
+      byteSize: 3,
+      mimeType: "application/pdf",
+      matterId: "matter_123"
+    }, OWNER_A),
+    (error) => error instanceof FileBridgeError && error.code === "USER_ACTIVATION_REQUIRED"
+  );
+  await assert.rejects(
+    () => harness.controller.saveDocumentAs({
+      userActivation: true,
+      documentId: "doc_123",
+      versionId: "version_123_7",
+      fileObjectId: "file_object_123_7",
+      sha256: saveRequest().sha256,
+      byteSize: 3,
+      mimeType: "application/pdf"
+    }, OWNER_A),
+    (error) => error instanceof FileBridgeError && error.code === "FILE_BRIDGE_BINDING_REQUIRED"
+  );
+  assert.deepEqual(harness.order, []);
+  harness.controller.dispose();
+});
+
+test("save-document-as denied precheck does not open a save dialog", async () => {
   const harness = saveAsHarness({ allowed: false });
 
   await assert.rejects(
-    () =>
-      harness.controller.saveDocumentAs({
-        userGesture: true,
-        gestureToken: "gesture:click:save",
-        documentId: "doc_123"
-      }),
+    () => harness.controller.saveDocumentAs(saveRequest(), OWNER_A),
     (error) => error instanceof FileBridgeError && error.code === "PERMISSION_DENIED"
   );
 
   assert.deepEqual(harness.order, ["precheck"]);
-  assert.equal(harness.dialog.calls.length, 0);
+  assert.equal(harness.dialog.saveCalls.length, 0);
   assert.equal(harness.writes.length, 0);
+  harness.controller.dispose();
 });
 
-test("save-document-as cancelled dialog does not write default path silently", async () => {
+test("save-document-as cancellation never writes a default path", async () => {
   const harness = saveAsHarness({ canceled: true });
-  const result = await harness.controller.saveDocumentAs({
-    userGesture: true,
-    gestureToken: "gesture:click:save",
-    documentId: "doc_123",
-    suggestedName: "default.pdf"
-  });
+  const result = await harness.controller.saveDocumentAs(saveRequest({ suggestedName: "default.pdf" }), OWNER_A);
 
   assert.deepEqual(harness.order, ["precheck", "dialog"]);
   assert.equal(result.state, "cancelled");
   assert.equal(harness.writes.length, 0);
+  harness.controller.dispose();
+});
+
+test("atomic document writer replaces only the user-selected file and removes its private temp file", async () => {
+  const root = await mkdtemp(join(tmpdir(), "amic-vault-save-as-"));
+  try {
+    const destination = join(root, "contract.pdf");
+    const bytes = Buffer.from("verified exact bytes\n");
+    const writer = createAtomicDocumentWriter();
+    const result = await writer.writeUserSelectedFile({ filePath: destination, bytes });
+    assert.deepEqual(result, { written: true, byteSize: bytes.byteLength });
+    assert.deepEqual(await readFile(destination), bytes);
+    assert.deepEqual(await readdir(root), ["contract.pdf"]);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
 });

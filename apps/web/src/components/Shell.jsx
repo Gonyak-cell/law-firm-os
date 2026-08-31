@@ -36,6 +36,7 @@ import { getPeopleNavigationGroups } from "../people/peopleFeatureCatalog.js";
 import { memberPhotoFor } from "../people/memberPhotos.js";
 import { safePeopleLabel } from "../people/peoplePresentation.ts";
 import { canAccessHomeFinanceSection } from "../data/financeAccess.js";
+import { EMPTY_VAULT_CAPABILITY_PROJECTION, vaultCapabilityAllowed } from "../data/vaultCapabilities.js";
 import {
   canAdjustLeaveLedger as canAdjustLeaveLedgerForRecords,
   canApproveLeave as canApproveLeaveForRecords,
@@ -427,7 +428,7 @@ export function GlobalRail({
           <img src={amicLawLogo} alt="" />
         </span>
       </div>
-      <nav className="global-rail-nav" aria-label="Home Client Matter People Search Portal" data-product-axis-nav="global-rail">
+      <nav className="global-rail-nav" aria-label="Home Client Matter People Vault Portal" data-product-axis-nav="global-rail">
         {navItems.map(({ id, label, icon: Icon }) => {
           const itemLabel = shellLabel(labels, `${id}AxisLabel`, label);
           return (
@@ -779,7 +780,7 @@ const sidebarMeta = {
     ]
   },
   vault: {
-    title: "Search",
+    title: "Vault",
     utilities: []
   },
   portal: {
@@ -787,6 +788,70 @@ const sidebarMeta = {
     utilities: []
   }
 };
+
+function vaultNavigationItems(labels, capabilities) {
+  const groups = [
+    {
+      groupId: "vault-documents",
+      label: shellLabel(labels, "vaultDocumentGroupLabel", "문서 관리"),
+      icon: FileText,
+      children: [
+        { label: shellLabel(labels, "vaultDashboardLabel", "대시보드"), view: "vault", section: "vault-home", icon: LayoutDashboard, active: true },
+        { label: shellLabel(labels, "vaultFilesLabel", "문서 목록"), view: "vault", section: "vault-files", icon: FileText, capability: "read" },
+        { label: shellLabel(labels, "vaultRecentDocumentsLabel", "최근 문서"), view: "vault", section: "vault-recent", icon: CalendarClock, capability: "read" },
+        { label: shellLabel(labels, "vaultFavoritesLabel", "즐겨찾기"), view: "vault", section: "vault-favorites", icon: Tags, capability: "read" },
+        { label: shellLabel(labels, "vaultUploadLabel", "업로드"), view: "vault", section: "vault-upload", icon: Plus, capability: "upload" }
+      ]
+    },
+    {
+      groupId: "vault-search",
+      label: shellLabel(labels, "vaultSearchGroupLabel", "검색"),
+      icon: Search,
+      children: [
+        { label: shellLabel(labels, "searchAllLabel", "전체 검색"), view: "vault", section: "vault-search-all", icon: Search, capability: "read" },
+        { label: shellLabel(labels, "searchRecentLabel", "최근 검색"), view: "vault", section: "vault-search-recent", icon: CalendarClock, capability: "read" },
+        { label: shellLabel(labels, "searchSavedLabel", "저장한 검색"), view: "vault", section: "vault-search-saved", icon: Tags, capability: "read" }
+      ]
+    },
+    {
+      groupId: "vault-work",
+      label: shellLabel(labels, "vaultWorkGroupLabel", "문서 업무"),
+      icon: ClipboardList,
+      children: [
+        { label: shellLabel(labels, "vaultWorkStatusLabel", "처리 현황"), view: "vault", section: "vault-work", icon: LayoutDashboard, capability: "work" },
+        { label: shellLabel(labels, "vaultCheckoutLabel", "체크아웃/편집"), view: "vault", section: "vault-checkout", icon: FileText, capability: "work" },
+        { label: shellLabel(labels, "vaultReviewLabel", "검토/승인"), view: "vault", section: "vault-review", icon: ShieldCheck, capability: "work" }
+      ]
+    },
+    {
+      groupId: "vault-integrations",
+      label: shellLabel(labels, "vaultIntegrationGroupLabel", "연동"),
+      icon: Share2,
+      children: [
+        { label: shellLabel(labels, "vaultOutlookLabel", "Outlook"), view: "vault", section: "vault-outlook", icon: Mail, capability: "attach" },
+        { label: shellLabel(labels, "vaultEmailLabel", "이메일 보관"), view: "vault", section: "vault-email", icon: Mail, capability: "upload" }
+      ]
+    },
+    {
+      groupId: "vault-governance",
+      label: shellLabel(labels, "vaultGovernanceGroupLabel", "거버넌스"),
+      icon: ShieldCheck,
+      children: [
+        { label: shellLabel(labels, "vaultAuditLabel", "감사"), view: "vault", section: "vault-audit", icon: ShieldCheck, capability: "audit" },
+        { label: shellLabel(labels, "vaultEthicalWallLabel", "Ethical Wall"), view: "vault", section: "vault-ethical-wall", icon: ShieldCheck, capability: "governance" },
+        { label: shellLabel(labels, "vaultRecordsLabel", "Legal Hold/Records"), view: "vault", section: "vault-records", icon: FileText, capability: "governance" },
+        { label: shellLabel(labels, "vaultDlpLabel", "DLP"), view: "vault", section: "vault-dlp", icon: ShieldCheck, capability: "governance" }
+      ]
+    }
+  ];
+
+  return groups
+    .map((group) => ({
+      ...group,
+      children: group.children.filter((item) => !item.capability || vaultCapabilityAllowed(capabilities, item.capability))
+    }))
+    .filter((group) => group.children.length > 0);
+}
 
 export function buildContextualNavigation({
   labels = {},
@@ -800,7 +865,8 @@ export function buildContextualNavigation({
   canAdjustLeaveLedger = false,
   canExportLeaveReport = false,
   canSettleLeaveTermination = false,
-  canManageLeavePromotion = false
+  canManageLeavePromotion = false,
+  vaultCapabilities = EMPTY_VAULT_CAPABILITY_PROJECTION
 } = {}) {
   const localizedHomeMeta = homeSidebarMeta(labels, financeAccessRecords);
   const homeItems = localizedHomeMeta.actions
@@ -852,7 +918,7 @@ export function buildContextualNavigation({
 
   return {
     auth: {
-      title: "matter",
+      title: "AMIC OS",
       utilities: [],
       items: [
         { label: "로그인", view: "auth" },
@@ -938,24 +1004,7 @@ export function buildContextualNavigation({
     people: { ...sidebarMeta.people, items: peopleSidebarGroups({ canManageLeavePolicy, canApproveLeave, canExecuteLeaveAccrual, canAdjustLeaveLedger, canExportLeaveReport, canSettleLeaveTermination, canManageLeavePromotion }) },
     vault: {
       ...sidebarMeta.vault,
-      items: [
-        {
-          label: shellLabel(labels, "searchGroupLabel", "검색"),
-          icon: Search,
-          children: [
-            { label: shellLabel(labels, "searchDashboardLabel", "대시보드"), view: "vault", section: "vault-search-home", icon: LayoutDashboard, active: true },
-            { label: shellLabel(labels, "searchAllLabel", "전체 검색"), view: "vault", section: "vault-search-all", icon: Search }
-          ]
-        },
-        {
-          label: shellLabel(labels, "searchMyGroupLabel", "내 검색"),
-          icon: CalendarClock,
-          children: [
-            { label: shellLabel(labels, "searchRecentLabel", "최근 검색"), view: "vault", section: "vault-search-recent", icon: CalendarClock },
-            { label: shellLabel(labels, "searchSavedLabel", "저장한 검색"), view: "vault", section: "vault-search-saved", icon: Tags }
-          ]
-        }
-      ]
+      items: vaultNavigationItems(labels, vaultCapabilities)
     },
     portal: {
       ...sidebarMeta.portal,
@@ -1027,7 +1076,7 @@ export function Sidebar({
     canSettleLeaveTermination: sessionIdentity.canSettleLeaveTermination,
     canManageLeavePromotion: sessionIdentity.canManageLeavePromotion
   });
-  const meta = navigation[view] ?? { title: "matter", utilities: [], items: [] };
+  const meta = navigation[view] ?? { title: "AMIC OS", utilities: [], items: [] };
   const subnav = meta.items;
   const flatSubnav = subnav.flatMap((item) => item.children ?? [item]);
   const hasPreferredActiveItem = flatSubnav.some((item) => item.active);
@@ -1288,7 +1337,7 @@ export function GlobalSearch({ labels, query, setQuery, setView, history = { sta
             }}
           >
             <Search size={15} />
-            {`${shellLabel(labels, "searchInWorkspace", "Search에서 문서 검색")} “${trimmedQuery}”`}
+            {`${shellLabel(labels, "searchInWorkspace", "Vault에서 문서 검색")} “${trimmedQuery}”`}
           </button>
           {results.map(({ icon: Icon, title, view, section }) => (
             <button

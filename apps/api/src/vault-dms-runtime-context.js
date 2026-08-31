@@ -287,7 +287,7 @@ function serializeAccountLink(record) {
   });
 }
 
-function serializeDocument(record) {
+function serializeDocument(record, { version = null, fileObject = null } = {}) {
   const account = accountForRecord(record);
   return Object.freeze({
     tenant_id: record.tenant_id,
@@ -296,9 +296,15 @@ function serializeDocument(record) {
     matter_id: record.matter_id,
     workspace_id: record.workspace_id,
     title: record.title,
+    filename: record.filename ?? null,
     status: record.status,
     current_version_id: record.current_version_id,
-    latest_sha256: record.latest_sha256 ?? null,
+    latest_sha256: record.latest_sha256 ?? version?.sha256 ?? fileObject?.sha256 ?? null,
+    current_file_object_id: version?.file_object_id ?? fileObject?.file_object_id ?? null,
+    current_byte_size: Number.isSafeInteger(Number(fileObject?.byte_size))
+      ? Number(fileObject.byte_size)
+      : null,
+    current_mime_type: fileObject?.mime_type ?? record.mime_type ?? null,
     privilege_label_id: record.privilege_label_id ?? null,
     legal_hold_id: record.legal_hold_id ?? null,
     owner_user_id: record.owner_user_id ?? account?.user_id ?? null,
@@ -327,9 +333,15 @@ function serializePostgresDocument(entry = {}) {
     matter_id: document.matter_id,
     workspace_id: document.workspace_id,
     title: document.title,
+    filename: document.filename ?? null,
     status: document.status,
     current_version_id: document.current_version_id,
     latest_sha256: document.latest_sha256 ?? entry.version?.sha256 ?? null,
+    current_file_object_id: entry.version?.file_object_id ?? entry.file_object?.file_object_id ?? null,
+    current_byte_size: Number.isSafeInteger(Number(entry.file_object?.byte_size))
+      ? Number(entry.file_object.byte_size)
+      : null,
+    current_mime_type: entry.file_object?.content_type ?? null,
     privilege_label_id: null,
     legal_hold_id: document.legal_hold_status === "active" ? "active" : null,
     legal_hold_status: document.legal_hold_status ?? "none",
@@ -342,6 +354,22 @@ function serializePostgresDocument(entry = {}) {
     storage_pointer_ref_included: false,
     production_ready_claim: false,
   });
+}
+
+function serializeLocalDocumentWithExactVersion(runtime, document) {
+  const version = runtime.repository.get({
+    tenant_id: document.tenant_id,
+    model_type: "DmsDocumentVersion",
+    version_id: document.current_version_id,
+  });
+  const fileObject = version?.file_object_id
+    ? runtime.repository.get({
+        tenant_id: document.tenant_id,
+        model_type: "DmsFileObject",
+        file_object_id: version.file_object_id,
+      })
+    : null;
+  return serializeDocument(document, { version, fileObject });
 }
 
 function postgresDirectoryAccountFromPrincipal(principal = {}) {
@@ -520,7 +548,7 @@ export async function handleVaultDocumentList({ query, context, requestId, runti
   }
   const serialized = runtime.repository
     .list({ tenant_id: query.tenant_id, model_type: "DmsDocument", matter_id: matterId })
-    .map(serializeDocument);
+    .map((document) => serializeLocalDocumentWithExactVersion(runtime, document));
   const { allowed } = trimItemsByPermission({
     context,
     items: serialized,
@@ -639,7 +667,7 @@ export async function handleVaultDocumentUpload({ body, context, requestId, runt
       document: {
         ...normalizedBody.document,
         mime_type: normalizedBody.document?.mime_type ?? normalizedBody.mime_type,
-        tenant_id: MATTER_VAULT_REGISTERED_TENANT_ID,
+        tenant_id: query.tenant_id,
         owner_user_id: linkedAccount.user_id,
         registered_account_email: linkedAccount.email,
         registered_account: linkedAccount,
@@ -997,7 +1025,7 @@ export async function handleVaultSearch({ query, context, requestId, runtime = D
     };
   }
   const documents = runtime.repository.list({ tenant_id: query.tenant_id, model_type: "DmsDocument", matter_id: matterId });
-  const serialized = documents.map(serializeDocument);
+  const serialized = documents.map((document) => serializeLocalDocumentWithExactVersion(runtime, document));
   const { allowed } = trimItemsByPermission({
     context,
     items: serialized,

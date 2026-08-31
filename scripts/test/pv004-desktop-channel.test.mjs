@@ -21,6 +21,8 @@ test("PV-004 defines exactly four collision-free desktop release channels", () =
 
   assert.equal(new Set(configs.map(({ appId }) => appId)).size, configs.length);
   assert.equal(new Set(configs.map(({ artifactPrefix }) => artifactPrefix)).size, configs.length);
+  assert.equal(new Set(configs.map(({ windowsArtifactPrefix }) => windowsArtifactPrefix)).size, configs.length);
+  assert.equal(new Set(configs.map(({ macArtifactPrefix }) => macArtifactPrefix)).size, configs.length);
   assert.deepEqual(configs.map(({ appId }) => appId), [
     "com.amic.matter.desktop.dev",
     "com.amic.matter.desktop.internal",
@@ -31,6 +33,48 @@ test("PV-004 defines exactly four collision-free desktop release channels", () =
     "matter-dev",
     "matter-internal",
     "matter-candidate",
+    "matter",
+  ]);
+  assert.deepEqual(configs.map(({ windowsArtifactPrefix }) => windowsArtifactPrefix), [
+    "matter-dev",
+    "AMIC-OS-internal",
+    "matter-candidate",
+    "matter",
+  ]);
+  assert.deepEqual(configs.map(({ windowsProductName }) => windowsProductName), [
+    "matter",
+    "AMIC OS",
+    "matter",
+    "matter",
+  ]);
+  assert.deepEqual(configs.map(({ windowsExecutableName }) => windowsExecutableName), [
+    "matter",
+    "matter",
+    "matter",
+    "matter",
+  ]);
+  assert.deepEqual(configs.map(({ macAppBundleName }) => macAppBundleName), [
+    "matter.app",
+    "AMIC OS.app",
+    "matter.app",
+    "matter.app",
+  ]);
+  assert.deepEqual(configs.map(({ macArtifactPrefix }) => macArtifactPrefix), [
+    "matter-dev",
+    "AMIC-OS-internal",
+    "matter-candidate",
+    "matter",
+  ]);
+  assert.deepEqual(configs.map(({ macDisplayName }) => macDisplayName), [
+    "matter",
+    "AMIC OS",
+    "matter",
+    "matter",
+  ]);
+  assert.deepEqual(configs.map(({ macVolumeName }) => macVolumeName), [
+    "matter",
+    "AMIC OS",
+    "matter",
     "matter",
   ]);
 });

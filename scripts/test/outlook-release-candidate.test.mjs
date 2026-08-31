@@ -14,7 +14,7 @@ import {
 
 test("release contract binds two source ProductIds but exactly one production-visible ProductId", () => {
   assert.deepEqual(validateReleaseContract(contract), {
-    profile_count: 2, manifest_count: 4, release_version: "1.1.0.0",
+    profile_count: 2, manifest_count: 4, release_version: "1.3.0.1",
     source_product_id_count: 2, production_visible_product_id_count: 1,
     retained_unassigned_product_id_count: 1,
   });
@@ -24,6 +24,12 @@ test("release contract binds two source ProductIds but exactly one production-vi
   const destructive = clone(contract);
   destructive.static_deploy.delete = true;
   assert.throws(() => validateReleaseContract(destructive), /additive \/addin and \/outlook-addin dry-run/);
+  const unversioned = clone(contract);
+  unversioned.static_deploy.immutable_segment = "";
+  assert.throws(() => validateReleaseContract(unversioned), /additive \/addin and \/outlook-addin dry-run/);
+  const directCutover = clone(contract);
+  directCutover.static_deploy.cutover_mode = "overwrite_in_place";
+  assert.throws(() => validateReleaseContract(directCutover), /additive \/addin and \/outlook-addin dry-run/);
   const untrusted = clone(contract);
   untrusted.m365.protected_evidence.reject_symlinks = false;
   assert.throws(() => validateReleaseContract(untrusted), /trust boundary/);
@@ -39,6 +45,12 @@ test("release contract binds two source ProductIds but exactly one production-vi
   const wrongCohort = clone(contract);
   wrongCohort.m365.production_distribution.eligible_user_count = 9;
   assert.throws(() => validateReleaseContract(wrongCohort), /production distribution contract mismatch/);
+  const automaticSend = clone(contract);
+  automaticSend.automatic_send_policy.active_launch_events = ["OnMessageSend"];
+  assert.throws(() => validateReleaseContract(automaticSend), /automatic Send policy mismatch/);
+  const eventfulRollback = clone(contract);
+  eventfulRollback.automatic_send_policy.legacy_eventful_rollback_activation_allowed = true;
+  assert.throws(() => validateReleaseContract(eventfulRollback), /automatic Send policy mismatch/);
   const unreviewedOverride = clone(contract);
   unreviewedOverride.license_metadata_overrides = {
     ...(unreviewedOverride.license_metadata_overrides ?? {}),
@@ -89,7 +101,7 @@ test("OAuth scope release proof binds the runtime byte order while Graph remains
 
 });
 
-test("surface preserves ProductId-specific events while distribution and rollback own assignments", () => {
+test("active surfaces reject event leakage while historical rollback evidence remains identity-bound", () => {
   assert.equal(validateSurfaceSeparation(surface, baseline, contract).permission_event_diff, "none");
   assert.ok(surface.profiles.every((profile) => !("assignment_count" in profile)
     && !("assignment_fingerprint_sha256" in profile)));

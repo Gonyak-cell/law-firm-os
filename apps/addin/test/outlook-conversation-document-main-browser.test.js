@@ -8,6 +8,7 @@ import { chromium } from "playwright";
 import { startOutlookAddinStaticServer } from "../../../scripts/lib/outlook-addin-static-server.mjs";
 import { outlookItemContextKey } from "../src/outlook-item-events.js";
 import { createOutlookOperationItemContextRef } from "../src/outlook-operation-receipts.js";
+import { readyOutlookReadinessResponse } from "./helpers/outlook-readiness-fixture.js";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../..");
 const DIST = path.join(ROOT, "apps/addin/dist");
@@ -194,8 +195,9 @@ async function openFixture(browser, web, state, width = 320) {
     if (url.pathname === "/api/auth/office-sso/config") return fulfill({ item: { configured: true, client_id: "main-browser-client", tenant_id: "organizations", api_scope: "api://main-browser-client/access_as_user", scopes: ["api://main-browser-client/access_as_user"], callback_uri: `${url.origin}/addin/oauth-callback.html`, authority: "https://login.microsoftonline.com/organizations" } });
     if (url.pathname === "/api/auth/session") return state.authDenied
       ? fulfill({ safe_error_code: "AUTH_SESSION_INVALID" }, 401)
-      : fulfill({ authenticated: true, principal: { user_id: "main-browser-user", tenant_id: "main-browser-tenant" } });
-    if (url.pathname === "/api/outlook/connection" && request.method() === "GET") return fulfill({ item: { status: state.connection, active: state.connection === "connected", ...(state.connection === "connected" ? { connection_id: CONNECTION } : {}), state_version: state.connection === "connected" ? 1 : 0, mailbox_address: "qa@example.invalid" } });
+      : fulfill({ authenticated: true, session: { user_id: "main-browser-user", tenant_id: "main-browser-tenant", outlook_desktop_principal_ref: `odpr_${"A".repeat(43)}` } });
+    if (url.pathname === "/api/outlook/connection" && request.method() === "GET") return fulfill({ item: { status: state.connection, active: state.connection === "connected", ...(state.connection === "connected" ? { connection_id: CONNECTION } : {}), state_version: state.connection === "connected" ? 7 : 0, mailbox_address: "qa@example.invalid" } });
+    if (url.pathname === "/api/outlook/readiness") return fulfill(readyOutlookReadinessResponse());
     if (url.pathname === "/api/outlook/bootstrap") return fulfill({ item: { ready: true } });
     if (url.pathname === "/api/outlook/messages/identity") return fulfill({ item: { canonical_graph_message_id: `canonical-${body.rest_message_id}`, rest_message_id: body.rest_message_id, internet_message_id: body.internet_message_id, conversation_id: body.conversation_id } });
     if (url.pathname === "/api/outlook/operation-receipts/readback") return fulfill({ items: [receiptSummary(body.current_item, body.matter_id)] });

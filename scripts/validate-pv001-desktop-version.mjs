@@ -4,6 +4,7 @@ import { execFileSync } from "node:child_process";
 import { createHash, createHmac } from "node:crypto";
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import path from "node:path";
+import { desktopReleaseChannelConfig } from "./lib/matter-desktop-provenance.mjs";
 
 const usage = "usage: node scripts/validate-pv001-desktop-version.mjs [--source|--package|--help]";
 const command = process.argv[2] ?? "--source";
@@ -105,10 +106,11 @@ function validateSource() {
     assert.match(buildSource, /appVersion:\s*packageJson\.version/);
     assert.match(buildSource, /buildVersion:\s*packageJson\.version/);
   }
-  for (const buildSource of [macBuild, windowsBuild]) {
-    assert.match(buildSource, /desktopReleaseChannelConfig/);
-    assert.match(buildSource, /const artifactName = `\$\{channelConfig\.artifactPrefix\}-\$\{packageJson\.version\}`/);
-  }
+  for (const buildSource of [macBuild, windowsBuild]) assert.match(buildSource, /desktopReleaseChannelConfig/);
+  assert.match(macBuild, /const artifactName = `\$\{channelConfig\.macArtifactPrefix\}-\$\{packageJson\.version\}`/);
+  assert.match(windowsBuild, /const artifactName = `\$\{channelConfig\.windowsArtifactPrefix\}-\$\{packageJson\.version\}`/);
+  assert.match(windowsBuild, /name: channelConfig\.windowsProductName/);
+  assert.match(windowsBuild, /executableName: channelConfig\.windowsExecutableName/);
   assert.match(updateController, /activeVersion = metadata\.version/);
   assert.doesNotMatch(updateController, /\b0\.1\.\d+\b/, "update controller must consume metadata.version instead of hard-coding a release version");
 
@@ -133,16 +135,19 @@ if (command === "--source") {
 }
 
 const version = source.expected_version;
-const macAppRoot = path.join(ROOT, "apps/desktop/dist/mac/matter.app/Contents/Resources/app");
-const macPlistPath = path.join(ROOT, "apps/desktop/dist/mac/matter.app/Contents/Info.plist");
+const internalChannel = desktopReleaseChannelConfig("internal");
+const windowsArtifactName = `${internalChannel.windowsArtifactPrefix}-${version}`;
+const macBundleRoot = path.join(ROOT, "apps/desktop/dist/mac", internalChannel.macAppBundleName);
+const macAppRoot = path.join(macBundleRoot, "Contents/Resources/app");
+const macPlistPath = path.join(macBundleRoot, "Contents/Info.plist");
 const macRendererPath = path.join(macAppRoot, "src/renderer/web");
 const macReceiptPath = path.join(ROOT, "docs/lazycodex/evidence/matter-desktop/artifacts/macos-build.md");
-const windowsRoot = path.join(ROOT, `apps/desktop/dist/win/matter-internal-${version}-win32-x64`);
+const windowsRoot = path.join(ROOT, `apps/desktop/dist/win/${windowsArtifactName}-win32-x64`);
 const windowsAppRoot = path.join(windowsRoot, "resources/app");
 const windowsRendererPath = path.join(windowsAppRoot, "src/renderer/web");
-const windowsExecutablePath = path.join(windowsRoot, "matter.exe");
-const windowsZipPath = path.join(ROOT, `apps/desktop/dist/win/matter-internal-${version}-win32-x64-unsigned.zip`);
-const windowsManifestPath = path.join(ROOT, `apps/desktop/dist/win/matter-internal-${version}-win-installer-manifest.json`);
+const windowsExecutablePath = path.join(windowsRoot, `${internalChannel.windowsExecutableName}.exe`);
+const windowsZipPath = path.join(ROOT, `apps/desktop/dist/win/${windowsArtifactName}-win32-x64-unsigned.zip`);
+const windowsManifestPath = path.join(ROOT, `apps/desktop/dist/win/${windowsArtifactName}-win-installer-manifest.json`);
 const windowsSignaturePath = `${windowsManifestPath}.sig`;
 const windowsReceiptPath = path.join(ROOT, "docs/lazycodex/evidence/matter-desktop/artifacts/windows-build.md");
 
@@ -181,7 +186,8 @@ const packageVersions = {
 const versionMismatches = Object.entries(packageVersions).filter(([, value]) => value !== version);
 assert.deepEqual(versionMismatches, [], `generated package version mismatch: ${JSON.stringify(versionMismatches)}`);
 assert.equal(plistString(plist, "CFBundleName"), "matter");
-assert.equal(plistString(plist, "CFBundleIdentifier"), "com.amic.matter.desktop.internal");
+assert.equal(plistString(plist, "CFBundleDisplayName"), internalChannel.macDisplayName);
+assert.equal(plistString(plist, "CFBundleIdentifier"), internalChannel.appId);
 
 const packageJsonHashes = {
   source: sha256File(desktopPackagePath),
@@ -203,7 +209,7 @@ if (windowsManifest.executableSha256 !== sha256File(windowsExecutablePath)) arti
 if (windowsManifest.packageZipSha256 !== sha256File(windowsZipPath)) artifactHashMismatches.push("windows_zip");
 assert.deepEqual(artifactHashMismatches, [], `signed update metadata artifact hash mismatch: ${artifactHashMismatches.join(",")}`);
 const manifestHash = sha256(windowsManifestBody);
-const expectedSignature = createHmac("sha256", "matter-internal-nonproduction-signing-key").update(manifestHash).digest("hex");
+const expectedSignature = createHmac("sha256", internalChannel.receiptSigningKey).update(manifestHash).digest("hex");
 assert.equal(readFileSync(windowsSignaturePath, "utf8").trim(), expectedSignature, "internal update metadata signature mismatch");
 assert.equal(receiptValue(macReceipt, "Channel"), "internal");
 assert.equal(receiptValue(windowsReceipt, "Channel"), "internal");

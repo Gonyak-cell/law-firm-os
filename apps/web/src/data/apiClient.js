@@ -296,10 +296,55 @@ function writeLawosApiSession(body, source = globalThis) {
     token_type: body.token_type ?? "Bearer",
     session_token: token,
     expires_at: body.expires_at ?? null,
-    session: body.session ?? null
+    session: body.session ?? null,
+    vault_capabilities: body.vault_capabilities ?? null
   }));
   writeSessionEnvelopeFromApiSession(body, source);
   return true;
+}
+
+function mergeLawosApiSessionProjection(body, source = globalThis) {
+  const storage = sessionStorageFor(source);
+  const current = readLawosApiSession(source);
+  if (!storage || !current || !body?.vault_capabilities) return false;
+  storage.setItem(LAWOS_API_SESSION_STORAGE_KEY, JSON.stringify({
+    ...current,
+    expires_at: body.expires_at ?? current.expires_at ?? body.session?.expires_at ?? null,
+    session: body.session ?? current.session ?? null,
+    vault_capabilities: body.vault_capabilities
+  }));
+  writeSessionEnvelopeFromApiSession({
+    session: body.session ?? current.session,
+    expires_at: body.expires_at ?? current.expires_at ?? body.session?.expires_at
+  }, source);
+  return true;
+}
+
+export async function fetchLawosVaultCapabilities({ source = globalThis } = {}) {
+  const desktopFeatures = desktopSessionBridge("features", source);
+  if (desktopFeatures) {
+    try {
+      const body = await desktopFeatures();
+      return {
+        ok: body?.ok === true && Boolean(body?.vault_capabilities),
+        status: Number(body?.http_status ?? body?.status ?? (body?.ok ? 200 : 0)) || 0,
+        body
+      };
+    } catch {
+      return { ok: false, status: 0, body: { reason: "desktop_feature_bridge_failed" } };
+    }
+  }
+
+  let response;
+  let body;
+  try {
+    response = await apiFetch("/api/auth/session");
+    body = await response.json();
+  } catch {
+    return { ok: false, status: 0, body: { reason: "network_or_parse_error" } };
+  }
+  const stored = response.ok ? mergeLawosApiSessionProjection(body, source) : false;
+  return { ok: response.ok && stored, status: response.status, body };
 }
 
 export async function loginLawosApiSession({ email, password } = {}, { source = globalThis } = {}) {
@@ -3710,6 +3755,33 @@ export async function fetchMatterAudit({
   };
 }
 
+const VAULT_AUDIT_DECISIONS = new Set([
+  "allow",
+  "deny",
+  "review_required",
+  "blocked"
+]);
+
+export function projectVaultAuditEvent(value) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const eventId = typeof value.event_id === "string" ? value.event_id.trim() : "";
+  const action = typeof value.action === "string" ? value.action.trim() : "";
+  const decision = typeof value.decision === "string" ? value.decision.trim() : "";
+  const occurredAt = typeof value.occurred_at === "string" ? value.occurred_at.trim() : "";
+  if (!SAFE_REF_PATTERN.test(eventId)
+    || !SAFE_REF_PATTERN.test(action)
+    || !VAULT_AUDIT_DECISIONS.has(decision)
+    || occurredAt.length > 32
+    || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,9})?Z$/u.test(occurredAt)
+    || !Number.isFinite(Date.parse(occurredAt))) return null;
+  return Object.freeze({
+    event_id: eventId,
+    action,
+    decision,
+    occurred_at: new Date(occurredAt).toISOString()
+  });
+}
+
 export async function fetchVaultDocuments({
   ctx = "allow",
   matterId = "",
@@ -3752,6 +3824,60 @@ export async function fetchVaultDocuments({
     items: body.items,
     summary: body.summary ?? null,
     pageInfo: body.page_info ?? null,
+    safeErrorCodes: body.safe_error_codes,
+    auditHintRef: body.audit_hint_ref,
+    countLeakPrevented: body.count_leak_prevented === true,
+    productionReadyClaim: body.production_ready_claim === true
+  };
+}
+
+export async function fetchVaultAudit({
+  ctx = "allow",
+  matterId = "",
+  permissionRef = DEFAULT_VAULT_PERMISSION_REF,
+  auditHintRef = DEFAULT_VAULT_AUDIT_HINT_REF
+} = {}) {
+  const context = permissionContextFor(ctx, VAULT_PERMISSION_CONTEXTS, "vault");
+  const params = new URLSearchParams({
+    tenant_id: VAULT_TENANT_ID,
+    permission_ref: permissionRef,
+    audit_hint_ref: auditHintRef
+  });
+  if (matterId) params.set("matter_id", matterId);
+
+  let response;
+  let body;
+  try {
+    response = await apiFetch(`/api/vault/audit?${params.toString()}`, {
+      headers: { [PERMISSION_CONTEXT_HEADER]: JSON.stringify(context) }
+    });
+    body = await response.json();
+  } catch {
+    return { kind: "error", items: [] };
+  }
+
+  const hasVaultAuditShape = body !== null
+    && typeof body === "object"
+    && !Array.isArray(body)
+    && ["request_id", "outcome", "items", "safe_error_codes", "audit_hint_ref", "production_ready_claim"]
+      .every((key) => key in body)
+    && Array.isArray(body.items)
+    && Array.isArray(body.safe_error_codes);
+  if (!hasVaultAuditShape) return { kind: "error", items: [] };
+
+  const passed = response.ok && body.outcome === "passed";
+  const projectedItems = passed ? body.items.map(projectVaultAuditEvent) : [];
+  if (passed && projectedItems.some((item) => item === null)) {
+    return { kind: "error", items: [] };
+  }
+
+  return {
+    kind: passed ? "data" : "guarded",
+    status: response.status,
+    requestId: body.request_id,
+    outcome: body.outcome,
+    uiState: body.ui_state ?? (response.ok ? null : "blocked"),
+    items: projectedItems,
     safeErrorCodes: body.safe_error_codes,
     auditHintRef: body.audit_hint_ref,
     countLeakPrevented: body.count_leak_prevented === true,

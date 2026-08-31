@@ -25,11 +25,11 @@ function testExecutor() {
   return (input) => executeProductionMigrationCatalogReadback(input);
 }
 
-test("the action binds the full closed 76-row schema ledger", () => {
-  assert.equal(CLIENT_OPERATIONS_SCHEMA_MANIFEST.schema_migration_count, 76);
+test("the action binds the full closed 78-row schema ledger", () => {
+  assert.equal(CLIENT_OPERATIONS_SCHEMA_MANIFEST.schema_migration_count, 78);
   assert.equal(
     CLIENT_OPERATIONS_SCHEMA_MANIFEST.schema_sha256,
-    "8d8da4ab27a6de8db5e612b2d55945ffeb70fd61a7b43fb2b10c39d72cbaad6a",
+    "d323c0d66ad146dcda231c1688469615b3073efeed153cb78620ce49d177e162",
   );
   assert.equal(
     packet().packet.source_catalog.catalog_sha256,
@@ -82,6 +82,7 @@ test("the action validates approval before reading exactly one auditor secret", 
   }
   for (const authorityField of [
     "outlook_assignment_authority",
+    "outlook_trusted_current_read_authority",
     "authority_catalog_sha256",
     "authority_table_count",
     "authority_function_count",
@@ -89,6 +90,7 @@ test("the action validates approval before reading exactly one auditor secret", 
     "exposed_security_definer_function_count",
     "exposed_security_definer_function_catalog_sha256",
     "assignment_state_read",
+    "trusted_current_read",
   ]) assert.equal(serializedResult.includes(authorityField), false);
 });
 

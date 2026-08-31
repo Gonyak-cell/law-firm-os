@@ -30,9 +30,11 @@ function option(name) {
   return value;
 }
 
-function run(runCommand, command, args) {
+function run(runCommand, command, args, environment = {}) {
   try {
-    return runCommand(command, args, { encoding: "utf8", env: { ...process.env, CI: "1" }, maxBuffer: 16 * 1024 * 1024 });
+    return runCommand(command, args, {
+      encoding: "utf8", env: { ...process.env, CI: "1", ...environment }, maxBuffer: 16 * 1024 * 1024,
+    });
   } catch (error) {
     const output = `${error.stdout ?? ""}\n${error.stderr ?? ""}`.trim().slice(-4_000); throw new Error(`${command} ${args.join(" ")} failed${output ? `: ${output}` : ""}`);
   }
@@ -120,9 +122,9 @@ export async function profileArtifacts(contract, inventory, { root = repoRoot } 
   return result;
 }
 
-export async function graphScopeFingerprint(contract) {
-  const graphModel = await import(pathToFileURL(path.join(repoRoot, "packages/email-dms/src/m365-connection-model.js")));
-  const oauthClient = await import(pathToFileURL(path.join(repoRoot, "apps/api/src/microsoft-delegated-oauth-client.js")));
+export async function graphScopeFingerprint(contract, { root = repoRoot } = {}) {
+  const graphModel = await import(pathToFileURL(path.join(root, "packages/email-dms/src/m365-connection-model.js")));
+  const oauthClient = await import(pathToFileURL(path.join(root, "apps/api/src/microsoft-delegated-oauth-client.js")));
   const graphScopes = [...graphModel.M365_GRAPH_REQUIRED_SCOPES].sort();
   // The Graph connection model canonicalizes granted scopes as a sorted set,
   // so the Graph release field intentionally remains order-insensitive. The
@@ -136,22 +138,27 @@ export async function graphScopeFingerprint(contract) {
   return { graph_connection_scopes: graphScopes, oauth_scopes: oauthScopes, fingerprint_sha256: CLIENT_SCOPE_FINGERPRINT_SHA256, diff: "none" };
 }
 
-async function main() {
-  const expectedSourceSha = option("--source-sha");
+export async function createOutlookReleaseCandidateReceipt({
+  expectedSourceSha,
+  root = repoRoot,
+  runCommand: providedRunCommand,
+} = {}) {
+  if (!expectedSourceSha) throw new TypeError("expectedSourceSha is required");
   const contractRef = "contracts/outlook-addin-release-gates.json";
-  const contractBytes = await readFile(path.join(repoRoot, contractRef));
+  const contractBytes = await readFile(path.join(root, contractRef));
   const contract = JSON.parse(contractBytes);
-  const baselineBytes = await readFile(path.join(repoRoot, contract.baseline_receipt));
-  const surfaceBytes = await readFile(path.join(repoRoot, contract.surface_contract));
-  const rollbackBytes = await readFile(path.join(repoRoot, contract.rollback_contract));
+  const baselineBytes = await readFile(path.join(root, contract.baseline_receipt));
+  const surfaceBytes = await readFile(path.join(root, contract.surface_contract));
+  const rollbackBytes = await readFile(path.join(root, contract.rollback_contract));
   const baseline = JSON.parse(baselineBytes);
   const surface = JSON.parse(surfaceBytes);
   const rollback = JSON.parse(rollbackBytes);
-  const packageLockBytes = await readFile(path.join(repoRoot, "package-lock.json"));
+  const packageLockBytes = await readFile(path.join(root, "package-lock.json"));
   const packageLock = JSON.parse(packageLockBytes);
 
   validateReleaseContract(contract);
-  const runCommand = createCommandRunner({ cwd: repoRoot, allowedCommands: ["git", "npm", "npx"] });
+  const runCommand = providedRunCommand
+    ?? createCommandRunner({ cwd: root, allowedCommands: ["git", "npm", "npx"] });
   const { sourceSha, sourceTree } = exactGitIdentity({ expectedSourceSha, runCommand });
 
   const trackedPaths = trackedGitPaths(runCommand);
@@ -159,26 +166,27 @@ async function main() {
   const licenses = validateDependencyLicenses(packageLock, contract);
   const rollbackResult = validateRollbackContract(rollback, baseline, contract);
   const surfaceResult = validateSurfaceSeparation(surface, baseline, contract);
-  const graphScopes = await graphScopeFingerprint(contract);
-  const candidateResult = await validateOutlookAddinSurfaces({ repoRoot, baseline, mode: "candidate" });
+  const graphScopes = await graphScopeFingerprint(contract, { root });
+  const candidateResult = await validateOutlookAddinSurfaces({ repoRoot: root, baseline, mode: "candidate" });
   if (candidateResult.permission_event_diff !== "none") throw new Error("candidate manifest drifted from frozen identity contract");
 
   const [buildCommand, ...buildArgs] = contract.build.command;
-  run(runCommand, buildCommand, buildArgs);
-  const first = await collectBuildInventory(path.join(repoRoot, contract.build.root), contract);
-  run(runCommand, buildCommand, buildArgs);
-  const second = await collectBuildInventory(path.join(repoRoot, contract.build.root), contract);
+  const buildEnvironment = { LAWOS_OUTLOOK_ADDIN_BUILD_REVISION: sourceSha };
+  run(runCommand, buildCommand, buildArgs, buildEnvironment);
+  const first = await collectBuildInventory(path.join(root, contract.build.root), contract);
+  run(runCommand, buildCommand, buildArgs, buildEnvironment);
+  const second = await collectBuildInventory(path.join(root, contract.build.root), contract);
   const build = validateBuildInventories(first, second, contract);
 
   const manifests = [];
   for (const manifest of contract.manifests) {
     run(runCommand, "npx", ["--yes", "office-addin-manifest@2.1.6", "validate", manifest]);
-    const bytes = await readFile(path.join(repoRoot, manifest));
+    const bytes = await readFile(path.join(root, manifest));
     manifests.push({ path: manifest, sha256: sha256(bytes) });
   }
-  const artifacts = await profileArtifacts(contract, build.inventory);
+  const artifacts = await profileArtifacts(contract, build.inventory, { root });
   const eventRuntime = build.inventory.find(({ path: file }) => file === "event-runtime.js");
-  if (!eventRuntime) throw new Error("event runtime is missing from the release inventory");
+  if (eventRuntime) throw new Error("automatic-send event runtime is present in the release inventory");
   const finalIdentity = exactGitIdentity({ expectedSourceSha: sourceSha, runCommand });
   if (finalIdentity.sourceTree !== sourceTree) {
     throw new Error("release validation changed or drifted from the exact source tree");
@@ -202,7 +210,7 @@ async function main() {
     inventory_sha256: build.inventory_sha256,
     inventory: build.inventory,
     profile_artifacts: artifacts,
-    event_runtime: eventRuntime,
+    event_runtime: null,
     profiles: candidateResult.profiles,
     manifest_validation: {
       validator: "office-addin-manifest@2.1.6",
@@ -235,6 +243,11 @@ async function main() {
     rollback,
     surface,
   });
+  return receipt;
+}
+
+async function main() {
+  const receipt = await createOutlookReleaseCandidateReceipt({ expectedSourceSha: option("--source-sha") });
   process.stdout.write(`${JSON.stringify(receipt, null, 2)}\n`);
 }
 

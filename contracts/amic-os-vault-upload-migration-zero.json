@@ -1,0 +1,320 @@
+{
+  "schema_version": "law-firm-os.amic-os-vault-upload-migration-zero.v1",
+  "decision": {
+    "database_migration_required": false,
+    "vault_database_migration_count": 0,
+    "successor_provider_source_change_required": true,
+    "provider_ready": false,
+    "production_ready_claim": false,
+    "proof_scope": "pinned_source_and_executable_model",
+    "vault_source_commit": "5a04cc31f7c8a228982012b2213f78e6f07dc9ac",
+    "vault_source_clean_at_inspection": true,
+    "vault_source_mutated_by_proof": false
+  },
+  "operation_mapping": {
+    "operation_id_pattern": "^vaultop_[a-f0-9]{32}$",
+    "algorithm": "uuid_v5",
+    "namespace_uuid": "6ba7b811-9dad-11d1-80b4-00c04fd430c8",
+    "name_domain": "amic-os-vault:quarantine-ref:v1",
+    "reversible": false,
+    "raw_idempotency_key_stored": false,
+    "collision_rule": "A derived-reference collision never converges by reference alone. The owner row must have exactly one FILE_QUARANTINED audit whose correlation_id equals the LawOS correlation and whose request_id equals the complete request fingerprint; any mismatch fails closed before bytes, queue, scan, or promotion are reused.",
+    "test_vectors": [
+      {
+        "operation_id": "vaultop_00000000000000000000000000000001",
+        "quarantine_ref": "fac548fd-b343-587c-9cfb-a5047f166479"
+      },
+      {
+        "operation_id": "vaultop_ffffffffffffffffffffffffffffffff",
+        "quarantine_ref": "dc5a040a-b7ec-5c40-a19f-bf13d3ab30da"
+      }
+    ]
+  },
+  "owner_binding": {
+    "advisory_lock_scope": "tenant_id + operation_id",
+    "owner_uniqueness": [
+      "file_security_scans UNIQUE (tenant_id, quarantine_ref)",
+      "file_security_promotion_inputs PRIMARY KEY (scan_id)",
+      "file_security_promotions PRIMARY KEY (scan_id)"
+    ],
+    "immutable_scan_fields": [
+      "tenant_id",
+      "scan_id",
+      "matter_id",
+      "quarantine_ref",
+      "quarantine_storage_uri",
+      "expected_sha256",
+      "size_bytes",
+      "created_by",
+      "created_at"
+    ],
+    "immutable_input_fields": [
+      "scan_id",
+      "tenant_id",
+      "original_filename",
+      "normalized_filename",
+      "mime_type",
+      "source_system",
+      "created_by",
+      "fields_json",
+      "created_at"
+    ],
+    "audit_binding": {
+      "action": "FILE_QUARANTINED",
+      "target_type": "file_security_scan",
+      "correlation_id": "binding.correlation_id",
+      "request_id": "binding.request_fingerprint",
+      "hash": "expected_sha256",
+      "atomic_with_owner_and_queue": true
+    },
+    "same_request_comparison": [
+      "tenant_id",
+      "actor_id",
+      "matter_id",
+      "operation_kind",
+      "request_fingerprint",
+      "sha256",
+      "byte_size",
+      "mime_type",
+      "original_filename",
+      "normalized_filename",
+      "source_system",
+      "document_fields"
+    ]
+  },
+  "successor_algorithm": [
+    {
+      "id": "A1",
+      "rule": "Resolve tenant, actor, Matter, permission, Ethical Wall, Records handling and the truthful DLP ingress state from authenticated server authority before deriving an owner; no client tenant or actor is trusted."
+    },
+    {
+      "id": "A2",
+      "rule": "Normalize filename and MIME, hash the bounded bytes, derive the UUIDv5 quarantine reference from the server-created operation ID, and acquire a tenant-and-operation transaction advisory lock."
+    },
+    {
+      "id": "A3",
+      "rule": "Under the lock, read the scan, immutable promotion input and exactly one FILE_QUARANTINED audit. Exact material returns the existing state; any owner, correlation, request fingerprint, resource or file drift returns a conflict."
+    },
+    {
+      "id": "A4",
+      "rule": "When no owner row exists, putIfAbsent the deterministic quarantine object while the bounded database transaction remains open. An existing object may be adopted only after tenant-safe readback proves the exact SHA-256, byte size and MIME; collision or drift never deletes it."
+    },
+    {
+      "id": "A5",
+      "rule": "Insert the scan, strict public promotion fields, queue job and FILE_QUARANTINED audit in one tenant transaction. The audit correlation_id carries the LawOS correlation, request_id carries the complete request fingerprint, and hash carries the content SHA-256."
+    },
+    {
+      "id": "A6",
+      "rule": "The worker claims the scan with FOR UPDATE using tenant, quarantine reference and expected SHA-256, reloads the immutable owner audit binding, and creates at most one append-only promotion receipt before the scan can become promoted."
+    },
+    {
+      "id": "A7",
+      "rule": "Status derives the same opaque reference, checks the owner binding, reauthorizes current policy, and returns success only after exactly one promotion joins the exact document version and file object whose SHA-256, size and MIME independently match."
+    }
+  ],
+  "proof_cases": [
+    {
+      "id": "M0-01",
+      "claim": "One durable operation owner is representable without a new table or column.",
+      "existing_primitives": [
+        "tenant-unique quarantine_ref",
+        "transaction advisory lock",
+        "immutable scan and promotion input",
+        "atomic append-only audit correlation"
+      ],
+      "result": "pass_schema_only",
+      "provider_implementation_present": false
+    },
+    {
+      "id": "M0-02",
+      "claim": "Concurrent identical requests can converge on one quarantine row, one queue identity and one eventual promotion receipt.",
+      "existing_primitives": [
+        "putIfAbsent",
+        "UNIQUE tenant_id plus quarantine_ref",
+        "queue singletonKey quarantine_ref",
+        "promotion PRIMARY KEY scan_id"
+      ],
+      "result": "pass_schema_only",
+      "provider_implementation_present": false
+    },
+    {
+      "id": "M0-03",
+      "claim": "Reuse of the same operation with changed authority, resource, request fingerprint or file material can fail closed before reuse.",
+      "existing_primitives": [
+        "immutable scan authority fields",
+        "immutable promotion input",
+        "audit correlation_id",
+        "audit metadata request_id and hash"
+      ],
+      "result": "pass_schema_only",
+      "provider_implementation_present": false
+    },
+    {
+      "id": "M0-04",
+      "claim": "A crash after object creation but before transaction commit can be repaired by exact readback, while row-without-object and other orphans remain visible to reconciliation.",
+      "existing_primitives": [
+        "deterministic quarantine object key",
+        "tenant-safe HEAD and SHA-256 readback",
+        "quarantine_object_without_row reconciliation",
+        "row_without_object reconciliation"
+      ],
+      "result": "pass_schema_only",
+      "provider_implementation_present": false
+    },
+    {
+      "id": "M0-05",
+      "claim": "Asynchronous scan and promotion can preserve operation correlation and return one exact immutable version without adding upload authority to LawOS.",
+      "existing_primitives": [
+        "scan claim FOR UPDATE",
+        "immutable FILE_QUARANTINED audit binding",
+        "promotion receipt exact IDs and primary SHA-256",
+        "document version and file object exact metadata"
+      ],
+      "result": "pass_schema_only",
+      "provider_implementation_present": false
+    }
+  ],
+  "negative_cases": [
+    {
+      "id": "M0-N01",
+      "scenario": "two concurrent calls use the same operation and exact material",
+      "expected": "one owner row, one object, one queue identity and replay without a second byte commit"
+    },
+    {
+      "id": "M0-N02",
+      "scenario": "the same operation is replayed with changed bytes, MIME, Matter, actor or request fingerprint",
+      "expected": "conflict before existing object, queue, scan or promotion is reused"
+    },
+    {
+      "id": "M0-N03",
+      "scenario": "the process exits after putIfAbsent but before owner transaction commit",
+      "expected": "exact retry adopts the verified orphan; drift fails closed and the object is not deleted"
+    },
+    {
+      "id": "M0-N04",
+      "scenario": "the response is lost after owner, audit and queue commit and a new process handles status",
+      "expected": "operation-only replay resolves the same owner and never resends bytes"
+    },
+    {
+      "id": "M0-N05",
+      "scenario": "two different operation IDs are forced onto one derived quarantine reference",
+      "expected": "correlation and request fingerprint mismatch fails closed even when file material is identical"
+    },
+    {
+      "id": "M0-N06",
+      "scenario": "duplicate worker delivery or concurrent promotion occurs",
+      "expected": "scan row lock and promotion primary key yield exactly one immutable exact-version receipt"
+    }
+  ],
+  "current_source_gaps": [
+    {
+      "id": "G1",
+      "gap": "QuarantineIntakeService uses randomUUID for every request and therefore cannot resolve an accepted AMIC OS operation after a process restart."
+    },
+    {
+      "id": "G2",
+      "gap": "Current intake does not compare a server-owned operation correlation and complete request fingerprint before treating an existing quarantine object or row as a replay."
+    },
+    {
+      "id": "G3",
+      "gap": "Current FILE_QUARANTINED, scan and promotion calls do not deliberately propagate one LawOS correlation through the asynchronous worker."
+    },
+    {
+      "id": "G4",
+      "gap": "Vault main exposes no delegated AMIC OS upload status and exact readback provider route."
+    },
+    {
+      "id": "G5",
+      "gap": "The migration-zero algorithm and its real PostgreSQL, storage, replica, restart and policy negative tests do not exist in Vault main."
+    }
+  ],
+  "source_receipt": [
+    {
+      "path": "db/migrations/0001_initial_schema.sql",
+      "sha256": "58c129d2e1c6ddfd38c950e95af273467d03d3eb2c6ba07a68425e4d8092246a",
+      "role": "append-only audit correlation column"
+    },
+    {
+      "path": "db/migrations/0199_create_file_security_scans.sql",
+      "sha256": "7f379ed57a5c6ec334ba2a1c299d7dfdefd0be48cddd2542a98ed812afce75df",
+      "role": "tenant-unique owner, immutable authority, state machine and RLS"
+    },
+    {
+      "path": "db/migrations/0204_create_file_security_promotion_inputs.sql",
+      "sha256": "4e3add51a00417ba232687652602fa903fbd12083b83ea601f4f8b16b0ff42e7",
+      "role": "immutable promotion input and exact promotion receipt"
+    },
+    {
+      "path": "db/migrations/0207_make_file_security_promotions_version_scoped.sql",
+      "sha256": "510d96dea543f40f35d065a520e39e840b5e957eb7626e0396671b01f2e314f8",
+      "role": "version-scoped promotions"
+    },
+    {
+      "path": "apps/api/src/modules/file-security/quarantine-intake.service.ts",
+      "sha256": "c3c363bfceabef1f16067967da8718e2f57971473df9aed637bc6e9ebe8149a8",
+      "role": "current random-reference intake and transaction boundary"
+    },
+    {
+      "path": "apps/api/src/modules/file-security/file-security.service.ts",
+      "sha256": "353f2896fbada1ddff50037b82bb9005b4ab299f73f27aca79a6bf43412cbbc8",
+      "role": "scan row lock, hash validation and terminal audit"
+    },
+    {
+      "path": "apps/api/src/modules/file-security/file-promotion.service.ts",
+      "sha256": "dfca748563e0e47b6e03174c46f8a0264bddbbfc6109620a0c2822b15437de7a",
+      "role": "clean-only exact promotion and replay receipt"
+    },
+    {
+      "path": "apps/api/src/modules/file-security/file-security-reconciler.service.ts",
+      "sha256": "8cf9ea663f78cf4787b93cb5bc5bcb489b518ae82168a716745ad87350396f11",
+      "role": "bounded orphan classification and audited retry"
+    },
+    {
+      "path": "apps/api/src/modules/file-security/file-scan-queue.service.ts",
+      "sha256": "5e35a1bb072c039065a3e6955a8204cfc38d4e65ff88a773d09564ea42d2d5e8",
+      "role": "quarantine-reference singleton queue and bounded retry"
+    },
+    {
+      "path": "apps/api/src/modules/storage/storage.service.ts",
+      "sha256": "58584fa6ac26943df1fcf5c5eecc8cdafc0579f271e5dfefcd4ea92d46452a8d",
+      "role": "tenant-safe quarantine put, HEAD, hash readback and inventory"
+    },
+    {
+      "path": "apps/api/src/modules/storage/s3-storage.adapter.ts",
+      "sha256": "785aaccb4af2a6f20e82f0d2b9f0b73bfb6697105be0911c8633c12f4aab8e87",
+      "role": "If-None-Match putIfAbsent"
+    },
+    {
+      "path": "apps/api/src/modules/storage/storage-path.resolver.ts",
+      "sha256": "a036c2bfdfa6ee94a7d869326bc556186c354aa1c385d98a567b35fc9d77a6c6",
+      "role": "tenant-isolated UUID quarantine path"
+    },
+    {
+      "path": "apps/api/src/modules/audit/audit.service.ts",
+      "sha256": "d07f1c42d67e7e98afeb6dc40fee8d192f109bc9fdb78e811fd86085883e4371",
+      "role": "transactional correlation and normalized metadata write"
+    },
+    {
+      "path": "packages/shared/src/audit/audit-metadata-keys.ts",
+      "sha256": "f99543c2acc31e791db88b37a255bf6aafedc1490d1c173d9c929d86713ecdbb",
+      "role": "existing correlation_id, request_id and hash metadata keys"
+    },
+    {
+      "path": "apps/api/src/modules/document/document-upload.service.ts",
+      "sha256": "c955be5f7ac2007a7cbc26e783030147ec8d49f7b256bcdfeec32f42de0036de",
+      "role": "exact file object and document version transaction with storage compensation"
+    }
+  ],
+  "verification": {
+    "vault_node_runtime": "v22.22.3",
+    "vault_unit_command": "pnpm --filter @amic-vault/api exec vitest run src/modules/file-security/quarantine-intake.service.spec.ts src/modules/file-security/file-security.service.spec.ts src/modules/file-security/file-promotion.service.spec.ts src/modules/file-security/file-security-reconciler.service.spec.ts src/modules/file-security/file-scan-queue.service.spec.ts src/modules/storage/storage.service.spec.ts",
+    "vault_unit_result": {
+      "files_passed": 6,
+      "tests_passed": 34,
+      "tests_failed": 0
+    },
+    "integration_database_executed": false,
+    "integration_database_reason": "The local Docker daemon was unavailable. This source proof does not claim a running PostgreSQL, object-storage, provider, deployment or production result.",
+    "lawos_contract_test_command": "node --test scripts/test/amic-os-vault-upload-migration-zero.test.mjs"
+  }
+}

@@ -19,13 +19,12 @@ test("exact manifest ProductIds select the frozen Outlook capability profiles", 
       hosts: ["Mailbox"],
       itemForms: ["Message:Edit", "Message:Read"],
       extensionPoints: [
-        "LaunchEvent",
         "MessageComposeCommandSurface",
         "MessageComposeCommandSurface",
         "MessageReadCommandSurface",
         "MessageReadCommandSurface",
       ],
-      launchEvents: ["OnMessageSend:onMessageSendHandler:PromptUser"],
+      launchEvents: [],
     },
     itemModes: ["read", "compose"],
     actions: [
@@ -35,7 +34,7 @@ test("exact manifest ProductIds select the frozen Outlook capability profiles", 
       "matter.file-sent",
       "matter.save-attachments",
       "matter.create-follow-up",
-      "matter.evaluate-smart-alerts",
+      "matter.review-send-explicitly",
     ],
   });
   assert.deepEqual(resolveOutlookSurfaceProfile(OUTLOOK_PRODUCT_IDS.inquiryOnly), {

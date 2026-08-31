@@ -53,7 +53,8 @@ if (channel === "formal") {
     assert.ok(process.env.MATTER_DESKTOP_WINDOWS_BUILD_RECEIPT_PATH, "formal all-platform staging requires MATTER_DESKTOP_WINDOWS_BUILD_RECEIPT_PATH");
   }
 }
-const artifactName = channelConfig.artifactPrefix + "-" + version;
+const macArtifactName = channelConfig.macArtifactPrefix + "-" + version;
+const windowsArtifactName = channelConfig.windowsArtifactPrefix + "-" + version;
 const releaseRelativeRoot = desktopReleaseArtifactRelativeRoot({
   version,
   sourceSha: sourceIdentity.sourceSha,
@@ -78,22 +79,22 @@ function sha256(body) {
 
 const generic = {
   mac: {
-    buildManifest: path.join(desktopRoot, "dist/mac", artifactName + "-macos-build-manifest.json"),
-    packagedManifest: path.join(desktopRoot, "dist/mac/matter.app/Contents/Resources/matter-build-manifest.json"),
-    zip: path.join(desktopRoot, "dist/mac", artifactName + "-macos.zip"),
-    dmg: path.join(desktopRoot, "dist/mac", artifactName + "-macos.dmg"),
+    buildManifest: path.join(desktopRoot, "dist/mac", macArtifactName + "-macos-build-manifest.json"),
+    packagedManifest: path.join(desktopRoot, "dist/mac", channelConfig.macAppBundleName, "Contents/Resources/matter-build-manifest.json"),
+    zip: path.join(desktopRoot, "dist/mac", macArtifactName + "-macos.zip"),
+    dmg: path.join(desktopRoot, "dist/mac", macArtifactName + "-macos.dmg"),
     receipt: macBuildReceiptPath
       ? path.resolve(macBuildReceiptPath)
       : path.join(ROOT, "docs/lazycodex/evidence/matter-desktop/artifacts/macos-build.md"),
   },
   windows: {
-    buildManifest: path.join(desktopRoot, "dist/win", artifactName + "-win-build-manifest.json"),
-    packagedManifest: path.join(desktopRoot, "dist/win", artifactName + "-win32-x64/resources/matter-build-manifest.json"),
-    installerManifest: path.join(desktopRoot, "dist/win", artifactName + "-win-installer-manifest.json"),
-    installerManifestSignature: path.join(desktopRoot, "dist/win", artifactName + "-win-installer-manifest.json.sig"),
-    zip: path.join(desktopRoot, "dist/win", artifactName + "-win32-x64-unsigned.zip"),
-    installer: path.join(desktopRoot, "dist", artifactName + "-win-x64.exe"),
-    installerBlockmap: path.join(desktopRoot, "dist", artifactName + "-win-x64.exe.blockmap"),
+    buildManifest: path.join(desktopRoot, "dist/win", windowsArtifactName + "-win-build-manifest.json"),
+    packagedManifest: path.join(desktopRoot, "dist/win", windowsArtifactName + "-win32-x64/resources/matter-build-manifest.json"),
+    installerManifest: path.join(desktopRoot, "dist/win", windowsArtifactName + "-win-installer-manifest.json"),
+    installerManifestSignature: path.join(desktopRoot, "dist/win", windowsArtifactName + "-win-installer-manifest.json.sig"),
+    zip: path.join(desktopRoot, "dist/win", windowsArtifactName + "-win32-x64-unsigned.zip"),
+    installer: path.join(desktopRoot, "dist", windowsArtifactName + "-win-x64.exe"),
+    installerBlockmap: path.join(desktopRoot, "dist", windowsArtifactName + "-win-x64.exe.blockmap"),
     receipt: process.env.MATTER_DESKTOP_WINDOWS_BUILD_RECEIPT_PATH
       ? path.resolve(process.env.MATTER_DESKTOP_WINDOWS_BUILD_RECEIPT_PATH)
       : path.join(ROOT, "docs/lazycodex/evidence/matter-desktop/artifacts/windows-build.md"),

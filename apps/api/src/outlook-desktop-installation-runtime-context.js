@@ -7,11 +7,15 @@ export const OUTLOOK_DESKTOP_INSTALLATION_MAX_BODY_BYTES = 8 * 1024;
 export const OUTLOOK_DESKTOP_INSTALLATION_BOUNDED_CONTEXT = Object.freeze({
   bounded_context: "outlook-desktop-installation",
   contract_schema_version:
-    "lawos.outlook-desktop-installation-runtime.v1",
+    "lawos.outlook-desktop-installation-runtime.v2",
   endpoints: Object.freeze([
+    "POST /api/desktop/installations",
+    "POST /api/desktop/installations/:installation_id/heartbeat",
+    "POST /api/desktop/installations/:installation_id/retire",
     "GET /api/desktop/installations/:installation_id",
   ]),
-  public_transition_authority: "reference-bound-verifier-finalize-only",
+  public_transition_authority:
+    "legacy-signed-device-proof-with-session-authority",
   direct_authorization_body_accepted: false,
   runtime_persistence: "postgres-tenant-rls",
   user_connection_revoke_on_retire: false,
@@ -31,6 +35,36 @@ const POSTGRES_UTC_TIMESTAMP =
   /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.(\d{1,6}))?(?:Z|\+00:00)$/u;
 const PUBLIC_ERROR_CODE_PATTERN = /^(?:AUTH_SESSION_REQUIRED|OUTLOOK_DESKTOP_[A-Z0-9_]+|POSTGRES_[A-Z0-9_]+)$/u;
 const PUBLIC_ERROR_STATUSES = new Set([400, 401, 403, 404, 409, 413, 503]);
+const LEGACY_PROOF_FIELDS = Object.freeze([
+  "idempotency_key",
+  "nonce",
+  "issued_at",
+  "expires_at",
+  "signature",
+]);
+const LEGACY_SIGNED_BODY_FIELDS = Object.freeze({
+  register: Object.freeze([
+    "app_version",
+    "device_public_key",
+    "platform",
+    "source_sha",
+  ]),
+  heartbeat: Object.freeze(["expected_state_version"]),
+  retire: Object.freeze(["expected_state_version", "retire_reason"]),
+});
+const LEGACY_PUBLIC_BODY_FIELDS = Object.freeze(
+  Object.fromEntries(Object.entries(LEGACY_SIGNED_BODY_FIELDS).map(
+    ([operation, fields]) => [operation, Object.freeze([
+      ...fields,
+      ...LEGACY_PROOF_FIELDS,
+    ])],
+  )),
+);
+const LEGACY_OUTCOMES = Object.freeze({
+  register: new Set(["registered", "heartbeat", "resumed"]),
+  heartbeat: new Set(["heartbeat", "resumed"]),
+  retire: new Set(["retired", "already_retired"]),
+});
 
 function isPlainObject(value) {
   if (value === null || typeof value !== "object" || Array.isArray(value)) {
@@ -165,6 +199,10 @@ export function resolveOutlookDesktopInstallationService(runtime) {
   return runtime?.installation_service ?? null;
 }
 
+function resolveOutlookDesktopLegacyInstallationService(runtime) {
+  return runtime?.legacy_installation_service ?? null;
+}
+
 function boundedInstallation(value, expectedInstallationId) {
   const canonicalTimestamp = (candidate) => {
     const match = typeof candidate === "string"
@@ -225,6 +263,61 @@ export function projectOutlookDesktopRegistrationAuthorityResult(
       envelope.body.installation,
       expectedInstallationId,
     ),
+  });
+}
+
+function projectOutlookDesktopLegacyServiceResult(
+  envelope,
+  operation,
+  expectedInstallationId = null,
+) {
+  const expectedStatus = operation === "register" ? new Set([200, 201]) : new Set([200]);
+  const expectedOutcome = LEGACY_OUTCOMES[operation];
+  const installation = envelope?.body?.installation;
+  const expectedId = expectedInstallationId ?? installation?.installation_id;
+  if (
+    !isPlainObject(envelope)
+    || !expectedStatus.has(envelope.response_status)
+    || !isPlainObject(envelope.body)
+    || !expectedOutcome?.has(envelope.body.outcome)
+  ) {
+    throw new Error("outlook desktop legacy service response is invalid");
+  }
+  const projected = boundedInstallation(installation, expectedId);
+  if ((operation === "retire") !== (projected.status === "retired")) {
+    throw new Error("outlook desktop legacy service response is invalid");
+  }
+  return Object.freeze({
+    response_status: envelope.response_status,
+    outcome: envelope.body.outcome,
+    installation: projected,
+  });
+}
+
+function legacyLifecycleCommand({ matched, pathname, body, principal, requestId }) {
+  const expectedFields = LEGACY_PUBLIC_BODY_FIELDS[matched.operation];
+  if (!expectedFields || !exactFields(body, expectedFields)) return null;
+  const requestBody = Object.freeze(Object.fromEntries(
+    LEGACY_SIGNED_BODY_FIELDS[matched.operation].map((field) => [field, body[field]]),
+  ));
+  return Object.freeze({
+    principal: Object.freeze({
+      tenant_id: principal.tenant_id,
+      user_id: principal.user_id,
+      entra_subject_id: principal.entra_subject_id,
+    }),
+    request_id: String(requestId ?? "request-outlook-desktop"),
+    request: Object.freeze({
+      method: "POST",
+      path: pathname,
+      body: requestBody,
+      installation_id: matched.installation_id,
+      idempotency_key: body.idempotency_key,
+      nonce: body.nonce,
+      issued_at: body.issued_at,
+      expires_at: body.expires_at,
+    }),
+    signature: body.signature,
   });
 }
 
@@ -297,7 +390,14 @@ export async function handleOutlookDesktopInstallationApiRequest({
       "OUTLOOK_DESKTOP_INSTALLATION_REQUEST_TOO_LARGE",
     );
   }
-  if (matched.operation !== "read") {
+  const command = matched.operation === "read" ? null : legacyLifecycleCommand({
+    matched,
+    pathname,
+    body,
+    principal,
+    requestId,
+  });
+  if (matched.operation !== "read" && !command) {
     return failure(
       400,
       requestId,
@@ -312,6 +412,42 @@ export async function handleOutlookDesktopInstallationApiRequest({
   });
   if (!authority.allowed) {
     return failure(authority.status, requestId, authority.safe_error_code);
+  }
+  if (matched.operation !== "read") {
+    const service = resolveOutlookDesktopLegacyInstallationService(runtime);
+    if (!service || typeof service[matched.operation] !== "function") {
+      return failure(
+        503,
+        requestId,
+        "OUTLOOK_DESKTOP_INSTALLATION_RUNTIME_UNAVAILABLE",
+      );
+    }
+    try {
+      const envelope = await service[matched.operation](command, {
+        authorize: async ({ operation, principal: signedPrincipal, installation_id: installationId }) => (
+          operation === matched.operation
+          && installationId === matched.installation_id
+          && samePrincipal(principal, signedPrincipal)
+          && evaluateOutlookDesktopLifecycleAuthority({
+            principal,
+            context,
+            roster: runtime?.entitlement_roster,
+            targetId: installationId,
+          }).allowed === true
+        ),
+      });
+      const projected = projectOutlookDesktopLegacyServiceResult(
+        envelope,
+        matched.operation,
+        matched.operation === "register" ? null : matched.installation_id,
+      );
+      return response(projected.response_status, requestId, {
+        outcome: projected.outcome,
+        installation: projected.installation,
+      });
+    } catch (error) {
+      return mappedFailure(error, requestId);
+    }
   }
   const service = resolveOutlookDesktopInstallationService(runtime);
   if (!service || typeof service[matched.operation] !== "function") {

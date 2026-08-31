@@ -41,7 +41,7 @@ const shellMarkup = (modeException) => `
       <aside class="global-rail">
         <div class="global-rail-brand"><span class="global-rail-brand-mark">A</span></div>
         <nav class="global-rail-nav">
-          ${["Home", "Client", "Matter", "People", "Search", "Portal"]
+          ${["Home", "Client", "Matter", "People", "Vault", "Portal"]
             .map((label) => `<button aria-label="${label}" class="global-rail-action${label === "Matter" ? " active" : ""}"><span class="global-rail-icon"></span><span class="global-rail-tooltip">${label}</span></button>`)
             .join("")}
         </nav>
@@ -65,7 +65,7 @@ const peopleLeaveSidebarMarkup = `
       <aside class="global-rail">
         <div class="global-rail-brand"><span class="global-rail-brand-mark">A</span></div>
         <nav class="global-rail-nav">
-          ${["Home", "Client", "Matter", "People", "Search", "Portal"]
+          ${["Home", "Client", "Matter", "People", "Vault", "Portal"]
             .map((label) => `<button aria-label="${label}" class="global-rail-action${label === "People" ? " active" : ""}"><span class="global-rail-icon"></span><span class="global-rail-tooltip">${label}</span></button>`)
             .join("")}
         </nav>
@@ -463,7 +463,7 @@ for (const width of [1440, 1180, 820, 390]) {
           };
         });
 
-        assert.deepEqual(geometry.axes.map((item) => item.label), ["Home", "Client", "Matter", "People", "Search", "Portal"]);
+        assert.deepEqual(geometry.axes.map((item) => item.label), ["Home", "Client", "Matter", "People", "Vault", "Portal"]);
         for (const item of geometry.axes) {
           if (item.label === "Matter") {
             assert.equal(item.color, "rgb(255, 255, 255)");

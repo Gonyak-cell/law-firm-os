@@ -4,13 +4,19 @@ import path from "node:path";
 import test from "node:test";
 
 import {
-  openProtectedEvidenceRoot, validateProtectedRollbackEvidence, validateRollbackContract,
+  openProtectedEvidenceRoot, validateForwardStaticRollbackContract,
+  validateProtectedRollbackEvidence, validateRollbackContract,
 } from "../lib/outlook-release-gates.mjs";
 import { createProtectedFixtureRoot, writeProtectedJson } from "./helpers/protected-fixture.mjs";
 import { createRollbackEvidenceFixture } from "./helpers/rollback-evidence-fixture.mjs";
 import {
   baseline, clone, contract, oid, rollback,
 } from "./helpers/outlook-release-fixtures.mjs";
+
+const forwardStaticRollback = JSON.parse(await readFile(new URL(
+  "../../contracts/outlook-addin-forward-static-rollback.json",
+  import.meta.url,
+), "utf8"));
 
 async function fixture(t, options) {
   const root = await createProtectedFixtureRoot();
@@ -28,6 +34,24 @@ test("rollback reads each manifest, inventory, and artifact byte before acceptin
     { profile: "matter-full", static_artifact_count: 4 },
     { profile: "inquiry-only", static_artifact_count: 2 },
   ]);
+});
+
+test("1.3.0.2 forward rollback is bound to the complete prior static closure", async () => {
+  const rollbackManifestBytes = await readFile(new URL(
+    "../../apps/addin/manifest.canary.rollback.production.xml",
+    import.meta.url,
+  ));
+  const result = validateForwardStaticRollbackContract(
+    forwardStaticRollback,
+    contract,
+    rollbackManifestBytes,
+  );
+
+  assert.deepEqual(result.profiles.map(({ profile, artifact_count }) => ({ profile, artifact_count })), [
+    { profile: "matter-full", artifact_count: 12 },
+    { profile: "inquiry-only", artifact_count: 3 },
+  ]);
+  assert.equal(result.forward_rollback_version, "1.3.0.2");
 });
 
 test("protected inquiry rollback rejects a Matter-namespace module dependency", async (t) => {

@@ -1,6 +1,9 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
-import { createNestablePublicClientApplication } from "@azure/msal-browser";
+import {
+  InteractionRequiredAuthError,
+  createNestablePublicClientApplication,
+} from "@azure/msal-browser";
 import {
   applyOutlookCanonicalMessageIdentity,
   createOutlookCanonicalMessageIdentityRequest,
@@ -57,10 +60,6 @@ import {
   waitForOfficeReady,
 } from "./office-ready.js";
 import {
-  handleOutlookMessageSend,
-  registerOutlookSendHandler,
-} from "./outlook-send-events.js";
-import {
   isFiledEmailContextCurrent,
   isOutlookActionContextCurrent,
   createOutlookOperationSnapshot,
@@ -116,9 +115,20 @@ import {
   outlookRailButtonId,
 } from "./outlook-compact-shell.jsx";
 import {
-  OUTLOOK_MATTER_RAIL,
   OutlookMatterCompactShell,
+  outlookMatterRailForContext,
 } from "./outlook-matter-shell.jsx";
+import {
+  attachExactVaultVersionToOutlookCompose,
+  retryOutlookVaultAttachmentCompletion,
+} from "./outlook-vault-compose-attachment.js";
+import {
+  createOutlookVaultSourcePendingStore,
+  parseOutlookVaultExactVersion,
+  resumePendingOutlookVaultSourceSaves,
+  saveOutlookAttachmentSourcesToVault,
+  saveOutlookEmailWithAttachmentsToVault,
+} from "./outlook-vault-source-actions.js";
 import {
   OUTLOOK_OPERATION_STATES,
   normalizeOutlookOperationError,
@@ -127,6 +137,15 @@ import {
   OUTLOOK_READINESS_ACTIONS,
   presentOutlookReadiness,
 } from "./outlook-readiness-status.js";
+import {
+  notifyOutlookStartupRecovered,
+  notifyOutlookStartupUnauthorized,
+  registerOutlookStartupAuthHandlers,
+  resolveOutlookStartupStorage,
+  startOutlookStartup,
+  subscribeOutlookStartup,
+  waitForOutlookStartupMailbox,
+} from "./outlook-startup-runtime.js";
 import {
   closeOutlookOverlay,
   createOutlookOverlayState,
@@ -141,12 +160,61 @@ let runtimeConfigPromise = null;
 let sessionStore = null;
 let authRecoveryPromise = null;
 let authRecoveryOwner = null;
+let interactiveAuthPromise = null;
 let officeReadyPromise = null;
-let unauthorizedHandler = null;
-let sessionRecoveredHandler = null;
 const authOwnerFence = createOutlookAuthOwnerFence();
 const OFFICE_READY_EVENT = "lawos:office-ready";
 const CLIENT_OUTLOOK_CALLBACK_MODE = "server_complete_v1";
+const OUTLOOK_ADDIN_BUILD = globalThis.__LAWOS_OUTLOOK_SURFACE_PROFILE?.build ?? "";
+const OUTLOOK_VAULT_EXACT_ATTACHMENT_ENABLED =
+  globalThis.__LAWOS_OUTLOOK_SURFACE_PROFILE?.profile
+    ?.vaultExactAttachmentEnabled === true;
+const OUTLOOK_VAULT_SOURCE_SAVE_ENABLED =
+  globalThis.__LAWOS_OUTLOOK_SURFACE_PROFILE?.profile
+    ?.vaultSourceSaveEnabled === true;
+
+function safeOutlookVaultAttachmentCandidate(document) {
+  if (document?.exact_version_available !== true) return null;
+  try {
+    const exactVersion = parseOutlookVaultExactVersion(
+      document.exact_version,
+      "document.exact_version",
+    );
+    if (exactVersion.document_id !== document.document_id
+        || exactVersion.version_id !== document.current_version_id
+        || (document.latest_sha256
+          && exactVersion.sha256 !== document.latest_sha256)) return null;
+    const title = typeof document.title === "string"
+      ? document.title.normalize("NFC").trim().slice(0, 240)
+      : "";
+    if (!title) return null;
+    return Object.freeze({
+      key: JSON.stringify([exactVersion.document_id, exactVersion.version_id]),
+      title,
+      exactVersion,
+    });
+  } catch {
+    return null;
+  }
+}
+
+function outlookVaultAttachmentCandidates(documents) {
+  const seen = new Set();
+  return Object.freeze((Array.isArray(documents) ? documents : []).flatMap((document) => {
+    const candidate = safeOutlookVaultAttachmentCandidate(document);
+    if (!candidate || seen.has(candidate.key)) return [];
+    seen.add(candidate.key);
+    return [candidate];
+  }));
+}
+
+function formatVaultAttachmentBytes(value) {
+  const bytes = Number(value);
+  if (!Number.isSafeInteger(bytes) || bytes < 1) return "—";
+  if (bytes < 1_024) return `${bytes} B`;
+  if (bytes < 1_048_576) return `${(bytes / 1_024).toFixed(1)} KB`;
+  return `${(bytes / 1_048_576).toFixed(1)} MB`;
+}
 
 export function createOutlookFilingReceiptCallback({
   operationSnapshot,
@@ -257,7 +325,7 @@ async function initializeMsalBridge() {
         token_material_returned: false,
         production_write_claim: false,
       };
-      recordOutlookEventProbe("msal_bridge", receipt);
+      recordOutlookCommandBridgeProbe("msal_bridge", receipt);
       return { ...receipt, instance, config, receipt };
     })().catch((error) => {
       msalBridgePromise = null;
@@ -323,7 +391,7 @@ async function rawRequestJson(path, {
   let sessionClearPromise = null;
   let authRecoveryOwner = null;
   if (sessionUnauthorized) {
-    authRecoveryOwner = unauthorizedHandler?.(requestOwner) ?? null;
+    authRecoveryOwner = notifyOutlookStartupUnauthorized(requestOwner);
     if (!authRecoveryOwner && authOwnerFence.isCurrent(requestOwner)) {
       authRecoveryOwner = authOwnerFence.begin();
     }
@@ -381,7 +449,7 @@ async function requestJson(path, options = {}) {
           authOwner: recoveryOwner,
         });
         if (!authOwnerFence.isCurrent(recoveryOwner)) throw createOutlookAuthOwnerChangedError();
-        if (sessionRecoveredHandler && sessionRecoveredHandler(recoveryOwner) !== true) {
+        if (notifyOutlookStartupRecovered(recoveryOwner) === false) {
           throw createOutlookAuthOwnerChangedError();
         }
         return retried;
@@ -396,10 +464,20 @@ async function requestJson(path, options = {}) {
 async function validateLawosSession({ tokenSnapshot = undefined, owner = null } = {}) {
   const validationOwner = owner ?? authOwnerFence.capture();
   if (!authOwnerFence.canUsePersistedToken(validationOwner)) {
-    return { authenticated: false, safe_error_code: "AUTH_SESSION_REQUIRED" };
+    return {
+      authenticated: false,
+      safe_error_code: "AUTH_SESSION_REQUIRED",
+      authOwner: validationOwner,
+    };
   }
   const token = tokenSnapshot === undefined ? await addinSessionToken() : tokenSnapshot;
-  if (!token) return { authenticated: false, safe_error_code: "AUTH_SESSION_REQUIRED" };
+  if (!token) {
+    return {
+      authenticated: false,
+      safe_error_code: "AUTH_SESSION_REQUIRED",
+      authOwner: validationOwner,
+    };
+  }
   if (!authOwnerFence.isCurrent(validationOwner)) throw createOutlookAuthOwnerChangedError();
   const boundValidationOwner = validationOwner.tokenBound
     ? validationOwner
@@ -414,36 +492,54 @@ async function validateLawosSession({ tokenSnapshot = undefined, owner = null } 
       sessionToken: token,
       sessionOwner: boundValidationOwner,
     });
-    return parseSessionValidation(payload, 200);
+    return { ...parseSessionValidation(payload, 200), authOwner: boundValidationOwner };
   } catch (error) {
     if (error?.status === 401) {
       await authStorage().clearIfCurrent(error.authRequestOwner?.token ?? token);
-      authOwnerFence.clearToken(error.authRecoveryOwner ?? boundValidationOwner);
-      return { authenticated: false, safe_error_code: error.safe_error_code ?? "AUTH_SESSION_INVALID" };
+      const recoveryOwner = error.authRecoveryOwner;
+      if (!recoveryOwner || !authOwnerFence.isCurrent(recoveryOwner)) {
+        throw createOutlookAuthOwnerChangedError();
+      }
+      return {
+        authenticated: false,
+        safe_error_code: error.safe_error_code ?? "AUTH_SESSION_INVALID",
+        authOwner: recoveryOwner,
+      };
     }
     throw error;
   }
 }
 
 async function acquireLawosSession({ interactive = false, force = false, owner = null } = {}) {
-  const recoveryOwner = owner ?? authOwnerFence.capture();
-  if (!authOwnerFence.isCurrent(recoveryOwner)) throw createOutlookAuthOwnerChangedError();
+  let activeOwner = owner ?? authOwnerFence.capture();
+  if (!authOwnerFence.isCurrent(activeOwner)) throw createOutlookAuthOwnerChangedError();
+  if (interactiveAuthPromise && interactive) {
+    const existing = await interactiveAuthPromise;
+    if (!authOwnerFence.isCurrent(existing?.authOwner ?? activeOwner)) {
+      throw createOutlookAuthOwnerChangedError();
+    }
+    return existing;
+  }
   if (
     authRecoveryPromise
     && !interactive
-    && authRecoveryOwner?.ownerEpoch === recoveryOwner.ownerEpoch
+    && authRecoveryOwner?.ownerEpoch === activeOwner.ownerEpoch
   ) {
     const existing = await authRecoveryPromise;
-    if (!authOwnerFence.isCurrent(recoveryOwner)) throw createOutlookAuthOwnerChangedError();
+    if (!authOwnerFence.isCurrent(existing?.authOwner ?? activeOwner)) {
+      throw createOutlookAuthOwnerChangedError();
+    }
     return existing;
   }
   const run = (async () => {
-    if (!authOwnerFence.isCurrent(recoveryOwner)) throw createOutlookAuthOwnerChangedError();
+    if (!authOwnerFence.isCurrent(activeOwner)) throw createOutlookAuthOwnerChangedError();
     if (!force) {
-      const existing = await validateLawosSession({ owner: recoveryOwner });
+      const existing = await validateLawosSession({ owner: activeOwner });
+      activeOwner = existing.authOwner ?? activeOwner;
       if (existing.authenticated) return existing;
     }
     const bridge = await initializeMsalBridge();
+    if (!authOwnerFence.isCurrent(activeOwner)) throw createOutlookAuthOwnerChangedError();
     const activeAccount = bridge.instance.getActiveAccount?.() ?? null;
     const silentRequest = {
       scopes: bridge.config.scopes,
@@ -460,7 +556,10 @@ async function acquireLawosSession({ interactive = false, force = false, owner =
         result = await bridge.instance.acquireTokenSilent(silentRequest);
       } catch (error) {
         if (!interactive) {
-          throw createAddinAuthError("LAWOS_INTERACTION_REQUIRED", "로그인을 눌러 AMIC OS에 로그인해 주세요.", { cause: error });
+          if (error instanceof InteractionRequiredAuthError) {
+            throw createAddinAuthError("LAWOS_INTERACTION_REQUIRED", "AMIC OS 로그인이 필요합니다.", { cause: error });
+          }
+          throw error;
         }
         result = await bridge.instance.acquireTokenPopup({
           scopes: bridge.config.scopes,
@@ -468,10 +567,7 @@ async function acquireLawosSession({ interactive = false, force = false, owner =
         });
       }
     }
-    if (!authOwnerFence.isCurrent(recoveryOwner)) throw createOutlookAuthOwnerChangedError();
-    if (result?.account) {
-      bridge.instance.setActiveAccount?.(result.account);
-    }
+    if (!authOwnerFence.isCurrent(activeOwner)) throw createOutlookAuthOwnerChangedError();
     const entraAccessToken = typeof result?.accessToken === "string" ? result.accessToken : "";
     if (!entraAccessToken) {
       throw createAddinAuthError(AUTH_ERROR_CODES.sessionExchangeInvalid, "Microsoft 로그인을 완료하지 못했습니다.");
@@ -480,16 +576,16 @@ async function acquireLawosSession({ interactive = false, force = false, owner =
       method: "POST",
       includeSession: false,
       retryAfterUnauthorized: false,
-      authOwner: recoveryOwner,
+      authOwner: activeOwner,
       body: { access_token: entraAccessToken },
     });
     // Drop the Entra token before storing or returning the LawOS session.
     const lawosToken = parseExchangeResponse(exchange, 200);
-    if (!authOwnerFence.isCurrent(recoveryOwner)) throw createOutlookAuthOwnerChangedError();
-    if (!authOwnerFence.setToken(recoveryOwner, lawosToken)) {
+    if (!authOwnerFence.isCurrent(activeOwner)) throw createOutlookAuthOwnerChangedError();
+    if (!authOwnerFence.setToken(activeOwner, lawosToken)) {
       throw createOutlookAuthOwnerChangedError();
     }
-    const boundRecoveryOwner = authOwnerFence.bindToken(recoveryOwner, lawosToken);
+    const boundRecoveryOwner = authOwnerFence.bindToken(activeOwner, lawosToken);
     if (!boundRecoveryOwner) throw createOutlookAuthOwnerChangedError();
     try {
       await authStorage().set(lawosToken);
@@ -509,37 +605,46 @@ async function acquireLawosSession({ interactive = false, force = false, owner =
       tokenSnapshot: lawosToken,
       owner: boundRecoveryOwner,
     });
-    if (!authOwnerFence.isCurrent(boundRecoveryOwner)) throw createOutlookAuthOwnerChangedError();
+    if (!authOwnerFence.isCurrent(session.authOwner ?? boundRecoveryOwner)) {
+      throw createOutlookAuthOwnerChangedError();
+    }
     return session;
-  })();
-  if (!interactive) {
-    const tracked = run.finally(() => {
+  })().catch((error) => {
+    if (error?.safe_error_code === "AUTH_SESSION_OWNER_CHANGED") throw error;
+    if (!authOwnerFence.isCurrent(activeOwner)) throw createOutlookAuthOwnerChangedError();
+    throw annotateAuthOwner(error, activeOwner, activeOwner);
+  });
+  if (interactive) {
+    interactiveAuthPromise = run;
+    return interactiveAuthPromise;
+  }
+  let tracked;
+  tracked = run.then(
+    (value) => {
       if (authRecoveryPromise === tracked) {
         authRecoveryPromise = null;
         authRecoveryOwner = null;
       }
-    });
-    authRecoveryPromise = tracked;
-    authRecoveryOwner = recoveryOwner;
-  }
-  return run;
+      return value;
+    },
+    (error) => {
+      if (authRecoveryPromise === tracked) {
+        authRecoveryPromise = null;
+        authRecoveryOwner = null;
+      }
+      throw error;
+    },
+  );
+  authRecoveryPromise = tracked;
+  authRecoveryOwner = activeOwner;
+  return tracked;
 }
 
-function recordOutlookEventProbe(key, value) {
-  window.__LAWOS_OUTLOOK_EVENT_PROBE = {
-    ...(window.__LAWOS_OUTLOOK_EVENT_PROBE ?? {}),
+function recordOutlookCommandBridgeProbe(key, value) {
+  window.__LAWOS_OUTLOOK_COMMAND_BRIDGE_PROBE = {
+    ...(window.__LAWOS_OUTLOOK_COMMAND_BRIDGE_PROBE ?? {}),
     [key]: value,
   };
-}
-
-function completeSendEvent(event, payload = {}) {
-  const completion = { allowEvent: true, ...payload };
-  recordOutlookEventProbe("last_completion", {
-    allowEvent: completion.allowEvent,
-    completed_at: new Date().toISOString(),
-  });
-  if (typeof event?.completed === "function") event.completed(completion);
-  return completion;
 }
 
 function normalizedMailboxAddress(value) {
@@ -576,7 +681,7 @@ function officeItemSnapshot(canonicalIdentity = null) {
     to: Array.isArray(item.to) ? item.to.map((recipient) => ({ name: recipient.displayName, email: recipient.emailAddress })) : [],
     cc: Array.isArray(item.cc) ? item.cc.map((recipient) => ({ name: recipient.displayName, email: recipient.emailAddress })) : [],
     bcc: [],
-    subject: item.subject ?? "제목 없음",
+    subject: compose ? "작성 중인 메일" : item.subject ?? "제목 없음",
     body_preview: "",
     mailbox_ref: "mailbox:officejs",
     account_ref: window.Office?.context?.mailbox?.userProfile?.emailAddress ?? null,
@@ -640,67 +745,36 @@ async function readCurrentOutlookItem({ includeAttachments = false, includeTimes
   return { ...next, ...attachments };
 }
 
-async function addWarningNotification(alertBody) {
-  const warnings = alertBody?.item?.warnings ?? [];
-  const notificationMessages = window.Office?.context?.mailbox?.item?.notificationMessages;
-  if (warnings.length === 0 || typeof notificationMessages?.addAsync !== "function") return;
-  const messageType = window.Office?.MailboxEnums?.ItemNotificationMessageType?.InformationalMessage ?? "informationalMessage";
-  await new Promise((resolve) => {
-    notificationMessages.addAsync(
-      "lawos-smart-alert-warning",
-      {
-        type: messageType,
-        message: `확인할 내용이 ${warnings.length}건 있습니다.`,
-        icon: "Icon.16x16",
-        persistent: false,
-      },
-      () => resolve(),
-    );
-  });
+async function readCurrentOutlookVaultSourceItem() {
+  const snapshot = officeItemSnapshot();
+  if (!snapshot || snapshot.mode !== "read") {
+    throw Object.assign(new Error("OUTLOOK_READ_ITEM_REQUIRED"), {
+      safe_error_code: "OUTLOOK_READ_ITEM_REQUIRED",
+      user_message: "저장할 받은 메일 또는 보낸 메일을 열어 주세요.",
+    });
+  }
+  assertStableOutlookItemIdentity(snapshot);
+  const officeItem = window.Office?.context?.mailbox?.item;
+  const timestamps = await readOutlookItemTimestamps({ item: officeItem });
+  if (!isSameOutlookItem(snapshot, officeItemSnapshot())) {
+    throw itemChangedDuringActionError();
+  }
+  return Object.freeze({ ...snapshot, ...timestamps });
 }
 
-export async function onMessageSendHandler(event = {}) {
-  return handleOutlookMessageSend({
-    event: {
-      completed: (payload) => completeSendEvent(event, payload),
-    },
-    readMessage: (options) => readOutlookComposeMessage({
-      item: window.Office?.context?.mailbox?.item,
-      mailbox: window.Office?.context?.mailbox,
-      Office: window.Office,
-      ...options,
-    }),
-    requestJson,
-    addWarningNotification,
-    record: recordOutlookEventProbe,
-  });
-}
-
-function registerOutlookEventHandlers() {
-  // Commands may run without a mounted React pane. Keep this hook silent and
-  // non-interactive: the handler never opens a popup or Office dialog.
+function registerOutlookCommandBridge() {
+  // Commands may run without a mounted React pane. Expose only the silent
+  // authentication and current-item helpers; the active product registers no
+  // automatic send handler.
   window.__LAWOS_INIT_MSAL_BRIDGE = initializeMsalBridge;
   window.__LAWOS_RESOLVE_CURRENT_OUTLOOK_REST_MESSAGE_ID =
     () => resolveCurrentOutlookRestMessageId({
       Office: window.Office,
     });
-  window.__LAWOS_OUTLOOK_ASSOCIATED_HANDLERS = {
-    ...(window.__LAWOS_OUTLOOK_ASSOCIATED_HANDLERS ?? {}),
-    onMessageSendHandler,
-  };
-  const associated = new Set(window.__LAWOS_OUTLOOK_ASSOCIATED_ACTIONS ?? []);
-  const registered = registerOutlookSendHandler({
-    Office: window.Office,
-    handler: onMessageSendHandler,
-  });
-  if (registered) {
-    associated.add("onMessageSendHandler");
-  }
-  window.__LAWOS_OUTLOOK_ASSOCIATED_ACTIONS = [...associated];
-  return registered;
+  return true;
 }
 
-const registerOutlookEventHandlersOnce = createRegistrationLatch(registerOutlookEventHandlers);
+const registerOutlookCommandBridgeOnce = createRegistrationLatch(registerOutlookCommandBridge);
 
 function oauthStateFromAuthorizationUrl(authorizationUrl) {
   try { return new URL(authorizationUrl).searchParams.get("state") ?? ""; } catch { return ""; }
@@ -735,6 +809,10 @@ function busyLabel(value) {
     file: "Matter에 메일을 저장하고 있습니다.",
     sent_file: "보낸 메일을 Matter에 저장하고 있습니다.",
     attachments: "첨부 파일을 저장하고 있습니다.",
+    vault_file: "Vault에 메일과 첨부를 저장하고 있습니다.",
+    vault_sent_file: "Vault에 보낸 메일과 첨부를 저장하고 있습니다.",
+    vault_attachments: "Vault에 실패한 첨부를 다시 저장하고 있습니다.",
+    vault_resume: "중단된 Vault 저장 상태를 확인하고 있습니다.",
     task: "업무를 저장하고 있습니다.",
     time_draft: "시간 기록 초안을 저장하고 있습니다.",
     readbacks: "Matter 활동과 문서를 불러오고 있습니다.",
@@ -821,7 +899,72 @@ function actionResultNotice(name, result) {
     || result?.idempotent_replay === true
     || result?.email?.outcome === "idempotent_replay";
   const partial = result?.status === "partial" || result?.outcome === "partial";
+  const processing = result?.status === "processing" || result?.outcome === "processing";
   const readbackPending = result?.outlook_readback_pending === true;
+  if (name === "vault_resume") {
+    const failedCount = result?.failed?.length ?? 0;
+    const idle = result?.status === "idle";
+    return {
+      status: processing
+        ? OUTLOOK_OPERATION_STATES.working
+        : partial
+          ? OUTLOOK_OPERATION_STATES.partial
+          : idle ? OUTLOOK_OPERATION_STATES.idle : OUTLOOK_OPERATION_STATES.complete,
+      visibleMessage: processing
+        ? "Vault 보안 검사가 진행 중입니다."
+        : partial
+          ? "일부 Vault 저장 상태를 다시 확인해야 합니다."
+          : idle
+            ? "확인할 중단 저장 작업이 없습니다."
+            : "중단됐던 Vault 저장의 정확 버전을 확인했습니다.",
+      fullMessage: processing
+        ? "저장된 작업 ID로만 상태를 확인하며 메일이나 첨부를 다시 전송하지 않습니다."
+        : partial
+          ? `다시 확인할 Vault 작업 ${failedCount}개가 남았습니다.`
+          : idle
+            ? "메일이나 첨부를 읽거나 전송하지 않았습니다."
+            : "상태 전용 확인으로 정확 버전 영수증을 복구했습니다.",
+    };
+  }
+  if (name === "vault_file" || name === "vault_sent_file") {
+    const retryCount = result?.retry_attachment_ids?.length ?? 0;
+    const sent = name === "vault_sent_file";
+    return {
+      status: processing
+        ? OUTLOOK_OPERATION_STATES.working
+        : partial
+        ? OUTLOOK_OPERATION_STATES.partial
+        : replay ? OUTLOOK_OPERATION_STATES.duplicate : OUTLOOK_OPERATION_STATES.complete,
+      visibleMessage: processing
+        ? "Vault 보안 검사가 진행 중입니다."
+        : partial
+        ? `${sent ? "보낸 메일" : "메일"}은 Vault에 저장됐고 일부 첨부는 다시 시도해야 합니다.`
+        : replay
+          ? `이미 Vault에 저장된 ${sent ? "보낸 메일" : "메일"}입니다.`
+          : `${sent ? "보낸 메일과 첨부" : "메일 및 첨부 파일"}를 Vault에 저장했습니다.`,
+      fullMessage: processing
+        ? "작업 ID로 상태를 계속 확인하며 메일 원본이나 첨부를 다시 전송하지 않습니다."
+        : partial
+        ? `Vault 메일 원본 저장은 완료됐습니다. 다시 시도할 첨부 ${retryCount}개가 남았습니다.`
+        : replay
+          ? "같은 Matter의 Vault 원본과 정확 버전 영수증을 확인했습니다."
+          : "Vault가 반환한 메일 원본과 첨부의 정확 버전 영수증을 확인했습니다.",
+    };
+  }
+  if (name === "vault_attachments") {
+    const retryCount = result?.retry_attachment_ids?.length ?? 0;
+    return {
+      status: partial
+        ? OUTLOOK_OPERATION_STATES.partial
+        : replay ? OUTLOOK_OPERATION_STATES.duplicate : OUTLOOK_OPERATION_STATES.complete,
+      visibleMessage: partial
+        ? "일부 Vault 첨부는 다시 시도해야 합니다."
+        : "실패했던 첨부를 Vault에 저장했습니다.",
+      fullMessage: partial
+        ? `다시 시도할 Vault 첨부 ${retryCount}개가 남았습니다.`
+        : "재시도한 첨부의 정확 버전 영수증을 확인했습니다.",
+    };
+  }
   if (name === "file") {
     const retryCount = result?.retry_attachment_ids?.length ?? 0;
     return {
@@ -905,6 +1048,13 @@ function actionResultNotice(name, result) {
       fullMessage: count ? `선택한 메일에서 검토할 스마트 경고 ${count}건을 찾았습니다.` : "선택한 메일에서 추가로 검토할 스마트 경고를 찾지 못했습니다.",
     };
   }
+  if (name === "vault_attach" || name === "vault_attach_retry") {
+    return {
+      status: OUTLOOK_OPERATION_STATES.complete,
+      visibleMessage: "선택한 Vault 버전을 첨부했습니다.",
+      fullMessage: "Vault의 정확한 문서 버전과 Outlook 첨부 결과를 확인했습니다.",
+    };
+  }
   if (name === "readbacks") {
     return {
       status: OUTLOOK_OPERATION_STATES.complete,
@@ -957,6 +1107,7 @@ function App() {
   const [authError, setAuthError] = useState("");
   const [graphConnection, setGraphConnection] = useState({ state: GRAPH_STATE.loading, status: "loading", stateVersion: 0, missingScopes: [] });
   const [outlookReadiness, setOutlookReadiness] = useState(null);
+  const [outlookStartupOutcome, setOutlookStartupOutcome] = useState(null);
   const [matters, setMatters] = useState([]);
   const [matterSearchQuery, setMatterSearchQuery] = useState("");
   const matterSearchDebouncerRef = useRef(null);
@@ -973,12 +1124,17 @@ function App() {
   const selectedMatterIdRef = useRef("");
   const [emailResult, setEmailResult] = useState(null);
   const [attachmentResult, setAttachmentResult] = useState(null);
+  const [vaultSourceSaveResult, setVaultSourceSaveResult] = useState(null);
   const [taskDraft, setTaskDraft] = useState(() => emptyTaskDraft());
   const [taskResult, setTaskResult] = useState(null);
   const [timeDraft, setTimeDraft] = useState(() => emptyTimeDraft());
   const [timeDraftResult, setTimeDraftResult] = useState(null);
   const [timeline, setTimeline] = useState([]);
   const [documents, setDocuments] = useState([]);
+  const [vaultAttachmentCandidateKey, setVaultAttachmentCandidateKey] = useState("");
+  const [vaultAttachmentPending, setVaultAttachmentPending] = useState(null);
+  const [vaultAttachmentResult, setVaultAttachmentResult] = useState(null);
+  const vaultAttachmentPendingArchiveRef = useRef(new Map());
   const [busy, setBusy] = useState("");
   const [error, setError] = useState("");
   const [lastResult, setLastResult] = useState(null);
@@ -1012,6 +1168,13 @@ function App() {
   const sessionAuthenticatedRef = useRef(false);
   const unauthorizedBoundaryHandledRef = useRef(false);
   const operationSessionGenerationsRef = useRef(new Map());
+  const vaultSourcePendingStoreRef = useRef(null);
+  if (!vaultSourcePendingStoreRef.current) {
+    vaultSourcePendingStoreRef.current = createOutlookVaultSourcePendingStore({
+      officeStorage: window.OfficeRuntime?.storage,
+      webStorage: resolveOutlookStartupStorage(window),
+    });
+  }
   const activeBusyTokenRef = useRef(null);
   const busyFenceRef = useRef(null);
   if (!busyFenceRef.current) busyFenceRef.current = createOutlookBusyFence();
@@ -1066,9 +1229,7 @@ function App() {
       ? false
       : authenticatedNext !== true;
     operationSessionGenerationsRef.current.clear();
-    activeBusyTokenRef.current = null;
-    busyFenceRef.current.invalidate();
-    setBusy("");
+    releaseBusy();
     if (lifecycleRestart) return authOwnerFence.restart();
     const nextToken = authenticatedNext === true
       ? authOwnerFence.currentToken()
@@ -1081,6 +1242,12 @@ function App() {
     activeBusyTokenRef.current = token;
     setBusy(name);
     return token;
+  }
+
+  function releaseBusy() {
+    activeBusyTokenRef.current = null;
+    busyFenceRef.current.invalidate();
+    setBusy("");
   }
 
   function endBusy(token) {
@@ -1311,9 +1478,34 @@ function App() {
     restoreEditorContext(null, "");
   }
 
+  function vaultAttachmentPendingKey(
+    currentItem = currentOfficeItemSnapshot(),
+    matterId = selectedMatterForItem(currentItem)?.matter_id ?? "",
+  ) {
+    const itemContextKey = outlookItemContextKey(outlookItemContext(currentItem));
+    return itemContextKey && matterId
+      ? `${itemContextKey}\u001f${matterId}`
+      : "";
+  }
+
+  function rememberVaultAttachmentPending(key, pending) {
+    if (!key || !pending) return;
+    const archive = vaultAttachmentPendingArchiveRef.current;
+    archive.set(key, pending);
+    while (archive.size > 16) archive.delete(archive.keys().next().value);
+    if (key === vaultAttachmentPendingKey()) setVaultAttachmentPending(pending);
+  }
+
+  function clearVaultAttachmentPickerView() {
+    setVaultAttachmentCandidateKey("");
+    setVaultAttachmentPending(null);
+    setVaultAttachmentResult(null);
+  }
+
   function resetItemActionResults() {
     setEmailResult(null);
     setAttachmentResult(null);
+    setVaultSourceSaveResult(null);
     taskResultRef.current = null;
     timeDraftResultRef.current = null;
     setTaskResult(null);
@@ -1321,6 +1513,7 @@ function App() {
     setTimeline([]);
     setDocuments([]);
     setLastResult(null);
+    clearVaultAttachmentPickerView();
   }
 
   function clearCompletedReceiptArchive() {
@@ -2256,6 +2449,10 @@ function App() {
     void refreshOutlookReadiness();
   }
 
+  function retryOutlookStartup() {
+    window.location.reload();
+  }
+
   useEffect(() => {
     const handleLateOfficeReady = () => setOfficeReadyEpoch((current) => current + 1);
     window.addEventListener(OFFICE_READY_EVENT, handleLateOfficeReady);
@@ -2292,6 +2489,7 @@ function App() {
           invalidatePrecedentView();
           receiptController.invalidateContext();
           matterSearchDebouncerRef.current?.cancel();
+          releaseBusy();
           setItem(nextItem);
           if (disposition.close_overlay) {
             mutateOverlay((state) => invalidateOutlookOverlayForItemChange(
@@ -2324,85 +2522,114 @@ function App() {
   }, [officeReadyEpoch]);
 
   useEffect(() => {
-    let cancelled = false;
-    unauthorizedHandler = (requestOwner) => {
-      if (
-        cancelled
-        || !authOwnerFence.isCurrent(requestOwner)
-        || unauthorizedBoundaryHandledRef.current
-      ) return null;
-      const recoveryOwner = beginSessionBoundary(false, requestOwner);
-      if (!recoveryOwner) return null;
-      setAuthState(AUTH_STATE.loginRequired);
-      setAuthError("세션이 만료되었습니다. 다시 로그인해 주세요.");
-      setGraphConnection({ state: GRAPH_STATE.notConnected, status: "not_connected", stateVersion: 0, missingScopes: [] });
-      clearBusinessView();
-      return recoveryOwner;
-    };
-    sessionRecoveredHandler = (recoveryOwner) => {
-      if (cancelled || !authOwnerFence.isCurrent(recoveryOwner)) return false;
-      const authenticatedOwner = beginSessionBoundary(true, recoveryOwner);
-      if (!authenticatedOwner) return false;
-      clearBusinessView();
-      clearCompletedReceiptArchive();
-      setAuthState(AUTH_STATE.authenticated);
-      setAuthError("");
-      const recoveryReadFence = captureBusinessRead();
-      refreshGraphConnection().catch((nextError) => {
-        if (isBusinessReadCurrent(recoveryReadFence)) setError(actionErrorMessage(nextError));
-      });
-      return true;
-    };
-    (async () => {
-      try {
-        await runtimeConfig();
-        if (cancelled) return;
-        setAuthState(AUTH_STATE.acquiring);
-        const initialOwner = authOwnerFence.capture();
-        const session = await acquireLawosSession({ interactive: false, owner: initialOwner });
-        if (cancelled || !authOwnerFence.isCurrent(initialOwner)) return;
-        if (!session?.authenticated) {
-          beginSessionBoundary(false);
-          setAuthState(AUTH_STATE.loginRequired);
-          setGraphConnection({ state: GRAPH_STATE.notConnected, status: "not_connected", stateVersion: 0, missingScopes: [] });
-          clearBusinessView();
-          return;
-        }
-        if (!beginSessionBoundary(true, initialOwner)) return;
+    let active = true;
+    let startupOwner = authOwnerFence.capture();
+    const unregisterAuthHandlers = registerOutlookStartupAuthHandlers({
+      unauthorized: (requestOwner) => {
+        if (
+          !active
+          || !authOwnerFence.isCurrent(requestOwner)
+          || unauthorizedBoundaryHandledRef.current
+        ) return null;
+        const recoveryOwner = beginSessionBoundary(false, requestOwner);
+        if (!recoveryOwner) return null;
+        startupOwner = recoveryOwner;
+        setOutlookStartupOutcome({ state: "login_required", reason: "no_credential" });
+        setAuthState(AUTH_STATE.loginRequired);
+        setAuthError("세션이 만료되었습니다. 다시 로그인해 주세요.");
+        setGraphConnection({ state: GRAPH_STATE.notConnected, status: "not_connected", stateVersion: 0, missingScopes: [] });
+        clearBusinessView();
+        return recoveryOwner;
+      },
+      recovered: (recoveryOwner) => {
+        if (!active || !authOwnerFence.isCurrent(recoveryOwner)) return false;
+        const authenticatedOwner = beginSessionBoundary(true, recoveryOwner);
+        if (!authenticatedOwner) return false;
+        clearBusinessView();
+        clearCompletedReceiptArchive();
+        setOutlookStartupOutcome(null);
         setAuthState(AUTH_STATE.authenticated);
         setAuthError("");
-        try {
-          await refreshGraphConnection();
-        } catch (nextError) {
-          if (nextError?.graph_connection_state !== GRAPH_STATE.connected) {
-            setGraphConnection({ state: GRAPH_STATE.notConnected, status: "not_connected", stateVersion: 0, missingScopes: [] });
-          }
-          setError(actionErrorMessage(nextError));
-        }
-      } catch (nextError) {
-        if (cancelled) return;
-        const code = nextError?.safe_error_code;
-        if (nextError?.safe_error_code === "AUTH_SESSION_OWNER_CHANGED") return;
+        const recoveryReadFence = captureBusinessRead();
+        refreshGraphConnection().catch((nextError) => {
+          if (isBusinessReadCurrent(recoveryReadFence)) setError(actionErrorMessage(nextError));
+        });
+        return true;
+      },
+    });
+    const applyStartup = (result) => {
+      if (!active || !authOwnerFence.isCurrent(startupOwner)) return;
+      setOutlookStartupOutcome({ state: result.state, reason: result.reason });
+      if (result.authenticated !== true) {
         beginSessionBoundary(false);
+        setAuthState(AUTH_STATE.loginRequired);
+        setGraphConnection({ state: GRAPH_STATE.notConnected, status: "not_connected", stateVersion: 0, missingScopes: [] });
         clearBusinessView();
-        if (code === "LAWOS_INTERACTION_REQUIRED" || code === "AUTH_SESSION_REQUIRED") {
-          setAuthState(AUTH_STATE.loginRequired);
-        } else if (code === AUTH_ERROR_CODES.nestedAppAuthUnavailable || code === AUTH_ERROR_CODES.nestedAppAuthUnsupported) {
-          setAuthState(AUTH_STATE.unavailable);
-          setAuthError(actionErrorMessage(nextError));
-        } else {
-          setAuthState(AUTH_STATE.loginRequired);
-          setAuthError(actionErrorMessage(nextError));
-        }
+        return;
       }
-    })();
-    return () => {
-      cancelled = true;
-      beginSessionBoundary(false, null, { lifecycleRestart: true });
-      if (unauthorizedHandler) unauthorizedHandler = null;
-      if (sessionRecoveredHandler) sessionRecoveredHandler = null;
+      if (!beginSessionBoundary(true, startupOwner)) return;
+      clearBusinessView();
+      setAuthState(AUTH_STATE.authenticated);
+      setAuthError("");
+      setOutlookReadiness(result.presentation ?? null);
+      if (result.state === "ready") {
+        setGraphConnection(result.connection);
+        if (result.bootstrap) setBootstrap(result.bootstrap);
+      } else {
+        setGraphConnection({
+          ...(result.connection ?? {}),
+          state: GRAPH_STATE.notConnected,
+          status: "not_connected",
+          stateVersion: result.connection?.stateVersion ?? 0,
+          missingScopes: result.connection?.missingScopes ?? [],
+        });
+      }
     };
-  }, [officeReadyEpoch]);
+    setAuthState(AUTH_STATE.acquiring);
+    const unsubscribe = subscribeOutlookStartup(applyStartup);
+    startOutlookStartup({
+      acquireSession: async ({ interactive = false, force = false } = {}) => {
+        if (interactive) {
+          setAuthState(AUTH_STATE.acquiring);
+          setAuthError("");
+        }
+        const session = await acquireLawosSession({
+          interactive,
+          force,
+          owner: startupOwner,
+        });
+        if (session?.authOwner && authOwnerFence.isCurrent(session.authOwner)) {
+          startupOwner = session.authOwner;
+        }
+        if (!session || typeof session !== "object" || !Object.hasOwn(session, "authOwner")) {
+          return session;
+        }
+        const { authOwner: _authOwner, ...publicSession } = session;
+        return publicSession;
+      },
+      requestJson,
+      storage: resolveOutlookStartupStorage(window),
+      officeMailboxAddress: waitForOutlookStartupMailbox({
+        host: window,
+        waitForReady: ensureOfficeReady,
+        readyEvent: OFFICE_READY_EVENT,
+      }),
+      build: OUTLOOK_ADDIN_BUILD,
+      cryptoImpl: globalThis.crypto,
+    }).catch((nextError) => {
+      if (!active || !authOwnerFence.isCurrent(startupOwner)) return;
+      beginSessionBoundary(false);
+      clearBusinessView();
+      setOutlookStartupOutcome({ state: "deferred", reason: "transient_failure" });
+      setAuthState(AUTH_STATE.loginRequired);
+      setAuthError(actionErrorMessage(nextError));
+    });
+    return () => {
+      active = false;
+      unsubscribe();
+      unregisterAuthHandlers();
+    };
+  }, []);
 
   async function signIn() {
     const signInOwner = beginSessionBoundary(false);
@@ -2418,6 +2645,7 @@ function App() {
       if (!beginSessionBoundary(true, signInOwner)) return;
       clearCompletedReceiptArchive();
       clearEditorContexts();
+      setOutlookStartupOutcome(null);
       setAuthState(AUTH_STATE.authenticated);
       const signInReadFence = captureBusinessRead();
       try {
@@ -2491,6 +2719,7 @@ function App() {
         },
       });
       await refreshGraphConnection();
+      setOutlookStartupOutcome(null);
     } catch (nextError) {
       if (!isBusinessReadCurrent(connectionReadFence)) return;
       if (previousGraphState !== GRAPH_STATE.connected && nextError?.graph_connection_state !== GRAPH_STATE.connected) {
@@ -2889,6 +3118,124 @@ function App() {
     return archiveEmailWithAttachments({ previousReceipt: attachmentResult });
   }
 
+  async function saveCurrentOutlookSourceToVault({
+    expectedProvenance,
+    retryAttachmentIds = null,
+  } = {}) {
+    if (!OUTLOOK_VAULT_SOURCE_SAVE_ENABLED) {
+      throw Object.assign(new Error("OUTLOOK_VAULT_SOURCE_SAVE_DISABLED"), {
+        safe_error_code: "OUTLOOK_VAULT_SOURCE_SAVE_DISABLED",
+        user_message: "이 AMIC OS 배포에서는 Vault 메일 저장을 사용할 수 없습니다.",
+      });
+    }
+    const operationStartKey = beginOperation();
+    const sourceItem = await readCurrentOutlookVaultSourceItem();
+    if (sourceItem.provenance !== expectedProvenance) {
+      throw Object.assign(new Error("OUTLOOK_VAULT_SOURCE_PROVENANCE_MISMATCH"), {
+        safe_error_code: "OUTLOOK_VAULT_SOURCE_PROVENANCE_MISMATCH",
+        user_message: expectedProvenance === "sent"
+          ? "보낸 메일을 열어 주세요."
+          : "받은 메일을 열어 주세요.",
+      });
+    }
+    const {
+      currentItem,
+      matterId,
+      operationSnapshot,
+    } = await prepareMatterMutation({
+      currentItem: sourceItem,
+      operationStartKey,
+      resolveCanonicalIdentity: true,
+    });
+    const filingMode = expectedProvenance === "sent" ? "sent" : "manual";
+    const localItemKey = outlookItemIdentityKey(currentItem);
+    if (retryAttachmentIds !== null) {
+      const prior = vaultSourceSaveResult;
+      if (
+        !prior
+        || prior.local_outlook_item_key !== localItemKey
+        || prior.local_matter_id !== matterId
+        || prior.filing_mode !== filingMode
+        || !Array.isArray(retryAttachmentIds)
+        || retryAttachmentIds.length === 0
+        || retryAttachmentIds.some((attachmentId) => (
+          !prior.retry_attachment_ids?.includes(attachmentId)
+        ))
+      ) {
+        throw Object.assign(new Error("OUTLOOK_VAULT_SOURCE_RETRY_CONTEXT_MISMATCH"), {
+          safe_error_code: "OUTLOOK_VAULT_SOURCE_RETRY_CONTEXT_MISMATCH",
+          user_message: "열어 둔 메일과 Matter의 Vault 저장 결과를 다시 확인해 주세요.",
+        });
+      }
+    }
+    const vaultSourceItem = Object.freeze({
+      canonical_graph_message_id: currentItem.canonical_graph_message_id,
+      rest_message_id: currentItem.rest_message_id,
+      internet_message_id: currentItem.internet_message_id,
+      conversation_id: currentItem.conversation_id,
+      item_key: localItemKey,
+      subject: typeof currentItem.subject === "string"
+        ? currentItem.subject.normalize("NFC").trim() || "제목 없음"
+        : "제목 없음",
+      sent_at: currentItem.sent_at ?? null,
+      received_at: currentItem.received_at ?? null,
+      attachments: currentItem.attachments,
+    });
+    const common = {
+      matterId,
+      email: vaultSourceItem,
+      mode: filingMode,
+      requestJson,
+      pendingStore: vaultSourcePendingStoreRef.current,
+      assertOperationCurrent: () => assertOperationContextCurrent(operationSnapshot),
+    };
+    const receipt = retryAttachmentIds === null
+      ? await saveOutlookEmailWithAttachmentsToVault(common)
+      : await saveOutlookAttachmentSourcesToVault({
+          ...common,
+          attachmentIds: retryAttachmentIds,
+          filingMode,
+        });
+    assertOperationContextCurrent(operationSnapshot);
+    const stored = Object.freeze({
+      ...receipt,
+      idempotent_replay: receipt.idempotent_replay === true
+        || (Array.isArray(receipt.receipts)
+          && receipt.receipts.length > 0
+          && receipt.receipts.every((entry) => entry.idempotent_replay === true)),
+      filing_mode: filingMode,
+      local_outlook_item_key: localItemKey,
+      local_matter_id: matterId,
+    });
+    setEmailResult(null);
+    setAttachmentResult(null);
+    setVaultSourceSaveResult(stored);
+    return stored;
+  }
+
+  async function fileEmailToVault() {
+    return saveCurrentOutlookSourceToVault({ expectedProvenance: "received" });
+  }
+
+  async function fileSentEmailToVault() {
+    return saveCurrentOutlookSourceToVault({ expectedProvenance: "sent" });
+  }
+
+  async function retryVaultSourceAttachments() {
+    const prior = vaultSourceSaveResult;
+    return saveCurrentOutlookSourceToVault({
+      expectedProvenance: prior?.filing_mode === "sent" ? "sent" : "received",
+      retryAttachmentIds: prior?.retry_attachment_ids ?? [],
+    });
+  }
+
+  async function resumeVaultSourceSaves() {
+    return resumePendingOutlookVaultSourceSaves({
+      pendingStore: vaultSourcePendingStoreRef.current,
+      requestJson,
+    });
+  }
+
   async function evaluateAlerts() {
     const currentItem = await readCurrentOutlookItem({ allowBodyReadFailure: true });
     if (!currentItem) throw itemChangedDuringActionError();
@@ -3080,6 +3427,109 @@ function App() {
     });
   }
 
+  async function prepareVaultAttachmentMutation() {
+    const operationStartKey = beginOperation();
+    const currentItem = currentOfficeItemSnapshot();
+    const matter = selectedMatterForItem(currentItem);
+    const officeItem = window.Office?.context?.mailbox?.item;
+    if (!currentItem || currentItem.mode !== "compose" || !officeItem) {
+      throw Object.assign(new Error("현재 Outlook 작성창에서는 Vault 첨부를 사용할 수 없습니다."), {
+        safe_error_code: "OUTLOOK_VAULT_COMPOSE_UNAVAILABLE",
+        user_message: "현재 Outlook 작성창에서는 Vault 첨부를 사용할 수 없습니다.",
+      });
+    }
+    if (!matter) {
+      throw Object.assign(new Error("첨부할 문서의 Matter를 먼저 선택해 주세요."), {
+        safe_error_code: "OUTLOOK_MATTER_SELECTION_REQUIRED",
+        user_message: "첨부할 문서의 Matter를 먼저 선택해 주세요.",
+      });
+    }
+    const sessionGeneration = sessionGenerationRef.current;
+    const refreshedMatter = await revalidateMatterForMutation({
+      currentItem,
+      operationStartKey,
+    });
+    const pendingKey = vaultAttachmentPendingKey(
+      currentItem,
+      refreshedMatter.matter_id,
+    );
+    const binding = Object.freeze({
+      operationStartKey,
+      sessionGeneration,
+      currentItem,
+      officeItem,
+      matterId: refreshedMatter.matter_id,
+      pendingKey,
+    });
+    const assertCurrent = () => {
+      const nextItem = currentOfficeItemSnapshot();
+      const nextMatter = selectedMatterForItem(nextItem);
+      if (activeOperationStartKeyRef.current !== binding.operationStartKey
+          || sessionGenerationRef.current !== binding.sessionGeneration
+          || sessionAuthenticatedRef.current !== true
+          || window.Office?.context?.mailbox?.item !== binding.officeItem
+          || nextItem?.mode !== "compose"
+          || !isSameOutlookItem(binding.currentItem, nextItem)
+          || nextMatter?.matter_id !== binding.matterId) {
+        throw actionContextChangedError();
+      }
+      return nextItem;
+    };
+    assertCurrent();
+    return Object.freeze({ ...binding, assertCurrent });
+  }
+
+  async function attachSelectedVaultVersion() {
+    const candidate = outlookVaultAttachmentCandidates(documents)
+      .find((entry) => entry.key === vaultAttachmentCandidateKey);
+    if (!candidate) {
+      throw Object.assign(new Error("Vault 문서의 정확한 현재 버전을 선택해 주세요."), {
+        safe_error_code: "OUTLOOK_VAULT_EXACT_VERSION_REQUIRED",
+        user_message: "Vault 문서의 정확한 현재 버전을 선택해 주세요.",
+      });
+    }
+    const binding = await prepareVaultAttachmentMutation();
+    const completion = await attachExactVaultVersionToOutlookCompose({
+      matterId: binding.matterId,
+      exactVersion: candidate.exactVersion,
+      requestJson,
+      assertOperationCurrent: binding.assertCurrent,
+      onPendingCompletion: (pending) => {
+        rememberVaultAttachmentPending(binding.pendingKey, pending);
+      },
+    });
+    vaultAttachmentPendingArchiveRef.current.delete(binding.pendingKey);
+    binding.assertCurrent();
+    setVaultAttachmentPending(null);
+    setVaultAttachmentResult(completion);
+    return completion;
+  }
+
+  async function retryVaultAttachmentCompletion() {
+    const binding = await prepareVaultAttachmentMutation();
+    const pending = vaultAttachmentPendingArchiveRef.current.get(binding.pendingKey)
+      ?? vaultAttachmentPending;
+    if (!pending) {
+      throw Object.assign(new Error("다시 확인할 Vault 첨부 작업이 없습니다."), {
+        safe_error_code: "OUTLOOK_VAULT_ATTACHMENT_RECEIPT_NOT_FOUND",
+        user_message: "다시 확인할 Vault 첨부 작업이 없습니다.",
+      });
+    }
+    const completion = await retryOutlookVaultAttachmentCompletion({
+      pending,
+      requestJson,
+      assertOperationCurrent: binding.assertCurrent,
+      onPendingCompletion: (nextPending) => {
+        rememberVaultAttachmentPending(binding.pendingKey, nextPending);
+      },
+    });
+    vaultAttachmentPendingArchiveRef.current.delete(binding.pendingKey);
+    binding.assertCurrent();
+    setVaultAttachmentPending(null);
+    setVaultAttachmentResult(completion);
+    return completion;
+  }
+
   function copyCriticalValue(value) {
     if (!value) return;
     const write = window.navigator?.clipboard?.writeText;
@@ -3092,7 +3542,11 @@ function App() {
   }
 
   function openFeatureOverlay({ featureId, view }) {
-    if (!OUTLOOK_MATTER_RAIL.some((entry) => entry.featureId === featureId)) return;
+    const currentRail = outlookMatterRailForContext({
+      itemMode: item?.mode,
+      vaultExactAttachmentEnabled: OUTLOOK_VAULT_EXACT_ATTACHMENT_ENABLED,
+    });
+    if (!currentRail.some((entry) => entry.featureId === featureId)) return;
     invalidatePrecedentView();
     if (featureId === "all-functions") invalidateFilingCorrectionView();
     if (overlayStateRef.current.featureId === "matter.search") closeMatterSearch();
@@ -3109,6 +3563,14 @@ function App() {
         narrative: item?.subject ? `메일 검토: ${item.subject}`.slice(0, 500) : "",
       }));
     }
+    if (featureId === "vault.attach-exact-version") {
+      setVaultAttachmentCandidateKey("");
+      setVaultAttachmentResult(null);
+      setVaultAttachmentPending(
+        vaultAttachmentPendingArchiveRef.current.get(vaultAttachmentPendingKey())
+          ?? null,
+      );
+    }
     mutateOverlay((state) => openOutlookOverlay(state, {
       featureId,
       view,
@@ -3118,6 +3580,9 @@ function App() {
   }
 
   const closeFeatureOverlay = useCallback((reason) => {
+    if (overlayStateRef.current.featureId === "vault.attach-exact-version") {
+      clearVaultAttachmentPickerView();
+    }
     if (overlayStateRef.current.featureId === "all-functions") {
       invalidateFilingCorrectionView();
       invalidatePrecedentView();
@@ -3176,6 +3641,55 @@ function App() {
       testId: "business-gate",
     };
   } else if (
+    outlookStartupOutcome?.state === "revoked"
+    && outlookStartupOutcome.reason === "installation_revoked"
+  ) {
+    intervention = {
+      status: OUTLOOK_OPERATION_STATES.reconnectRequired,
+      visibleMessage: "이 PC의 AMIC OS 설치를 확인할 수 없습니다.",
+      fullMessage: "AMIC OS 설치가 활성 상태인지 확인한 뒤 다시 시도해 주세요.",
+      testId: "business-gate",
+      action: retryOutlookStartup,
+      actionLabel: "설치 상태 다시 확인",
+      actionTestId: "outlook-installation-retry-button",
+    };
+  } else if (outlookStartupOutcome?.state === "revoked") {
+    intervention = {
+      status: OUTLOOK_OPERATION_STATES.reconnectRequired,
+      visibleMessage: "Outlook 계정이 AMIC OS 계정과 일치하지 않습니다.",
+      fullMessage: "현재 Outlook 계정과 같은 계정으로 AMIC OS에 다시 로그인해 주세요.",
+      testId: "business-gate",
+      action: signIn,
+      actionLabel: "다시 로그인",
+      actionTestId: "outlook-account-relogin-button",
+    };
+  } else if (outlookStartupOutcome?.state === "deferred") {
+    intervention = {
+      status: online
+        ? OUTLOOK_OPERATION_STATES.reconnectRequired
+        : OUTLOOK_OPERATION_STATES.offline,
+      visibleMessage: online
+        ? "Outlook 준비 상태를 확인하지 못했습니다."
+        : "네트워크에 연결되어 있지 않습니다.",
+      fullMessage: online
+        ? "잠시 후 준비 상태를 다시 확인해 주세요."
+        : "네트워크 연결을 복구한 뒤 준비 상태를 다시 확인해 주세요.",
+      testId: "business-gate",
+      action: retryOutlookStartup,
+      actionLabel: "다시 확인",
+      actionTestId: "outlook-startup-retry-button",
+    };
+  } else if (outlookStartupOutcome?.state === "connection_required") {
+    intervention = {
+      status: OUTLOOK_OPERATION_STATES.reconnectRequired,
+      visibleMessage: "Outlook 연결이 필요합니다.",
+      fullMessage: "Microsoft 계정을 Outlook에 연결한 뒤 다시 시도해 주세요.",
+      testId: "business-gate",
+      action: connectOutlook,
+      actionLabel: "Outlook 연결",
+      actionTestId: "outlook-connect-button",
+    };
+  } else if (
     outlookReadiness
     && outlookReadiness.action !== OUTLOOK_READINESS_ACTIONS.none
   ) {
@@ -3224,12 +3738,15 @@ function App() {
       ...(lastResult ?? recoveredReceiptNotice),
       testId: receiptRecovery && !lastResult ? "outlook-receipt-recovery" : "operation-result",
     };
-  } else if (outlookReadiness) {
-    intervention = {
-      ...outlookReadiness,
-      testId: "outlook-readiness-status",
-    };
   }
+
+  const visibleMatterRail = outlookMatterRailForContext({
+    itemMode: item?.mode,
+    vaultExactAttachmentEnabled: OUTLOOK_VAULT_EXACT_ATTACHMENT_ENABLED,
+  });
+  const vaultAttachmentCandidates = outlookVaultAttachmentCandidates(documents);
+  const selectedVaultAttachmentCandidate = vaultAttachmentCandidates
+    .find((entry) => entry.key === vaultAttachmentCandidateKey) ?? null;
 
   const conversationFeatureContext = overlayState.view === "conversation-auto-save"
     ? captureAllFunctionsFeatureContext("conversation-auto-save", { connectionBound: true })
@@ -3266,7 +3783,7 @@ function App() {
         ? "대화 자동 저장"
         : overlayState.view === "document-create-and-sign-status"
           ? "문서 만들기·서명 상태"
-      : OUTLOOK_MATTER_RAIL.find(
+      : visibleMatterRail.find(
         (entry) => entry.featureId === overlayState.featureId,
       )?.label ?? "Outlook 기능";
 
@@ -3280,22 +3797,32 @@ function App() {
       ? {
           label: "보낸 메일 저장",
           disabled: !authenticated || !graphConnected || !selectedMatterId || busy !== "",
-          run: () => runAction("sent_file", fileSentEmail),
+          run: () => runAction(
+            OUTLOOK_VAULT_SOURCE_SAVE_ENABLED ? "vault_sent_file" : "sent_file",
+            OUTLOOK_VAULT_SOURCE_SAVE_ENABLED ? fileSentEmailToVault : fileSentEmail,
+          ),
         }
       : {
           label: "메일 및 첨부 파일 저장",
           disabled: !authenticated || !graphConnected || !selectedMatterId || item?.provenance !== "received" || busy !== "",
-          run: () => runAction("file", fileEmail),
+          run: () => runAction(
+            OUTLOOK_VAULT_SOURCE_SAVE_ENABLED ? "vault_file" : "file",
+            OUTLOOK_VAULT_SOURCE_SAVE_ENABLED ? fileEmailToVault : fileEmail,
+          ),
         };
 
   return (
     <OutlookMatterCompactShell
       profile="matter-full"
+      itemMode={item?.mode}
+      vaultExactAttachmentEnabled={OUTLOOK_VAULT_EXACT_ATTACHMENT_ENABLED}
       activeFeature={overlayState.open ? overlayState.featureId ?? "" : ""}
       disabledFeatures={(featureId) => (
         !authenticated
         || !itemAvailable
         || busy !== ""
+        || (featureId === "vault.attach-exact-version"
+          && (item?.mode !== "compose" || !selectedMatterId))
         || (featureId === "mail.save-with-attachments" && (!graphConnected || item?.mode !== "read"))
         || (featureId === "task.create" && item?.mode !== "read")
       )}
@@ -3318,6 +3845,133 @@ function App() {
           heading={overlayHeading}
           onClose={closeFeatureOverlay}
         >
+          {overlayState.featureId === "vault.attach-exact-version" ? (
+            <form
+              onSubmit={(event) => {
+                event.preventDefault();
+                void runAction(
+                  "vault_attach",
+                  attachSelectedVaultVersion,
+                  { requiresGraph: false },
+                );
+              }}
+              data-testid="outlook-vault-attachment-picker"
+            >
+              <p className="outlook-one-line" role="status">
+                선택한 Matter의 현재 Vault 버전만 첨부합니다.
+              </p>
+              <OutlookOneLineField
+                id="outlook-vault-attachment-version"
+                name="vault_exact_version"
+                label="Vault 문서 버전"
+                as="select"
+                value={vaultAttachmentCandidateKey}
+                onChange={(event) => {
+                  setVaultAttachmentCandidateKey(event.target.value);
+                  setVaultAttachmentResult(null);
+                }}
+                disabled={busy !== "" || Boolean(vaultAttachmentPending)}
+                data-testid="outlook-vault-attachment-version"
+              >
+                <option value="">Vault 문서와 현재 버전을 선택해 주세요</option>
+                {vaultAttachmentCandidates.map((candidate) => (
+                  <option key={candidate.key} value={candidate.key}>
+                    {candidate.title} — {candidate.exactVersion.version_id}
+                  </option>
+                ))}
+              </OutlookOneLineField>
+              {vaultAttachmentCandidates.length === 0 ? (
+                <div className="outlook-flat-action-row">
+                  <span className="outlook-flat-action-label">첨부 가능한 현재 버전이 없습니다.</span>
+                  <button
+                    type="button"
+                    className="outlook-flat-action-button"
+                    onClick={() => void runAction(
+                      "readbacks",
+                      refreshReadbacks,
+                      { requiresGraph: false },
+                    )}
+                    disabled={busy !== ""}
+                    data-testid="outlook-vault-attachment-refresh"
+                  >
+                    새로고침
+                  </button>
+                </div>
+              ) : null}
+              {selectedVaultAttachmentCandidate ? (
+                <div data-testid="outlook-vault-exact-version">
+                  <div className="outlook-flat-action-row">
+                    <span className="outlook-flat-action-label">버전 ID</span>
+                    <code className="outlook-critical-value" tabIndex={0} aria-label="버전 ID">
+                      {selectedVaultAttachmentCandidate.exactVersion.version_id}
+                    </code>
+                  </div>
+                  <div className="outlook-flat-action-row">
+                    <span className="outlook-flat-action-label">SHA-256</span>
+                    <code className="outlook-critical-value" tabIndex={0} aria-label="SHA-256">
+                      {selectedVaultAttachmentCandidate.exactVersion.sha256}
+                    </code>
+                  </div>
+                  <div className="outlook-flat-action-row">
+                    <span className="outlook-flat-action-label">파일</span>
+                    <span className="outlook-one-line">
+                      {formatVaultAttachmentBytes(selectedVaultAttachmentCandidate.exactVersion.byte_size)} · {selectedVaultAttachmentCandidate.exactVersion.mime_type}
+                    </span>
+                  </div>
+                </div>
+              ) : null}
+              {vaultAttachmentPending ? (
+                <div className="outlook-flat-action-row" data-testid="outlook-vault-attachment-pending">
+                  <OutlookInlineOperationState
+                    status={OUTLOOK_OPERATION_STATES.partial}
+                    visibleMessage="첨부는 추가됐고 완료 확인이 남아 있습니다."
+                    fullMessage="같은 첨부를 다시 추가하지 않고 완료 확인만 다시 시도합니다."
+                  />
+                  <button
+                    type="button"
+                    className="outlook-flat-action-button"
+                    onClick={() => void runAction(
+                      "vault_attach_retry",
+                      retryVaultAttachmentCompletion,
+                      { requiresGraph: false },
+                    )}
+                    disabled={busy !== ""}
+                    data-testid="outlook-vault-attachment-retry"
+                  >
+                    완료 확인
+                  </button>
+                </div>
+              ) : null}
+              {vaultAttachmentResult ? (
+                <OutlookInlineOperationState
+                  status={OUTLOOK_OPERATION_STATES.complete}
+                  visibleMessage="선택한 Vault 버전을 첨부했습니다."
+                  fullMessage="Outlook 첨부 결과와 Vault 완료 영수증을 확인했습니다."
+                />
+              ) : null}
+              <div className="outlook-flat-action-row">
+                <span className="outlook-flat-action-label">선택한 정확 버전만 첨부합니다.</span>
+                <button
+                  type="button"
+                  className="outlook-flat-action-button"
+                  onClick={() => closeFeatureOverlay("cancel")}
+                  disabled={busy !== ""}
+                  data-testid="outlook-vault-attachment-cancel"
+                >
+                  취소
+                </button>
+                <button
+                  type="submit"
+                  className="outlook-flat-action-button"
+                  disabled={!selectedVaultAttachmentCandidate || Boolean(vaultAttachmentPending) || busy !== ""}
+                  data-testid="outlook-vault-attachment-submit"
+                >
+                  첨부
+                </button>
+              </div>
+            </form>
+          ) : null}
+
           {overlayState.featureId === "mail.save-with-attachments" ? (
             <>
               {selectedMatterDisplay ? (
@@ -3330,30 +3984,60 @@ function App() {
                 <p className="outlook-one-line">저장할 Matter를 선택해 주세요.</p>
               )}
               <div className="outlook-flat-action-row">
-                <span className="outlook-flat-action-label">메일 및 첨부 파일 저장</span>
+                <span className="outlook-flat-action-label">
+                  {OUTLOOK_VAULT_SOURCE_SAVE_ENABLED
+                    ? "Vault에 메일 및 첨부 저장"
+                    : "메일 및 첨부 파일 저장"}
+                </span>
                 <button
                   type="button"
                   className="outlook-flat-action-button"
-                  onClick={() => void runAction("file", fileEmail)}
+                  onClick={() => void runAction(
+                    OUTLOOK_VAULT_SOURCE_SAVE_ENABLED ? "vault_file" : "file",
+                    OUTLOOK_VAULT_SOURCE_SAVE_ENABLED ? fileEmailToVault : fileEmail,
+                  )}
                   disabled={!selectedMatterId || item?.provenance !== "received" || busy !== ""}
                   data-testid="file-email-button"
+                  data-storage-authority={OUTLOOK_VAULT_SOURCE_SAVE_ENABLED ? "amic-vault-api" : "lawos-dms"}
                 >
                   저장
                 </button>
               </div>
               <div className="outlook-flat-action-row">
-                <span className="outlook-flat-action-label">보낸 메일 저장</span>
+                <span className="outlook-flat-action-label">
+                  {OUTLOOK_VAULT_SOURCE_SAVE_ENABLED
+                    ? "Vault에 보낸 메일 및 첨부 저장"
+                    : "보낸 메일 저장"}
+                </span>
                 <button
                   type="button"
                   className="outlook-flat-action-button"
-                  onClick={() => void runAction("sent_file", fileSentEmail)}
+                  onClick={() => void runAction(
+                    OUTLOOK_VAULT_SOURCE_SAVE_ENABLED ? "vault_sent_file" : "sent_file",
+                    OUTLOOK_VAULT_SOURCE_SAVE_ENABLED ? fileSentEmailToVault : fileSentEmail,
+                  )}
                   disabled={!selectedMatterId || item?.provenance !== "sent" || busy !== ""}
                   data-testid="file-sent-email-button"
+                  data-storage-authority={OUTLOOK_VAULT_SOURCE_SAVE_ENABLED ? "amic-vault-api" : "lawos-dms"}
                 >
                   저장
                 </button>
               </div>
-              {emailResult ? (
+              {OUTLOOK_VAULT_SOURCE_SAVE_ENABLED
+                && vaultSourceSaveResult?.retry_attachment_ids?.length > 0 ? (
+                <div className="outlook-flat-action-row">
+                  <span className="outlook-flat-action-label">실패한 Vault 첨부 다시 저장</span>
+                  <button
+                    type="button"
+                    className="outlook-flat-action-button"
+                    onClick={() => void runAction("vault_attachments", retryVaultSourceAttachments)}
+                    disabled={busy !== ""}
+                    data-testid="retry-vault-source-attachments-button"
+                  >
+                    다시 저장
+                  </button>
+                </div>
+              ) : !OUTLOOK_VAULT_SOURCE_SAVE_ENABLED && emailResult ? (
                 <div className="outlook-flat-action-row">
                   <span className="outlook-flat-action-label">첨부 파일 다시 저장</span>
                   <button
@@ -3364,6 +4048,20 @@ function App() {
                     data-testid="save-attachments-button"
                   >
                     다시 저장
+                  </button>
+                </div>
+              ) : null}
+              {OUTLOOK_VAULT_SOURCE_SAVE_ENABLED ? (
+                <div className="outlook-flat-action-row">
+                  <span className="outlook-flat-action-label">중단된 Vault 저장 상태 확인</span>
+                  <button
+                    type="button"
+                    className="outlook-flat-action-button"
+                    onClick={() => void runAction("vault_resume", resumeVaultSourceSaves, { requiresGraph: false })}
+                    disabled={busy !== ""}
+                    data-testid="resume-vault-source-save-button"
+                  >
+                    확인
                   </button>
                 </div>
               ) : null}
@@ -3647,18 +4345,40 @@ function App() {
                 </button>
               </div>
               <div className="outlook-flat-action-row">
-                <span className="outlook-flat-action-label">보낸 메일 저장</span>
+                <span className="outlook-flat-action-label">
+                  {OUTLOOK_VAULT_SOURCE_SAVE_ENABLED
+                    ? "Vault에 보낸 메일 및 첨부 저장"
+                    : "보낸 메일 저장"}
+                </span>
                 <button
                   type="button"
                   className="outlook-flat-action-button"
-                  onClick={() => void runAction("sent_file", fileSentEmail)}
+                  onClick={() => void runAction(
+                    OUTLOOK_VAULT_SOURCE_SAVE_ENABLED ? "vault_sent_file" : "sent_file",
+                    OUTLOOK_VAULT_SOURCE_SAVE_ENABLED ? fileSentEmailToVault : fileSentEmail,
+                  )}
                   disabled={!graphConnected || !selectedMatterId || item?.provenance !== "sent" || busy !== ""}
                   data-testid="file-sent-email-button"
+                  data-storage-authority={OUTLOOK_VAULT_SOURCE_SAVE_ENABLED ? "amic-vault-api" : "lawos-dms"}
                 >
                   저장
                 </button>
               </div>
-              {emailResult ? (
+              {OUTLOOK_VAULT_SOURCE_SAVE_ENABLED
+                && vaultSourceSaveResult?.retry_attachment_ids?.length > 0 ? (
+                <div className="outlook-flat-action-row">
+                  <span className="outlook-flat-action-label">실패한 Vault 첨부 다시 저장</span>
+                  <button
+                    type="button"
+                    className="outlook-flat-action-button"
+                    onClick={() => void runAction("vault_attachments", retryVaultSourceAttachments)}
+                    disabled={!graphConnected || busy !== ""}
+                    data-testid="retry-vault-source-attachments-button"
+                  >
+                    다시 저장
+                  </button>
+                </div>
+              ) : !OUTLOOK_VAULT_SOURCE_SAVE_ENABLED && emailResult ? (
                 <div className="outlook-flat-action-row">
                   <span className="outlook-flat-action-label">첨부 파일 다시 저장</span>
                   <button
@@ -3696,7 +4416,7 @@ function App() {
                   ))}
               </ul>
               <div className="outlook-flat-action-row">
-                <span className="outlook-flat-action-label">스마트 경고 점검</span>
+                <span className="outlook-flat-action-label">보내기 전 확인</span>
                 <button
                   type="button"
                   className="outlook-flat-action-button"
@@ -3704,7 +4424,7 @@ function App() {
                   disabled={!graphConnected || busy !== ""}
                   data-testid="smart-alert-button"
                 >
-                  점검
+                  확인
                 </button>
               </div>
             </>
@@ -3911,11 +4631,11 @@ function App() {
 }
 
 function mount() {
-  window.addEventListener(OFFICE_READY_EVENT, registerOutlookEventHandlersOnce);
+  window.addEventListener(OFFICE_READY_EVENT, registerOutlookCommandBridgeOnce);
   startOfficeTaskPane({
     render: () => createRoot(document.getElementById("root")).render(<App />),
     waitForReady: ensureOfficeReady,
-    register: registerOutlookEventHandlersOnce,
+    register: registerOutlookCommandBridgeOnce,
   });
 }
 

@@ -1,4 +1,6 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
+import { Readable } from "node:stream";
 import test from "node:test";
 import {
   assertNoRuntimeSecretMaterial,
@@ -14,6 +16,36 @@ function jsonResponse(status, body) {
     async text() {
       return JSON.stringify(body);
     }
+  };
+}
+
+function binaryResponse(status, headers, chunks) {
+  const normalized = new Map(Object.entries(headers).map(([key, value]) => [key.toLowerCase(), String(value)]));
+  return {
+    status,
+    headers: { get(name) { return normalized.get(String(name).toLowerCase()) ?? null; } },
+    body: Readable.from(chunks),
+  };
+}
+
+function directTransferGrant(operationId, { filename, mimeType, byteSize }) {
+  return {
+    ok: true,
+    outcome: "transfer_ready",
+    operation_id: operationId,
+    transfer_grant_returned: true,
+    transfer: {
+      method: "PUT",
+      upload_url: `http://127.0.0.1:4812/test-vault-transfer/${operationId}`,
+      required_headers: {
+        "content-length": String(byteSize),
+        "content-type": mimeType,
+        "if-none-match": "*",
+      },
+      expires_at: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+      transfer_ref: `vault-transfer:${operationId}`,
+      file: { filename, mime_type: mimeType, byte_size: byteSize },
+    },
   };
 }
 
@@ -218,6 +250,42 @@ test("runtime client revokes a signed session without exposing bearer material",
     http_status: 200,
     token_material_returned: false
   });
+  assert.equal(JSON.stringify(response).includes("lawos_session_v1.secret"), false);
+});
+
+test("runtime client projects server-owned Vault capabilities from the signed session response", async () => {
+  const calls = [];
+  const capabilities = [
+    { id: "read", label: "Vault 조회", allowed: true, decision: "allow", safe_reason_code: null },
+    { id: "upload", label: "Vault 저장", allowed: false, decision: "deny", safe_reason_code: "VAULT_CAPABILITY_NOT_GRANTED" },
+  ];
+  const client = createMatterVaultAwsRuntimeClient({
+    baseUrl: "https://example.execute-api.ap-northeast-2.amazonaws.com/staging",
+    fetchImpl: async (url, init) => {
+      calls.push({ url: url.toString(), init });
+      return jsonResponse(200, {
+        ok: true,
+        session: { state: "signed_in", user_id: "user_amic", tenant_id: "tenant_amic" },
+        vault_capabilities: {
+          schema_version: "law-firm-os.vault-capability-projection.v1",
+          authoritative: true,
+          capabilities,
+          token_material_returned: false,
+          raw_policy_returned: false,
+          role_names_returned: false,
+          production_ready_claim: false,
+        },
+        token_material_returned: false,
+      });
+    },
+  });
+
+  const response = await client.features({ sessionToken: "lawos_session_v1.secret" });
+
+  assert.equal(calls[0].url.endsWith("/api/auth/session"), true);
+  assert.equal(calls[0].init.headers.authorization, "Bearer lawos_session_v1.secret");
+  assert.deepEqual(response.features, capabilities);
+  assert.equal(response.vault_capabilities.role_names_returned, false);
   assert.equal(JSON.stringify(response).includes("lawos_session_v1.secret"), false);
 });
 
@@ -666,6 +734,59 @@ test("desktop runtime permits only the exact Search preference mutation route", 
   assert.deepEqual(blocked.map(({ http_status }) => http_status), [405, 405, 405]);
 });
 
+test("desktop runtime permits only the exact Vault upload preflight mutation route", async () => {
+  const calls = [];
+  const client = createMatterVaultAwsRuntimeClient({
+    baseUrl: "http://127.0.0.1:4812",
+    fetchImpl: async (url, init) => {
+      calls.push({ url: url.toString(), init });
+      return jsonResponse(200, {
+        outcome: "preflight_passed",
+        item: { vault_document_write_enabled: false },
+        vault_document_write_enabled: false
+      });
+    }
+  });
+  const body = JSON.stringify({
+    action: "upload_preflight",
+    matter_id: "matter_001",
+    source_mode: "amic_os_desktop",
+    permission_check_only: true
+  });
+  const allowed = await client.api({
+    path: "/api/matters/vault-bridge/upload-preflight",
+    method: "POST",
+    body,
+    sessionToken: "lawos_session_v1.secret"
+  });
+  const blocked = await Promise.all([
+    client.api({
+      path: "/api/matters/vault-bridge/upload-preflight/extra",
+      method: "POST",
+      body,
+      sessionToken: "lawos_session_v1.secret"
+    }),
+    client.api({
+      path: "/api/matters/vault-bridge/upload-preflight",
+      method: "PUT",
+      body,
+      sessionToken: "lawos_session_v1.secret"
+    }),
+    client.api({
+      path: "/api/matters/vault-bridge/upload-preflight?tenant=renderer",
+      method: "POST",
+      body,
+      sessionToken: "lawos_session_v1.secret"
+    })
+  ]);
+
+  assert.equal(allowed.http_status, 200);
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].url, "http://127.0.0.1:4812/api/matters/vault-bridge/upload-preflight");
+  assert.deepEqual(JSON.parse(calls[0].init.body), JSON.parse(body));
+  assert.deepEqual(blocked.map(({ http_status }) => http_status), [405, 405, 403]);
+});
+
 test("desktop runtime permits the explicit HRX leave mutations and signed step-up exchange", async () => {
   const calls = [];
   const client = createMatterVaultAwsRuntimeClient({
@@ -946,6 +1067,546 @@ test("runtime client never substitutes the desktop operator credential for a mis
   assert.equal(response.http_status, 401);
   assert.equal(response.reason, "desktop_runtime_session_required");
   assert.equal(fetchCount, 0);
+});
+
+test("desktop runtime uses a dedicated signed-session route for Vault upload preflight", async () => {
+  const calls = [];
+  const client = createMatterVaultAwsRuntimeClient({
+    baseUrl: "http://127.0.0.1:4812",
+    fetchImpl: async (url, init) => {
+      calls.push({ url: url.toString(), init });
+      return jsonResponse(200, {
+        ok: true,
+        outcome: "preflight_passed",
+        item: {
+          operation_id: "vaultop_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          permission_checked: true,
+          vault_document_write_enabled: true,
+          max_upload_bytes: 1024 * 1024 * 1024,
+        },
+        vault_document_write_enabled: true,
+        token_material_returned: false,
+      });
+    },
+  });
+  const response = await client.precheckVaultUpload({
+    matterId: "matter-001",
+    workspaceId: "workspace-001",
+    folderId: null,
+    sessionToken: "lawos_session_v1.secret",
+  });
+  assert.equal(response.http_status, 200);
+  assert.equal(calls[0].url, "http://127.0.0.1:4812/api/vault/desktop/upload-preflight");
+  assert.equal(calls[0].init.headers.authorization, "Bearer lawos_session_v1.secret");
+  assert.equal(calls[0].init.headers["x-amic-vault-upload-transport"], "s3-presigned-put-v1");
+  assert.deepEqual(JSON.parse(calls[0].init.body), {
+    matter_id: "matter-001",
+    workspace_id: "workspace-001",
+    folder_id: null,
+  });
+  assert.equal(JSON.stringify(response).includes("lawos_session_v1.secret"), false);
+});
+
+test("desktop runtime hashes twice, streams directly, and verifies the exact server readback receipt", async () => {
+  const content = Buffer.from("AMIC OS Vault stream\n");
+  const sha256 = createHash("sha256").update(content).digest("hex");
+  const operationId = "vaultop_bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
+  const calls = [];
+  const client = createMatterVaultAwsRuntimeClient({
+    baseUrl: "http://127.0.0.1:4812",
+    fetchImpl: async (url, init) => {
+      const path = new URL(url).pathname;
+      if (path === "/api/vault/desktop/upload-transfer") {
+        calls.push({ path, init, raw: Buffer.from(init.body) });
+        return jsonResponse(200, directTransferGrant(operationId, {
+          filename: "vault-note.txt",
+          mimeType: "text/plain",
+          byteSize: content.byteLength,
+        }));
+      }
+      if (path.startsWith("/test-vault-transfer/")) {
+        const chunks = [];
+        for await (const chunk of init.body) chunks.push(Buffer.from(chunk));
+        calls.push({ path, init, raw: Buffer.concat(chunks) });
+        return { status: 200, body: Readable.from([]) };
+      }
+      calls.push({ path, init, raw: Buffer.from(init.body) });
+      return jsonResponse(201, {
+        ok: true,
+        outcome: "readback_verified",
+        request_id: "request-001",
+        item: {
+          operation_id: operationId,
+          document_id: "document-001",
+          version_id: "version-001",
+          file_object_id: "file-object-001",
+          sha256,
+          byte_size: content.byteLength,
+          mime_type: "text/plain",
+          audit_event_id: "audit-001",
+          exact_readback_verified: true,
+          raw_path_included: false,
+          raw_bytes_included: false,
+        },
+        token_material_returned: false,
+      });
+    },
+  });
+  let streamOpenCount = 0;
+  const response = await client.uploadVaultFile({
+    openStream() {
+      streamOpenCount += 1;
+      return Readable.from([content.subarray(0, 5), content.subarray(5)]);
+    },
+    file: { name: "vault-note.txt", mimeType: "text/plain", size: content.byteLength },
+    operationId,
+    sessionToken: "lawos_session_v1.secret",
+  });
+  assert.equal(response.http_status, 201);
+  assert.equal(response.local_stream_sha256, sha256);
+  assert.equal(response.local_stream_byte_size, content.byteLength);
+  assert.equal(streamOpenCount, 2);
+  assert.deepEqual(calls.map(({ path }) => path), [
+    "/api/vault/desktop/upload-transfer",
+    `/test-vault-transfer/${operationId}`,
+    "/api/vault/desktop/upload",
+  ]);
+  assert.equal(calls[0].init.headers.authorization, "Bearer lawos_session_v1.secret");
+  assert.equal(calls[0].init.headers["idempotency-key"], operationId);
+  assert.equal(calls[1].init.headers["content-length"], String(content.byteLength));
+  assert.deepEqual(calls[1].raw, content);
+  assert.deepEqual(JSON.parse(calls[2].raw.toString("utf8")), {
+    operation_id: operationId,
+    file: {
+      filename: "vault-note.txt",
+      mime_type: "text/plain",
+      byte_size: content.byteLength,
+      sha256,
+    },
+  });
+  assert.equal(calls[2].raw.includes(content), false);
+  assert.equal(JSON.stringify(response).includes("lawos_session_v1.secret"), false);
+});
+
+test("desktop runtime accepts exactly 1 GiB without buffering and rejects one byte more before transport", async () => {
+  const oneGiB = 1024 * 1024 * 1024;
+  const operationId = "vaultop_eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee";
+  const chunk = Buffer.alloc(1024 * 1024, 0x5a);
+  const openStream = () => Readable.from((function* oneGiBChunks() {
+    for (let index = 0; index < 1024; index += 1) yield chunk;
+  })());
+  let uploadedBytes = 0;
+  let fetchCount = 0;
+  const client = createMatterVaultAwsRuntimeClient({
+    baseUrl: "http://127.0.0.1:4812",
+    fetchImpl: async (url, init) => {
+      fetchCount += 1;
+      const path = new URL(url).pathname;
+      if (path === "/api/vault/desktop/upload-transfer") {
+        return jsonResponse(200, directTransferGrant(operationId, {
+          filename: "one-gib.txt",
+          mimeType: "text/plain",
+          byteSize: oneGiB,
+        }));
+      }
+      if (path.startsWith("/test-vault-transfer/")) {
+        for await (const value of init.body) uploadedBytes += Buffer.byteLength(value);
+        return { status: 200, body: Readable.from([]) };
+      }
+      const completion = JSON.parse(init.body);
+      return jsonResponse(201, {
+        ok: true,
+        outcome: "readback_verified",
+        item: {
+          operation_id: operationId,
+          sha256: completion.file.sha256,
+          byte_size: completion.file.byte_size,
+          mime_type: completion.file.mime_type,
+          exact_readback_verified: true,
+        },
+      });
+    },
+  });
+
+  const result = await client.uploadVaultFile({
+    openStream,
+    file: { name: "one-gib.txt", mimeType: "text/plain", size: oneGiB },
+    operationId,
+    sessionToken: "lawos_session_v1.secret",
+  });
+  assert.equal(result.local_stream_byte_size, oneGiB);
+  assert.equal(uploadedBytes, oneGiB);
+  assert.equal(fetchCount, 3);
+
+  const fetchesBeforeReject = fetchCount;
+  await assert.rejects(
+    () => client.uploadVaultFile({
+      openStream,
+      file: { name: "too-large.txt", mimeType: "text/plain", size: oneGiB + 1 },
+      operationId: "vaultop_ffffffffffffffffffffffffffffffff",
+      sessionToken: "lawos_session_v1.secret",
+    }),
+    (error) => error?.code === "VAULT_UPLOAD_SIZE_INVALID" && error?.status === 413,
+  );
+  assert.equal(fetchCount, fetchesBeforeReject);
+
+  await assert.rejects(
+    () => client.uploadVaultFile({
+      stream: openStream(),
+      file: { name: "one-gib.txt", mimeType: "text/plain", size: oneGiB },
+      operationId: "vaultop_99999999999999999999999999999999",
+      sessionToken: "lawos_session_v1.secret",
+    }),
+    (error) => error?.code === "VAULT_UPLOAD_REOPEN_REQUIRED",
+  );
+  assert.equal(fetchCount, fetchesBeforeReject);
+});
+
+test("desktop runtime continues a quarantined upload with JSON status only", async () => {
+  const content = Buffer.from("AMIC OS pending Vault stream\n");
+  const sha256 = createHash("sha256").update(content).digest("hex");
+  const operationId = "vaultop_cccccccccccccccccccccccccccccccc";
+  const calls = [];
+  const client = createMatterVaultAwsRuntimeClient({
+    baseUrl: "http://127.0.0.1:4812",
+    fetchImpl: async (url, init) => {
+      const path = new URL(url).pathname;
+      if (path === "/api/vault/desktop/upload-transfer") {
+        calls.push({ path, init, raw: Buffer.from(init.body) });
+        return jsonResponse(200, directTransferGrant(operationId, {
+          filename: "pending-note.txt",
+          mimeType: "text/plain",
+          byteSize: content.byteLength,
+        }));
+      }
+      if (path.startsWith("/test-vault-transfer/")) {
+        const chunks = [];
+        for await (const chunk of init.body) chunks.push(Buffer.from(chunk));
+        calls.push({ path, init, raw: Buffer.concat(chunks) });
+        return { status: 200, body: Readable.from([]) };
+      }
+      if (path === "/api/vault/desktop/upload") {
+        calls.push({ path, init, raw: Buffer.from(init.body) });
+        return jsonResponse(202, {
+          ok: true,
+          outcome: "processing",
+          request_id: "request-pending-upload",
+          operation_id: operationId,
+          item: {
+            operation_id: operationId,
+            operation_kind: "save_local_file",
+            stage: "scanning",
+            retry_after_ms: 250,
+            accepted: { sha256, byte_size: content.byteLength, mime_type: "text/plain" },
+            receipt: { stage: "scanning", exact_version: null },
+            exact_readback_verified: false,
+            raw_path_included: false,
+            raw_bytes_included: false,
+          },
+        });
+      }
+      calls.push({ path, init, raw: Buffer.from(String(init.body ?? "")) });
+      return jsonResponse(201, {
+        ok: true,
+        outcome: "readback_verified",
+        request_id: "request-pending-status",
+        item: {
+          operation_id: operationId,
+          document_id: "document-pending-001",
+          version_id: "version-pending-001",
+          file_object_id: "file-pending-001",
+          sha256,
+          byte_size: content.byteLength,
+          mime_type: "text/plain",
+          exact_readback_verified: true,
+        },
+      });
+    },
+  });
+  const pending = await client.uploadVaultFile({
+    openStream: () => Readable.from([content]),
+    file: { name: "pending-note.txt", mimeType: "text/plain", size: content.byteLength },
+    operationId,
+    sessionToken: "lawos_session_v1.secret",
+  });
+  assert.equal(pending.http_status, 202);
+  assert.equal(pending.outcome, "processing");
+  const completed = await client.continueVaultUpload({
+    operationId,
+    expected: { sha256, byteSize: content.byteLength, mimeType: "text/plain" },
+    sessionToken: "lawos_session_v1.secret",
+  });
+  assert.equal(completed.http_status, 201);
+  assert.equal(completed.item.version_id, "version-pending-001");
+  assert.deepEqual(calls.map(({ path }) => path), [
+    "/api/vault/desktop/upload-transfer",
+    `/test-vault-transfer/${operationId}`,
+    "/api/vault/desktop/upload",
+    "/api/vault/desktop/upload-status",
+  ]);
+  assert.deepEqual(JSON.parse(calls[3].raw.toString("utf8")), { operation_id: operationId });
+  assert.equal(calls[3].init.headers["idempotency-key"], operationId);
+  assert.equal(calls[2].raw.includes(content), false);
+});
+
+test("desktop runtime preflights, downloads, verifies, and acknowledges one exact Vault version without exposing it to the renderer API", async () => {
+  const bytes = Buffer.from("desktop exact export\n");
+  const operationId = "vaultop_dddddddddddddddddddddddddddddddd";
+  const exactVersion = {
+    document_id: "document-export-001",
+    version_id: "version-export-007",
+    file_object_id: "file-object-export-007",
+    sha256: createHash("sha256").update(bytes).digest("hex"),
+    byte_size: bytes.byteLength,
+    mime_type: "application/pdf",
+  };
+  const calls = [];
+  const client = createMatterVaultAwsRuntimeClient({
+    baseUrl: "http://127.0.0.1:4812",
+    fetchImpl: async (url, init) => {
+      const path = new URL(url).pathname;
+      calls.push({ path, init });
+      if (path === "/api/vault/desktop/export-preflight") {
+        return jsonResponse(200, {
+          ok: true,
+          outcome: "preflight_passed",
+          request_id: "request-export-preflight",
+          exact_version: exactVersion,
+          lawos_permission_checked: true,
+          provider_authority_checked: false,
+          provider_grant_created: false,
+        });
+      }
+      if (path === "/api/vault/desktop/export-authorize") {
+        const request = JSON.parse(init.body);
+        assert.equal(request.matter_id, "matter-001");
+        assert.deepEqual(request.exact_version, exactVersion);
+        assert.match(request.request_nonce_sha256, /^[a-f0-9]{64}$/u);
+        return jsonResponse(200, {
+          ok: true,
+          outcome: "export_authorized",
+          operation_kind: "export_exact_version",
+          operation_id: operationId,
+          attachment_name: "contract.pdf",
+          exact_version: exactVersion,
+        });
+      }
+      if (path === "/api/vault/desktop/export-download") {
+        assert.equal(init.headers.authorization, "Bearer lawos_session_v1.secret");
+        assert.equal(init.headers["idempotency-key"], operationId);
+        return binaryResponse(200, {
+          "content-type": exactVersion.mime_type,
+          "content-length": exactVersion.byte_size,
+          "cache-control": "private, no-store",
+          "x-content-type-options": "nosniff",
+          "x-amic-vault-operation-id": operationId,
+          "x-amic-vault-document-id": exactVersion.document_id,
+          "x-amic-vault-version-id": exactVersion.version_id,
+          "x-amic-vault-file-object-id": exactVersion.file_object_id,
+          "x-amic-vault-sha256": exactVersion.sha256,
+          "x-amic-vault-byte-size": exactVersion.byte_size,
+        }, [bytes.subarray(0, 5), bytes.subarray(5)]);
+      }
+      if (path === "/api/vault/desktop/export-complete") {
+        assert.equal(init.headers["idempotency-key"], operationId);
+        assert.deepEqual(JSON.parse(init.body), {
+          operation_id: operationId,
+          exact_version: exactVersion,
+        });
+        return jsonResponse(200, {
+          ok: true,
+          outcome: "delivered",
+          operation_kind: "export_exact_version",
+          operation_id: operationId,
+          exact_version: exactVersion,
+          receipt: { stage: "delivered", receipt_id: "receipt-export-001" },
+        });
+      }
+      throw new Error(`unexpected path ${path}`);
+    },
+  });
+
+  const preflight = await client.precheckVaultExport({
+    matterId: "matter-001",
+    exactVersion,
+    sessionToken: "lawos_session_v1.secret",
+  });
+  assert.equal(preflight.http_status, 200);
+  const downloaded = await client.downloadVaultExactVersion({
+    matterId: "matter-001",
+    exactVersion,
+    sessionToken: "lawos_session_v1.secret",
+  });
+  assert.deepEqual(downloaded.bytes, bytes);
+  assert.equal(downloaded.operation_id, operationId);
+  assert.deepEqual(downloaded.exact_version, exactVersion);
+  const completed = await client.completeVaultExport({
+    operationId,
+    exactVersion,
+    sessionToken: "lawos_session_v1.secret",
+  });
+  assert.equal(completed.receipt.stage, "delivered");
+  assert.deepEqual(calls.map(({ path }) => path), [
+    "/api/vault/desktop/export-preflight",
+    "/api/vault/desktop/export-authorize",
+    "/api/vault/desktop/export-download",
+    "/api/vault/desktop/export-complete",
+  ]);
+  for (const path of calls.map(({ path }) => path)) {
+    const blocked = await client.api({
+      path,
+      method: "GET",
+      sessionToken: "lawos_session_v1.secret",
+    });
+    assert.equal(blocked.http_status, 403);
+    assert.equal(blocked.reason, "desktop_main_only_route");
+  }
+  assert.equal(JSON.stringify({ preflight, completed }).includes("lawos_session_v1.secret"), false);
+});
+
+test("desktop runtime discards exact export bytes when the server header binding changes", async () => {
+  const bytes = Buffer.from("tamper check\n");
+  const operationId = "vaultop_eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee";
+  const exactVersion = {
+    document_id: "document-export-002",
+    version_id: "version-export-002",
+    file_object_id: "file-object-export-002",
+    sha256: createHash("sha256").update(bytes).digest("hex"),
+    byte_size: bytes.byteLength,
+    mime_type: "application/pdf",
+  };
+  let call = 0;
+  const client = createMatterVaultAwsRuntimeClient({
+    baseUrl: "http://127.0.0.1:4812",
+    fetchImpl: async () => {
+      call += 1;
+      if (call === 1) return jsonResponse(200, {
+        ok: true,
+        outcome: "export_authorized",
+        operation_kind: "export_exact_version",
+        operation_id: operationId,
+        attachment_name: "contract.pdf",
+        exact_version: exactVersion,
+      });
+      return binaryResponse(200, {
+        "content-type": exactVersion.mime_type,
+        "content-length": exactVersion.byte_size,
+        "cache-control": "private, no-store",
+        "x-content-type-options": "nosniff",
+        "x-amic-vault-operation-id": operationId,
+        "x-amic-vault-document-id": exactVersion.document_id,
+        "x-amic-vault-version-id": "version-changed",
+        "x-amic-vault-file-object-id": exactVersion.file_object_id,
+        "x-amic-vault-sha256": exactVersion.sha256,
+        "x-amic-vault-byte-size": exactVersion.byte_size,
+      }, [bytes]);
+    },
+  });
+  await assert.rejects(
+    () => client.downloadVaultExactVersion({
+      matterId: "matter-001",
+      exactVersion,
+      sessionToken: "lawos_session_v1.secret",
+    }),
+    (error) => error?.code === "VAULT_EXPORT_RESPONSE_MISMATCH",
+  );
+});
+
+test("desktop runtime rejects a non-canonical Vault export filename before requesting bytes", async () => {
+  const bytes = Buffer.from("filename check\n");
+  const exactVersion = {
+    document_id: "document-export-003",
+    version_id: "version-export-003",
+    file_object_id: "file-object-export-003",
+    sha256: createHash("sha256").update(bytes).digest("hex"),
+    byte_size: bytes.byteLength,
+    mime_type: "application/pdf",
+  };
+  let fetchCount = 0;
+  const client = createMatterVaultAwsRuntimeClient({
+    baseUrl: "http://127.0.0.1:4812",
+    fetchImpl: async () => {
+      fetchCount += 1;
+      return jsonResponse(200, {
+        ok: true,
+        outcome: "export_authorized",
+        operation_kind: "export_exact_version",
+        operation_id: "vaultop_ffffffffffffffffffffffffffffffff",
+        attachment_name: "\uD800.pdf",
+        exact_version: exactVersion,
+      });
+    },
+  });
+
+  await assert.rejects(
+    () => client.downloadVaultExactVersion({
+      matterId: "matter-001",
+      exactVersion,
+      sessionToken: "lawos_session_v1.secret",
+    }),
+    (error) => error?.code === "VAULT_EXPORT_AUTHORIZATION_FAILED",
+  );
+  assert.equal(fetchCount, 1);
+});
+
+test("desktop runtime rejects Vault upload receipt mismatch and keeps dedicated routes main-only", async () => {
+  const content = Buffer.from("stable\n");
+  let fetchCount = 0;
+  const client = createMatterVaultAwsRuntimeClient({
+    baseUrl: "http://127.0.0.1:4812",
+    fetchImpl: async (url, init) => {
+      fetchCount += 1;
+      const path = new URL(url).pathname;
+      if (path === "/api/vault/desktop/upload-transfer") {
+        return jsonResponse(200, directTransferGrant(
+          "vaultop_cccccccccccccccccccccccccccccccc",
+          { filename: "note.txt", mimeType: "text/plain", byteSize: content.byteLength },
+        ));
+      }
+      if (path.startsWith("/test-vault-transfer/")) {
+        for await (const _chunk of init.body ?? []) void _chunk;
+        return { status: 200, body: Readable.from([]) };
+      }
+      return jsonResponse(201, {
+        ok: true,
+        item: {
+          operation_id: "vaultop_cccccccccccccccccccccccccccccccc",
+          sha256: "0".repeat(64),
+          byte_size: content.byteLength,
+          mime_type: "text/plain",
+          exact_readback_verified: true,
+        },
+      });
+    },
+  });
+  await assert.rejects(
+    () => client.uploadVaultFile({
+      openStream: () => Readable.from([content]),
+      file: { name: "note.txt", mimeType: "text/plain", size: content.byteLength },
+      operationId: "vaultop_cccccccccccccccccccccccccccccccc",
+      sessionToken: "lawos_session_v1.secret",
+    }),
+    (error) => error?.code === "VAULT_UPLOAD_RECEIPT_MISMATCH",
+  );
+  for (const path of [
+    "/api/vault/desktop/upload-preflight",
+    "/api/vault/desktop/upload-transfer",
+    "/api/vault/desktop/upload",
+    "/api/vault/desktop/upload-status",
+    "/api/vault/desktop/export-preflight",
+    "/api/vault/desktop/export-authorize",
+    "/api/vault/desktop/export-download",
+    "/api/vault/desktop/export-complete",
+  ]) {
+    const blocked = await client.api({
+      path,
+      method: "GET",
+      sessionToken: "lawos_session_v1.secret",
+    });
+    assert.equal(blocked.http_status, 403);
+    assert.equal(blocked.reason, "desktop_main_only_route");
+  }
+  assert.equal(fetchCount, 3);
 });
 
 test("runtime response guard rejects secret-bearing payloads", () => {

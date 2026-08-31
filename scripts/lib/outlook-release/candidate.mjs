@@ -83,10 +83,9 @@ export function validateReleaseCandidateReceipt(receipt, contract, context) {
     bundleHashes.add(artifact.bundle_sha256);
   }
   if (bundleHashes.size !== 2) throw new Error("release candidate task-pane bundles must remain independent");
-  assertExactKeys(receipt.event_runtime, ["byte_size", "path", "sha256"], "release candidate event runtime");
   const eventRuntime = build.inventory.find(({ path: file }) => file === "event-runtime.js");
-  if (JSON.stringify(receipt.event_runtime) !== JSON.stringify(eventRuntime)) {
-    throw new Error("release candidate event runtime binding drifted");
+  if (receipt.event_runtime !== null || eventRuntime !== undefined) {
+    throw new Error("release candidate must not contain an automatic-send event runtime");
   }
   assertExactKeys(receipt.manifest_validation, ["manifests", "official_validation_count", "validator"], "manifest validation receipt");
   if (receipt.manifest_validation.validator !== "office-addin-manifest@2.1.6"
@@ -109,11 +108,14 @@ export function validateReleaseCandidateReceipt(receipt, contract, context) {
   for (const expected of contract.profiles) {
     const profile = candidateProfiles.get(expected.product_id);
     assertExactKeys(profile, [
-      "mailbox_min_version", "manifest_sha256", "permission", "product_id", "profile", "version",
+      "mailbox_min_version", "manifest_sha256", "permission", "product_id", "profile",
+      "semantic_sha256", "version",
     ], `${expected.profile} release candidate manifest profile`);
-    if (profile.profile !== expected.profile || profile.version !== contract.release_version
+    const expectedSurface = context.surface.profiles.find(({ product_id: productId }) => productId === expected.product_id);
+    if (profile.profile !== expected.profile || profile.version !== expected.release_version
       || profile.permission !== expected.permission || profile.mailbox_min_version !== expected.mailbox_min_version
-      || profile.manifest_sha256 !== manifestByPath.get(expected.production_manifest)?.sha256) {
+      || profile.manifest_sha256 !== manifestByPath.get(expected.production_manifest)?.sha256
+      || profile.semantic_sha256 !== expectedSurface?.environment_fingerprints?.production?.semantic_manifest_sha256) {
       throw new Error(`${expected.profile} manifest profile binding drifted`);
     }
   }

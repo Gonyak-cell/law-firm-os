@@ -25,6 +25,19 @@ const BODY_FIELDS = Object.freeze({
   heartbeat: Object.freeze(["expected_state_version"]),
   retire: Object.freeze(["expected_state_version", "retire_reason"]),
 });
+const LEGACY_WINDOWS_COMPATIBILITY_FUNCTIONS = Object.freeze({
+  apply: "apply_legacy_windows_outlook_desktop_lifecycle",
+  readProofKey: "read_legacy_windows_outlook_desktop_proof_key",
+});
+const LEGACY_WINDOWS_PROOF_KEY_FIELDS = Object.freeze([
+  "device_key_fingerprint",
+  "device_public_key",
+]);
+const LEGACY_WINDOWS_OUTCOMES = Object.freeze({
+  register: new Set(["registered", "heartbeat", "resumed"]),
+  heartbeat: new Set(["heartbeat", "resumed"]),
+  retire: new Set(["retired", "already_retired"]),
+});
 
 function serviceError(code, reason, status = 400) {
   return Object.assign(new Error(reason), {
@@ -38,12 +51,89 @@ function invalid(code, reason, status) {
   throw serviceError(code, reason, status);
 }
 
+function mapLegacyWindowsCompatibilityError(error) {
+  const mapped = new Map([
+    ["LWC01", ["OUTLOOK_DESKTOP_PROOF_IDEMPOTENCY_CONFLICT", 409]],
+    ["LWC02", ["OUTLOOK_DESKTOP_PROOF_NONCE_REPLAY", 409]],
+    ["LWC03", ["OUTLOOK_DESKTOP_INSTALLATION_BINDING_MISMATCH", 403]],
+    ["LWC04", ["OUTLOOK_DESKTOP_STATE_VERSION_CONFLICT", 409]],
+    ["LWC05", ["OUTLOOK_DESKTOP_INSTALLATION_NOT_FOUND", 404]],
+    ["LWC06", ["OUTLOOK_DESKTOP_INSTALLATION_RETIRED", 409]],
+    ["LWC07", ["OUTLOOK_DESKTOP_INSTALLATION_REQUEST_INVALID", 400]],
+    ["LWC08", ["OUTLOOK_DESKTOP_RELEASE_UNTRUSTED", 409]],
+  ]).get(error?.postgres_code);
+  if (!mapped) return error;
+  return serviceError(mapped[0], mapped[0].toLowerCase(), mapped[1]);
+}
+
 function isPlainObject(value) {
   if (value === null || typeof value !== "object" || Array.isArray(value)) {
     return false;
   }
   const prototype = Object.getPrototypeOf(value);
   return prototype === Object.prototype || prototype === null;
+}
+
+function exactObject(value, fields) {
+  return isPlainObject(value)
+    && JSON.stringify(Object.keys(value).sort())
+      === JSON.stringify([...fields].sort());
+}
+
+function legacyWindowsProofKey(value) {
+  if (value === null) return null;
+  if (!exactObject(value, LEGACY_WINDOWS_PROOF_KEY_FIELDS)
+      || typeof value.device_public_key !== "string"
+      || !SHA256_PATTERN.test(value.device_key_fingerprint ?? "")) {
+    throw new TypeError("legacy Windows proof-key projection is invalid");
+  }
+  return Object.freeze({
+    device_public_key: value.device_public_key,
+    device_key_fingerprint: value.device_key_fingerprint,
+  });
+}
+
+function legacyWindowsEnvelope(value, operation) {
+  const installation = value?.body?.installation;
+  const outcome = value?.body?.outcome;
+  const leaseExpiresAt = new Date(installation?.lease_expires_at);
+  const retiredAt = installation?.retired_at === null
+    ? null
+    : new Date(installation?.retired_at);
+  if (!exactObject(value, ["body", "response_status"])
+      || !exactObject(value.body, ["installation", "outcome"])
+      || !exactObject(installation, [
+        "installation_id",
+        "lease_expires_at",
+        "retired_at",
+        "state_version",
+        "status",
+      ])
+      || !LEGACY_WINDOWS_OUTCOMES[operation]?.has(outcome)
+      || ![200, 201].includes(value.response_status)
+      || (value.response_status === 201) !== (outcome === "registered")
+      || !INSTALLATION_ID_PATTERN.test(installation.installation_id ?? "")
+      || !new Set(["active", "expired", "retired"]).has(installation.status)
+      || !Number.isSafeInteger(installation.state_version)
+      || installation.state_version < 1
+      || !Number.isFinite(leaseExpiresAt.getTime())
+      || (retiredAt !== null && !Number.isFinite(retiredAt.getTime()))
+      || (installation.status === "retired") !== (retiredAt !== null)) {
+    throw new TypeError("legacy Windows lifecycle projection is invalid");
+  }
+  return Object.freeze({
+    response_status: value.response_status,
+    body: Object.freeze({
+      outcome,
+      installation: Object.freeze({
+        installation_id: installation.installation_id,
+        status: installation.status,
+        state_version: installation.state_version,
+        lease_expires_at: leaseExpiresAt.toISOString(),
+        retired_at: retiredAt?.toISOString() ?? null,
+      }),
+    }),
+  });
 }
 
 function identifier(value, field) {
@@ -855,5 +945,97 @@ export function createPostgresOutlookDesktopInstallationService({
     retire,
     read,
     readCurrent,
+  });
+}
+
+export function createPostgresOutlookDesktopLegacyWindowsCompatibilityService({
+  pool,
+  tenant_id: tenantIdInput,
+} = {}) {
+  if (!pool?.connect) throw new TypeError("PostgreSQL pool is required");
+  const tenantId = identifier(tenantIdInput, "tenant_id");
+  const tx = (callback) => withPostgresTransaction(pool, {
+    tenant_id: tenantId,
+    isolationLevel: "serializable",
+  }, callback);
+
+  const transition = async (operation, command = {}, { authorize } = {}) => {
+    const context = commandContext(command, tenantId);
+    const body = assertClosedBody(operation, context.request?.body);
+    const targetId = operation === "register"
+      ? "NEW"
+      : installationId(context.request?.installation_id);
+    await authorizeOperation(authorize, operation, context, targetId);
+    try {
+      return await tx(async (client) => {
+        const now = await databaseNow(client);
+        let publicKey = body.device_public_key;
+        if (operation !== "register") {
+          const proofKey = legacyWindowsProofKey((await client.query(
+            `SELECT lawos_email_dms.${LEGACY_WINDOWS_COMPATIBILITY_FUNCTIONS.readProofKey}($1,$2,$3,$4) AS value`,
+            [
+              tenantId,
+              context.principal.user_id,
+              context.principal.entra_subject_id,
+              targetId,
+            ],
+          )).rows[0]?.value ?? null);
+          if (!proofKey) {
+            invalid(
+              "OUTLOOK_DESKTOP_INSTALLATION_NOT_FOUND",
+              "outlook_desktop_installation_not_found",
+              404,
+            );
+          }
+          publicKey = proofKey.device_public_key;
+        }
+        const verified = verifyOutlookDesktopLifecycleProof({
+          request: context.request,
+          signature: context.signature,
+          public_key: publicKey,
+          now,
+        });
+        const value = (await client.query(
+          `SELECT lawos_email_dms.${LEGACY_WINDOWS_COMPATIBILITY_FUNCTIONS.apply}($1,$2::jsonb) AS value`,
+          [tenantId, JSON.stringify({
+            operation,
+            principal: {
+              user_id: context.principal.user_id,
+              entra_subject_id: context.principal.entra_subject_id,
+            },
+            request_id: context.request_id,
+            installation_id: targetId,
+            body,
+            verified: {
+              idempotency_key: verified.idempotency_key,
+              nonce_hash: verified.nonce_hash,
+              request_fingerprint: verified.request_fingerprint,
+              issued_at: verified.issued_at,
+              expires_at: verified.expires_at,
+              device_key_fingerprint: verified.public_key_fingerprint,
+            },
+          })],
+        )).rows[0]?.value;
+        return legacyWindowsEnvelope(value, operation);
+      });
+    } catch (error) {
+      throw mapLegacyWindowsCompatibilityError(error);
+    }
+  };
+
+  return Object.freeze({
+    authority: "postgres-outlook-desktop-legacy-windows-compatibility",
+    durable: true,
+    register: (command, options) => transition(
+      "register",
+      command,
+      options,
+    ),
+    heartbeat: (command, options) => transition(
+      "heartbeat",
+      command,
+      options,
+    ),
+    retire: (command, options) => transition("retire", command, options),
   });
 }

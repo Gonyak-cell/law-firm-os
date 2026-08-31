@@ -1,0 +1,302 @@
+{
+  "schema_version": "law-firm-os.amic-os-vault-identity-crosswalk.v1",
+  "source_snapshot": {
+    "lawos": {
+      "commit": "eeaf0f900781a29631c2ecf4cf44ec07bbcaba44",
+      "identity_storage": "text",
+      "paths": [
+        "apps/api/src/session-auth.js",
+        "packages/persistence/src/postgres/migrations/002_identity_ledger.sql",
+        "packages/persistence/src/postgres/migrations/006_entra_oidc_authority.sql",
+        "packages/matter/src/matter-vault-link.js",
+        "packages/dms/src/model.js",
+        "packages/authz/src/matter-permission-envelope.js",
+        "packages/authz/src/vault-object-acl.js"
+      ]
+    },
+    "vault": {
+      "commit": "5a04cc31f7c8a228982012b2213f78e6f07dc9ac",
+      "identity_storage": "uuid",
+      "paths": [
+        "db/migrations/0001_initial_schema.sql",
+        "db/migrations/0006_audit_append_only.sql",
+        "db/migrations/0007_workspaces.sql",
+        "db/migrations/0013_create_matters.sql",
+        "db/migrations/0016_create_ethical_walls.sql",
+        "db/migrations/0018_create_matter_members.sql",
+        "db/migrations/0023_create_file_objects.sql",
+        "db/migrations/0024_create_documents_minimal.sql",
+        "db/migrations/0029_create_document_versions.sql",
+        "db/migrations/0090_create_user_login_identities.sql",
+        "db/migrations/0140_create_document_folders_and_tags.sql",
+        "tools/migration/lawos-canonical-matter-reflection.mjs"
+      ]
+    }
+  },
+  "decision": {
+    "database_migration_required": false,
+    "lawos_database_migration_count": 0,
+    "vault_database_migration_count": 0,
+    "runtime_data_binding_required": true,
+    "production_writes_default": "deny",
+    "production_ready_claim": false,
+    "reason_codes": [
+      "existing_vault_native_ids_cover_all_document_objects",
+      "existing_account_ledger_identity_maps_lawos_user_to_vault_user",
+      "existing_matter_metadata_maps_lawos_matter_to_vault_matter",
+      "tenant_binding_is_server_configuration_not_customer_document_schema",
+      "permission_and_audit_are_authority_calls_not_row_copies"
+    ]
+  },
+  "trust_boundary": {
+    "resolution_location": "amic_os_server_bff",
+    "client_supplied_tenant_or_actor_trusted": false,
+    "desktop_session_forwarded_to_vault": false,
+    "email_or_display_name_identity_fallback_allowed": false,
+    "raw_storage_locator_exposed": false,
+    "automatic_latest_version_resolution_allowed": false,
+    "vault_authorization_rechecked_per_operation": true
+  },
+  "mappings": [
+    {
+      "key": "tenant",
+      "lawos_source": "server-derived principal.tenant_id",
+      "vault_target": "tenants.tenant_id",
+      "resolver": "trusted deployment binding from LawOS tenant text id to one Vault tenant UUID",
+      "authority": "vault",
+      "server_resolved": true,
+      "client_input_trusted": false,
+      "lossless": true,
+      "cardinality": "one_to_one",
+      "required_checks": [
+        "binding_exists",
+        "binding_is_unique",
+        "vault_tenant_status_active",
+        "session_membership_active"
+      ],
+      "client_visible_fields": [
+        "tenant_binding_state"
+      ]
+    },
+    {
+      "key": "user",
+      "lawos_source": "server-derived principal.user_id",
+      "vault_target": "user_login_identities.identity_value_normalized -> users.user_id",
+      "resolver": "identity_type account_ledger_id equals lowercase LawOS user id",
+      "authority": "vault",
+      "server_resolved": true,
+      "client_input_trusted": false,
+      "lossless": true,
+      "cardinality": "one_to_one",
+      "required_checks": [
+        "account_ledger_id_format_valid",
+        "identity_status_active",
+        "identity_is_globally_unique",
+        "identity_tenant_matches_binding",
+        "vault_user_status_active"
+      ],
+      "client_visible_fields": [
+        "user_binding_state"
+      ]
+    },
+    {
+      "key": "matter",
+      "lawos_source": "canonical Matter.matter_id",
+      "vault_target": "matters.matter_id",
+      "resolver": "tenant-scoped metadata lawosMatterId or matterAppMatterId with exact canonical matter_code confirmation",
+      "authority": "lawos_identity_vault_projection",
+      "server_resolved": true,
+      "client_input_trusted": false,
+      "lossless": true,
+      "cardinality": "one_to_one",
+      "required_checks": [
+        "reflection_row_is_unique",
+        "canonical_matter_code_matches",
+        "client_foreign_key_valid",
+        "matter_status_allows_operation",
+        "permission_scope_rechecked"
+      ],
+      "client_visible_fields": [
+        "matter_id",
+        "matter_code",
+        "safe_label"
+      ]
+    },
+    {
+      "key": "workspace",
+      "lawos_source": "Vault product workspace context",
+      "vault_target": "workspaces.workspace_id",
+      "resolver": "one configured active native Vault workspace inside the mapped tenant",
+      "authority": "vault",
+      "server_resolved": true,
+      "client_input_trusted": false,
+      "lossless": true,
+      "cardinality": "many_matters_to_one_workspace",
+      "required_checks": [
+        "workspace_exists",
+        "workspace_tenant_matches_binding",
+        "workspace_status_active",
+        "document_scope_uses_matter_not_workspace"
+      ],
+      "client_visible_fields": [
+        "workspace_id",
+        "safe_label"
+      ]
+    },
+    {
+      "key": "folder",
+      "lawos_source": "selected Vault folder reference",
+      "vault_target": "document_folders.folder_id",
+      "resolver": "native folder UUID under the resolved Vault tenant and matter",
+      "authority": "vault",
+      "server_resolved": true,
+      "client_input_trusted": false,
+      "lossless": true,
+      "cardinality": "many_to_one_or_null",
+      "required_checks": [
+        "folder_tenant_matches_binding",
+        "folder_matter_matches_target",
+        "parent_chain_is_valid",
+        "raw_path_not_accepted"
+      ],
+      "client_visible_fields": [
+        "folder_id",
+        "safe_path_label"
+      ]
+    },
+    {
+      "key": "document",
+      "lawos_source": "selected or created Vault document reference",
+      "vault_target": "documents.document_id",
+      "resolver": "native document UUID returned by Vault after permission-scoped create or read",
+      "authority": "vault",
+      "server_resolved": true,
+      "client_input_trusted": false,
+      "lossless": true,
+      "cardinality": "one_to_one",
+      "required_checks": [
+        "document_tenant_matches_binding",
+        "document_matter_matches_target",
+        "document_not_soft_deleted",
+        "permission_scope_rechecked"
+      ],
+      "client_visible_fields": [
+        "document_id",
+        "document_family_id",
+        "safe_label",
+        "status"
+      ]
+    },
+    {
+      "key": "version",
+      "lawos_source": "explicit exact-version selection or upload result",
+      "vault_target": "document_versions.version_id",
+      "resolver": "native version UUID bound to the selected document and immutable file object",
+      "authority": "vault",
+      "server_resolved": true,
+      "client_input_trusted": false,
+      "lossless": true,
+      "cardinality": "one_to_one",
+      "required_checks": [
+        "version_document_matches",
+        "version_file_object_matches",
+        "file_hash_matches",
+        "automatic_latest_substitution_is_zero"
+      ],
+      "client_visible_fields": [
+        "version_id",
+        "version_no",
+        "version_status",
+        "file_hash"
+      ]
+    },
+    {
+      "key": "file_object",
+      "lawos_source": "exact-version byte receipt",
+      "vault_target": "file_objects.file_object_id",
+      "resolver": "native immutable file-object UUID referenced by the exact version",
+      "authority": "vault",
+      "server_resolved": true,
+      "client_input_trusted": false,
+      "lossless": true,
+      "cardinality": "one_to_one",
+      "required_checks": [
+        "file_object_tenant_matches_binding",
+        "sha256_matches_version",
+        "byte_size_matches_transfer",
+        "mime_type_is_allowed",
+        "storage_uri_never_exposed"
+      ],
+      "client_visible_fields": [
+        "file_object_id",
+        "sha256",
+        "size_bytes",
+        "mime_type"
+      ]
+    },
+    {
+      "key": "permission_decision",
+      "lawos_source": "permission_envelope_id and server-derived principal",
+      "vault_target": "PermissionService decision over matter_members, Ethical Wall, document policy and governance state",
+      "resolver": "no primary-key translation; LawOS envelope is correlation context and Vault returns the authoritative decision",
+      "authority": "vault",
+      "server_resolved": true,
+      "client_input_trusted": false,
+      "lossless": true,
+      "cardinality": "one_request_to_one_decision",
+      "required_checks": [
+        "vault_decision_present",
+        "ethical_wall_evaluated",
+        "records_and_dlp_evaluated_when_applicable",
+        "missing_capability_denies",
+        "denied_counts_not_exposed"
+      ],
+      "client_visible_fields": [
+        "allowed",
+        "safe_reason_code",
+        "decision_ref"
+      ]
+    },
+    {
+      "key": "audit_trace",
+      "lawos_source": "operation correlation and idempotency reference",
+      "vault_target": "audit_events.correlation_id plus audit_events.event_id",
+      "resolver": "preserve the cross-product correlation value while each append-only ledger keeps its own event primary key",
+      "authority": "vault",
+      "server_resolved": true,
+      "client_input_trusted": false,
+      "lossless": true,
+      "cardinality": "one_operation_to_many_ordered_events",
+      "required_checks": [
+        "correlation_id_matches_operation",
+        "vault_event_id_read_back",
+        "reference_only_metadata",
+        "append_only_history_preserved"
+      ],
+      "client_visible_fields": [
+        "correlation_id",
+        "audit_event_id",
+        "safe_action",
+        "result"
+      ]
+    }
+  ],
+  "required_runtime_readbacks": [
+    "trusted_tenant_binding_unique_and_active",
+    "account_ledger_user_binding_unique_active_and_same_tenant",
+    "lawos_matter_projection_unique_current_and_same_tenant",
+    "configured_workspace_native_active_and_same_tenant",
+    "vault_permission_capability_probe_authoritative",
+    "vault_schema_and_deployed_api_revision_current"
+  ],
+  "blocked_conditions": [
+    "client_supplied_tenant_user_or_actor",
+    "email_or_display_name_identity_fallback",
+    "missing_or_ambiguous_tenant_binding",
+    "missing_or_ambiguous_account_ledger_binding",
+    "missing_ambiguous_or_stale_matter_reflection",
+    "missing_or_cross_tenant_workspace_folder_document_version_or_file_object",
+    "vault_provider_or_permission_authority_unavailable",
+    "exact_version_file_object_hash_or_size_mismatch"
+  ]
+}

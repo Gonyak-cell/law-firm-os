@@ -9,6 +9,10 @@ import {
   acquireDesktopSingleInstance,
   createDesktopInstanceCoordinator,
 } from "../src/main/main.js";
+import {
+  CLASSIC_OUTLOOK_ATTACH_REQUEST_CHANNEL,
+  createClassicOutlookBridgeController,
+} from "../src/main/broker/classicOutlookBridge.js";
 
 function fakeApp({ lock = true } = {}) {
   const handlers = new Map();
@@ -100,6 +104,63 @@ test("second-instance and open-url share the redacted deep-link queue and focus 
   assert.equal(JSON.stringify(coordinator.snapshot()).includes(firstToken), false);
   assert.equal(JSON.stringify(coordinator.snapshot()).includes(secondToken), false);
   assert.equal(JSON.stringify(coordinator.snapshot()).includes(thirdToken), false);
+});
+
+test("Classic Outlook second-instance arguments stay main-only and emit one opaque renderer request", () => {
+  const app = fakeApp();
+  const now = Date.parse("2026-08-29T09:00:00.000Z");
+  const pipeToken = "1".repeat(32);
+  const nonce = "2".repeat(64);
+  const installation = "4".repeat(64);
+  const compose = "5".repeat(64);
+  const invocation = [
+    "matter.exe",
+    "--amic-outlook-attach",
+    `--amic-outlook-pipe=${pipeToken}`,
+    `--amic-outlook-nonce=${nonce}`,
+    `--amic-outlook-request=${"3".repeat(32)}`,
+    `--amic-outlook-installation=${installation}`,
+    `--amic-outlook-compose=${compose}`,
+    `--amic-outlook-expires=${now + 60_000}`,
+  ];
+  const classicOutlookBridge = createClassicOutlookBridgeController({
+    now: () => now,
+    platform: "win32",
+  });
+  const coordinator = createDesktopInstanceCoordinator({
+    app,
+    argv: invocation,
+    now: () => now,
+    classicOutlookBridge,
+  });
+
+  assert.equal(coordinator.snapshot().pending_classic_outlook_request_count, 1);
+  const window = fakeWindow();
+  coordinator.setActiveWindow(window);
+  assert.equal(window.sent.length, 1);
+  assert.equal(window.sent[0].channel, CLASSIC_OUTLOOK_ATTACH_REQUEST_CHANNEL);
+  assert.deepEqual(Object.keys(window.sent[0].payload).sort(), [
+    "exact_version_required",
+    "expires_at",
+    "raw_bytes_included",
+    "raw_path_included",
+    "request_handle",
+    "source",
+    "token_material_returned",
+    "type",
+  ]);
+  const serialized = JSON.stringify({ sent: window.sent, snapshot: coordinator.snapshot() });
+  for (const secret of [pipeToken, nonce, installation, compose]) {
+    assert.equal(serialized.includes(secret), false);
+  }
+
+  app.handlers.get("second-instance")({}, [
+    ...invocation.filter((value) => !value.startsWith("--amic-outlook-request=")),
+    `--amic-outlook-request=${"6".repeat(32)}`,
+  ]);
+  assert.deepEqual(window.calls, ["restore", "show", "focus"]);
+  assert.equal(window.sent.length, 2);
+  assert.equal(coordinator.snapshot().delivered_classic_outlook_request_count, 2);
 });
 
 test("OAuth callback completion stays in main, uses the exact route, focuses open-url, and emits only a safe result", async () => {

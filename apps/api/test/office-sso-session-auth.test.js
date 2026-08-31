@@ -9,6 +9,7 @@ import {
   MATTER_VAULT_REGISTERED_TENANT_ID,
   findRegisteredAccountByEmail,
 } from "../src/matter-vault-account-registry.js";
+import { createScryptPasswordHash } from "../src/auth-credential-store.js";
 import { createApiServer } from "../src/server.js";
 import { createApiSessionAuth } from "../src/session-auth.js";
 
@@ -214,6 +215,61 @@ async function exchange(auth, requestId = "req-office-sso-exchange") {
     requestId,
   });
 }
+
+test("bound password sessions retain the desktop principal ref without upgrading assurance", async () => {
+  const password = "bound-password-session-test";
+  const passwordHash = createScryptPasswordHash(password, {
+    salt: "bound-password-session-test-salt",
+  });
+  const fixture = authFixture({
+    accountOverrides: {
+      credential_provider: "lawos-internal-password-provider-v1",
+      password_hash: passwordHash,
+    },
+  });
+
+  const signed = await fixture.auth.login({
+    email: fixture.users[0].email,
+    password,
+  }, { requestId: "req-bound-password-session-login" });
+
+  assert.equal(signed.status, 200);
+  assert.equal(signed.body.session.assurance_level, "password");
+  assert.match(
+    signed.body.session.outlook_desktop_principal_ref,
+    /^odpr_[A-Za-z0-9_-]{43}$/u,
+  );
+
+  const restored = await fixture.auth.verifyToken(signed.body.session_token, {
+    requestId: "req-bound-password-session-restore",
+  });
+  assert.equal(restored.ok, true);
+  assert.equal(restored.principal.assurance_level, "password");
+  assert.equal(restored.principal.entra_subject_id, ENTRA_SUBJECT_ID);
+  assert.equal(
+    restored.session.outlook_desktop_principal_ref,
+    signed.body.session.outlook_desktop_principal_ref,
+  );
+
+  const unbound = authFixture({
+    accountOverrides: {
+      credential_provider: "lawos-internal-password-provider-v1",
+      password_hash: passwordHash,
+      federated_tenant_id: null,
+      federated_subject_id: null,
+    },
+  });
+  const unboundSigned = await unbound.auth.login({
+    email: unbound.users[0].email,
+    password,
+  }, { requestId: "req-unbound-password-session-login" });
+  assert.equal(unboundSigned.status, 200);
+  assert.equal(unboundSigned.body.session.assurance_level, "password");
+  assert.equal(
+    "outlook_desktop_principal_ref" in unboundSigned.body.session,
+    false,
+  );
+});
 
 test("Office SSO config is public-only and exchange commits a restricted signed session", async () => {
   const fixture = authFixture();

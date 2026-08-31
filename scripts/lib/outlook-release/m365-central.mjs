@@ -12,12 +12,13 @@ import { readProtectedJsonProof } from "./protected-evidence.mjs";
 
 function validateStaticReceipt(receipt, staticResult) {
   assertExactKeys(receipt.static_release, [
-    "package_lock_sha256", "plan_sha256", "profiles", "source_sha", "source_tree", "target_namespaces",
+    "content_address_algorithm", "cutover_mode", "package_lock_sha256", "plan_sha256",
+    "profiles", "source_sha", "source_tree", "target_namespaces",
   ], "M365 static_release evidence");
   for (const profile of receipt.static_release.profiles ?? []) {
     assertExactKeys(profile, [
-      "bundle_sha256", "inventory_sha256", "manifest_sha256", "product_id", "profile",
-      "source_location_coverage", "target_prefix", "taskpane_html_sha256",
+      "bundle_sha256", "inventory_sha256", "manifest_semantic_sha256", "manifest_sha256", "product_id", "profile",
+      "immutable_target_prefix", "source_location_coverage", "target_prefix", "taskpane_html_sha256",
     ], "M365 static_release profile");
   }
   assertEqual(canonical(receipt.static_release), canonical(staticResult.projection), "M365 static release exact inventory binding");
@@ -68,7 +69,7 @@ function validateProfileOperations(receipt, options, staticResult) {
       || JSON.stringify(staticReadback.source_locations) !== JSON.stringify(profile.source_locations)) {
       throw new Error(`${expected.profile} static asset readback is incomplete`);
     }
-    if (readback.version !== contract.release_version || readback.manifest_sha256 !== profile.candidate_manifest_sha256
+    if (readback.version !== expected.release_version || readback.manifest_sha256 !== profile.candidate_manifest_sha256
       || readback.deployment_mode !== "fixed" || JSON.stringify(readback.source_locations) !== JSON.stringify(profile.source_locations)
       || readback.assignment_count !== profile.assignment_count
       || readback.assignment_fingerprint_sha256 !== profile.assignment_fingerprint_sha256

@@ -35,7 +35,7 @@ const desktopRoot = join(repoRoot, "apps/desktop");
 const packageJson = JSON.parse(await import("node:fs/promises").then((fs) => fs.readFile(join(desktopRoot, "package.json"), "utf8")));
 const sourceIdentity = readDesktopBuildSourceIdentity(repoRoot);
 const distRoot = join(desktopRoot, "dist/mac");
-const appBundle = join(distRoot, "matter.app");
+const appBundle = join(distRoot, channelConfig.macAppBundleName);
 const contentsDir = join(appBundle, "Contents");
 const macosDir = join(contentsDir, "MacOS");
 const resourcesDir = join(contentsDir, "Resources");
@@ -69,7 +69,7 @@ assertDesktopFormalBuildProvenance({
   expectedSourceSha: process.env.MATTER_DESKTOP_EXPECTED_SOURCE_SHA,
 });
 const appBundleId = channelConfig.appId;
-const artifactName = `${channelConfig.artifactPrefix}-${packageJson.version}`;
+const artifactName = `${channelConfig.macArtifactPrefix}-${packageJson.version}`;
 const zipPath = join(distRoot, `${artifactName}-macos.zip`);
 const dmgPath = join(distRoot, `${artifactName}-macos.dmg`);
 const externalBuildManifestPath = join(distRoot, `${artifactName}-macos-build-manifest.json`);
@@ -189,6 +189,11 @@ async function applyMatterBundleIcon(targetAppBundle) {
   await execFileAsync("/usr/libexec/PlistBuddy", [
     "-c",
     `Set :CFBundleIconFile ${packagedIconFile}`,
+    targetInfoPlist
+  ]);
+  await execFileAsync("/usr/libexec/PlistBuddy", [
+    "-c",
+    `Set :CFBundleDisplayName ${channelConfig.macDisplayName}`,
     targetInfoPlist
   ]);
   await execFileAsync("/usr/libexec/PlistBuddy", ["-c", "Delete :CFBundleURLTypes", targetInfoPlist]).catch(() => {});
@@ -329,7 +334,7 @@ if (osxSign && developerIdSignature !== "pass") {
 }
 const executableSmoke = await packagedExecutableSmoke();
 await execFileAsync("/usr/bin/ditto", ["-c", "-k", "--sequesterRsrc", "--keepParent", appBundle, zipPath]);
-await execFileAsync("/usr/bin/hdiutil", ["create", "-volname", "matter", "-srcfolder", appBundle, "-ov", "-format", "UDZO", dmgPath]);
+await execFileAsync("/usr/bin/hdiutil", ["create", "-volname", channelConfig.macVolumeName, "-srcfolder", appBundle, "-ov", "-format", "UDZO", dmgPath]);
 
 let dmgCodesignVerify = "not_applied_internal_package";
 let dmgNotarizationState = "not_submitted_internal_only";
@@ -365,13 +370,14 @@ const receipt = `# macOS ${channelConfig.receiptLabel} Build Receipt
 
 Status: ${channelConfig.receiptStatusPrefix}_electron_app_bundle_created
 Source TUW: MDT-P6-W01-T03
-App bundle: \`apps/desktop/dist/mac/matter.app\`
+App bundle: \`apps/desktop/dist/mac/${channelConfig.macAppBundleName}\`
 App ID: \`${appBundleId}\`
 Product name: \`matter\`
+Display name: \`${channelConfig.macDisplayName}\`
 Version: \`${packageJson.version}\`
 Channel: \`${releaseChannel}\`
 Build manifest: \`apps/desktop/dist/mac/${artifactName}-macos-build-manifest.json\`
-Packaged build manifest: \`apps/desktop/dist/mac/matter.app/Contents/Resources/matter-build-manifest.json\`
+Packaged build manifest: \`apps/desktop/dist/mac/${channelConfig.macAppBundleName}/Contents/Resources/matter-build-manifest.json\`
 Build manifest SHA-256: \`${buildManifestHash}\`
 ZIP SHA-256: \`${zipSha256}\`
 DMG SHA-256: \`${dmgSha256}\`
@@ -386,9 +392,9 @@ Built at: \`${buildManifest.built_at}\`
 
 - Electron runtime: \`node_modules/electron/dist/Electron.app\`
 - app icon: \`apps/desktop/build/icon.icns\`
-- packaged app icon: \`apps/desktop/dist/mac/matter.app/Contents/Resources/${packagedIconFile}\`
-- packaged app source: \`apps/desktop/dist/mac/matter.app/Contents/Resources/app\`
-- executable: \`apps/desktop/dist/mac/matter.app/Contents/MacOS/matter\`
+- packaged app icon: \`apps/desktop/dist/mac/${channelConfig.macAppBundleName}/Contents/Resources/${packagedIconFile}\`
+- packaged app source: \`apps/desktop/dist/mac/${channelConfig.macAppBundleName}/Contents/Resources/app\`
+- executable: \`apps/desktop/dist/mac/${channelConfig.macAppBundleName}/Contents/MacOS/matter\`
 - archive: \`apps/desktop/dist/mac/${artifactName}-macos.zip\`
 - disk image: \`apps/desktop/dist/mac/${artifactName}-macos.dmg\`
 
@@ -447,14 +453,16 @@ console.log(
   JSON.stringify(
     {
       verdict: "PASS",
-      app_bundle: "apps/desktop/dist/mac/matter.app",
+      app_bundle: `apps/desktop/dist/mac/${channelConfig.macAppBundleName}`,
       zip: `apps/desktop/dist/mac/${artifactName}-macos.zip`,
       dmg: `apps/desktop/dist/mac/${artifactName}-macos.dmg`,
       receipt: writeBuildReceipt ? receiptPath : null,
       release_channel: releaseChannel,
       app_id: appBundleId,
+      technical_product_name: "matter",
+      display_name: channelConfig.macDisplayName,
       build_manifest: `apps/desktop/dist/mac/${artifactName}-macos-build-manifest.json`,
-      packaged_build_manifest: "apps/desktop/dist/mac/matter.app/Contents/Resources/matter-build-manifest.json",
+      packaged_build_manifest: `apps/desktop/dist/mac/${channelConfig.macAppBundleName}/Contents/Resources/matter-build-manifest.json`,
       build_manifest_sha256: buildManifestHash,
       source_sha: buildManifest.source_sha,
       source_tree: buildManifest.source_tree,

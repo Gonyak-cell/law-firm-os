@@ -104,7 +104,7 @@ export function releaseCandidate(
       bundle_path: index ? "outlook-addin/assets/inquiry.js" : "assets/matter.js",
       bundle_sha256: index ? hex("e") : hex("d"),
     })),
-    event_runtime: build.inventory.find(({ path }) => path === "event-runtime.js"),
+    event_runtime: null,
     manifest_validation: {
       validator: "office-addin-manifest@2.1.6",
       official_validation_count: 4,
@@ -114,9 +114,11 @@ export function releaseCandidate(
       }),
     },
     profiles: contract.profiles.map((profile) => ({
-      profile: profile.profile, product_id: profile.product_id, version: contract.release_version,
+      profile: profile.profile, product_id: profile.product_id, version: profile.release_version,
       permission: profile.permission, mailbox_min_version: profile.mailbox_min_version,
       manifest_sha256: candidateManifestHashes[profile.profile],
+      semantic_sha256: surface.profiles.find(({ product_id: productId }) => productId === profile.product_id)
+        .environment_fingerprints.production.semantic_manifest_sha256,
     })),
     coverage: { required_path_count: contract.required_release_paths.length + contract.required_test_paths.length },
     licenses: validateDependencyLicenses(fixturePackageLock, contract),

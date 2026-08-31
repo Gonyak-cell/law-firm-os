@@ -67,6 +67,7 @@ test("matter task pane exposes the exact read and compose actions", () => {
     "activity.recent",
     "precedent.search",
     "document.create-and-sign-status",
+    "send-review.explicit",
   ]);
   assert.deepEqual(ids(compose, "actionable"), ids(compose, "visible"));
 });
@@ -207,21 +208,19 @@ test("unknown context fails closed and lookup is exact", () => {
   assert.equal(getOutlookFeatureById({ id: "matter.search" }), null);
 });
 
-test("OnMessageSend evaluates only the non-visible Smart Alert capability", () => {
+test("send review is available only as an explicit compose task-pane action", () => {
   const result = evaluateOutlookFeatureCatalog(context({
     form: "compose",
-    surface: "event",
-    event: "OnMessageSend",
     matterId: undefined,
   }));
-  assert.deepEqual(ids(result), ["smart-alert.on-message-send"]);
-  assert.equal(result[0].visible, false);
-  assert.equal(result[0].actionable, true);
-  assert.equal(result[0].feature.opener, "event");
-  assert.equal(result[0].feature.mutation, false);
-  assert.doesNotMatch(result[0].feature.endpoint, /filing|conversation/iu);
+  const review = result.find(({ feature }) => feature.id === "send-review.explicit");
+  assert.equal(review.visible, true);
+  assert.equal(review.actionable, true);
+  assert.equal(review.feature.opener, "all-functions row");
+  assert.deepEqual(review.feature.availability.event, []);
+  assert.equal(review.feature.mutation, false);
+  assert.doesNotMatch(review.feature.endpoint, /filing|conversation/iu);
   assert.deepEqual(evaluateOutlookFeatureCatalog(context({
-    profile: "inquiry-only",
     form: "compose",
     surface: "event",
     event: "OnMessageSend",

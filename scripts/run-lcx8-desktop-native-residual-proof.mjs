@@ -240,22 +240,18 @@ async function buildRowProofs() {
   const previewManager = createTempPreviewManager({
     storage: previewStorage,
     now: () => 1_000,
-    permissionClient: {
-      async precheckFileBridgeAction() {
-        return { allowed: true, decisionId: "decision_temp_preview" };
-      }
-    },
-    documentProvider: {
-      async fetchDocumentForPreview() {
-        return "main-process-preview-bytes";
-      }
-    },
+    createTempId: () => "33333333-3333-4333-8333-333333333333",
+    setTimeoutImpl: () => ({ unref() {} }),
     auditLogger: previewAudit.logger
   });
-  await previewManager.openTempPreview({
+  await previewManager.initialize();
+  await previewManager.stageTempPreview({
+    bytes: Buffer.from("main-process-preview-bytes"),
+    name: "native-residual.pdf",
+    ownerId: "web-contents:1:frame:0",
     documentId: "doc_temp_native_residual",
-    matterId: "matter_native_residual",
-    tenantIdHash: "tenant_native_residual"
+    versionId: "version_temp_native_residual",
+    mimeType: "application/pdf"
   });
   const cleanup = await previewManager.handleLogout();
   assert(cleanup.removed === 1, "temp preview logout cleanup should remove one preview");

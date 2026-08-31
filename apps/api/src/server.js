@@ -89,6 +89,46 @@ import {
   handleVaultDmsApiRequest,
 } from "./vault-dms-runtime-context.js";
 import {
+  DESKTOP_VAULT_UPLOAD_PATH,
+  DESKTOP_VAULT_UPLOAD_PREFLIGHT_PATH,
+  DESKTOP_VAULT_UPLOAD_REQUEST_MAX_BYTES,
+  DESKTOP_VAULT_UPLOAD_STATUS_PATH,
+  DESKTOP_VAULT_UPLOAD_TRANSFER_PATH,
+  handleDesktopVaultUpload,
+  handleDesktopVaultUploadPreflight,
+  handleDesktopVaultUploadStatus,
+  handleDesktopVaultUploadTransfer,
+  isDesktopVaultUploadApiPath,
+} from "./desktop-vault-upload-runtime.js";
+import {
+  handleAmicVaultProviderRead,
+  isAmicVaultProviderReadPath,
+} from "./amic-vault-read-runtime.js";
+import {
+  DESKTOP_VAULT_EXPORT_AUTHORIZE_PATH,
+  DESKTOP_VAULT_EXPORT_COMPLETE_PATH,
+  DESKTOP_VAULT_EXPORT_DOWNLOAD_PATH,
+  DESKTOP_VAULT_EXPORT_PREFLIGHT_PATH,
+  handleDesktopVaultExportAuthorize,
+  handleDesktopVaultExportComplete,
+  handleDesktopVaultExportDownload,
+  handleDesktopVaultExportPreflight,
+  isDesktopVaultExportApiPath,
+} from "./desktop-vault-export-runtime.js";
+import {
+  OUTLOOK_VAULT_ATTACHMENT_AUTHORIZE_PATH,
+  OUTLOOK_VAULT_ATTACHMENT_COMPLETE_PATH,
+  createOutlookVaultGraphHostVerifier,
+  deliveryTokenFromPath,
+  handleOutlookVaultAttachmentAuthorize,
+  handleOutlookVaultAttachmentComplete,
+  handleOutlookVaultAttachmentDelivery,
+  verifyOutlookVaultAttachmentDeliveryRequest,
+} from "./outlook-vault-attachment-delivery-runtime.js";
+import {
+  createOutlookVaultDeliveryTokenAuthority,
+} from "./outlook-vault-delivery-token.js";
+import {
   CRM_INTAKE_BOUNDED_CONTEXT,
   CRM_MASTER_DATA_SEED,
   CRM_RUNTIME_SEED,
@@ -172,6 +212,12 @@ import {
   runtimePreflightError,
 } from "./runtime-profile.js";
 import {
+  resolveAmicVaultHttpExportProvider,
+} from "./amic-vault-http-export-provider.js";
+import {
+  resolveAmicVaultHttpUploadProvider,
+} from "./amic-vault-http-upload-provider.js";
+import {
   assertStorePathPreflight,
 } from "./store-path-manifest.js";
 import {
@@ -185,6 +231,10 @@ import {
   handleClientOutlookAuthorizationCallback,
   handleOutlookAddinApiRequest,
 } from "./outlook-addin-runtime-context.js";
+import {
+  authorizeOutlookInstallationProtectedRoute,
+  outlookInstallationProtectedRouteResponse,
+} from "./outlook-installation-protected-route-gate.js";
 import {
   OUTLOOK_DESKTOP_INSTALLATION_BOUNDED_CONTEXT,
   OUTLOOK_DESKTOP_INSTALLATION_MAX_BODY_BYTES,
@@ -241,6 +291,7 @@ import {
   resolvePersistenceAuthority,
 } from "./persistence-authority.js";
 import { createPostgresDomainLedger } from "../../../packages/persistence/src/postgres/domain-ledger.js";
+import { createPostgresRepositoryPortV2 } from "../../../packages/persistence/src/postgres/repository-v2.js";
 import { hashDomainValue } from "../../../packages/persistence/src/domain-ledger.js";
 import { createPostgresIdentityLedger } from "../../../packages/runtime-auth/src/postgres-identity-ledger.js";
 import { createPostgresTenantProvisioningLedger } from "../../../packages/runtime-auth/src/postgres-tenant-provisioning.js";
@@ -248,6 +299,7 @@ import {
   createHrxRelationalProjectionReader,
 } from "../../../packages/hrx/src/relational-projection-reader.js";
 import { createPostgresApiRuntimeAuthority } from "./postgres-api-runtime-authority.js";
+import { createVaultOperationOwner } from "./vault-operation-owner.js";
 import {
   createFileSessionObjectAclResolver,
   createPostgresSessionObjectAclResolver,
@@ -272,6 +324,8 @@ const HOST = "127.0.0.1";
 const DEFAULT_PORT = Number(process.env.LAWOS_API_PORT || 4180);
 export const LAWOS_OUTLOOK_DESKTOP_AUTOCONNECT_ROSTER_ENV =
   "LAWOS_OUTLOOK_DESKTOP_AUTOCONNECT_ROSTER_JSON";
+export const LAWOS_OUTLOOK_VAULT_DELIVERY_PUBLIC_ORIGIN_ENV =
+  "LAWOS_OUTLOOK_VAULT_DELIVERY_PUBLIC_ORIGIN";
 
 function resolveOutlookDesktopAutoconnectRoster(value) {
   if (value == null || value === "") return null;
@@ -1000,6 +1054,7 @@ const CORS_BASE_HEADERS = Object.freeze({
   "access-control-allow-headers": [
     AUTHORIZATION_HEADER,
     "content-type",
+    "idempotency-key",
     PERMISSION_CONTEXT_HEADER,
     VAULT_BRIDGE_TOKEN_HEADER,
     "x-lawos-tenant-id",
@@ -1036,6 +1091,56 @@ function sendJson(req, res, status, body, extraHeaders = {}) {
     ...extraHeaders,
   });
   res.end(JSON.stringify(body));
+}
+
+function attachmentContentDisposition(value) {
+  const name = String(value ?? "vault-document").normalize("NFC");
+  const fallback = name
+    .replace(/[^\x20-\x7e]/gu, "_")
+    .replace(/["\\;]/gu, "_")
+    .slice(0, 120) || "vault-document";
+  const encoded = encodeURIComponent(name).replace(/[!'()*]/gu, (character) => (
+    `%${character.charCodeAt(0).toString(16).toUpperCase()}`
+  ));
+  return `attachment; filename="${fallback}"; filename*=UTF-8''${encoded}`;
+}
+
+function sendVaultExportBinary(req, res, result) {
+  const exact = result.exact_version;
+  res.writeHead(result.status, {
+    "content-type": exact.mime_type,
+    "content-length": String(result.body.byteLength),
+    "content-disposition": attachmentContentDisposition(result.attachment_name),
+    "cache-control": "private, no-store",
+    "x-content-type-options": "nosniff",
+    "x-amic-vault-operation-id": result.public_response.operation_id,
+    "x-amic-vault-document-id": exact.document_id,
+    "x-amic-vault-version-id": exact.version_id,
+    "x-amic-vault-file-object-id": exact.file_object_id,
+    "x-amic-vault-sha256": exact.sha256,
+    "x-amic-vault-byte-size": String(exact.byte_size),
+    ...corsHeadersForRequest(req),
+  });
+  res.end(result.body);
+}
+
+function sendOutlookVaultAttachmentBinary(req, res, result) {
+  const exact = result.exact_version;
+  res.writeHead(result.status, {
+    "content-type": exact.mime_type,
+    "content-length": String(result.body.byteLength),
+    "content-disposition": attachmentContentDisposition(result.attachment_name),
+    "cache-control": result.headers?.["cache-control"]
+      ?? "private, max-age=60, immutable",
+    "x-content-type-options": "nosniff",
+    "x-amic-vault-document-id": exact.document_id,
+    "x-amic-vault-version-id": exact.version_id,
+    "x-amic-vault-file-object-id": exact.file_object_id,
+    "x-amic-vault-sha256": exact.sha256,
+    "x-amic-vault-byte-size": String(exact.byte_size),
+    ...corsHeadersForRequest(req),
+  });
+  res.end(result.body);
 }
 
 function sendHtml(req, res, status, body) {
@@ -1126,6 +1231,9 @@ function publicRuntimeTenant(req, m365GraphConfig) {
   if (isLeaveProviderCallback(req.method, pathname)) {
     const value = req.headers?.[LEAVE_PROVIDER_TENANT_HEADER];
     return String(Array.isArray(value) ? value[0] ?? "" : value ?? "").trim() || null;
+  }
+  if (req.lawosOutlookVaultDeliveryVerification?.ok === true) {
+    return req.lawosOutlookVaultDeliveryVerification.claims.tenant_id;
   }
   const clientOutlookTenant = clientOutlookCallbackRuntimeTenant(
     req,
@@ -1608,7 +1716,7 @@ function handleProfileApiRequest({ pathname, method, query, context, requestId, 
   };
 }
 
-async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, masterDataRuntime, matterRuntime, dmsRuntime, emailDmsRuntime, docusignRuntime = null, crmIntakeRuntime, financeRuntime, financeRuntimeUnavailable = null, analyticsRuntime, aiRuntime, portalRuntime, uiReadinessRuntime, homeDashboardRuntime, enterpriseReadinessRuntime, precedentSearchRuntime = null, m365GraphConfig = null, outlookConversationRuntime = null, outlookGraphSyncReadiness = null, outlookDesktopRuntime = null, sessionAuth, stepUpAuthority, outlookAttachmentReceiptAuthority, payrollStatementProviderVerifier = null, payrollStatementProviderAudit = null, leaveProviderVerifier = null, runtimeProfile = LAWOS_RUNTIME_PROFILES.localDev, persistenceAuthority = LAWOS_PERSISTENCE_AUTHORITIES.fileCurrent, persistenceCapabilities = null, dataScope = null } = {}) {
+async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, masterDataRuntime, matterRuntime, dmsRuntime, emailDmsRuntime, docusignRuntime = null, crmIntakeRuntime, financeRuntime, financeRuntimeUnavailable = null, analyticsRuntime, aiRuntime, portalRuntime, uiReadinessRuntime, homeDashboardRuntime, enterpriseReadinessRuntime, precedentSearchRuntime = null, m365GraphConfig = null, outlookConversationRuntime = null, outlookGraphSyncReadiness = null, outlookDesktopRuntime = null, sessionAuth, stepUpAuthority, outlookAttachmentReceiptAuthority, vaultUploadProvider = null, vaultExportProvider = null, outlookVaultDeliveryAuthority = null, outlookVaultDeliveryPublicOrigin = null, outlookVaultHostVerifier = null, payrollStatementProviderVerifier = null, payrollStatementProviderAudit = null, leaveProviderVerifier = null, runtimeProfile = LAWOS_RUNTIME_PROFILES.localDev, persistenceAuthority = LAWOS_PERSISTENCE_AUTHORITIES.fileCurrent, persistenceCapabilities = null, dataScope = null } = {}) {
   const url = new URL(req.url || "/", `http://${HOST}`);
   const pathname = url.pathname.replace(/\/+$/, "") || "/";
   const query = queryToObject(url.searchParams);
@@ -1895,6 +2003,28 @@ async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, mast
     return;
   }
 
+  if (req.method === "GET" && deliveryTokenFromPath(pathname)) {
+    const verifiedDelivery = req.lawosOutlookVaultDeliveryVerification
+      ?? verifyOutlookVaultAttachmentDeliveryRequest({
+        method: req.method,
+        pathname,
+        authority: outlookVaultDeliveryAuthority,
+      });
+    const result = await handleOutlookVaultAttachmentDelivery({
+      verifiedDelivery,
+      requestId,
+      outlookDesktopRuntime,
+      dmsRuntime,
+      vaultExportProvider,
+    });
+    if (result.status === 200 && Buffer.isBuffer(result.body)) {
+      sendOutlookVaultAttachmentBinary(req, res, result);
+    } else {
+      sendJson(req, res, result.status, result.body);
+    }
+    return;
+  }
+
   const sessionContext = await sessionAuth.resolvePermissionContextFromHeaders(req.headers, { requestId, requireSessionToken: true });
   if (!sessionContext.ok) {
     sendJson(req, res, sessionContext.status ?? 401, sessionContext.body ?? {
@@ -2125,6 +2255,157 @@ async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, mast
 
   if (isVaultPath) {
     const context = requestPermissionContext();
+    if (isDesktopVaultExportApiPath(pathname)) {
+      if (req.method !== "POST") {
+        sendJson(req, res, 405, {
+          request_id: requestId,
+          outcome: "blocked",
+          ok: false,
+          safe_error_codes: ["VAULT_DESKTOP_METHOD_NOT_ALLOWED"],
+          production_ready_claim: false,
+        });
+        return;
+      }
+      if (Object.keys(query).length > 0) {
+        sendJson(req, res, 400, {
+          request_id: requestId,
+          outcome: "blocked",
+          ok: false,
+          safe_error_codes: ["VAULT_DESKTOP_EXPORT_REQUEST_INVALID"],
+          production_ready_claim: false,
+        });
+        return;
+      }
+      if (!contentTypeOf(req).toLowerCase().startsWith("application/json")) {
+        sendJson(req, res, 415, {
+          request_id: requestId,
+          outcome: "blocked",
+          ok: false,
+          safe_error_codes: ["VAULT_DESKTOP_CONTENT_TYPE_INVALID"],
+          production_ready_claim: false,
+        });
+        return;
+      }
+      const body = await readRequestBody(req, {
+        maxBytes: 64 * 1024,
+        injectAuthenticatedActor: false,
+      });
+      const common = {
+        body,
+        headers: req.headers,
+        principal: sessionContext.principal,
+        context,
+        requestId,
+        sessionAuth,
+        matterRuntime,
+        dmsRuntime,
+        vaultExportProvider,
+      };
+      const result = pathname === DESKTOP_VAULT_EXPORT_PREFLIGHT_PATH
+        ? await handleDesktopVaultExportPreflight(common)
+        : pathname === DESKTOP_VAULT_EXPORT_AUTHORIZE_PATH
+          ? await handleDesktopVaultExportAuthorize(common)
+        : pathname === DESKTOP_VAULT_EXPORT_DOWNLOAD_PATH
+          ? await handleDesktopVaultExportDownload(common)
+          : await handleDesktopVaultExportComplete(common);
+      if (pathname === DESKTOP_VAULT_EXPORT_DOWNLOAD_PATH
+          && result.status === 200
+          && Buffer.isBuffer(result.body)) {
+        sendVaultExportBinary(req, res, result);
+      } else {
+        sendJson(req, res, result.status, result.body);
+      }
+      return;
+    }
+    if (isDesktopVaultUploadApiPath(pathname)) {
+      if (req.method !== "POST") {
+        sendJson(req, res, 405, {
+          request_id: requestId,
+          outcome: "blocked",
+          ok: false,
+          safe_error_codes: ["VAULT_DESKTOP_METHOD_NOT_ALLOWED"],
+          production_ready_claim: false,
+        });
+        return;
+      }
+      if (Object.keys(query).length > 0) {
+        sendJson(req, res, 400, {
+          request_id: requestId,
+          outcome: "blocked",
+          ok: false,
+          safe_error_codes: ["VAULT_DESKTOP_REQUEST_INVALID"],
+          production_ready_claim: false,
+        });
+        return;
+      }
+      const uploadRequest = pathname === DESKTOP_VAULT_UPLOAD_PATH;
+      const contentType = contentTypeOf(req).toLowerCase();
+      const legacyUploadRequest = uploadRequest && contentType.startsWith("multipart/form-data");
+      const stagedUploadRequest = uploadRequest && contentType.startsWith("application/json");
+      if ((uploadRequest && !legacyUploadRequest && !stagedUploadRequest)
+          || (!uploadRequest && !contentType.startsWith("application/json"))) {
+        sendJson(req, res, 415, {
+          request_id: requestId,
+          outcome: "blocked",
+          ok: false,
+          safe_error_codes: ["VAULT_DESKTOP_CONTENT_TYPE_INVALID"],
+          production_ready_claim: false,
+        });
+        return;
+      }
+      const body = await readRequestBody(req, {
+        maxBytes: legacyUploadRequest ? DESKTOP_VAULT_UPLOAD_REQUEST_MAX_BYTES : 64 * 1024,
+        injectAuthenticatedActor: false,
+      });
+      const common = {
+        body,
+        headers: req.headers,
+        principal: sessionContext.principal,
+        context,
+        requestId,
+        sessionAuth,
+        matterRuntime,
+        dmsRuntime,
+        vaultUploadProvider,
+      };
+      const result = pathname === DESKTOP_VAULT_UPLOAD_PREFLIGHT_PATH
+        ? await handleDesktopVaultUploadPreflight(common)
+        : pathname === DESKTOP_VAULT_UPLOAD_TRANSFER_PATH
+          ? await handleDesktopVaultUploadTransfer(common)
+        : pathname === DESKTOP_VAULT_UPLOAD_STATUS_PATH
+          ? await handleDesktopVaultUploadStatus(common)
+          : await handleDesktopVaultUpload(common);
+      sendJson(req, res, result.status, result.body);
+      return;
+    }
+    if (
+      vaultUploadProvider
+      && req.method === "POST"
+      && ["/api/vault/documents", "/api/vault/documents/upload"].includes(pathname)
+    ) {
+      sendJson(req, res, 403, {
+        request_id: requestId,
+        outcome: "blocked",
+        ok: false,
+        safe_error_codes: ["VAULT_DIRECT_DMS_WRITE_RETIRED"],
+        production_ready_claim: false,
+      });
+      return;
+    }
+    if (
+      vaultUploadProvider
+      && isAmicVaultProviderReadPath(pathname, req.method)
+    ) {
+      const result = await handleAmicVaultProviderRead({
+        pathname,
+        query,
+        principal: sessionContext.principal,
+        requestId,
+        provider: vaultUploadProvider,
+      });
+      sendJson(req, res, result.status, result.body);
+      return;
+    }
     const body = req.method === "POST" ? await readRequestBody(req) : {};
     const result = await handleVaultDmsApiRequest({
       pathname,
@@ -2314,6 +2595,105 @@ async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, mast
   }
 
   if (isOutlookPath) {
+    const installationDecision = await authorizeOutlookInstallationProtectedRoute({
+      method: req.method,
+      pathname,
+      principal: sessionContext.principal,
+      context: requestPermissionContext(),
+      runtime: outlookDesktopRuntime,
+    });
+    const installationDenial = outlookInstallationProtectedRouteResponse(
+      installationDecision,
+      requestId,
+    );
+    if (installationDenial) {
+      sendJson(
+        req,
+        res,
+        installationDenial.status,
+        installationDenial.body,
+      );
+      return;
+    }
+    if (
+      vaultUploadProvider
+      && req.method === "POST"
+      && [
+        "/api/outlook/email/file",
+        "/api/outlook/sent/file",
+        "/api/outlook/attachments/save",
+      ].includes(pathname)
+    ) {
+      sendJson(req, res, 403, {
+        request_id: requestId,
+        outcome: "blocked",
+        item: null,
+        safe_error_codes: ["OUTLOOK_LEGACY_VAULT_WRITE_RETIRED"],
+        count_leak_prevented: true,
+        production_ready_claim: false,
+      });
+      return;
+    }
+    if (pathname === OUTLOOK_VAULT_ATTACHMENT_AUTHORIZE_PATH
+        || pathname === OUTLOOK_VAULT_ATTACHMENT_COMPLETE_PATH) {
+      if (req.method !== "POST") {
+        sendJson(req, res, 405, {
+          request_id: requestId,
+          outcome: "blocked",
+          ok: false,
+          safe_error_codes: ["OUTLOOK_VAULT_ATTACHMENT_METHOD_NOT_ALLOWED"],
+          production_ready_claim: false,
+        });
+        return;
+      }
+      if (Object.keys(query).length > 0) {
+        sendJson(req, res, 400, {
+          request_id: requestId,
+          outcome: "blocked",
+          ok: false,
+          safe_error_codes: ["OUTLOOK_VAULT_ATTACHMENT_REQUEST_INVALID"],
+          production_ready_claim: false,
+        });
+        return;
+      }
+      if (!contentTypeOf(req).toLowerCase().startsWith("application/json")) {
+        sendJson(req, res, 415, {
+          request_id: requestId,
+          outcome: "blocked",
+          ok: false,
+          safe_error_codes: ["OUTLOOK_VAULT_ATTACHMENT_CONTENT_TYPE_INVALID"],
+          production_ready_claim: false,
+        });
+        return;
+      }
+      const body = await readRequestBody(req, {
+        maxBytes: 64 * 1024,
+        injectAuthenticatedActor: false,
+      });
+      const common = {
+        body,
+        principal: sessionContext.principal,
+        context: requestPermissionContext(),
+        installation: installationDecision.installation,
+        requestId,
+        sessionAuth,
+        matterRuntime,
+        dmsRuntime,
+      };
+      const result = pathname === OUTLOOK_VAULT_ATTACHMENT_AUTHORIZE_PATH
+        ? await handleOutlookVaultAttachmentAuthorize({
+          ...common,
+          vaultExportProvider,
+          deliveryAuthority: outlookVaultDeliveryAuthority,
+          publicOrigin: outlookVaultDeliveryPublicOrigin,
+        })
+        : await handleOutlookVaultAttachmentComplete({
+          ...common,
+          hostVerifier: outlookVaultHostVerifier,
+        });
+      sendJson(req, res, result.status, result.body);
+      return;
+    }
     if (isOutlookDocumentApiPath(pathname)) {
       const declaredLength = Number(Array.isArray(req.headers["content-length"])
         ? req.headers["content-length"][0]
@@ -2379,6 +2759,7 @@ async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, mast
         outlookDesktopRuntime,
         sessionAuth,
         attachmentReceiptAuthority: outlookAttachmentReceiptAuthority,
+        vaultUploadProvider,
       },
     });
     sendJson(req, res, result.status, result.body, result.headers);
@@ -2490,6 +2871,12 @@ export function createApiServer({
   timelineCursorAuthority = createMatterTimelineCursorAuthority(),
   outlookAttachmentReceiptAuthority = createOutlookAttachmentReceiptAuthority(),
   sessionObjectAclResolver = null,
+  vaultCapabilityResolver = null,
+  vaultUploadProvider = null,
+  vaultExportProvider = null,
+  outlookVaultDeliveryAuthority = null,
+  outlookVaultDeliveryPublicOrigin = null,
+  outlookVaultHostVerifier = null,
   requestRuntimeAuthority = null,
   payrollStatementProviderVerifier = null,
   payrollStatementProviderAudit = null,
@@ -2501,6 +2888,7 @@ export function createApiServer({
     stepUpAuthority: resolvedStepUpAuthority,
     profile: runtimeProfile,
     objectAclResolver: sessionObjectAclResolver,
+    vaultCapabilityResolver,
   });
   const resolvedPayrollStatementProviderAudit = payrollStatementProviderAudit
     ?? (typeof resolvedSessionAuth.appendProviderCallbackAudit === "function"
@@ -2557,6 +2945,11 @@ export function createApiServer({
           outlookGraphSyncReadiness,
           outlookDesktopRuntime,
           sessionAuth: resolvedSessionAuth,
+          vaultUploadProvider,
+          vaultExportProvider,
+          outlookVaultDeliveryAuthority,
+          outlookVaultDeliveryPublicOrigin,
+          outlookVaultHostVerifier,
           stepUpAuthority: resolvedStepUpAuthority,
           payrollStatementProviderVerifier,
           payrollStatementProviderAudit: resolvedPayrollStatementProviderAudit,
@@ -2653,6 +3046,19 @@ export function createApiServer({
           return;
         }
         req.lawosPayrollStatementProviderAuthorization = authorization;
+      }
+
+      if (req.method === "GET" && deliveryTokenFromPath(requestPathname)) {
+        req.lawosOutlookVaultDeliveryVerification =
+          verifyOutlookVaultAttachmentDeliveryRequest({
+            method: req.method,
+            pathname: requestPathname,
+            authority: outlookVaultDeliveryAuthority,
+          });
+        if (req.lawosOutlookVaultDeliveryVerification.ok === true) {
+          req.lawosActorId =
+            req.lawosOutlookVaultDeliveryVerification.claims.user_id;
+        }
       }
 
       if (!requestRuntimeAuthority || !requestUsesProductRuntime(req)) {
@@ -2818,6 +3224,12 @@ async function startApiServerImplementation({
   passwordResetEmailDelivery,
   sessionAuth,
   sessionObjectAclResolver,
+  vaultCapabilityResolver,
+  vaultUploadProvider,
+  vaultExportProvider,
+  outlookVaultDeliveryAuthority,
+  outlookVaultDeliveryPublicOrigin,
+  outlookVaultHostVerifier,
   staffAuthAuthority,
   staffOidcProvider,
   entraSecretsClient,
@@ -2841,6 +3253,22 @@ async function startApiServerImplementation({
     value: persistenceAuthority,
     env: resolvedPersistenceAuthorityEnv,
   });
+  const resolvedVaultExportProvider = vaultExportProvider === undefined
+    ? resolveAmicVaultHttpExportProvider({
+        env: resolvedPersistenceAuthorityEnv,
+        runtimeProfile: resolvedRuntimeProfile,
+      })
+    : vaultExportProvider;
+  const resolvedVaultUploadProvider = vaultUploadProvider === undefined
+    ? resolveAmicVaultHttpUploadProvider({
+        env: resolvedPersistenceAuthorityEnv,
+        runtimeProfile: resolvedRuntimeProfile,
+      })
+    : vaultUploadProvider;
+  const resolvedVaultCapabilityResolver = vaultCapabilityResolver === undefined
+    && typeof resolvedVaultUploadProvider?.resolveCapabilities === "function"
+    ? resolvedVaultUploadProvider.resolveCapabilities.bind(resolvedVaultUploadProvider)
+    : vaultCapabilityResolver;
   const resolvedPeopleFeatureFlags =
     peopleFeatureFlags ?? resolvePeopleFeatureFlagsFromEnv(resolvedPersistenceAuthorityEnv);
   const resolvedStaffAuthAuthority = resolveStaffAuthAuthority(
@@ -2874,6 +3302,14 @@ async function startApiServerImplementation({
   });
   const resolvedOutlookAttachmentReceiptAuthority = outlookAttachmentReceiptAuthority
     ?? createOutlookAttachmentReceiptAuthority({ secret: resolvedSessionSecret });
+  const resolvedOutlookVaultDeliveryAuthority = outlookVaultDeliveryAuthority
+    ?? createOutlookVaultDeliveryTokenAuthority({ secret: resolvedSessionSecret });
+  const resolvedOutlookVaultDeliveryPublicOrigin =
+    outlookVaultDeliveryPublicOrigin
+    ?? resolvedPersistenceAuthorityEnv[
+      LAWOS_OUTLOOK_VAULT_DELIVERY_PUBLIC_ORIGIN_ENV
+    ]
+    ?? null;
   let resolvedStaffOidcProvider = staffOidcProvider ?? null;
   if (resolvedStaffAuthAuthority === LAWOS_STAFF_AUTH_AUTHORITIES.internalPassword && resolvedStaffOidcProvider) {
     throw runtimePreflightError("staff OIDC provider is forbidden when LAWOS_STAFF_AUTHORITY=internal-password");
@@ -2935,6 +3371,7 @@ async function startApiServerImplementation({
         officeSsoProvider: m365GraphConfig?.office_sso_provider ?? null,
         identityRepository,
         objectAclResolver: resolvedSessionObjectAclResolver,
+        vaultCapabilityResolver: resolvedVaultCapabilityResolver,
       });
       const sessionAuthorityTenantId = String(
         sessionAuth == null ? "" : resolvedSessionAuth.trusted_tenant_id ?? "",
@@ -3055,6 +3492,9 @@ async function startApiServerImplementation({
         precedentAuthoritySecret: resolvedSessionSecret,
         identityRepository,
         requireDmsConsumerReadAuthority: true,
+        vaultOperationOwner: createVaultOperationOwner({
+          repository: createPostgresRepositoryPortV2({ pool: postgresPool }),
+        }),
       });
       const outlookConversationRuntime =
         m365GraphConfig?.provider_runtime_enabled === true
@@ -3099,6 +3539,12 @@ async function startApiServerImplementation({
               outlookConversationRuntime.before_connection_revoke,
           })
         : m365GraphConfig;
+      const operationalOutlookVaultHostVerifier = outlookVaultHostVerifier
+        ?? (outlookConversationRuntime?.mail_port
+          ? createOutlookVaultGraphHostVerifier({
+              mailPort: outlookConversationRuntime.mail_port,
+            })
+          : null);
       const resolvedDocusignRuntime = docusignRuntime ?? createDocusignFailClosedRuntime({
         repository: createPostgresDocusignEnvelopeRepository({ pool: postgresPool }),
       });
@@ -3126,6 +3572,12 @@ async function startApiServerImplementation({
         sessionAuth: resolvedSessionAuth,
         timelineCursorAuthority: resolvedTimelineCursorAuthority,
         outlookAttachmentReceiptAuthority: resolvedOutlookAttachmentReceiptAuthority,
+        vaultUploadProvider: resolvedVaultUploadProvider,
+        vaultExportProvider: resolvedVaultExportProvider,
+        outlookVaultDeliveryAuthority: resolvedOutlookVaultDeliveryAuthority,
+        outlookVaultDeliveryPublicOrigin:
+          resolvedOutlookVaultDeliveryPublicOrigin,
+        outlookVaultHostVerifier: operationalOutlookVaultHostVerifier,
         requestRuntimeAuthority,
         runtimeProfile: resolvedRuntimeProfile,
         persistenceAuthority: persistenceAuthorityState.authority,
@@ -3372,6 +3824,7 @@ async function startApiServerImplementation({
     passwordResetEmailDelivery,
     stepUpAuthority: resolvedStepUpAuthority,
     objectAclResolver: resolvedSessionObjectAclResolver,
+    vaultCapabilityResolver: resolvedVaultCapabilityResolver,
   });
   const server = createApiServer({
     hrxRuntime: runtime,
@@ -3397,6 +3850,12 @@ async function startApiServerImplementation({
     sessionAuth: resolvedSessionAuth,
     timelineCursorAuthority: resolvedTimelineCursorAuthority,
     outlookAttachmentReceiptAuthority: resolvedOutlookAttachmentReceiptAuthority,
+    vaultUploadProvider: resolvedVaultUploadProvider,
+    vaultExportProvider: resolvedVaultExportProvider,
+    outlookVaultDeliveryAuthority: resolvedOutlookVaultDeliveryAuthority,
+    outlookVaultDeliveryPublicOrigin:
+      resolvedOutlookVaultDeliveryPublicOrigin,
+    outlookVaultHostVerifier,
     runtimeProfile: resolvedRuntimeProfile,
     persistenceAuthority: persistenceAuthorityState.authority,
     hrxRuntimeUnavailable,

@@ -5,6 +5,7 @@ import { DOCUSIGN_CONNECT_SIGNATURE_HEADER, DOCX_MIME_TYPE, createDocusignEnvelo
 import { DOCUSIGN_OUTLOOK_REQUESTS_PATH, DOCUSIGN_WEBHOOK_PATH } from "../src/docusign-api.js";
 import { createDocusignFailClosedRuntime } from "../src/docusign-runtime.js";
 import { createApiServer } from "../src/server.js";
+import { createTrustedOutlookInstallationTestAuthority } from "./helpers/outlook-trusted-installation-runtime.js";
 
 export const TENANT = "tenant-api";
 export const MATTER = "matter-api";
@@ -16,10 +17,12 @@ export const APPROVED_ARTIFACT_ID = "builder-artifact-api";
 export const AUTHORITY_BINDING = Object.freeze({ tenant_id: TENANT, matter_id: MATTER, workspace_id: "workspace-api", artifact_id: APPROVED_ARTIFACT_ID, document_id: "document-api", version_id: "version-api", sha256: DOCUMENT_SHA, approval_receipt_ref: "approval-api", permission_envelope_id: "permission-api", audit_trace_id: "audit-api" });
 export const CONNECTION = Object.freeze({ tenant_id: TENANT, connection_id: "docusign-primary", account_id: "account-api", base_uri: "https://demo.docusign.net", credential_refs: { integration_key: "aws-secrets-manager:/lawos/docusign/integration-key", service_user_id: "aws-secrets-manager:/lawos/docusign/service-user", private_key: "aws-secrets-manager:/lawos/docusign/private-key" }, hmac_secret_ref: "aws-secrets-manager:/lawos/docusign/connect-hmac" });
 const APPROVED_SOURCE = Object.freeze({ authority: AUTHORITY_BINDING, document: { artifact_id: APPROVED_ARTIFACT_ID, document_id: "document-api", version_id: "version-api", sha256: DOCUMENT_SHA, filename: "agreement.docx", mime_type: DOCX_MIME_TYPE, workspace_id: "workspace-api", permission_envelope_id: "permission-api", audit_trace_id: "audit-api", template_version: "template-v1", template_sha256: "b".repeat(64), input_sha256: "c".repeat(64), approval_receipt_ref: "approval-api", immutable: true, finalized: true, owner_approved: true }, recipients: [{ recipient_ref: "contact-api", role: "client", routing_order: 1 }], anchor_manifest: { anchors: [{ role: "client", anchor: "/client-signature/" }] } });
+const PRINCIPAL = Object.freeze({ tenant_id: TENANT, user_id: ACTOR, role_ids: ["lawos_staff"] });
+const OUTLOOK_INSTALLATION_AUTHORITY =
+  createTrustedOutlookInstallationTestAuthority([PRINCIPAL]);
 
 export function sessionAuth() {
-  const principal = Object.freeze({ tenant_id: TENANT, user_id: ACTOR, role_ids: ["lawos_staff"] });
-  return Object.freeze({ capabilities: Object.freeze({}), async resolvePermissionContextFromHeaders() { return Object.freeze({ ok: true, principal, context: Object.freeze({ principal, rules: [], object_acl: [] }), token_payload: Object.freeze({ surface: "outlook_addin" }) }); } });
+  return OUTLOOK_INSTALLATION_AUTHORITY.wrapSessionAuth(Object.freeze({ capabilities: Object.freeze({}), async resolvePermissionContextFromHeaders() { return Object.freeze({ ok: true, principal: PRINCIPAL, context: Object.freeze({ principal: PRINCIPAL, rules: [], object_acl: [] }), token_payload: Object.freeze({ surface: "outlook_addin" }) }); } }));
 }
 
 export async function docusignRuntime({ authorizeMatter = async () => ({ allowed: true, authority_binding: AUTHORITY_BINDING }), prepare = true, webhookRequestResolver, repository: providedRepository, adapter: providedAdapter, connectionResolver: providedConnectionResolver } = {}) {
@@ -36,7 +39,7 @@ export async function docusignRuntime({ authorizeMatter = async () => ({ allowed
 }
 
 export async function withServer(runtime, callback) {
-  const server = createApiServer({ hrxRuntime: null, masterDataRuntime: null, matterRuntime: null, dmsRuntime: null, emailDmsRuntime: null, crmIntakeRuntime: null, financeRuntime: null, analyticsRuntime: null, aiRuntime: null, portalRuntime: null, uiReadinessRuntime: null, homeDashboardRuntime: null, enterpriseReadinessRuntime: null, docusignRuntime: runtime, sessionAuth: sessionAuth() });
+  const server = createApiServer({ hrxRuntime: null, masterDataRuntime: null, matterRuntime: null, dmsRuntime: null, emailDmsRuntime: null, crmIntakeRuntime: null, financeRuntime: null, analyticsRuntime: null, aiRuntime: null, portalRuntime: null, uiReadinessRuntime: null, homeDashboardRuntime: null, enterpriseReadinessRuntime: null, docusignRuntime: runtime, outlookDesktopRuntime: OUTLOOK_INSTALLATION_AUTHORITY.runtime, sessionAuth: sessionAuth() });
   await new Promise((resolve, reject) => { server.once("error", reject); server.listen(0, "127.0.0.1", resolve); });
   try { return await callback(`http://127.0.0.1:${server.address().port}`); } finally { await new Promise((resolve) => { server.close(resolve); server.closeAllConnections?.(); }); }
 }

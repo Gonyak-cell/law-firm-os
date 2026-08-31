@@ -11,7 +11,7 @@ export const MAIN_WINDOW_READY_EVENT = "ready-to-show";
 export const MAIN_WINDOW_REVEAL_FALLBACK_MS = 1400;
 
 export const MAIN_WINDOW_OPTIONS = Object.freeze({
-  title: "matter",
+  title: "AMIC OS",
   width: 1280,
   height: 820,
   minWidth: 1024,

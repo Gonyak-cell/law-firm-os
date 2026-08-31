@@ -50,7 +50,7 @@ test("combined migration 306 binds the exact Outlook assignment authority catalo
     hashDomainValue(OUTLOOK_DESKTOP_ASSIGNMENT_AUTHORITY_CATALOG),
   );
 
-  assert.equal(CLIENT_OPERATIONS_MIGRATION_CATALOG.migration_count, 76);
+  assert.equal(CLIENT_OPERATIONS_MIGRATION_CATALOG.migration_count, 78);
   assert.equal(Object.isFrozen(CLIENT_OPERATIONS_MIGRATION_CATALOG), true);
   assert.equal(
     Object.isFrozen(CLIENT_OPERATIONS_MIGRATION_CATALOG.migrations),
@@ -62,7 +62,7 @@ test("combined migration 306 binds the exact Outlook assignment authority catalo
   );
   assert.equal(
     CLIENT_OPERATIONS_MIGRATION_CATALOG_SHA256,
-    "f72ec0b55edb321c9dce62a4afc504b4277ef40f7d13792013aa70ab18c01086",
+    "7b03e0175cf1b3266951d8fb59fc2ae0f390bd620a4a0cf4aeb2be58fb502302",
   );
   const normalizedCatalog = normalizeClientOperationsMigrationCatalog();
   assert.equal(
@@ -79,30 +79,35 @@ test("combined migration 306 binds the exact Outlook assignment authority catalo
   );
   assert.equal(
     normalizedCatalog.ledger_sha256,
-    "8d8da4ab27a6de8db5e612b2d55945ffeb70fd61a7b43fb2b10c39d72cbaad6a",
+    "d323c0d66ad146dcda231c1688469615b3073efeed153cb78620ce49d177e162",
   );
-  const finalCatalogRow =
-    CLIENT_OPERATIONS_MIGRATION_CATALOG.migrations.at(-1);
-  const finalSchemaRow = CLIENT_OPERATIONS_SCHEMA_MANIFEST.entries.at(-1);
+  const assignmentCatalogRow =
+    CLIENT_OPERATIONS_MIGRATION_CATALOG.migrations.at(-3);
+  const assignmentSchemaRow =
+    CLIENT_OPERATIONS_SCHEMA_MANIFEST.entries.at(-3);
   assert.equal(
-    hashDomainValue(CLIENT_OPERATIONS_SCHEMA_MANIFEST.entries.slice(0, -1)),
+    hashDomainValue(CLIENT_OPERATIONS_SCHEMA_MANIFEST.entries.slice(0, -3)),
     "955acda6770f6adb1c7a14b117b6eb36ac3310da45dfaa9ff0595d22b95ac995",
   );
-  assert.deepEqual(CLIENT_OPERATIONS_SCHEMA_MANIFEST.entries.at(-2), {
+  assert.equal(
+    hashDomainValue(CLIENT_OPERATIONS_SCHEMA_MANIFEST.entries.slice(0, -2)),
+    "8d8da4ab27a6de8db5e612b2d55945ffeb70fd61a7b43fb2b10c39d72cbaad6a",
+  );
+  assert.deepEqual(CLIENT_OPERATIONS_SCHEMA_MANIFEST.entries.at(-4), {
     id: "305_client_outlook_desktop_release_trust",
     checksum:
       "86921d4c43544858ae67a95c2c6cc8fb5deeef2731693285fcb4ffa22fd115c7",
   });
   assert.equal(
-    finalCatalogRow.id,
+    assignmentCatalogRow.id,
     "306_client_outlook_desktop_assignment",
   );
   assert.equal(
-    finalCatalogRow.file_name,
+    assignmentCatalogRow.file_name,
     "./007_outlook_desktop_assignment.sql",
   );
   assert.equal(
-    finalCatalogRow.source_migration_id,
+    assignmentCatalogRow.source_migration_id,
     "007_outlook_desktop_assignment",
   );
   assert.deepEqual(
@@ -120,20 +125,20 @@ test("combined migration 306 binds the exact Outlook assignment authority catalo
         migration.checksum ?? checksumPostgresMigration(migration.sql),
     })),
   );
-  assert.equal(finalCatalogRow.checksum, finalSchemaRow.checksum);
+  assert.equal(assignmentCatalogRow.checksum, assignmentSchemaRow.checksum);
   assert.equal(
-    finalCatalogRow.checksum,
+    assignmentCatalogRow.checksum,
     "737ffadf908861b2bda4ea88e650dcef62aaf48011b3d94f8f71fcd9f50f0f2d",
   );
-  assert.equal(Object.isFrozen(finalCatalogRow), true);
+  assert.equal(Object.isFrozen(assignmentCatalogRow), true);
   assert.equal(
     CLIENT_OPERATIONS_MIGRATION_CATALOG.migrations
-      .slice(0, -1)
+      .slice(0, -3)
       .some(({ outlook_assignment_authority: authority }) => authority),
     false,
   );
   assert.equal(
-    finalCatalogRow.outlook_assignment_authority,
+    assignmentCatalogRow.outlook_assignment_authority,
     CLIENT_OPERATIONS_OUTLOOK_ASSIGNMENT_AUTHORITY_BINDING,
   );
   assert.equal(
@@ -162,11 +167,11 @@ test("combined migration 306 binds the exact Outlook assignment authority catalo
     },
   });
   assert.equal(
-    JSON.stringify(finalCatalogRow).includes("authority_manifest_sha256"),
+    JSON.stringify(assignmentCatalogRow).includes("authority_manifest_sha256"),
     false,
   );
   assert.equal(
-    JSON.stringify(finalCatalogRow).includes(
+    JSON.stringify(assignmentCatalogRow).includes(
       "protected_object_facts_sha256",
     ),
     false,
@@ -186,7 +191,7 @@ test("combined migration 306 rejects dynamic authority facts and a read-only ass
     },
   ]) {
     const catalog = structuredClone(CLIENT_OPERATIONS_MIGRATION_CATALOG);
-    mutate(catalog.migrations.at(-1).outlook_assignment_authority);
+    mutate(catalog.migrations.at(-3).outlook_assignment_authority);
     assert.throws(
       () => normalizeClientOperationsMigrationCatalog(catalog),
       /Outlook assignment catalog binding is invalid/u,

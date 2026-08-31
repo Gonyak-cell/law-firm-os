@@ -12,6 +12,7 @@ import { createMatterRepository } from "../../../packages/matter/src/repository.
 import { createDocusignFailClosedRuntime } from "../src/docusign-runtime.js";
 import { createMatterRuntimeContext, handleMatterApiRequest } from "../src/matter-runtime-context.js";
 import { createApiServer } from "../src/server.js";
+import { createTrustedOutlookInstallationTestAuthority } from "./helpers/outlook-trusted-installation-runtime.js";
 
 const TENANT = "tenant_outlook_document";
 const MATTER = "matter_outlook_document";
@@ -21,6 +22,9 @@ const AT = "2026-08-10T02:00:00.000Z";
 const TOKEN = "Bearer outlook-document-session";
 const FOREIGN_DENY_TOKEN = "Bearer outlook-document-foreign-deny-session";
 const DENIED_TOKEN = "Bearer outlook-document-denied-session";
+const PRINCIPAL = Object.freeze({ tenant_id: TENANT, user_id: ACTOR, role_ids: Object.freeze(["tenant_owner"]) });
+const OUTLOOK_INSTALLATION_AUTHORITY =
+  createTrustedOutlookInstallationTestAuthority([PRINCIPAL]);
 
 function matterRecord(matterId) {
   return {
@@ -122,9 +126,8 @@ function createMatterRuntime({ templateCount = 1, failApprovalReplayReadOnce = f
 }
 
 function context({ denyForeign = false, denyAll = false } = {}) {
-  const principal = Object.freeze({ tenant_id: TENANT, user_id: ACTOR, role_ids: Object.freeze(["tenant_owner"]) });
   return Object.freeze({
-    principal,
+    principal: PRINCIPAL,
     rules: Object.freeze([
       ...(denyAll ? [{ id: "deny-all-matters", effect: "deny", action: "*" }] : []),
       ...(denyForeign ? [{ id: "deny-foreign-matter", effect: "deny", action: "*", ethical_wall_matter_id: FOREIGN_MATTER }] : []),
@@ -135,7 +138,7 @@ function context({ denyForeign = false, denyAll = false } = {}) {
 }
 
 function sessionAuth() {
-  return Object.freeze({
+  return OUTLOOK_INSTALLATION_AUTHORITY.wrapSessionAuth(Object.freeze({
     capabilities: Object.freeze({}),
     async resolvePermissionContextFromHeaders(headers) {
       const authorization = headers.authorization;
@@ -143,7 +146,7 @@ function sessionAuth() {
       const resolved = context({ denyForeign: authorization === FOREIGN_DENY_TOKEN, denyAll: authorization === DENIED_TOKEN });
       return Object.freeze({ ok: true, principal: resolved.principal, context: resolved, token_payload: Object.freeze({ surface: "outlook_addin" }) });
     },
-  });
+  }));
 }
 
 function esignItem(index) {
@@ -263,6 +266,7 @@ async function startFixture({
     ...(useServerDefaultDocusignRuntime ? {} : {
       docusignRuntime: providedDocusignRuntime ?? (esignUnavailable ? null : docusign.runtime),
     }),
+    outlookDesktopRuntime: OUTLOOK_INSTALLATION_AUTHORITY.runtime,
     sessionAuth: sessionAuth(),
   });
   await new Promise((resolve, reject) => {

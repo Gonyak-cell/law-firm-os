@@ -3,16 +3,25 @@ import {
   FORBIDDEN_BUILD_TEXT, LICENSE_METADATA_OVERRIDES, MANIFEST_PATHS, PRODUCT_IDS, PROFILE_CONTRACTS, PROFILE_NAMES,
   REQUIRED_COMMON_HOST_SCENARIOS, REQUIRED_HOSTS, REQUIRED_PREREQUISITES,
   REQUIRED_MUTATION_ACTIONS, REQUIRED_PROOF_CLASSES, REQUIRED_RELEASE_PATHS, REQUIRED_STATIC_PATHS, REQUIRED_TEST_PATHS,
-  STATIC_NAMESPACES, M365_DESKTOP_INSTALLATION_PROOF_CLASS, M365_DESKTOP_INSTALLATION_PROOF_SCHEMA,
+  STATIC_CUTOVER_MODE, STATIC_IMMUTABLE_SEGMENT, STATIC_NAMESPACES,
+  M365_DESKTOP_INSTALLATION_PROOF_CLASS, M365_DESKTOP_INSTALLATION_PROOF_SCHEMA,
 } from "./constants.mjs";
 import { validateProductionDistributionContract } from "./m365-distribution.mjs";
 import { assertEqual, canonical, sorted } from "./primitives.mjs";
 
 export function validateReleaseContract(contract) {
   if (contract?.schema_version !== 2) throw new Error("Outlook release gate schema_version must be 2");
-  if (contract.release_version !== "1.1.0.0" || contract.rollback_version !== "1.0.1.1") {
+  if (contract.release_version !== "1.3.0.1" || contract.rollback_version !== "1.0.1.1") {
     throw new Error("Outlook release and rollback versions drifted");
   }
+  assertEqual(contract.automatic_send_policy, {
+    active_launch_events: [],
+    active_event_runtime_required: false,
+    legacy_smart_alert_manifest_status: "retired_source_only",
+    legacy_eventful_rollback_activation_allowed: false,
+    forward_rollback_contract: "contracts/outlook-addin-forward-static-rollback.json",
+    forward_rollback_launch_event_count: 0,
+  }, "automatic Send policy");
   const profiles = contract.profiles ?? [];
   assertEqual(sorted(profiles.map(({ product_id }) => product_id)), sorted(PRODUCT_IDS), "release ProductIds");
   assertEqual(sorted(profiles.map(({ profile }) => profile)), sorted(PROFILE_NAMES), "release profiles");
@@ -21,6 +30,7 @@ export function validateReleaseContract(contract) {
     const expected = PROFILE_CONTRACTS[profile.product_id];
     if (!expected || profile.profile !== expected.profile
       || profile.mailbox_min_version !== expected.mailbox_min_version
+      || profile.release_version !== expected.release_version
       || profile.production_manifest !== expected.production_manifest
       || profile.taskpane_html !== expected.taskpane_html) {
       throw new Error(`release profile identity/path mapping drifted: ${profile.product_id}`);
@@ -50,6 +60,8 @@ export function validateReleaseContract(contract) {
   }
   if (JSON.stringify(canonical(contract.static_deploy?.namespaces)) !== JSON.stringify(canonical(STATIC_NAMESPACES))
     || JSON.stringify(contract.static_deploy?.protected_prefixes) !== JSON.stringify(["addin/manifests/"])
+    || contract.static_deploy?.immutable_segment !== STATIC_IMMUTABLE_SEGMENT
+    || contract.static_deploy?.cutover_mode !== STATIC_CUTOVER_MODE
     || contract.static_deploy?.delete !== false || contract.static_deploy?.default_mode !== "dry-run") {
     throw new Error("static deployment must default to additive /addin and /outlook-addin dry-run namespaces");
   }
@@ -71,7 +83,7 @@ export function validateReleaseContract(contract) {
   assertEqual(sorted(contract.m365?.required_mutation_actions ?? []), sorted(REQUIRED_MUTATION_ACTIONS), "M365 mutation actions");
   const distribution = validateProductionDistributionContract(contract.m365?.production_distribution);
   assertEqual(contract.m365?.required_profile_scenarios, {
-    "matter-full": ["read", "compose", "on-message-send"],
+    "matter-full": ["read", "compose"],
     "inquiry-only": ["read"],
   }, "M365 profile scenarios");
   const evidence = contract.m365?.protected_evidence;

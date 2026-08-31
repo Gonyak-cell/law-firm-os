@@ -1,7 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { InteractionRequiredAuthError } from "@azure/msal-browser";
 
 import { AUTH_STATE } from "../src/addin-auth.js";
+import { createOutlookAuthRuntime } from "../src/outlook-auth-runtime.js";
 import { createOutlookTaskPaneRuntime } from "../src/outlook-taskpane-runtime.js";
 
 function mailbox(item) {
@@ -102,7 +104,7 @@ test("non-override inquiry-list requestJson converges expired sessions to login 
     initialAuthState: AUTH_STATE.authenticated,
     createPca: async () => ({
       getActiveAccount: () => null,
-      acquireTokenSilent: async () => { throw new Error("silent interaction required"); },
+      acquireTokenSilent: async () => { throw new InteractionRequiredAuthError("interaction_required"); },
     }),
   });
   const states = [];
@@ -125,5 +127,118 @@ test("non-override inquiry-list requestJson converges expired sessions to login 
   assert.equal(runtime.getState().authError?.safe_error_code, "LAWOS_INTERACTION_REQUIRED");
   assert.ok(states.some(({ authState }) => authState === AUTH_STATE.loginRequired));
   assert.equal(fetchCalls.filter(({ url }) => url.endsWith("/api/outlook/inquiries?limit=50")).length, 1);
+  runtime.dispose();
+});
+
+test("a non-interaction NAA failure stays transient and never calls acquireTokenPopup", async () => {
+  const networkError = Object.assign(new Error("provider network detail"), { status: 503 });
+  let popupCount = 0;
+  const windowObject = {
+    location: { origin: "https://lawos.example" },
+    nestedAppAuthBridge: {},
+    sessionStorage: {
+      getItem: () => null,
+      setItem() {},
+      removeItem() {},
+    },
+  };
+  const auth = createOutlookAuthRuntime({
+    windowObject,
+    Office: {
+      context: { requirements: { isSetSupported: () => true } },
+    },
+    fetchImpl: async () => new Response(JSON.stringify({
+      client_id: "22222222-2222-4222-8222-222222222222",
+      tenant_id: "11111111-1111-4111-8111-111111111111",
+      api_scope: "api://22222222-2222-4222-8222-222222222222/access_as_user",
+      callback_uri: "https://lawos.example/api/outlook/connection/callback",
+    }), { status: 200, headers: { "content-type": "application/json" } }),
+    createPca: async () => ({
+      getActiveAccount: () => null,
+      acquireTokenSilent: async () => { throw networkError; },
+      acquireTokenPopup: async () => { popupCount += 1; return null; },
+    }),
+  });
+
+  await assert.rejects(
+    auth.acquireLawosSession({ interactive: false, force: true }),
+    (error) => error === networkError,
+  );
+  assert.equal(popupCount, 0);
+});
+
+test("one business-action 401 retries one HTTP request with the exact idempotency key and never reruns the action", async () => {
+  let storedToken = "lawos_session_v1.initial-action";
+  let recoveryCount = 0;
+  let requestCount = 0;
+  let actionCount = 0;
+  const requests = [];
+  const idempotencyKey = "outlook-inquiry:todo18-one-recovery";
+  const office = mailbox(item("office-one-recovery", "one recovery"));
+  const runtime = createOutlookTaskPaneRuntime({
+    Office: office,
+    windowObject: {
+      sessionStorage: {
+        getItem: () => storedToken,
+        setItem: (_key, value) => { storedToken = value; },
+        removeItem: () => { storedToken = ""; },
+      },
+    },
+    authenticateOnStart: false,
+    initialAuthState: AUTH_STATE.authenticated,
+    resolveRestId: ({ Office }) => ({ rest_message_id: Office.context.mailbox.item.itemId }),
+    readBody: async () => "one recovery",
+    readClassification: async () => ({}),
+    acquireLawosSession: async () => {
+      recoveryCount += 1;
+      return {
+        authenticated: true,
+        session_token: `lawos_session_v1.recovered-${recoveryCount}`,
+      };
+    },
+    actionHandler: async ({ requestJson }) => {
+      actionCount += 1;
+      return requestJson("/api/outlook/inquiries", {
+        method: "POST",
+        body: { idempotency_key: idempotencyKey },
+      });
+    },
+    requestJson: async (path, options) => {
+      requestCount += 1;
+      requests.push({
+        path,
+        method: options.method,
+        body: { ...options.body },
+        retryAfterUnauthorized: options.retryAfterUnauthorized,
+      });
+      throw Object.assign(new Error("AUTH_SESSION_INVALID"), {
+        status: 401,
+        safe_error_code: "AUTH_SESSION_INVALID",
+      });
+    },
+  });
+
+  await runtime.refreshItem();
+  assert.equal(await runtime.runAction("new"), null);
+  assert.deepEqual({ recoveryCount, requestCount, actionCount }, {
+    recoveryCount: 1,
+    requestCount: 2,
+    actionCount: 1,
+  });
+  assert.deepEqual(requests, [
+    {
+      path: "/api/outlook/inquiries",
+      method: "POST",
+      body: { idempotency_key: idempotencyKey },
+      retryAfterUnauthorized: undefined,
+    },
+    {
+      path: "/api/outlook/inquiries",
+      method: "POST",
+      body: { idempotency_key: idempotencyKey },
+      retryAfterUnauthorized: false,
+    },
+  ]);
+  assert.equal(runtime.getState().authState, AUTH_STATE.loginRequired);
   runtime.dispose();
 });

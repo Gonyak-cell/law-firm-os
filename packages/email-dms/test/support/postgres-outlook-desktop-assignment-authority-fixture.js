@@ -102,7 +102,13 @@ export async function createOutlookAssignmentAuthorityFixture(t, {
       createHash("sha256").update(releaseTicketSignature).digest("hex"),
   });
   const migrations = listEmailDmsPostgresMigrations();
-  for (const migration of migrations.slice(0, -1)) {
+  const assignmentIndex = migrations.findIndex(
+    ({ id }) => id === "007_outlook_desktop_assignment",
+  );
+  if (assignmentIndex < 0) {
+    throw new TypeError("007 Outlook assignment migration is required");
+  }
+  for (const migration of migrations.slice(0, assignmentIndex)) {
     await runEmailDmsMigrationAsAdmin(migrationAdminPool, migration.sql);
   }
   await withPostgresTransaction(
@@ -130,13 +136,20 @@ export async function createOutlookAssignmentAuthorityFixture(t, {
         roleBootstrap.lawos_app_membership_present,
     },
   );
-  await runEmailDmsMigrationAsAdmin(migrationAdminPool, migrations.at(-1).sql, {
+  await runEmailDmsMigrationAsAdmin(
+    migrationAdminPool,
+    migrations[assignmentIndex].sql,
+    {
     expectedRoleBootstrapSha256: expectedAuthority.role_bootstrap_sha256,
     expectedAuthorityManifestSha256: TEST_OUTLOOK_AUTHORITY_MANIFEST_SHA256,
     expectedDatabaseTargetReceiptSha256:
       TEST_OUTLOOK_DATABASE_TARGET_RECEIPT_SHA256,
     expectedMigrationCatalogSha256: TEST_OUTLOOK_MIGRATION_CATALOG_SHA256,
-  });
+    },
+  );
+  for (const migration of migrations.slice(assignmentIndex + 1)) {
+    await runEmailDmsMigrationAsAdmin(migrationAdminPool, migration.sql);
+  }
   await migrationAdminPool.end();
   ownedPools.splice(ownedPools.indexOf(migrationAdminPool), 1);
   const [appPool, controlPool, workerPool, verifierPool] = await Promise.all([

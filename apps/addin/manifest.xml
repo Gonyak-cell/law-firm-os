@@ -5,7 +5,7 @@
   xmlns:mailappor="http://schemas.microsoft.com/office/mailappversionoverrides/1.0"
   xsi:type="MailApp">
   <Id>8f3cc90d-56dd-4c1c-b9c2-0a1100500101</Id>
-  <Version>1.1.0.0</Version>
+  <Version>1.3.0.1</Version>
   <ProviderName>AMIC OS</ProviderName>
   <DefaultLocale>ko-KR</DefaultLocale>
   <DisplayName DefaultValue="AMIC OS" />
@@ -122,11 +122,6 @@
       </Requirements>
       <Hosts>
         <Host xsi:type="MailHost">
-          <Runtimes>
-            <Runtime resid="WebViewRuntime.Url" lifetime="short">
-              <Override type="javascript" resid="JSRuntime.Url" />
-            </Runtime>
-          </Runtimes>
           <DesktopFormFactor>
             <FunctionFile resid="Commands.Url" />
             <ExtensionPoint xsi:type="MessageReadCommandSurface">
@@ -146,6 +141,7 @@
                     </Icon>
                     <Action xsi:type="ShowTaskpane">
                       <SourceLocation resid="Taskpane.Url" />
+                      <SupportsPinning>true</SupportsPinning>
                     </Action>
                   </Control>
                 </Group>
@@ -168,16 +164,11 @@
                     </Icon>
                     <Action xsi:type="ShowTaskpane">
                       <SourceLocation resid="Taskpane.Url" />
+                      <SupportsPinning>true</SupportsPinning>
                     </Action>
                   </Control>
                 </Group>
               </OfficeTab>
-            </ExtensionPoint>
-            <ExtensionPoint xsi:type="LaunchEvent">
-              <LaunchEvents>
-                <LaunchEvent Type="OnMessageSend" FunctionName="onMessageSendHandler" SendMode="PromptUser" />
-              </LaunchEvents>
-              <SourceLocation resid="WebViewRuntime.Url" />
             </ExtensionPoint>
           </DesktopFormFactor>
         </Host>
@@ -191,8 +182,6 @@
         <bt:Urls>
           <bt:Url id="Taskpane.Url" DefaultValue="https://localhost:5186/index.html" />
           <bt:Url id="Commands.Url" DefaultValue="https://localhost:5186/index.html?commands=1" />
-          <bt:Url id="WebViewRuntime.Url" DefaultValue="https://localhost:5186/event-runtime.html" />
-          <bt:Url id="JSRuntime.Url" DefaultValue="https://localhost:5186/event-runtime.js" />
         </bt:Urls>
         <bt:ShortStrings>
           <bt:String id="Group.Label" DefaultValue="AMIC OS" />

@@ -6,6 +6,7 @@ import { createServer } from "node:http";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { _electron as electron } from "playwright";
+import { desktopReleaseChannelConfig } from "./lib/matter-desktop-provenance.mjs";
 
 const repoRoot = path.resolve(import.meta.dirname, "..");
 const platform = process.platform;
@@ -13,7 +14,7 @@ const artifactDir = path.resolve(process.env.MATTER_DASHBOARD_PACKAGE_QA_ARTIFAC
 const userDataPath = mkdtempSync(path.join(tmpdir(), `matter-dashboard-package-${platform}-`));
 const executableCandidates = platform === "win32"
   ? ["matter.exe", "electron.exe"].map((name) => path.join(repoRoot, "apps/desktop/dist/win-unpacked", name))
-  : [path.join(repoRoot, "apps/desktop/dist/mac/matter.app/Contents/MacOS/matter")];
+  : [path.join(repoRoot, "apps/desktop/dist/mac", desktopReleaseChannelConfig("internal").macAppBundleName, "Contents/MacOS/matter")];
 const executablePath = path.resolve(process.env.MATTER_DESKTOP_PACKAGED_EXECUTABLE ?? executableCandidates.find(existsSync) ?? executableCandidates[0]);
 
 assert.equal(existsSync(executablePath), true, `packaged executable is required: ${executablePath}`);
@@ -479,6 +480,7 @@ const expected = {
   people: []
 };
 const surfaces = {};
+let documentTitle = "";
 
 try {
   await app.firstWindow({ timeout: 30_000 });
@@ -492,6 +494,8 @@ try {
   assert(page, "packaged main window did not become ready");
   await page.setViewportSize({ width: 1280, height: 820 });
   await page.emulateMedia({ reducedMotion: "reduce" });
+  documentTitle = await page.title();
+  assert.equal(documentTitle, "AMIC OS", "packaged desktop document title must match the user-visible product");
   const desktopSession = await page.evaluate(async ({ email, password }) => {
     const current = await window.matterSession?.status?.();
     if (current?.state === "signed_in") return { ok: true, state: current.state };
@@ -820,6 +824,7 @@ const receipt = {
   platform,
   executable: path.relative(repoRoot, executablePath),
   executable_sha256: createHash("sha256").update(readFileSync(executablePath)).digest("hex"),
+  document_title: documentTitle,
   renderer_handoff: "packaged_login_to_product_url",
   fixture_only: true,
   real_client_data_used: false,

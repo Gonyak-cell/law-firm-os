@@ -1089,11 +1089,12 @@ test("grouped sidebars render children in collapsible sidebar accordions", async
 
     await page.goto(`http://127.0.0.1:${port}/?view=vault&ctx=allow#vault-search-home`, { waitUntil: "networkidle" });
     const searchSidebar = page.locator('[data-context-sidebar="vault"] .sidebar-nav');
-    const searchGroupToggle = searchSidebar.locator('[data-sidebar-group="vault-search-home"] .sidebar-group-toggle');
+    const searchGroupToggle = searchSidebar.locator('[data-sidebar-group="vault-documents"] .sidebar-group-toggle');
     if (await searchGroupToggle.getAttribute("aria-expanded") !== "true") await searchGroupToggle.click();
     assert.equal(await searchSidebar.getByText("문서/OCR", { exact: true }).count(), 0);
     assert.equal(await searchSidebar.getByText("대시보드", { exact: true }).count(), 1);
-    assert.equal(await searchSidebar.getByText("전체 검색", { exact: true }).count(), 1);
+    assert.equal(await searchSidebar.getByText("전체 검색", { exact: true }).count(), 0);
+    assert.equal(await searchSidebar.getByText("문서 관리", { exact: true }).count(), 1);
 
     for (const view of ["settings", "data-import"]) {
       await page.goto(`http://127.0.0.1:${port}/?view=${view}&ctx=allow`, { waitUntil: "networkidle" });

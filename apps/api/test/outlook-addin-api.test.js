@@ -5,8 +5,8 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 import {
+  createApiServer,
   createDefaultDmsRuntime,
-  startApiServer,
 } from "../src/server.js";
 import { createDmsRepository, createFileStorageAdapter } from "../../../packages/dms/src/index.js";
 import {
@@ -29,6 +29,7 @@ import {
   MATTER_VAULT_USER_REGISTRATION_SEED,
   findRegisteredAccountByEmail,
 } from "../src/matter-vault-account-registry.js";
+import { createTrustedOutlookInstallationTestAuthority } from "./helpers/outlook-trusted-installation-runtime.js";
 
 const TENANT = "tenant_outlook_addin_test";
 const MATTER = "matter_outlook_addin_test";
@@ -42,6 +43,31 @@ const ATTACHMENT_RECOVERY_BYTES = Buffer.from("attachment domain recovery bytes"
 const MAX_ATTACHMENT_BYTES = 2 * 1024 * 1024;
 const MIME_BOUNDARY = "lawos-outlook-attachment-boundary";
 const SPLIT_ENCODED_ATTACHMENT_NAME = "=?UTF-8?B?Y2xpZW50LQ==?= =?UTF-8?B?Y29udHJhY3QuZG9jeA==?=";
+
+async function startTrustedOutlookApiServer(options, {
+  sessionAuth,
+  principals,
+}) {
+  const installationAuthority =
+    createTrustedOutlookInstallationTestAuthority(principals);
+  const resolvedSessionAuth =
+    installationAuthority.wrapSessionAuth(sessionAuth);
+  const server = createApiServer({
+    ...options,
+    outlookDesktopRuntime: installationAuthority.runtime,
+    sessionAuth: resolvedSessionAuth,
+  });
+  await new Promise((resolve, reject) => {
+    server.once("error", reject);
+    server.listen(0, "127.0.0.1", resolve);
+  });
+  return Object.freeze({
+    server,
+    host: "127.0.0.1",
+    port: server.address().port,
+    sessionAuth: resolvedSessionAuth,
+  });
+}
 
 function messageMime({
   attachmentBytes = ATTACHMENT_BYTES,
@@ -843,13 +869,18 @@ async function startPhasedUploadSagaServer({
       },
     },
   };
-  const started = await startApiServer({
-    port: 0,
+  const started = await startTrustedOutlookApiServer({
     matterRuntime,
     dmsRuntime,
     emailDmsRuntime: { repository: emailDmsRepository },
     m365GraphConfig,
+  }, {
     sessionAuth: outlookSessionAuth(),
+    principals: [{
+      tenant_id: TENANT,
+      user_id: ACTOR,
+      entra_subject_id: ENTRA_SUBJECT,
+    }],
   });
   return Object.freeze({
     ...started,
@@ -1176,11 +1207,14 @@ test("Outlook editable task routes use signed scopes and resource-scoped ACLs", 
     clock: () => "2026-08-08T00:00:00.000Z",
   });
   const sessions = await scopeDerivedOutlookSessions();
-  const started = await startApiServer({
-    port: 0,
+  const started = await startTrustedOutlookApiServer({
     matterRuntime,
     dmsRuntime,
+  }, {
     sessionAuth: sessions.sessionAuth,
+    principals: [sessions.writer, sessions.reader, sessions.aclUser].map(
+      ({ user_id }) => ({ tenant_id: TENANT, user_id }),
+    ),
   });
   const baseUrl = `http://${started.host}:${started.port}`;
   const request = (token, path, method, body) => fetch(`${baseUrl}${path}`, {
@@ -1674,14 +1708,19 @@ test("Outlook add-in routes file email, save attachments, create follow-up, and 
       return baseAttachmentReceiptAuthority.issue(input);
     },
   };
-  const started = await startApiServer({
-    port: 0,
+  const started = await startTrustedOutlookApiServer({
     matterRuntime,
     dmsRuntime,
     emailDmsRuntime: { repository: emailDmsRepository },
     m365GraphConfig,
-    sessionAuth: outlookSessionAuth(),
     outlookAttachmentReceiptAuthority: attachmentReceiptAuthority,
+  }, {
+    sessionAuth: outlookSessionAuth(),
+    principals: [{
+      tenant_id: TENANT,
+      user_id: ACTOR,
+      entra_subject_id: ENTRA_SUBJECT,
+    }],
   });
   const baseUrl = `http://${started.host}:${started.port}`;
   try {

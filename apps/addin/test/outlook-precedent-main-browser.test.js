@@ -5,6 +5,7 @@ import test from "node:test";
 import { chromium } from "playwright";
 
 import { startOutlookAddinStaticServer } from "../../../scripts/lib/outlook-addin-static-server.mjs";
+import { readyOutlookReadinessResponse } from "./helpers/outlook-readiness-fixture.js";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../..");
 const DIST = path.join(ROOT, "apps/addin/dist");
@@ -37,8 +38,9 @@ async function openFixture(browser, web, state) {
     state.requests.push({ method: request.method(), path: url.pathname, query: url.search, body });
     const fulfill = (payload, status = 200) => route.fulfill(json(payload, status));
     if (url.pathname === "/api/auth/office-sso/config") return fulfill({ item: { configured: true, client_id: "browser-client", tenant_id: "organizations", api_scope: "api://browser-client/access_as_user", scopes: ["api://browser-client/access_as_user"], callback_uri: `${url.origin}/addin/oauth-callback.html`, authority: "https://login.microsoftonline.com/organizations" } });
-    if (url.pathname === "/api/auth/session") return state.authLoss ? fulfill({ safe_error_code: "AUTH_SESSION_INVALID" }, 401) : fulfill({ authenticated: true, principal: { user_id: "outm31-user", tenant_id: "outm31-tenant" } });
-    if (url.pathname === "/api/outlook/connection") return fulfill({ item: { status: state.connection, active: state.connection === "connected", ...(["connected", "expired", "scope_insufficient", "reauthorization_required", "revoked"].includes(state.connection) ? { connection_id: "m365_connection_precedent_qa" } : {}), state_version: state.connection === "not_connected" ? 0 : 1, mailbox_address: "qa@example.invalid" } });
+    if (url.pathname === "/api/auth/session") return state.authLoss ? fulfill({ safe_error_code: "AUTH_SESSION_INVALID" }, 401) : fulfill({ authenticated: true, session: { user_id: "outm31-user", tenant_id: "outm31-tenant", outlook_desktop_principal_ref: `odpr_${"A".repeat(43)}` } });
+    if (url.pathname === "/api/outlook/connection") return fulfill({ item: { status: state.connection, active: state.connection === "connected", ...(["connected", "expired", "scope_insufficient", "reauthorization_required", "revoked"].includes(state.connection) ? { connection_id: "m365_connection_precedent_qa" } : {}), state_version: state.connection === "not_connected" ? 0 : 7, mailbox_address: "qa@example.invalid" } });
+    if (url.pathname === "/api/outlook/readiness") return fulfill(readyOutlookReadinessResponse());
     if (url.pathname === "/api/outlook/bootstrap") return fulfill({ item: { ready: true } });
     if (url.pathname === "/api/outlook/operation-receipts/readback") return fulfill({ items: [] });
     if (url.pathname === "/api/outlook/messages/identity") return fulfill({ item: { canonical_graph_message_id: `canonical-${body.rest_message_id ?? "A"}`, rest_message_id: body.rest_message_id, internet_message_id: body.internet_message_id, conversation_id: body.conversation_id } });

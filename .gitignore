@@ -1,6 +1,8 @@
 node_modules/
 apps/*/dist/
 apps/desktop/src/renderer/web/
+apps/outlook-classic-native/bin/
+apps/outlook-classic-native/obj/
 *.log
 .env
 .env.*

@@ -358,14 +358,14 @@ export const OUTLOOK_FEATURE_CATALOG = deepFreeze([
     implementationState: "active",
   },
   {
-    id: "smart-alert.on-message-send",
-    label: "보내기 전 알림",
+    id: "send-review.explicit",
+    label: "보내기 전 확인",
     profile: "matter-full",
-    availability: { read: false, compose: true, event: ["OnMessageSend"] },
+    availability: { read: false, compose: true, event: [] },
     requiredItemFields: ["recipients", "subject", "bodyPreview"],
     matterPrerequisite: false,
     connectionPrerequisite: true,
-    opener: "event",
+    opener: "all-functions row",
     endpoint: "/api/outlook/smart-alerts/evaluate",
     domainService: "outlook-smart-alert",
     operationReceipt: receipt(
@@ -376,13 +376,13 @@ export const OUTLOOK_FEATURE_CATALOG = deepFreeze([
       "send_decision_failed_open",
     ),
     duplicateSemantics: "Reuse the same evaluation for an unchanged compose item context.",
-    partialResultSemantics: "Prompt only for a verified alert; never file or enable auto-save from this event.",
+    partialResultSemantics: "Show a warning only after the user explicitly requests evaluation; never file or enable auto-save from this action.",
     staleItemResponse: STALE_ITEM_RESPONSE,
     offlineReconnectResponse: {
       offline: "오프라인 평가 실패만 기록하고 메일 저장이나 대화 자동 저장은 시작하지 않습니다.",
       reconnect: "연결 재확인이 필요하면 평가 실패만 기록하고 메일 저장이나 대화 자동 저장은 시작하지 않습니다.",
     },
-    focusTarget: "outlook-send-event",
+    focusTarget: "smart-alert-button",
     mutation: false,
     implementationState: "active",
   },
@@ -403,10 +403,7 @@ function matchesItemConstraints(item, constraints) {
 }
 
 function matchesSurface(feature, { form, surface, event }) {
-  if (surface === "event") {
-    return form === "compose" && feature.availability.event.includes(event);
-  }
-  return feature.opener !== "event" && feature.availability[form] === true;
+  return surface === "taskpane" && event == null && feature.availability[form] === true;
 }
 
 export function isOutlookFeatureRuntimeAvailable(feature, runtimeReadiness = {}) {
@@ -434,9 +431,8 @@ export function evaluateOutlookFeatureCatalog(context = {}) {
     !PROFILE_KEYS.has(profile)
     || host !== "Mailbox"
     || !["read", "compose"].includes(form)
-    || !["taskpane", "event"].includes(surface)
-    || (surface === "event" && event !== "OnMessageSend")
-    || (surface === "taskpane" && event != null)
+    || surface !== "taskpane"
+    || event != null
   ) return EMPTY_RESULT;
 
   const currentItem = Boolean(
@@ -450,7 +446,7 @@ export function evaluateOutlookFeatureCatalog(context = {}) {
       const itemReady = currentItem
         && hasRequiredItemFields(item, feature.requiredItemFields)
         && matchesItemConstraints(item, feature.itemConstraints);
-      const visible = feature.opener !== "event" && itemReady && implementationReady;
+      const visible = itemReady && implementationReady;
       const matterReady = !feature.matterPrerequisite
         || (typeof matterId === "string" && matterId.trim() === matterId && matterId.length > 0);
       const connectionReady = !feature.connectionPrerequisite || connected;

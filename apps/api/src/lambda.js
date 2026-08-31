@@ -76,11 +76,26 @@ import {
   handleOutlookConversationMaintenanceEvent,
   LAWOS_OUTLOOK_CONVERSATION_WORKER_ACTION,
 } from "./outlook-conversation-maintenance-invocation.js";
+import {
+  OUTLOOK_VAULT_ATTACHMENT_DELIVERY_PREFIX,
+} from "./outlook-vault-attachment-delivery-runtime.js";
+import {
+  LAWOS_AMIC_VAULT_UPLOAD_PROVIDER_TOKEN_ENV,
+  resolveAmicVaultHttpUploadProvider,
+} from "./amic-vault-http-upload-provider.js";
+import {
+  LAWOS_AMIC_VAULT_EXPORT_PROVIDER_TOKEN_ENV,
+  resolveAmicVaultHttpExportProvider,
+} from "./amic-vault-http-export-provider.js";
+import { resolveRuntimeProfile } from "./runtime-profile.js";
 
 export { LAWOS_OUTLOOK_CONVERSATION_WORKER_ACTION };
 
 let sessionSecretPromise;
 let hrxStepUpRootSecretPromise;
+
+export const LAWOS_AMIC_VAULT_PROVIDER_TOKEN_SECRET_ID_ENV =
+  "LAWOS_AMIC_VAULT_PROVIDER_TOKEN_SECRET_ID";
 
 export const CTI_READONLY_EFS_SNAPSHOT_ACTION = "cti_cutover_readonly_efs_snapshot";
 export const CTI_READONLY_EFS_SNAPSHOT_APPROVAL_REF =
@@ -912,6 +927,42 @@ export async function resolveLambdaHrxStepUpSecrets({
   return Object.freeze({
     hrxStepUpSecret: derive("token-signing"),
     hrxStepUpTotpSecret: derive("totp"),
+  });
+}
+
+export async function resolveLambdaAmicVaultProviders({
+  env = process.env,
+  client,
+  fetchFn = globalThis.fetch,
+} = {}) {
+  const secretId = String(
+    env[LAWOS_AMIC_VAULT_PROVIDER_TOKEN_SECRET_ID_ENV] ?? "",
+  ).trim();
+  if (!secretId) return Object.freeze({});
+  const token = await fetchSessionSecretFromSecretsManager({
+    secretId,
+    env,
+    client,
+  });
+  const providerEnv = Object.freeze({
+    ...env,
+    [LAWOS_AMIC_VAULT_UPLOAD_PROVIDER_TOKEN_ENV]: token,
+    [LAWOS_AMIC_VAULT_EXPORT_PROVIDER_TOKEN_ENV]: token,
+  });
+  const runtimeProfile = resolveRuntimeProfile(providerEnv);
+  const vaultUploadProvider = resolveAmicVaultHttpUploadProvider({
+    env: providerEnv,
+    runtimeProfile,
+    fetchFn,
+  });
+  const vaultExportProvider = resolveAmicVaultHttpExportProvider({
+    env: providerEnv,
+    runtimeProfile,
+    fetchFn,
+  });
+  return Object.freeze({
+    ...(vaultUploadProvider ? { vaultUploadProvider } : {}),
+    ...(vaultExportProvider ? { vaultExportProvider } : {}),
   });
 }
 
@@ -4508,6 +4559,7 @@ export function createLambdaApiRuntimeCache({
   resolveHrxStepUpSecretsFn = resolveLambdaHrxStepUpSecrets,
   loadHrxRelationalProjectionFn = loadHrxRelationalProjectionRuntimeInput,
   resolveSessionSecretFn = resolveLambdaSessionSecret,
+  resolveAmicVaultProvidersFn = resolveLambdaAmicVaultProviders,
   createPasswordResetEmailDeliveryFn = createLambdaPasswordResetEmailDelivery,
   resolvePeopleOutlookRuntimeFactoryFn =
     resolveLambdaPeopleOutlookRuntimeFactory,
@@ -4532,6 +4584,7 @@ export function createLambdaApiRuntimeCache({
         env,
         microsoft_egress_transport: microsoftEgressTransport,
       });
+    const amicVaultProviders = await resolveAmicVaultProvidersFn({ env });
     const directOutlookDesktopRoster =
       env[LAWOS_OUTLOOK_DESKTOP_AUTOCONNECT_ROSTER_ENV];
     const explicitOutlookDesktopRoster =
@@ -4563,6 +4616,7 @@ export function createLambdaApiRuntimeCache({
       leaveProviderVerifier,
       leaveIntegrationProviders,
       leaveIntegrationProviderEnabled,
+      ...amicVaultProviders,
     };
     Object.defineProperty(startupOptions, "outlookDesktopAutoconnectRoster", {
       value: explicitOutlookDesktopRoster,
@@ -4597,6 +4651,12 @@ async function resetCachedApiServer() {
 const OUTLOOK_FAILURE_ROUTES = new Map([
   ["/api/outlook/attachments/save", ["attachment_save", "/api/outlook/attachments/save"]],
   ["/api/outlook/email/file", ["email_file", "/api/outlook/email/file"]],
+  ["/api/outlook/vault/attachments/save", ["vault_attachment_save", "/api/outlook/vault/attachments/save"]],
+  ["/api/outlook/vault/source/status", ["vault_source_status", "/api/outlook/vault/source/status"]],
+  ["/api/outlook/vault/attachments/authorize", ["vault_attachment_authorize", "/api/outlook/vault/attachments/authorize"]],
+  ["/api/outlook/vault/attachments/complete", ["vault_attachment_complete", "/api/outlook/vault/attachments/complete"]],
+  ["/api/outlook/vault/email/save", ["vault_email_save", "/api/outlook/vault/email/save"]],
+  ["/api/outlook/vault/sent/save", ["vault_sent_save", "/api/outlook/vault/sent/save"]],
   ["/api/outlook/messages/identity", ["message_identity", "/api/outlook/messages/identity"]],
   ["/api/outlook/operation-receipts/readback", ["operation_receipt_readback", "/api/outlook/operation-receipts/readback"]],
   ["/api/outlook/sent/file", ["sent_file", "/api/outlook/sent/file"]],
@@ -4606,6 +4666,24 @@ function safeOutlookFailureRoute(path) {
   const normalizedPath = String(path ?? "").replace(/\/+$/u, "") || "/";
   const exact = OUTLOOK_FAILURE_ROUTES.get(normalizedPath);
   if (exact) return { operation: exact[0], path: exact[1] };
+  if (normalizedPath === "/api/desktop/installations") {
+    return {
+      operation: "desktop_installation_register",
+      path: "/api/desktop/installations",
+    };
+  }
+  const desktopLifecycle = normalizedPath.match(
+    /^\/api\/desktop\/installations\/[^/]+(?:\/(heartbeat|retire))?$/u,
+  );
+  if (desktopLifecycle) {
+    const action = desktopLifecycle[1] ?? "read";
+    return {
+      operation: `desktop_installation_${action}`,
+      path: action === "read"
+        ? "/api/desktop/installations/:id"
+        : `/api/desktop/installations/:id/${action}`,
+    };
+  }
   const matterRead = normalizedPath.match(
     /^\/api\/outlook\/matters\/[^/]+\/(documents|timeline)$/u,
   );
@@ -4671,9 +4749,15 @@ export function createLambdaHttpHandler({
       body: requestBody(event, method),
       redirect: "manual",
     });
-    const body = await response.text();
-    const headers = Object.fromEntries(response.headers.entries());
     const path = event.rawPath || event.path || "/";
+    const binaryVaultDelivery = method === "GET"
+      && path.startsWith(OUTLOOK_VAULT_ATTACHMENT_DELIVERY_PREFIX)
+      && response.status >= 200
+      && response.status < 300;
+    const body = binaryVaultDelivery
+      ? Buffer.from(await response.arrayBuffer()).toString("base64")
+      : await response.text();
+    const headers = Object.fromEntries(response.headers.entries());
     const failureRoute = safeOutlookFailureRoute(path);
     if (response.status >= 400 && failureRoute) {
       let payload = {};
@@ -4701,7 +4785,7 @@ export function createLambdaHttpHandler({
       statusCode: response.status,
       headers,
       body,
-      isBase64Encoded: false,
+      isBase64Encoded: binaryVaultDelivery,
     };
   };
 }

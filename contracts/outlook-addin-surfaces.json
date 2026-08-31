@@ -1,11 +1,12 @@
 {
   "schema_version": 3,
   "deployed_baseline_version": "1.0.1.1",
-  "release_candidate_version": "1.1.0.0",
+  "release_candidate_version": "1.3.0.1",
   "profiles": [
     {
       "profile": "matter-full",
       "product_id": "8f3cc90d-56dd-4c1c-b9c2-0a1100500101",
+      "candidate_version": "1.3.0.1",
       "manifests": {
         "local": "apps/addin/manifest.xml",
         "production": "apps/addin/manifest.production.xml"
@@ -34,6 +35,7 @@
         "requested_heights",
         "disable_entity_highlighting",
         "action_types",
+        "supports_pinning",
         "office_tab_ids",
         "group_ids",
         "control_fingerprints",
@@ -50,16 +52,19 @@
         "rule_fingerprints": ["Message:Edit", "Message:Read"],
         "rule_collection_modes": ["Or"],
         "extension_points": [
-          "LaunchEvent",
           "MessageComposeCommandSurface",
           "MessageComposeCommandSurface",
           "MessageReadCommandSurface",
           "MessageReadCommandSurface"
         ],
-        "launch_events": ["OnMessageSend:onMessageSendHandler:PromptUser"],
+        "launch_events": [],
         "requested_heights": ["450"],
         "disable_entity_highlighting": "false",
         "action_types": ["ShowTaskpane", "ShowTaskpane", "ShowTaskpane", "ShowTaskpane"],
+        "supports_pinning": [
+          "VersionOverridesV1_1:MessageComposeCommandSurface:ShowTaskpane:true",
+          "VersionOverridesV1_1:MessageReadCommandSurface:ShowTaskpane:true"
+        ],
         "office_tab_ids": ["TabDefault", "TabDefault", "TabDefault", "TabDefault"],
         "group_ids": ["msgComposeGroup", "msgComposeGroup", "msgReadGroup", "msgReadGroup"],
         "control_fingerprints": [
@@ -87,7 +92,6 @@
           "Icon.80x80",
           "Icon.80x80",
           "Icon.80x80",
-          "JSRuntime.Url",
           "Taskpane.Url",
           "Taskpane.Url",
           "Taskpane.Url",
@@ -103,9 +107,7 @@
           "TaskpaneButton.Tooltip",
           "TaskpaneButton.Tooltip",
           "TaskpaneButton.Tooltip",
-          "TaskpaneButton.Tooltip",
-          "WebViewRuntime.Url",
-          "WebViewRuntime.Url"
+          "TaskpaneButton.Tooltip"
         ],
         "string_resources": [
           "Group.Label=AMIC OS",
@@ -118,14 +120,12 @@
       },
       "environment_fingerprints": {
         "local": {
-          "semantic_manifest_sha256": "03a9ba5f92fda3a03b08705ba3d8e01e431d03324591680efb809fa1972da522",
+          "semantic_manifest_sha256": "b8d6bec530cdb560b5b46fdb8eb9e7bda77d0085b06c71c2657fcab37b9d81c4",
           "url_resources": [
             "Commands.Url=https://localhost:5186/index.html?commands=1",
             "Commands.Url=https://localhost:5186/index.html?commands=1",
-            "JSRuntime.Url=https://localhost:5186/event-runtime.js",
             "Taskpane.Url=https://localhost:5186/index.html",
-            "Taskpane.Url=https://localhost:5186/index.html",
-            "WebViewRuntime.Url=https://localhost:5186/event-runtime.html"
+            "Taskpane.Url=https://localhost:5186/index.html"
           ],
           "image_resources": [
             "Icon.16x16=https://localhost:5186/amic-law-icon.png",
@@ -142,14 +142,12 @@
           "app_domains": ["http://127.0.0.1:5186", "https://localhost:5186"]
         },
         "production": {
-          "semantic_manifest_sha256": "5e5ef0fad03c89db802cfb2c4af47916526528dea3896850d79ea7f886b674b0",
+          "semantic_manifest_sha256": "850786886c41350c5ca8a96f71991b41418baf50a601ec1955cd9543692a5a42",
           "url_resources": [
             "Commands.Url=https://d2mthcc8vp3cr2.cloudfront.net/addin/index.html?commands=1",
             "Commands.Url=https://d2mthcc8vp3cr2.cloudfront.net/addin/index.html?commands=1",
-            "JSRuntime.Url=https://d2mthcc8vp3cr2.cloudfront.net/addin/event-runtime.js",
             "Taskpane.Url=https://d2mthcc8vp3cr2.cloudfront.net/addin/index.html",
-            "Taskpane.Url=https://d2mthcc8vp3cr2.cloudfront.net/addin/index.html",
-            "WebViewRuntime.Url=https://d2mthcc8vp3cr2.cloudfront.net/addin/event-runtime.html"
+            "Taskpane.Url=https://d2mthcc8vp3cr2.cloudfront.net/addin/index.html"
           ],
           "image_resources": [
             "Icon.16x16=https://d2mthcc8vp3cr2.cloudfront.net/addin/amic-law-icon.png",
@@ -170,6 +168,7 @@
     {
       "profile": "inquiry-only",
       "product_id": "952431be-51b8-42a2-9bf6-769a15934e85",
+      "candidate_version": "1.1.0.0",
       "manifests": {
         "local": "apps/addin/manifest.inquiry.xml",
         "production": "apps/addin/manifest.inquiry.production.xml"
@@ -198,6 +197,7 @@
         "requested_heights",
         "disable_entity_highlighting",
         "action_types",
+        "supports_pinning",
         "office_tab_ids",
         "group_ids",
         "control_fingerprints",
@@ -218,6 +218,7 @@
         "requested_heights": ["450"],
         "disable_entity_highlighting": "false",
         "action_types": ["ShowTaskpane"],
+        "supports_pinning": [],
         "office_tab_ids": ["TabDefault"],
         "group_ids": ["clientInquiryGroup"],
         "control_fingerprints": ["Button:clientInquiryOpenPaneButton"],

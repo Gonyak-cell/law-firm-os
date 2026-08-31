@@ -4,6 +4,7 @@ const VERSION_CONFLICT = "M365_CONNECTION_VERSION_CONFLICT";
 const CREDENTIAL_CLEANUP_PENDING =
   "M365_CONNECTION_CREDENTIAL_CLEANUP_PENDING";
 const RESPONSE_INVALID = "API_RESPONSE_INVALID";
+const MAILBOX_ADDRESS_HASH = /^[a-f0-9]{64}$/u;
 const CONNECTION_ID_ALIASES = Object.freeze([
   "id",
   "m365ConnectionId",
@@ -75,6 +76,33 @@ function parseCanonicalConnectionId({ body, item, connection, status }) {
   return rawId.trim();
 }
 
+function parseCanonicalMailboxAddressHash(body, item, connection) {
+  let values;
+  try {
+    values = connectionIdRecords(body, item, connection)
+      .map((record) => Object.getOwnPropertyDescriptor(record, "mailbox_address_hash"))
+      .filter(Boolean)
+      .map((descriptor) => {
+        if (!Object.hasOwn(descriptor, "value")) throw invalidResponse();
+        return descriptor.value;
+      });
+  } catch {
+    throw invalidResponse();
+  }
+  if (values.length === 0 || values.every((value) => value === null)) {
+    return null;
+  }
+  if (
+    values.some((value) => (
+      typeof value !== "string" || !MAILBOX_ADDRESS_HASH.test(value)
+    ))
+    || new Set(values).size !== 1
+  ) {
+    throw invalidResponse();
+  }
+  return values[0];
+}
+
 export function parseOutlookConnectionRecord(body) {
   const item = outlookConnectionPayload(body);
   const connection = item?.connection ?? item;
@@ -99,6 +127,11 @@ export function parseOutlookConnectionRecord(body) {
     connection,
     status,
   });
+  const mailboxAddressHash = parseCanonicalMailboxAddressHash(
+    body,
+    item,
+    connection,
+  );
   const rawStateVersion = connection && Object.hasOwn(connection, "state_version")
     ? connection.state_version
     : item?.state_version;
@@ -133,6 +166,7 @@ export function parseOutlookConnectionRecord(body) {
     m365ConnectionId,
     missingScopes: Array.isArray(connection?.missing_scopes) ? connection.missing_scopes : [],
     mailboxAddress: connection?.mailbox_address ?? item?.mailbox_address ?? null,
+    mailboxAddressHash,
     authorizationUrl: item?.authorization_url ?? body?.authorization_url ?? null,
     oauthState: item?.state ?? body?.state ?? null,
     credentialCleanupPending: rawCredentialCleanupPending === true,

@@ -1,0 +1,152 @@
+{
+  "schema_version": "amic-os.outlook-cross-surface-forward-rollback.v1",
+  "save_id": "OUTLOOK-INFRA-CONNECTIONS-SAVE-20260824-01",
+  "application_checkpoint": "OUTLOOK-SAVE-20260824-03B93BFF",
+  "mode": "local_dry_run",
+  "surfaces": {
+    "static": {
+      "action": "restore_prior_aliases_from_verified_snapshot",
+      "contract_ref": "contracts/outlook-addin-forward-static-rollback.json",
+      "contract_sha256": "996b63708e09f0435405ac31e06a28c185872a4c5a365bbdd69befc186ca7f04",
+      "snapshot_inventory_sha256": "a37b05476b9243a3af01f51992b82f920202d2eed62a3ada876f0a7eae3e194d",
+      "snapshot_inventory_canonical_sha256": "27e7b6fe79b547742e2ac5433796be3db059fdddb841f2832f490f184a99126d",
+      "restore_profiles": [
+        "matter-full",
+        "inquiry-only"
+      ],
+      "candidate_immutable_objects_deleted": false
+    },
+    "m365": {
+      "action": "central_manifest_forward_update",
+      "product_id": "8f3cc90d-56dd-4c1c-b9c2-0a1100500101",
+      "candidate_manifest_versions": [
+        "1.3.0.0",
+        "1.3.0.1"
+      ],
+      "forward_manifest_path": "apps/addin/manifest.canary.rollback.production.xml",
+      "forward_manifest_version": "1.3.0.2",
+      "forward_manifest_sha256": "57359b429af519d2dbec28230e73445e3898d47ced4c1e7add1eb68733c68ad9",
+      "launch_event_count": 0,
+      "assignment_policy": "reconcile_to_fresh_same_authorized_single_principal",
+      "assignment_count": 1,
+      "fresh_opaque_assignment_snapshot_required": true
+    },
+    "api": {
+      "action": "restore_exact_published_version_and_non_secret_configuration",
+      "account_id": "770880870480",
+      "region": "ap-northeast-2",
+      "function_name": "matter-lawos-api-prod",
+      "function_arn": "arn:aws:lambda:ap-northeast-2:770880870480:function:matter-lawos-api-prod",
+      "published_version": "11",
+      "published_version_arn": "arn:aws:lambda:ap-northeast-2:770880870480:function:matter-lawos-api-prod:11",
+      "published_version_snapshot_sha256": "ffe625715504a33857aa50f4914051ca6620b167974675dfae84304c98105da7",
+      "code_sha256_base64": "71ipsU+TfNrjavdMRMg5I/w4AtEsfrRicIT1EI4bh5E=",
+      "code_size_bytes": 15643210,
+      "configuration": {
+        "runtime": "nodejs22.x",
+        "handler": "apps/api/src/lambda.handler",
+        "architecture": "x86_64",
+        "memory_mib": 1024,
+        "timeout_seconds": 120,
+        "environment_values_restored_from_save": false,
+        "environment_variable_count": 49,
+        "environment_variable_name_set_sha256": "824f88c0ec1d565060220979399dc38f3927d39a7c6620129573792eca28ca93",
+        "environment_variables_canonical_sha256": "65bd84152eb8b93fe736afb64bfdcedfe23f8859ad3db726299093f022893dca"
+      },
+      "checkpoint_latest": {
+        "qualifier": "$LATEST",
+        "code_sha256_base64": "kcByUz8c/JCT/egBGI2EOKeuvhiB+onjSf4xT1MDeyk=",
+        "package_sha256": "91c072533f1cfc9093fde801188d8438a7aebe1881fa89e349fe314f53037b29",
+        "differs_from_published_version": true
+      },
+      "evidence": {
+        "versions_ref": "lambda/matter-lawos-api-prod/versions.json",
+        "versions_sha256": "9047636da9bfe5ee0f8a97fbe3fcfb0b00b458bf7497b97b9329e5784aefe5b3",
+        "checkpoint_configuration_ref": "lambda/matter-lawos-api-prod/function-configuration.redacted.json",
+        "checkpoint_configuration_sha256": "f2b8dec1dd50f818ed4e3ada575caa1db945a86c69a979f79d7c7d7e387ce7bd"
+      },
+      "fresh_current_snapshot_required": true,
+      "fresh_revision_id_required": true,
+      "historical_revision_id_reusable": false
+    },
+    "cloudfront": {
+      "action": "restore_exact_distribution_config",
+      "distribution_id": "E3MVAKX2DIR3CS",
+      "behavior_path_pattern": "api/desktop*",
+      "restore_target_origin_id": "matter-temp-desktop-api-origin",
+      "config_canonical_sha256": "5290f400413126fd151d63f9d3762205fd47d3635278a28e0e094b0442656798",
+      "evidence": {
+        "config_ref": "aws/cloudfront/distribution-config.redacted.json",
+        "config_sha256": "3bf0fa000d175f69d5bc051a873275e180b2588dd3407f4cec8ff3842af35bc2"
+      },
+      "fresh_current_snapshot_required": true,
+      "fresh_etag_required": true,
+      "historical_etag_reusable": false
+    },
+    "desktop": {
+      "action": "none_remain_on_sealed_0.1.29",
+      "mutation_count": 0,
+      "profiles": [
+        {
+          "platform": "macos-arm64",
+          "version": "0.1.29",
+          "source_sha": "a97447047c788ebd715f955e9942b7631922cb3f",
+          "source_tree": "8624909dba32b48788c329f2bb103c19ea5ab64b",
+          "package_hashes": {
+            "dmg_sha256": "43fc2cda86beb8694269f6199ad64d6a840e4518f6fb502d6bfedd69fd4e3792",
+            "zip_sha256": "24d21031d8ccf4b777012fdcafd4081220d19c47dfd2e7ab66fd1c6a89f0cd54"
+          },
+          "trust_boundary": "notarized_developer_id_internal"
+        },
+        {
+          "platform": "windows-x64",
+          "version": "0.1.29",
+          "source_sha": "4df77e1848b52ea455f20b41b9b1c64961bfa1cf",
+          "source_tree": "d3dd1b3057adec3ef40fbbf4be2fb0ada42c614a",
+          "package_hashes": {
+            "nsis_sha256": "96edd9a15d06928d311d13258f8d5e9512697ec3b6ace3f0db850dab766307ee",
+            "portable_zip_sha256": "10dde6a261805909a0cd3ad2ef13a873d04e3e8706077671d75bc6a3111db412"
+          },
+          "trust_boundary": "unsigned_named_internal_canary_only"
+        }
+      ]
+    }
+  },
+  "data_policy": {
+    "database_action": "leave_rows_and_schema_unchanged",
+    "migration_008_action": "leave_forward_only_migration_applied_if_present",
+    "vault_action": "leave_documents_unchanged",
+    "mail_action": "leave_messages_and_receipts_unchanged",
+    "audit_action": "leave_rows_unchanged",
+    "secret_and_token_action": "do_not_restore_or_print"
+  },
+  "execution_control": {
+    "first_failure_policy": "stop_once_no_retry",
+    "mutated_surface_scope": "already_mutated_surfaces_only",
+    "fresh_pre_rollback_snapshot_required": true,
+    "historical_revision_id_usage": "reference_only",
+    "historical_etag_usage": "reference_only",
+    "rollback_order": [
+      "restore_static_aliases",
+      "forward_update_m365_manifest",
+      "restore_cloudfront_behavior",
+      "restore_api_published_version",
+      "readback_all_surfaces"
+    ]
+  },
+  "readbacks": [
+    "static_exact_alias_hashes_and_public_bytes",
+    "m365_product_version_assignment_and_zero_launch_events",
+    "cloudfront_distribution_hash_and_api_desktop_origin",
+    "lambda_published_code_and_non_secret_configuration",
+    "desktop_0.1.29_checksums_and_zero_mutation"
+  ],
+  "claims": {
+    "external_mutation_performed": false,
+    "data_mutation_performed": false,
+    "desktop_mutation_performed": false,
+    "actual_outlook_proved": false,
+    "deployment_verified": false,
+    "go_live_approved": false
+  }
+}

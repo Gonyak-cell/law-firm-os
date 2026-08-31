@@ -69,14 +69,14 @@ export async function installOfficeAndApiMocks(page) {
       return route.fulfill({
         status: 200,
         contentType: "application/json; charset=utf-8",
-        body: JSON.stringify({ authenticated: true, principal: { user_id: "responsive-qa", tenant_id: "responsive-tenant" } }),
+        body: JSON.stringify({ authenticated: true, session: { user_id: "responsive-qa", tenant_id: "responsive-tenant", outlook_desktop_principal_ref: `odpr_${"A".repeat(43)}` } }),
       });
     }
     if (requestUrl.pathname === "/api/outlook/connection") {
       return route.fulfill({
         status: 200,
         contentType: "application/json; charset=utf-8",
-        body: JSON.stringify({ item: { status: "connected", active: true, connection_id: "m365_connection_responsive_qa", state_version: 1, mailbox_address: "qa@example.invalid" } }),
+        body: JSON.stringify({ item: { status: "connected", active: true, connection_id: "m365_connection_responsive_qa", state_version: 7, mailbox_address: "qa@example.invalid" } }),
       });
     }
     if (requestUrl.pathname === "/api/outlook/readiness") {
