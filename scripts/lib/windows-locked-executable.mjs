@@ -7,7 +7,10 @@ import { matterDesktopAuthenticodePowerShell } from "./matter-desktop-authentico
  * The Windows native QA boundary is intentionally fail-closed.  A file is
  * opened by a long-lived PowerShell process with FileShare.Read, inspected,
  * and kept open until the process which was launched from that exact path has
- * exited.  This prevents a verify-by-path / CreateProcess-by-path gap.
+ * exited.  The file lock is then released before the inherited process job is
+ * drained, allowing bootstrap executables such as NSIS uninstallers to finish
+ * their self-copy cleanup without reopening a verify-by-path / CreateProcess-by-path
+ * gap.
  */
 export const WINDOWS_LOCKED_EXECUTABLE_PROTOCOL = "lawos.windows-locked-executable.v1";
 
@@ -198,6 +201,9 @@ public static class LawOsLockedExecutableNative {
   private const uint FileFlagOpenReparsePoint = 0x00200000;
   private const uint JobObjectExtendedLimitInformation = 9;
   private const uint KillOnJobClose = 0x00002000;
+  private const uint WaitObject0 = 0x00000000;
+  private const uint WaitTimeout = 0x00000102;
+  private const uint WaitFailed = 0xFFFFFFFF;
 
   [StructLayout(LayoutKind.Sequential)]
   private struct ByHandleFileInformation {
@@ -282,6 +288,9 @@ public static class LawOsLockedExecutableNative {
   [DllImport("kernel32.dll", SetLastError = true)]
   private static extern bool CloseHandle(IntPtr handle);
 
+  [DllImport("kernel32.dll", SetLastError = true)]
+  private static extern uint WaitForSingleObject(IntPtr handle, uint milliseconds);
+
   private static void ThrowLastError(string action) {
     throw new Win32Exception(Marshal.GetLastWin32Error(), action);
   }
@@ -346,6 +355,15 @@ public static class LawOsLockedExecutableNative {
 
   public static void CloseJob(IntPtr job) {
     if (job != IntPtr.Zero && !CloseHandle(job)) { ThrowLastError("CloseHandle failed for the process job"); }
+  }
+
+  public static bool WaitForJobExit(IntPtr job, uint timeoutMilliseconds) {
+    if (job == IntPtr.Zero) { throw new ArgumentException("process job handle is missing", "job"); }
+    var result = WaitForSingleObject(job, timeoutMilliseconds);
+    if (result == WaitObject0) { return true; }
+    if (result == WaitTimeout) { return false; }
+    if (result == WaitFailed) { ThrowLastError("WaitForSingleObject failed for the process job"); }
+    throw new InvalidOperationException("WaitForSingleObject returned an unexpected process job status");
   }
 }
 '@
@@ -525,21 +543,32 @@ function Stop-ChildIfRunning {
   }
 }
 
-function Release-Lock {
-  if ($null -ne $state.job -and $state.job -ne [IntPtr]::Zero) {
+function Wait-ForProcessJobToDrain {
+  if ($null -eq $state.job -or $state.job -eq [IntPtr]::Zero) { return }
+  try {
+    if (-not [LawOsLockedExecutableNative]::WaitForJobExit($state.job, 45000)) {
+      throw 'locked executable process tree exceeded its bounded drain timeout'
+    }
+  } finally {
     [LawOsLockedExecutableNative]::CloseJob($state.job)
     $state.job = [IntPtr]::Zero
   }
+}
+
+function Release-Lock {
   if ($null -ne $state.stream) {
     $state.stream.Dispose()
     $state.stream = $null
   }
+  $drainError = $null
+  try { Wait-ForProcessJobToDrain } catch { $drainError = $_.Exception }
   if ($null -ne $state.child) {
     $state.child.Dispose()
     $state.child = $null
     $state.child_started = $false
   }
   $state.released = $true
+  if ($null -ne $drainError) { throw $drainError }
 }
 
 function Invoke-Hold($request) {

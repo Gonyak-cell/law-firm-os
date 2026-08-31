@@ -150,6 +150,9 @@ test("PowerShell helper is a long-lived exact-path read lock and identity gate",
     "CreateJobObjectW",
     "KillOnClose",
     "AssignProcessToJobObject",
+    "WaitForSingleObject",
+    "WaitForJobExit",
+    "Wait-ForProcessJobToDrain",
     "authProbe",
     "FromBase64String",
     "ScriptBlock]::Create($authProbe)",
@@ -200,8 +203,15 @@ test("PowerShell helper is a long-lived exact-path read lock and identity gate",
   assert.doesNotMatch(script, /Invoke-Adopt[\s\S]*?Assert-ProcessIdentity \$requestedPid/u);
   assert.match(script, /locked executable launch failed \(\$launchError\) and exact child cleanup failed/u);
   assert.match(script, /CloseHandle failed for the process job/u);
+  assert.match(script, /WaitForSingleObject failed for the process job/u);
   const stopBody = script.slice(script.indexOf("function Stop-ChildIfRunning"), script.indexOf("function Release-Lock"));
   assert.doesNotMatch(stopBody, /catch\s*\{\s*\}/u);
+  const releaseBody = script.slice(script.indexOf("function Release-Lock"), script.indexOf("function Invoke-Hold"));
+  assert.ok(
+    releaseBody.indexOf("$state.stream.Dispose()") < releaseBody.indexOf("Wait-ForProcessJobToDrain"),
+    "the verified path lock must be released before waiting for inherited bootstrap cleanup",
+  );
+  assert.match(releaseBody, /\$drainError = \$null[\s\S]*Wait-ForProcessJobToDrain[\s\S]*throw \$drainError/u);
   const finalizer = script.slice(script.lastIndexOf("} finally {"));
   assert.doesNotMatch(finalizer, /try\s*\{\s*Stop-ChildIfRunning|try\s*\{\s*Release-Lock/u);
   assert.doesNotMatch(script, /\$pid\b/u, "PowerShell's read-only automatic $PID variable must not be shadowed");
