@@ -30,7 +30,7 @@ The candidate validator:
 2. binds `package-lock.json` and the Git tree;
 3. requires the named correction, task, time, Graph, precedent, DOCX, and DocuSign source/test paths;
 4. checks every non-link lockfile dependency against the license allowlist and requires `docx` and `docusign-esign` under their reviewed MIT licenses;
-5. validates the two fixed source ProductIds, exactly one production-visible ProductId, `ReadItem`, host/event separation, and independent immutable rollback manifest/task-pane/bundle/inventory references;
+5. validates the two fixed source ProductIds, exactly one production-visible ProductId, the profile-scoped `ReadWriteItem`/`ReadItem` permissions, host/event separation, and independent immutable rollback manifest/task-pane/bundle/inventory references;
 6. builds twice and compares every output path, byte count, and SHA-256;
 7. rejects source maps, private-key formats, local source paths, secret-like values, and raw MIME in the static output;
 8. runs the official `office-addin-manifest@2.1.6` validator against all four local/production manifests; and
