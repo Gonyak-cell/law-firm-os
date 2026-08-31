@@ -473,7 +473,10 @@ async function main() {
         session.inspection.authenticode,
         { expectedCertificateSha1: verifiedApproval.authenticode_signer_certificate_sha1 },
       );
-      processRecord = await session.launch(["/S"], { cwd: installDir });
+      processRecord = await session.launch(["/S"], {
+        cwd: installDir,
+        processTreePolicy: "verified-bootstrap",
+      });
       waitResult = await session.waitForProcessExit(processRecord.pid);
       if (waitResult.exit_code !== 0) {
         fail("WINDOWS_UNINSTALLER_EXIT", "locked NSIS uninstaller returned a non-zero exit code");
@@ -492,6 +495,7 @@ async function main() {
         process: Object.freeze({
           pid: processRecord.pid,
           path_identity: processRecord.path_identity,
+          process_tree_policy: processRecord.process_tree_policy,
         }),
         exit_code: waitResult.exit_code,
       });

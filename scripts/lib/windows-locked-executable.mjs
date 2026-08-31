@@ -613,7 +613,13 @@ function Invoke-Launch($request) {
     $candidate
   }
   Assert-PathMatchesHeldHandle | Out-Null
-  if ($state.job -eq [IntPtr]::Zero) { $state.job = [LawOsLockedExecutableNative]::CreateKillOnCloseJob() }
+  $processTreePolicy = [string]$request.process_tree_policy
+  if ($processTreePolicy -notin @('contained', 'verified-bootstrap')) {
+    throw 'process tree policy must be contained or verified-bootstrap'
+  }
+  if ($processTreePolicy -eq 'contained' -and $state.job -eq [IntPtr]::Zero) {
+    $state.job = [LawOsLockedExecutableNative]::CreateKillOnCloseJob()
+  }
   $psi = [Diagnostics.ProcessStartInfo]::new()
   $psi.FileName = $state.path
   $psi.WorkingDirectory = $cwd
@@ -630,7 +636,9 @@ function Invoke-Launch($request) {
   try {
     if (-not $state.child.Start()) { throw 'CreateProcess failed for the locked executable' }
     $state.child_started = $true
-    [LawOsLockedExecutableNative]::AssignProcess($state.job, $state.child)
+    if ($processTreePolicy -eq 'contained') {
+      [LawOsLockedExecutableNative]::AssignProcess($state.job, $state.child)
+    }
     $childPid = $state.child.Id
     $image = Assert-LaunchedProcessIdentity $state.child
     Assert-PathMatchesHeldHandle | Out-Null
@@ -641,6 +649,7 @@ function Invoke-Launch($request) {
       pid = [int]$childPid
       image_path = $image
       path_identity = 'pid_executable_path'
+      process_tree_policy = $processTreePolicy
     })
   } catch {
     $launchError = $_.Exception.Message
@@ -907,14 +916,22 @@ export class WindowsLockedExecutableSession {
     this.released = false;
   }
 
-  async launch(args = [], { cwd } = {}) {
+  async launch(args = [], { cwd, processTreePolicy = "contained" } = {}) {
     if (!Array.isArray(args) || args.some((arg) => typeof arg !== "string" || /[\0\r\n]/u.test(arg))) {
       fail("LOCKED_EXECUTABLE_ARGUMENTS", "locked executable arguments must be literal strings without controls");
     }
     if (cwd !== undefined) assertSafeString(cwd, "cwd", { absolute: true });
-    const response = await this.transport.request("launch", { args, cwd: cwd ?? null });
+    if (!["contained", "verified-bootstrap"].includes(processTreePolicy)) {
+      fail("LOCKED_EXECUTABLE_PROCESS_TREE_POLICY", "processTreePolicy must be contained or verified-bootstrap");
+    }
+    const response = await this.transport.request("launch", {
+      args,
+      cwd: cwd ?? null,
+      process_tree_policy: processTreePolicy,
+    });
     if (!Number.isSafeInteger(response?.pid) || response.pid <= 0
       || response.path_identity !== "pid_executable_path"
+      || response.process_tree_policy !== processTreePolicy
       || typeof response.image_path !== "string"
       || response.image_path.toLowerCase() !== this.path.toLowerCase()) {
       fail("LOCKED_EXECUTABLE_LAUNCH", "PowerShell launch proof was incomplete", { response });
@@ -923,6 +940,7 @@ export class WindowsLockedExecutableSession {
       pid: response.pid,
       image_path: response.image_path,
       path_identity: response.path_identity,
+      process_tree_policy: response.process_tree_policy,
       operation: "launch",
     };
     return Object.freeze({ ...this.child });

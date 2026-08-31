@@ -50,7 +50,14 @@ class FakePowerShell extends EventEmitter {
             authenticode: { status: "Valid" },
           }
           : request.operation === "launch"
-            ? { ...base, operation: "launch", pid: 101, image_path: "C:\\runner\\matter.exe", path_identity: "pid_executable_path" }
+            ? {
+              ...base,
+              operation: "launch",
+              pid: 101,
+              image_path: "C:\\runner\\matter.exe",
+              path_identity: "pid_executable_path",
+              process_tree_policy: request.process_tree_policy,
+            }
             : request.operation === "adopt"
               ? { ...base, operation: "adopt", pid: request.pid, image_path: "C:\\runner\\matter.exe", path_identity: "pid_executable_path" }
               : request.operation === "status"
@@ -151,6 +158,7 @@ test("PowerShell helper is a long-lived exact-path read lock and identity gate",
     "CreateJobObjectW",
     "KillOnClose",
     "AssignProcessToJobObject",
+    "verified-bootstrap",
     "WaitForSingleObject",
     "WaitForJobExit",
     "Wait-ForProcessJobToDrain",
@@ -199,6 +207,7 @@ test("PowerShell helper is a long-lived exact-path read lock and identity gate",
   assert.doesNotMatch(launchBody, /Assert-ProcessIdentity \$childPid|Get-CimInstance|Start-Sleep/u);
   assert.match(script, /\$image = Assert-RetainedProcessIdentity \$adoptedProcess/u);
   assert.match(script, /\[LawOsLockedExecutableNative\]::AssignProcess\(\$state\.job, \$state\.child\)/u);
+  assert.match(script, /if \(\$processTreePolicy -eq 'contained'\)/u);
   assert.match(script, /\$image = Assert-RetainedProcessIdentity \$state\.child/u);
   assert.match(script, /locked executable adoption failed \(\$adoptError\) and exact child cleanup failed/u);
   assert.doesNotMatch(script, /Invoke-Adopt[\s\S]*?Assert-ProcessIdentity \$requestedPid/u);
@@ -407,6 +416,7 @@ test("Windows locked executable session keeps the stream across launch, adopt, w
     pid: 101,
     image_path: "C:\\runner\\matter.exe",
     path_identity: "pid_executable_path",
+    process_tree_policy: "contained",
     operation: "launch",
   });
   const adopted = await session.adoptProcess(101);
@@ -433,6 +443,26 @@ test("Windows locked executable session keeps the stream across launch, adopt, w
   ]);
   assert.deepEqual(child.requests[1].args, ["--disable-gpu"]);
   assert.equal(child.requests[1].cwd, "C:\\runner");
+  assert.equal(child.requests[1].process_tree_policy, "contained");
+});
+
+test("verified NSIS bootstrap may finish cleanup outside the kill-on-close job", async () => {
+  const child = new FakePowerShell();
+  const session = await openWindowsLockedExecutable({
+    executablePath: "C:\\runner\\matter.exe",
+    expectedSha256: HASH,
+    platform: "win32",
+    spawnPowerShell: () => child,
+    timeoutMs: 2_000,
+  });
+  const launch = await session.launch(["/S"], {
+    cwd: "C:\\runner",
+    processTreePolicy: "verified-bootstrap",
+  });
+  assert.equal(launch.process_tree_policy, "verified-bootstrap");
+  assert.equal(child.requests[1].process_tree_policy, "verified-bootstrap");
+  await session.waitForProcessExit(launch.pid);
+  await session.release();
 });
 
 test("native Process-object status and stop prove exact child exit before release", async () => {

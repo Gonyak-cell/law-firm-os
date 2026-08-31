@@ -275,7 +275,10 @@ async function runLockedUninstaller({ installed, inventory }) {
       "uninstaller bytes changed after the stable installed-tree inventory",
     );
     const launchAndWait = async () => {
-      processRecord = await session.launch(["/S"], { cwd: installDir });
+      processRecord = await session.launch(["/S"], {
+        cwd: installDir,
+        processTreePolicy: "verified-bootstrap",
+      });
       waitResult = await session.waitForProcessExit(processRecord.pid);
       assert.equal(waitResult.exit_code, 0, "NSIS uninstaller failed while its exact executable was locked");
     };
@@ -302,6 +305,7 @@ async function runLockedUninstaller({ installed, inventory }) {
       process: Object.freeze({
         pid: processRecord.pid,
         path_identity: processRecord.path_identity,
+        process_tree_policy: processRecord.process_tree_policy,
       }),
       exit_code: waitResult.exit_code,
     });
