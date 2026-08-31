@@ -189,6 +189,10 @@ test("PowerShell helper is a long-lived exact-path read lock and identity gate",
   assert.match(script, /\$state\.child\.Kill\(\$true\)/u);
   assert.match(script, /\$state\.child\.WaitForExit\(5000\)/u);
   assert.match(script, /ReadProcessImagePath\(\$process\.Handle\)/u);
+  assert.match(script, /function Assert-LaunchedProcessIdentity\(\$process\)/u);
+  const launchBody = script.slice(script.indexOf("function Invoke-Launch"), script.indexOf("function Invoke-Adopt"));
+  assert.match(launchBody, /\$image = Assert-LaunchedProcessIdentity \$state\.child/u);
+  assert.doesNotMatch(launchBody, /Assert-ProcessIdentity \$childPid|Get-CimInstance|Start-Sleep/u);
   assert.match(script, /\$image = Assert-RetainedProcessIdentity \$adoptedProcess/u);
   assert.match(script, /\[LawOsLockedExecutableNative\]::AssignProcess\(\$state\.job, \$state\.child\)/u);
   assert.match(script, /\$image = Assert-RetainedProcessIdentity \$state\.child/u);

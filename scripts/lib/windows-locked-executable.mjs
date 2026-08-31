@@ -463,6 +463,15 @@ function Assert-RetainedProcessIdentity($process) {
   return $actual
 }
 
+function Assert-LaunchedProcessIdentity($process) {
+  if ($null -eq $process) { throw 'locked executable process handle is missing' }
+  $actual = [IO.Path]::GetFullPath([LawOsLockedExecutableNative]::ReadProcessImagePath($process.Handle))
+  if (-not [String]::Equals($actual, $state.path, [StringComparison]::OrdinalIgnoreCase)) {
+    throw "process image path did not match the locked executable: $actual"
+  }
+  return $actual
+}
+
 function Get-ChildStatus {
   if ($null -eq $state.child -or -not $state.child_started) { throw 'no started child process is tracked' }
   $childPid = [int]$state.child.Id
@@ -592,19 +601,9 @@ function Invoke-Launch($request) {
     if (-not $state.child.Start()) { throw 'CreateProcess failed for the locked executable' }
     $state.child_started = $true
     [LawOsLockedExecutableNative]::AssignProcess($state.job, $state.child)
-    Assert-PathMatchesHeldHandle | Out-Null
     $childPid = $state.child.Id
-    $image = $null
-    $deadline = [DateTime]::UtcNow.AddSeconds(10)
-    while ([DateTime]::UtcNow -lt $deadline) {
-      try { $image = Assert-ProcessIdentity $childPid; break } catch {
-        if ($state.child.HasExited) { throw 'locked executable exited before its exact process identity could be verified' }
-        Start-Sleep -Milliseconds 50
-      }
-    }
-    if ([string]::IsNullOrWhiteSpace($image)) {
-      throw 'locked executable process identity could not be proved'
-    }
+    $image = Assert-LaunchedProcessIdentity $state.child
+    Assert-PathMatchesHeldHandle | Out-Null
     Send-Response([ordered]@{
       protocol = '${WINDOWS_LOCKED_EXECUTABLE_PROTOCOL}'
       ok = $true
