@@ -49,7 +49,14 @@ class FakePowerShell extends EventEmitter {
             authenticode: { status: "Valid" },
           }
           : request.operation === "launch"
-            ? { ...base, operation: "launch", pid: 101, image_path: "C:\\runner\\matter.exe", path_identity: "pid_executable_path" }
+            ? {
+              ...base,
+              operation: "launch",
+              pid: 101,
+              image_path: "C:\\runner\\matter.exe",
+              path_identity: "pid_executable_path",
+              process_tree_policy: request.process_tree_policy,
+            }
             : request.operation === "adopt"
               ? { ...base, operation: "adopt", pid: request.pid, image_path: "C:\\runner\\matter.exe", path_identity: "pid_executable_path" }
               : request.operation === "status"
@@ -150,6 +157,7 @@ test("PowerShell helper is a long-lived exact-path read lock and identity gate",
     "CreateJobObjectW",
     "KillOnClose",
     "AssignProcessToJobObject",
+    "verified-bootstrap",
     "authProbe",
     "FromBase64String",
     "ScriptBlock]::Create($authProbe)",
@@ -195,6 +203,7 @@ test("PowerShell helper is a long-lived exact-path read lock and identity gate",
   assert.doesNotMatch(launchBody, /Assert-ProcessIdentity \$childPid|Get-CimInstance|Start-Sleep/u);
   assert.match(script, /\$image = Assert-RetainedProcessIdentity \$adoptedProcess/u);
   assert.match(script, /\[LawOsLockedExecutableNative\]::AssignProcess\(\$state\.job, \$state\.child\)/u);
+  assert.match(script, /if \(\$processTreePolicy -eq 'contained'\)/u);
   assert.match(script, /\$image = Assert-RetainedProcessIdentity \$state\.child/u);
   assert.match(script, /locked executable adoption failed \(\$adoptError\) and exact child cleanup failed/u);
   assert.doesNotMatch(script, /Invoke-Adopt[\s\S]*?Assert-ProcessIdentity \$requestedPid/u);
@@ -202,6 +211,12 @@ test("PowerShell helper is a long-lived exact-path read lock and identity gate",
   assert.match(script, /CloseHandle failed for the process job/u);
   const stopBody = script.slice(script.indexOf("function Stop-ChildIfRunning"), script.indexOf("function Release-Lock"));
   assert.doesNotMatch(stopBody, /catch\s*\{\s*\}/u);
+  const releaseBody = script.slice(script.indexOf("function Release-Lock"), script.indexOf("function Invoke-Hold"));
+  assert.ok(
+    releaseBody.indexOf("$state.stream.Dispose()") < releaseBody.indexOf("CloseJob"),
+    "the verified path lock must be released before the contained descendant job closes",
+  );
+  assert.doesNotMatch(releaseBody, /Wait-ForProcessJobToDrain|WaitForJobExit/u);
   const finalizer = script.slice(script.lastIndexOf("} finally {"));
   assert.doesNotMatch(finalizer, /try\s*\{\s*Stop-ChildIfRunning|try\s*\{\s*Release-Lock/u);
   assert.doesNotMatch(script, /\$pid\b/u, "PowerShell's read-only automatic $PID variable must not be shadowed");
@@ -383,6 +398,7 @@ test("Windows locked executable session keeps the stream across launch, adopt, w
     pid: 101,
     image_path: "C:\\runner\\matter.exe",
     path_identity: "pid_executable_path",
+    process_tree_policy: "contained",
     operation: "launch",
   });
   const adopted = await session.adoptProcess(101);
@@ -409,6 +425,26 @@ test("Windows locked executable session keeps the stream across launch, adopt, w
   ]);
   assert.deepEqual(child.requests[1].args, ["--disable-gpu"]);
   assert.equal(child.requests[1].cwd, "C:\\runner");
+  assert.equal(child.requests[1].process_tree_policy, "contained");
+});
+
+test("verified NSIS install or uninstall bootstrap may finish cleanup outside the kill-on-close job", async () => {
+  const child = new FakePowerShell();
+  const session = await openWindowsLockedExecutable({
+    executablePath: "C:\\runner\\matter.exe",
+    expectedSha256: HASH,
+    platform: "win32",
+    spawnPowerShell: () => child,
+    timeoutMs: 2_000,
+  });
+  const launch = await session.launch(["/S"], {
+    cwd: "C:\\runner",
+    processTreePolicy: "verified-bootstrap",
+  });
+  assert.equal(launch.process_tree_policy, "verified-bootstrap");
+  assert.equal(child.requests[1].process_tree_policy, "verified-bootstrap");
+  await session.waitForProcessExit(launch.pid);
+  await session.release();
 });
 
 test("native Process-object status and stop prove exact child exit before release", async () => {

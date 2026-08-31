@@ -114,7 +114,10 @@ function waitUntilSync(predicate, message, timeoutMs = 45_000) {
 
 async function installPackage(lockedSession) {
   assert.ok(lockedSession, "NSIS install must use a held executable lock");
-  const processRecord = await lockedSession.launch(["/S", `/D=${installDir}`], { cwd: ROOT });
+  const processRecord = await lockedSession.launch(["/S", `/D=${installDir}`], {
+    cwd: ROOT,
+    processTreePolicy: "verified-bootstrap",
+  });
   const result = await lockedSession.waitForProcessExit(processRecord.pid);
   assert.equal(result.exit_code, 0, "NSIS installer failed while its exact executable was locked");
   const executablePath = path.join(installDir, "matter.exe");
@@ -275,7 +278,10 @@ async function runLockedUninstaller({ installed, inventory }) {
       "uninstaller bytes changed after the stable installed-tree inventory",
     );
     const launchAndWait = async () => {
-      processRecord = await session.launch(["/S"], { cwd: installDir });
+      processRecord = await session.launch(["/S"], {
+        cwd: installDir,
+        processTreePolicy: "verified-bootstrap",
+      });
       waitResult = await session.waitForProcessExit(processRecord.pid);
       assert.equal(waitResult.exit_code, 0, "NSIS uninstaller failed while its exact executable was locked");
     };
@@ -302,6 +308,7 @@ async function runLockedUninstaller({ installed, inventory }) {
       process: Object.freeze({
         pid: processRecord.pid,
         path_identity: processRecord.path_identity,
+        process_tree_policy: processRecord.process_tree_policy,
       }),
       exit_code: waitResult.exit_code,
     });
