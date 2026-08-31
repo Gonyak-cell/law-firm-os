@@ -14,7 +14,7 @@ import {
 
 test("release contract binds two source ProductIds but exactly one production-visible ProductId", () => {
   assert.deepEqual(validateReleaseContract(contract), {
-    profile_count: 2, manifest_count: 4, release_version: "1.3.0.1",
+    profile_count: 2, manifest_count: 4, release_version: "1.3.0.3",
     source_product_id_count: 2, production_visible_product_id_count: 1,
     retained_unassigned_product_id_count: 1,
   });

@@ -123,9 +123,9 @@ async function protectedSnapshotFixture(t) {
 test("production release manifests bind raw and semantic hashes to one exact origin", async () => {
   const bindings = await productionBindings();
   assert.deepEqual(bindings.map(({ stage, version }) => ({ stage, version })), [
-    { stage: "taskpane_only", version: "1.3.0.0" },
-    { stage: "forward_rollback", version: "1.3.0.2" },
-    { stage: "candidate_taskpane", version: "1.3.0.1" },
+    { stage: "taskpane_only", version: "1.3.0.2" },
+    { stage: "forward_rollback", version: "1.3.0.4" },
+    { stage: "candidate_taskpane", version: "1.3.0.3" },
     { stage: "retained_inquiry", version: "1.1.0.0" },
   ]);
   assert.ok(bindings.every(({ exact_origin, semantic_sha256 }) => exact_origin && /^[a-f0-9]{64}$/u.test(semantic_sha256)));

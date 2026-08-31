@@ -13,16 +13,16 @@
     "profile": "matter-full",
     "product_id": "8f3cc90d-56dd-4c1c-b9c2-0a1100500101",
     "manifest_path": "apps/addin/manifest.canary.rollback.production.xml",
-    "manifest_version": "1.3.0.2",
-    "manifest_sha256": "57359b429af519d2dbec28230e73445e3898d47ced4c1e7add1eb68733c68ad9",
-    "semantic_sha256": "323542ab35c10cca6053cc166802e0a4a118f1771cb730ac0fa99804453a148d",
+    "manifest_version": "1.3.0.4",
+    "manifest_sha256": "b725fdae04a7706632577aac529c61e1e9ed849dc0d1612f4cacd646c6e6a811",
+    "semantic_sha256": "2a3a0c41baac81e64bd414f9b53dee828aff8624414103077a2849100e25c411",
     "source_locations": [
       "https://d2mthcc8vp3cr2.cloudfront.net/addin/index.html"
     ],
     "operations": [
       "restore_prior_static_aliases_from_verified_snapshot",
       "readback_prior_static_hashes",
-      "central_update_to_1.3.0.2",
+      "central_update_to_1.3.0.4",
       "readback_launch_events_zero"
     ]
   },

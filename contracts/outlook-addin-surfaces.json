@@ -1,12 +1,12 @@
 {
   "schema_version": 3,
   "deployed_baseline_version": "1.0.1.1",
-  "release_candidate_version": "1.3.0.1",
+  "release_candidate_version": "1.3.0.3",
   "profiles": [
     {
       "profile": "matter-full",
       "product_id": "8f3cc90d-56dd-4c1c-b9c2-0a1100500101",
-      "candidate_version": "1.3.0.1",
+      "candidate_version": "1.3.0.3",
       "manifests": {
         "local": "apps/addin/manifest.xml",
         "production": "apps/addin/manifest.production.xml"
@@ -14,7 +14,7 @@
       "baseline_manifest_sha256": "f656702205345179f2a6506b4e329e13f08ccba32462d638e5cdb01ceb65b271",
       "provider_name": "AMIC OS",
       "display_name": "AMIC OS",
-      "permission": "ReadItem",
+      "permission": "ReadWriteItem",
       "mailbox_min_version": "1.14",
       "local_production_equal_fields": [
         "product_id",
@@ -120,7 +120,7 @@
       },
       "environment_fingerprints": {
         "local": {
-          "semantic_manifest_sha256": "b8d6bec530cdb560b5b46fdb8eb9e7bda77d0085b06c71c2657fcab37b9d81c4",
+          "semantic_manifest_sha256": "431d567d6c49023277a3d769fdc8455349c8584ff7eb8617ec01db27ebadb4d4",
           "url_resources": [
             "Commands.Url=https://localhost:5186/index.html?commands=1",
             "Commands.Url=https://localhost:5186/index.html?commands=1",
@@ -142,7 +142,7 @@
           "app_domains": ["http://127.0.0.1:5186", "https://localhost:5186"]
         },
         "production": {
-          "semantic_manifest_sha256": "850786886c41350c5ca8a96f71991b41418baf50a601ec1955cd9543692a5a42",
+          "semantic_manifest_sha256": "d1040be810b92308e1f7080b87d3a7d3bb88b96ff80d042586b3b266a439cd52",
           "url_resources": [
             "Commands.Url=https://d2mthcc8vp3cr2.cloudfront.net/addin/index.html?commands=1",
             "Commands.Url=https://d2mthcc8vp3cr2.cloudfront.net/addin/index.html?commands=1",

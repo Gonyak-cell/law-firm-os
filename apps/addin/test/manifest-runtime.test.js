@@ -13,7 +13,7 @@ async function read(relativePath) {
 }
 
 function assertLeastPrivilege(manifest, name) {
-  assert.match(manifest, /<Permissions>\s*ReadItem\s*<\/Permissions>/u, `${name} must use ReadItem`);
+  assert.match(manifest, /<Permissions>\s*ReadWriteItem\s*<\/Permissions>/u, `${name} must use ReadWriteItem for explicit compose attachment writes`);
   assert.equal(manifest.includes("ReadWriteMailbox"), false, `${name} must not request ReadWriteMailbox`);
 }
 
@@ -28,7 +28,7 @@ function assertNoAutomaticSendRuntime(manifest, name) {
 }
 
 function assertOfficialBrand(manifest, name) {
-  assert.match(manifest, /<Version>1\.3\.0\.1<\/Version>/u, `${name} must use the release candidate version`);
+  assert.match(manifest, /<Version>1\.3\.0\.3<\/Version>/u, `${name} must use the release candidate version`);
   assert.match(manifest, /<ProviderName>AMIC OS<\/ProviderName>/u, `${name} must use the official provider name`);
   assert.match(manifest, /<DisplayName\s+DefaultValue="AMIC OS"\s*\/>/u, `${name} must use the official app name`);
   assert.equal(
@@ -39,7 +39,7 @@ function assertOfficialBrand(manifest, name) {
   assert.doesNotMatch(manifest, /Law Firm OS|LawOS/u, `${name} must not expose a legacy product name`);
 }
 
-test("Client Add-in manifests keep ReadItem-only permissions without automatic Send interception", async () => {
+test("Matter Add-in manifests use item-scoped write permission without automatic Send interception", async () => {
   const [production, local] = await Promise.all([
     read("apps/addin/manifest.production.xml"),
     read("apps/addin/manifest.xml"),

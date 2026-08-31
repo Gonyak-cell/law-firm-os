@@ -15,7 +15,7 @@ test("exact manifest ProductIds select the frozen Outlook capability profiles", 
     key: "matter-full",
     productId: "8f3cc90d-56dd-4c1c-b9c2-0a1100500101",
     manifestFingerprint: {
-      permission: "ReadItem",
+      permission: "ReadWriteItem",
       hosts: ["Mailbox"],
       itemForms: ["Message:Edit", "Message:Read"],
       extensionPoints: [

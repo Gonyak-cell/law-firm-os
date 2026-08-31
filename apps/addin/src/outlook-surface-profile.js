@@ -15,7 +15,7 @@ export const OUTLOOK_SURFACE_PROFILES = deepFreeze({
     key: "matter-full",
     productId: OUTLOOK_PRODUCT_IDS.matterFull,
     manifestFingerprint: {
-      permission: "ReadItem",
+      permission: "ReadWriteItem",
       hosts: ["Mailbox"],
       itemForms: ["Message:Edit", "Message:Read"],
       extensionPoints: [

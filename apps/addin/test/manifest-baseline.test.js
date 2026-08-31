@@ -56,7 +56,7 @@ test("an explicit independent OUTM-01 baseline receipt is required and exact", a
 
 test("rollback contract keeps authoritative 1.0.1.1 bytes independent from the current candidate", async () => {
   const rollback = JSON.parse(await readFile(rollbackPath, "utf8"));
-  assert.equal(rollback.candidate_version, "1.3.0.1");
+  assert.equal(rollback.candidate_version, "1.3.0.3");
   assert.equal(rollback.rollback_version, "1.0.1.1");
   assert.equal(rollback.authoritative_baseline_receipt, "contracts/outlook-addin-deployment-baseline.json");
   assert.equal(rollback.assignment_restore_policy, "reconcile_to_validated_single_visible_distribution");
@@ -79,7 +79,7 @@ test("rollback contract keeps authoritative 1.0.1.1 bytes independent from the c
     assert.match(profile.protected_manifest_ref, new RegExp(`manifest\\.${profile.profile}\\.1\\.0\\.1\\.1\\.xml$`, "u"));
 
     const candidate = await readFile(path.join(addinRoot, manifestName), "utf8");
-    const candidateVersion = profile.profile === "matter-full" ? "1.3.0.1" : "1.1.0.0";
+    const candidateVersion = profile.profile === "matter-full" ? "1.3.0.3" : "1.1.0.0";
     const rollbackBytes = candidate.replace(`<Version>${candidateVersion}</Version>`, "<Version>1.0.1.1</Version>");
     assert.notEqual(rollbackBytes, candidate, `${manifestName} must contain the synchronized candidate version`);
     const versionOnlyRollbackHash = createHash("sha256").update(rollbackBytes).digest("hex");
