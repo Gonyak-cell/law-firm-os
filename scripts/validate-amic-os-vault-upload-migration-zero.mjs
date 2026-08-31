@@ -98,6 +98,9 @@ export function deriveVaultQuarantineReference(
   } = {},
 ) {
   if (!OPERATION_ID.test(operationId ?? "")) fail("operation_id is invalid");
+  // UUIDv5 requires SHA-1 for standards-compatible identity derivation. This is
+  // an opaque non-secret identifier, not a password, signature, or integrity check.
+  // lgtm[js/weak-cryptographic-algorithm]
   const digest = createHash("sha1")
     .update(uuidBytes(namespaceUuid))
     .update(Buffer.from(`${nameDomain}\u0000${operationId}`, "utf8"))

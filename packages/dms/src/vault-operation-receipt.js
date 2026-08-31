@@ -265,14 +265,19 @@ function normalizedExactVersion(value, { required = false } = {}) {
 }
 
 function boundaryStringIsForbidden(value, receiptProfile) {
+  if (value.length > 2_048) return true;
   if (/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/u.test(value)) return true;
   if (/^(?:[A-Za-z]:[\\/]|\\\\|\/|~[\\/]|\.\.?[\\/])/u.test(value)) return true;
   if (/(?:https?|file|s3|vault):\/\//iu.test(value)) return true;
   if (/^Bearer\s+/iu.test(value)) return true;
   if (/^data:[^,;]+;base64,/iu.test(value)) return true;
   if (/^[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}$/u.test(value)) return true;
-  if (receiptProfile && /\b[^\s@]+@[^\s@]+\.[^\s@]+\b/u.test(value)) return true;
-  return value.length > 2_048;
+  if (receiptProfile && value.split(/\s+/u).some((token) => {
+    const at = token.indexOf("@");
+    const dot = token.indexOf(".", at + 2);
+    return at > 0 && at === token.lastIndexOf("@") && dot > at + 1 && dot < token.length - 1;
+  })) return true;
+  return false;
 }
 
 /**

@@ -296,8 +296,9 @@ test("AMIC Vault HTTP upload provider sends metadata as strict JSON and exact by
   assert.equal(commit.fileName, "의견서 final.pdf");
   assert.equal(commit.fileType, "application/pdf");
   assert.deepEqual(commit.fileBytes, BYTES);
-  assert.equal(JSON.stringify(provider).includes(TOKEN), false);
-  assert.equal(JSON.stringify(provider).includes(ORIGIN), false);
+  assert.deepEqual(JSON.parse(JSON.stringify(provider)), {
+    authority_kind: provider.authority_kind,
+  });
 });
 
 test("AMIC Vault HTTP staged upload sends 1 GiB metadata without proxying file bytes", async () => {

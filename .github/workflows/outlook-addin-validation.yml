@@ -140,7 +140,10 @@ jobs:
           echo "$pg_bin" >> "$GITHUB_PATH"
 
       - name: Add-in tests
-        run: npm --workspace apps/addin run build && node --test --test-concurrency=1 apps/addin/test/*.test.js apps/addin/test/*.test.mjs
+        run: npm --workspace apps/addin run build && node --test --test-concurrency=1 apps/addin/test/*.test.js
+
+      - name: Add-in ES module tests
+        run: node --test --test-concurrency=1 apps/addin/test/*.test.mjs
 
       - name: Sealed Vault Add-in build and tests
         env:

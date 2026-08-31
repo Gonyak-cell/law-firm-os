@@ -251,8 +251,9 @@ test("AMIC Vault HTTP export provider performs strict authorize, bounded downloa
     assert.equal(call.init.headers["accept-encoding"], "identity");
     assert.equal(call.body.lawos_matter_id, "matter_lawos_test");
   }
-  assert.equal(JSON.stringify(provider).includes(TOKEN), false);
-  assert.equal(JSON.stringify(provider).includes(ORIGIN), false);
+  assert.deepEqual(JSON.parse(JSON.stringify(provider)), {
+    authority_kind: provider.authority_kind,
+  });
 });
 
 test("AMIC Vault HTTP export provider rejects redirects, malformed metadata, oversize bodies, and timeout without credential disclosure", async () => {
