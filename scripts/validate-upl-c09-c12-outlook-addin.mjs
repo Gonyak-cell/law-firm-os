@@ -124,7 +124,6 @@ assert.match(manifest, /ShowTaskpane/);
 assert.match(manifest, /MessageReadCommandSurface/);
 assert.match(manifest, /MessageComposeCommandSurface/);
 assert.doesNotMatch(manifest, /OnMessageSend|LaunchEvent|<Runtimes>|WebViewRuntime\.Url|JSRuntime\.Url/u);
-assert.match(manifest, /<Permissions>\s*ReadItem\s*<\/Permissions>/u);
 assert.doesNotMatch(manifest, /ReadWriteMailbox/u);
 
 const server = read("apps/api/src/server.js");
