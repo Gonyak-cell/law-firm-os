@@ -13,12 +13,16 @@ const defaultContractPath = "contracts/outlook-m365-canary-manifest-set.json";
 const releaseContractPath = "contracts/outlook-addin-release-gates.json";
 const PRODUCT_ID = "8f3cc90d-56dd-4c1c-b9c2-0a1100500101";
 const INQUIRY_PRODUCT_ID = "952431be-51b8-42a2-9bf6-769a15934e85";
+const CLASSIC_OUTLOOK_PROG_ID = "AMIC.OS.Vault.Outlook";
+const CLASSIC_OUTLOOK_EQUIVALENT_ADDINS = [
+  `VersionOverridesV1_1:${CLASSIC_OUTLOOK_PROG_ID}:COM`,
+];
 const ARTIFACT_VERSION = "1.3.0.3";
 const PRIOR_KNOWN_MANIFEST_VERSION = "1.3.0.1";
 const TASKPANE_MANIFEST_VERSION = "1.3.0.2";
 const CANDIDATE_MANIFEST_VERSION = "1.3.0.3";
 const ROLLBACK_MANIFEST_VERSION = "1.3.0.4";
-const TASKPANE_SEMANTIC_SHA256 = "d1040be810b92308e1f7080b87d3a7d3bb88b96ff80d042586b3b266a439cd52";
+const TASKPANE_SEMANTIC_SHA256 = "68dcee70e318b4c7c14b90f5aef687c8633c3ba7a78642fa8cc6bb8c43dfbdc9";
 const PINNED_V11_TASKPANES = [
   "VersionOverridesV1_1:MessageComposeCommandSurface:ShowTaskpane:true",
   "VersionOverridesV1_1:MessageReadCommandSurface:ShowTaskpane:true",
@@ -228,6 +232,8 @@ function validateTaskpaneOnlyManifest(manifest, label) {
     "MessageReadCommandSurface", "MessageReadCommandSurface",
   ], `${label} extension points`);
   exact(manifest.launch_events, [], `${label} launch events`);
+  exact(manifest.equivalent_addins, CLASSIC_OUTLOOK_EQUIVALENT_ADDINS, `${label} equivalent add-in`);
+  exact(manifest.equivalent_addin_effects, [], `${label} equivalent add-in effects`);
   exact(manifest.semantic_manifest_sha256, TASKPANE_SEMANTIC_SHA256, `${label} semantic capabilities`);
   exact(manifest.supports_pinning, PINNED_V11_TASKPANES, `${label} pinned taskpanes`);
   exact(manifest.url_resources, [
@@ -248,6 +254,7 @@ function validateManifestSemantics(
     "product_id", "provider_name", "display_name", "description", "permission",
     "mailbox_versions", "top_level_hosts", "override_host_types", "version_override_types",
     "form_types", "rule_fingerprints", "rule_collection_modes", "requested_heights",
+    "equivalent_addins", "equivalent_addin_effects",
     "disable_entity_highlighting", "action_types", "office_tab_ids", "group_ids",
     "control_fingerprints", "string_resources", "image_resources", "form_source_locations",
     "icon_url", "high_resolution_icon_url", "support_url", "app_domains",
@@ -276,7 +283,9 @@ function validateManifestSemantics(
     "MessageReadCommandSurface", "MessageReadCommandSurface",
   ], "rollback taskpane-only extension points");
   exact(rollback.launch_events, [], "rollback taskpane-only launch events");
-  exact(rollback.semantic_manifest_sha256, "2a3a0c41baac81e64bd414f9b53dee828aff8624414103077a2849100e25c411", "rollback taskpane-only semantic capabilities");
+  exact(rollback.equivalent_addins, CLASSIC_OUTLOOK_EQUIVALENT_ADDINS, "rollback taskpane-only equivalent add-in");
+  exact(rollback.equivalent_addin_effects, [], "rollback taskpane-only equivalent add-in effects");
+  exact(rollback.semantic_manifest_sha256, "74686413fd795369790e9b2b3efe7c1eb49e0401feb5a317d7814a1a4506e11b", "rollback taskpane-only semantic capabilities");
   exact(rollback.supports_pinning, [], "rollback pinned taskpanes");
   exact(rollback.url_resources, [
     `Commands.Url=${COMMANDS}`, `Commands.Url=${COMMANDS}`,
@@ -288,6 +297,8 @@ function validateManifestSemantics(
     }
     exact(manifest.version_override_types, ["VersionOverridesV1_0"], `inquiry-only ${label} VersionOverrides`);
     exact(manifest.launch_events, [], `inquiry-only ${label} launch events`);
+    exact(manifest.equivalent_addins, [], `inquiry-only ${label} equivalent add-in`);
+    exact(manifest.equivalent_addin_effects, [], `inquiry-only ${label} equivalent add-in effects`);
     exact(manifest.supports_pinning, [], `inquiry-only ${label} pinned taskpanes`);
   }
   exact(contract.stages[0].launch_events, taskpane.launch_events, "taskpane stage event binding");

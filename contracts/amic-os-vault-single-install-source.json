@@ -56,6 +56,17 @@
     "installer_may_mutate_m365_assignment": false,
     "officejs_deployment_owner": "m365_admin",
     "classic_and_officejs_cohort_intersection_required": 0,
+    "classic_native_registry_prog_id": "AMIC.OS.Vault.Outlook",
+    "officejs_equivalent_addin_manifest_paths": [
+      "apps/addin/manifest.xml",
+      "apps/addin/manifest.production.xml",
+      "apps/addin/manifest.canary.taskpane.production.xml",
+      "apps/addin/manifest.canary.rollback.production.xml"
+    ],
+    "officejs_non_equivalent_manifest_paths": [
+      "apps/addin/manifest.inquiry.xml",
+      "apps/addin/manifest.inquiry.production.xml"
+    ],
     "vault_provider_credentials_are_server_side": true
   },
   "forbidden_user_visible_surfaces": [

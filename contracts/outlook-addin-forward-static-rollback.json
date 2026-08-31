@@ -14,8 +14,8 @@
     "product_id": "8f3cc90d-56dd-4c1c-b9c2-0a1100500101",
     "manifest_path": "apps/addin/manifest.canary.rollback.production.xml",
     "manifest_version": "1.3.0.4",
-    "manifest_sha256": "b725fdae04a7706632577aac529c61e1e9ed849dc0d1612f4cacd646c6e6a811",
-    "semantic_sha256": "2a3a0c41baac81e64bd414f9b53dee828aff8624414103077a2849100e25c411",
+    "manifest_sha256": "d43445dc16fab1e01e7d404468b3157792db2a22614e1124220ead9a976893f2",
+    "semantic_sha256": "74686413fd795369790e9b2b3efe7c1eb49e0401feb5a317d7814a1a4506e11b",
     "source_locations": [
       "https://d2mthcc8vp3cr2.cloudfront.net/addin/index.html"
     ],

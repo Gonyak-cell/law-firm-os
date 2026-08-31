@@ -106,6 +106,27 @@ export function parseOutlookManifest(xml) {
   const document = parseXml(xml);
   const root = document.documentElement;
   const elements = allElements(document);
+  const equivalentAddinContainers = elements.filter((node) => node.localName === "EquivalentAddins");
+  for (const container of equivalentAddinContainers) {
+    const versionOverrides = container.parentNode;
+    if (versionOverrides?.nodeType !== 1
+        || versionOverrides.localName !== "VersionOverrides"
+        || xsiType(versionOverrides) !== "VersionOverridesV1_1") {
+      throw new Error("EquivalentAddins must be a direct child of Mail VersionOverridesV1_1");
+    }
+    if (elementChildren(versionOverrides).at(-1) !== container) {
+      throw new Error("EquivalentAddins must be the last child of VersionOverridesV1_1");
+    }
+  }
+  for (const equivalentAddin of elements.filter((node) => node.localName === "EquivalentAddin")) {
+    if (equivalentAddin.parentNode?.nodeType !== 1
+        || equivalentAddin.parentNode.localName !== "EquivalentAddins") {
+      throw new Error("EquivalentAddin must be a direct child of EquivalentAddins");
+    }
+    if (elementChildren(equivalentAddin).map((node) => node.localName).join(",") !== "ProgId,Type") {
+      throw new Error("EquivalentAddin must contain ProgId then Type");
+    }
+  }
   const ruleElements = elements.filter((node) => node.localName === "Rule");
   const stringResources = resourceEntries(elements, "String");
   const urlResources = resourceEntries(elements, "Url");
@@ -167,6 +188,16 @@ export function parseOutlookManifest(xml) {
       requiredAttribute(node, "FunctionName"),
       requiredAttribute(node, "SendMode"),
     ].join(":"))),
+    equivalent_addins: sorted(elements
+      .filter((node) => node.localName === "EquivalentAddin")
+      .map((node) => [
+        xsiType(closestAncestor(node, "VersionOverrides")),
+        requiredText(node, "ProgId"),
+        requiredText(node, "Type"),
+      ].join(":"))),
+    equivalent_addin_effects: sorted(elements
+      .filter((node) => node.localName === "Effect" && closestAncestor(node, "EquivalentAddins"))
+      .map(text)),
     requested_heights: sorted(elements.filter((node) => node.localName === "RequestedHeight").map(text)),
     disable_entity_highlighting: requiredText(root, "DisableEntityHighlighting"),
     action_types: sorted(elements.filter((node) => node.localName === "Action").map((node) => xsiType(node))),

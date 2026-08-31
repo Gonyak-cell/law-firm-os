@@ -32,6 +32,8 @@
         "rule_collection_modes",
         "extension_points",
         "launch_events",
+        "equivalent_addins",
+        "equivalent_addin_effects",
         "requested_heights",
         "disable_entity_highlighting",
         "action_types",
@@ -58,6 +60,10 @@
           "MessageReadCommandSurface"
         ],
         "launch_events": [],
+        "equivalent_addins": [
+          "VersionOverridesV1_1:AMIC.OS.Vault.Outlook:COM"
+        ],
+        "equivalent_addin_effects": [],
         "requested_heights": ["450"],
         "disable_entity_highlighting": "false",
         "action_types": ["ShowTaskpane", "ShowTaskpane", "ShowTaskpane", "ShowTaskpane"],
@@ -120,7 +126,7 @@
       },
       "environment_fingerprints": {
         "local": {
-          "semantic_manifest_sha256": "431d567d6c49023277a3d769fdc8455349c8584ff7eb8617ec01db27ebadb4d4",
+          "semantic_manifest_sha256": "56d45c1af25a5ddfd5e03120db860ed418caf7cf25b2ea2a42fa91330e037b4e",
           "url_resources": [
             "Commands.Url=https://localhost:5186/index.html?commands=1",
             "Commands.Url=https://localhost:5186/index.html?commands=1",
@@ -142,7 +148,7 @@
           "app_domains": ["http://127.0.0.1:5186", "https://localhost:5186"]
         },
         "production": {
-          "semantic_manifest_sha256": "d1040be810b92308e1f7080b87d3a7d3bb88b96ff80d042586b3b266a439cd52",
+          "semantic_manifest_sha256": "68dcee70e318b4c7c14b90f5aef687c8633c3ba7a78642fa8cc6bb8c43dfbdc9",
           "url_resources": [
             "Commands.Url=https://d2mthcc8vp3cr2.cloudfront.net/addin/index.html?commands=1",
             "Commands.Url=https://d2mthcc8vp3cr2.cloudfront.net/addin/index.html?commands=1",
@@ -194,6 +200,8 @@
         "rule_collection_modes",
         "extension_points",
         "launch_events",
+        "equivalent_addins",
+        "equivalent_addin_effects",
         "requested_heights",
         "disable_entity_highlighting",
         "action_types",
@@ -215,6 +223,8 @@
         "rule_collection_modes": [],
         "extension_points": ["MessageReadCommandSurface"],
         "launch_events": [],
+        "equivalent_addins": [],
+        "equivalent_addin_effects": [],
         "requested_heights": ["450"],
         "disable_entity_highlighting": "false",
         "action_types": ["ShowTaskpane"],

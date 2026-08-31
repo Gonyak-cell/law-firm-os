@@ -191,6 +191,12 @@
           <bt:String id="TaskpaneButton.Tooltip" DefaultValue="AMIC OS 우측 패널을 엽니다." />
         </bt:LongStrings>
       </Resources>
+      <EquivalentAddins>
+        <EquivalentAddin>
+          <ProgId>AMIC.OS.Vault.Outlook</ProgId>
+          <Type>COM</Type>
+        </EquivalentAddin>
+      </EquivalentAddins>
     </VersionOverrides>
   </VersionOverrides>
 </OfficeApp>

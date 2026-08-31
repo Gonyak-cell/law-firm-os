@@ -36,6 +36,9 @@ test("single-install source gate records one AMIC OS product with Classic adapte
     classic_native_source_present: true,
     broker_source_present: true,
     installer_may_mutate_m365_assignment: false,
+    classic_and_officejs_cohort_intersection_required: 0,
+    classic_native_registry_prog_id: "AMIC.OS.Vault.Outlook",
+    officejs_equivalent_addin_manifest_count: 4,
     integrated_installer_verified: false,
     signed_artifact_verified: false,
     install_repair_upgrade_uninstall_verified: false,
@@ -101,6 +104,11 @@ test("single-install source gate rejects product, platform, deployment, uninstal
     {
       name: "installer mutates M365 assignment",
       mutate: (value) => { value.deployment_boundaries.installer_may_mutate_m365_assignment = true; },
+      expected: /deployment boundary drifted/iu,
+    },
+    {
+      name: "Classic native and Office.js ProgID contract diverges",
+      mutate: (value) => { value.deployment_boundaries.classic_native_registry_prog_id = "AMIC.OS.Wrong.Outlook"; },
       expected: /deployment boundary drifted/iu,
     },
     {

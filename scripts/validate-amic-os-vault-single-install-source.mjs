@@ -5,6 +5,7 @@ import { readFile, readdir } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { desktopReleaseChannelConfig } from "./lib/matter-desktop-provenance.mjs";
+import { parseOutlookManifest } from "./lib/outlook-manifest-projection.mjs";
 
 const scriptPath = fileURLToPath(import.meta.url);
 const defaultRepoRoot = path.resolve(path.dirname(scriptPath), "..");
@@ -31,6 +32,16 @@ const remotePreservationSet = Object.freeze([
   "outlook_drafts",
   "outlook_sent_mail",
   "recipient_copies",
+]);
+const expectedEquivalentManifestPaths = Object.freeze([
+  "apps/addin/manifest.xml",
+  "apps/addin/manifest.production.xml",
+  "apps/addin/manifest.canary.taskpane.production.xml",
+  "apps/addin/manifest.canary.rollback.production.xml",
+]);
+const expectedNonEquivalentManifestPaths = Object.freeze([
+  "apps/addin/manifest.inquiry.xml",
+  "apps/addin/manifest.inquiry.production.xml",
 ]);
 
 function fail(message) {
@@ -185,16 +196,30 @@ function validateContract(contract) {
 
   exactKeys(contract.deployment_boundaries, [
     "classic_and_officejs_cohort_intersection_required",
+    "classic_native_registry_prog_id",
     "installer_may_mutate_m365_assignment",
+    "officejs_equivalent_addin_manifest_paths",
     "officejs_deployment_owner",
+    "officejs_non_equivalent_manifest_paths",
     "vault_provider_credentials_are_server_side",
   ], "deployment boundaries");
   if (contract.deployment_boundaries.installer_may_mutate_m365_assignment !== false
       || contract.deployment_boundaries.officejs_deployment_owner !== "m365_admin"
       || contract.deployment_boundaries.classic_and_officejs_cohort_intersection_required !== 0
+      || contract.deployment_boundaries.classic_native_registry_prog_id !== "AMIC.OS.Vault.Outlook"
       || contract.deployment_boundaries.vault_provider_credentials_are_server_side !== true) {
     fail("deployment boundary drifted");
   }
+  exact(
+    contract.deployment_boundaries.officejs_equivalent_addin_manifest_paths,
+    expectedEquivalentManifestPaths,
+    "Office.js equivalent-addin manifest paths",
+  );
+  exact(
+    contract.deployment_boundaries.officejs_non_equivalent_manifest_paths,
+    expectedNonEquivalentManifestPaths,
+    "Office.js non-equivalent manifest paths",
+  );
 
   exact(contract.forbidden_user_visible_surfaces, expectedForbiddenSurfaces, "forbidden user-visible surfaces");
   exact(contract.forbidden_product_roots, expectedForbiddenRoots, "forbidden product roots");
@@ -415,6 +440,22 @@ export async function validateAmicOsVaultSingleInstallSource({
       || /\bHKLM\b|https?:\/\/|vault_documents|immutable_versions|audit_records/iu.test(installerNshSource)) {
     fail("Windows NSIS integration must register per-user and remove local components only");
   }
+  const progIdMatch = installerNshSource.match(/^!define AMIC_OUTLOOK_PROGID "([^"]+)"$/mu);
+  const installerProgId = progIdMatch?.[1];
+  if (installerProgId !== contract.deployment_boundaries.classic_native_registry_prog_id) {
+    fail("Classic Outlook installer ProgID differs from the deployment contract");
+  }
+  const expectedEquivalentAddin = [`VersionOverridesV1_1:${installerProgId}:COM`];
+  for (const manifestPath of contract.deployment_boundaries.officejs_equivalent_addin_manifest_paths) {
+    const manifest = parseOutlookManifest(await readFile(path.join(repoRoot, manifestPath), "utf8"));
+    exact(manifest.equivalent_addins, expectedEquivalentAddin, `${manifestPath} equivalent add-in`);
+    exact(manifest.equivalent_addin_effects, [], `${manifestPath} equivalent add-in effects`);
+  }
+  for (const manifestPath of contract.deployment_boundaries.officejs_non_equivalent_manifest_paths) {
+    const manifest = parseOutlookManifest(await readFile(path.join(repoRoot, manifestPath), "utf8"));
+    exact(manifest.equivalent_addins, [], `${manifestPath} equivalent add-in`);
+    exact(manifest.equivalent_addin_effects, [], `${manifestPath} equivalent add-in effects`);
+  }
   if (!nativeProjectSource.includes("<TargetFramework>net48</TargetFramework>")
       || /VSTO|SignAssembly|AssemblyOriginatorKeyFile/iu.test(nativeProjectSource)
       || !nativeAddInSource.includes("Microsoft.Outlook.Mail.Compose")
@@ -496,6 +537,9 @@ export async function validateAmicOsVaultSingleInstallSource({
     classic_native_source_present: nativeRootPresent,
     broker_source_present: windowsPackage.broker_source_present,
     installer_may_mutate_m365_assignment: false,
+    classic_and_officejs_cohort_intersection_required: 0,
+    classic_native_registry_prog_id: installerProgId,
+    officejs_equivalent_addin_manifest_count: expectedEquivalentManifestPaths.length,
     integrated_installer_verified: false,
     signed_artifact_verified: false,
     install_repair_upgrade_uninstall_verified: false,
