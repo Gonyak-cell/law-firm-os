@@ -94,6 +94,42 @@ test("메일·모드·발신 provenance를 합친 item context key는 결정적�
   );
 });
 
+test("작성 중 초안은 저장된 REST ID로만 컨텍스트를 고정하고 읽기 메일의 세 식별자 규칙은 유지한다", () => {
+  const draft = {
+    rest_message_id: "rest-draft-001",
+    graph_message_id: "rest-draft-001",
+    internet_message_id: null,
+    conversation_id: null,
+    mode: "compose",
+    provenance: "draft",
+  };
+  const draftContextKey = outlookItemContextKey({
+    item: draft,
+    mode: draft.mode,
+    provenance: draft.provenance,
+  });
+
+  assert.ok(draftContextKey);
+  assert.equal(outlookItemIdentityKey(draft), "",
+    "read-message identity must still require the full REST/internet/conversation tuple");
+  assert.equal(isSameOutlookItem(draft, { ...draft }), true);
+  assert.equal(isSameOutlookItem(draft, {
+    ...draft,
+    rest_message_id: "rest-draft-002",
+    graph_message_id: "rest-draft-002",
+  }), false);
+  assert.equal(isSameOutlookItem(draft, {
+    ...draft,
+    mode: "read",
+    provenance: "received",
+  }), false);
+  assert.equal(outlookItemContextKey({
+    item: { ...draft, rest_message_id: "" },
+    mode: "compose",
+    provenance: "draft",
+  }), "");
+});
+
 test("mutating action은 PII 본문 없이 불변 item/Matter/operation snapshot을 만든다", () => {
   const sourceItem = {
     ...item("001"),
