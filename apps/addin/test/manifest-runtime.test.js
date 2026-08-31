@@ -67,16 +67,14 @@ test("Matter command surfaces use one neutral task-pane opener", async () => {
 });
 
 test("Outlook task-pane documents and copy use the official AMIC OS name", async () => {
-  const [taskPaneHtml, eventRuntimeHtml, mainSource, authSource, httpSource] = await Promise.all([
+  const [taskPaneHtml, mainSource, authSource, httpSource] = await Promise.all([
     read("apps/addin/index.html"),
-    read("apps/addin/public/event-runtime.html"),
     read("apps/addin/src/main.jsx"),
     read("apps/addin/src/addin-auth.js"),
     read("apps/addin/src/addin-http.js"),
   ]);
 
   assert.match(taskPaneHtml, /<title>AMIC OS<\/title>/u);
-  assert.match(eventRuntimeHtml, /<title>AMIC OS<\/title>/u);
   assert.match(mainSource, /actionLabel:\s*"AMIC OS 로그인"/u);
   assert.match(mainSource, /AMIC OS 로그인이 필요합니다\./u);
   assert.doesNotMatch(mainSource, /AMIC OS에 로그인되어 있습니다\./u);
@@ -85,7 +83,6 @@ test("Outlook task-pane documents and copy use the official AMIC OS name", async
 
   for (const [name, source] of [
     ["task pane HTML", taskPaneHtml],
-    ["event runtime HTML", eventRuntimeHtml],
     ["task pane copy", mainSource],
     ["authentication copy", authSource],
     ["HTTP copy", httpSource],
@@ -138,21 +135,14 @@ test("production manifest points Taskpane and Commands at the /addin bundle", as
   );
 });
 
-test("production build and runtime-config entry points are present", async () => {
+test("production build and runtime-config entry points are present without an automatic-send bundle", async () => {
   const viteConfig = await read("apps/addin/vite.config.js");
-  const eventViteConfig = await read("apps/addin/vite.event.config.js");
-  const eventEntrySource = await read("apps/addin/src/outlook-event-entry.js");
-  const eventRuntimeSource = await read("apps/addin/src/outlook-event-runtime.js");
+  const packageJson = JSON.parse(await read("apps/addin/package.json"));
   const authSource = await read("apps/addin/src/addin-auth.js");
   const sessionAuthSource = await read("apps/api/src/session-auth.js");
 
   assert.match(viteConfig, /base:\s*mode\s*===\s*"production"\s*\?\s*"\/addin\/"\s*:\s*"\/"/u);
-  assert.match(eventViteConfig, /formats:\s*\["iife"\]/u);
-  assert.match(eventViteConfig, /fileName:\s*\(\)\s*=>\s*"event-runtime\.js"/u);
-  assert.match(eventEntrySource, /createOutlookEventRuntime\(\)/u);
-  assert.match(eventEntrySource, /runtime\.register\(\)/u);
-  assert.doesNotMatch(eventEntrySource, /Office\.onReady\s*\(/u);
-  assert.match(eventRuntimeSource, /icon:\s*"Icon\.16x16"/u);
+  assert.doesNotMatch(packageJson.scripts.build, /vite\.event|outlook-event-runtime-artifact|event-runtime/u);
   assert.match(authSource, /DEFAULT_OAUTH_START_PATH\s*=\s*"\/addin\/oauth-start\.html"/u);
   assert.match(authSource, /\/api\/auth\/office-sso\/config/u);
   assert.match(sessionAuthSource, /GET\s+\/api\/auth\/office-sso\/config/u);
@@ -163,14 +153,19 @@ test("production build and runtime-config entry points are present", async () =>
     "apps/addin/public/oauth-start.js",
     "apps/addin/public/oauth-callback.html",
     "apps/addin/public/oauth-callback.js",
-    "apps/addin/public/event-runtime.html",
-    "apps/addin/public/event-runtime.js",
     "apps/addin/public/amic-law-icon.png",
     "apps/addin/public/amic-law-logo.svg",
     "apps/addin/public/.well-known/microsoft-officeaddins-allowed.json",
     "apps/web/public/.well-known/microsoft-officeaddins-allowed.json",
   ]) {
     await access(path.join(repoRoot, relativePath), constants.R_OK);
+  }
+  for (const relativePath of [
+    "apps/addin/public/event-runtime.html",
+    "apps/addin/public/event-runtime.js",
+    "apps/addin/vite.event.config.js",
+  ]) {
+    await assert.rejects(access(path.join(repoRoot, relativePath), constants.R_OK), { code: "ENOENT" });
   }
 });
 
@@ -183,21 +178,17 @@ test("Matter filing header ships the canonical AMIC Law wordmark byte-for-byte",
   assert.deepEqual(addinLogo, canonical);
 });
 
-test("classic Outlook runtime URLs are explicitly allowed at each host root", async () => {
+test("automatic-send JavaScript runtimes are not allowed at either host root", async () => {
   const [local, production] = await Promise.all([
     read("apps/addin/public/.well-known/microsoft-officeaddins-allowed.json"),
     read("apps/web/public/.well-known/microsoft-officeaddins-allowed.json"),
   ]);
 
-  assert.deepEqual(JSON.parse(local), {
-    allowed: ["https://localhost:5186/event-runtime.js"],
-  });
-  assert.deepEqual(JSON.parse(production), {
-    allowed: ["https://d2mthcc8vp3cr2.cloudfront.net/addin/event-runtime.js"],
-  });
+  assert.deepEqual(JSON.parse(local), { allowed: [] });
+  assert.deepEqual(JSON.parse(production), { allowed: [] });
 });
 
-test("task pane delegates OAuth, filing, activity, and send-event orchestration to the tested runtime helpers", async () => {
+test("task pane delegates explicit OAuth, filing, and activity orchestration without a send handler", async () => {
   const mainSource = await read("apps/addin/src/main.jsx");
 
   assert.match(mainSource, /import\s*\{[\s\S]*?openOfficeOAuthDialog[\s\S]*?\}\s*from\s*"\.\/addin-auth\.js"/u);
@@ -210,8 +201,7 @@ test("task pane delegates OAuth, filing, activity, and send-event orchestration 
   assert.match(mainSource, /await\s+fileOutlookEmail\(\{[\s\S]*?mode:\s*"sent"/u);
   assert.match(mainSource, /loadOutlookMatterActivity\(\{\s*matterId,\s*requestJson\s*\}\)/u);
   assert.doesNotMatch(mainSource, /await\s+refreshMatter\(nextMatterId\)/u);
-  assert.match(mainSource, /handleOutlookMessageSend\(\{[\s\S]*?readMessage:\s*\(options\)\s*=>\s*readOutlookComposeMessage\(\{/u);
-  assert.match(mainSource, /registerOutlookSendHandler\(\{\s*Office:\s*window\.Office,\s*handler:\s*onMessageSendHandler,?\s*\}\)/u);
+  assert.doesNotMatch(mainSource, /handleOutlookMessageSend|registerOutlookSendHandler|onMessageSendHandler/u);
   assert.match(mainSource, /const initialItem = currentOfficeItemSnapshot\(\);[\s\S]*?setItem\(initialItem\);[\s\S]*?subscribeToOutlookItemChanges\(\{/u);
   assert.match(mainSource, /subscribeToOutlookItemChanges\(\{[\s\S]*?setItem\(nextItem\)[\s\S]*?resetItemActionResults\(\)/u);
   assert.match(mainSource, /resetItemActionResults\(\)[\s\S]*?setAttachmentResult\(null\)/u);
@@ -221,7 +211,6 @@ test("task pane delegates OAuth, filing, activity, and send-event orchestration 
   assert.match(mainSource, /isOutlookActionContextCurrent\(\{[\s\S]*?sourceMatterId:\s*matterId,[\s\S]*?currentMatterId:\s*selectedMatterIdRef\.current/u);
   assert.doesNotMatch(mainSource, /saveOutlookAttachments\(/u);
   assert.match(mainSource, /fetchAddinApi\(\{[\s\S]*?timeoutMs,[\s\S]*?fetchImpl:\s*window\.fetch\.bind\(window\)/u);
-  assert.match(mainSource, /icon:\s*"Icon\.16x16"/u);
   assert.match(mainSource, /startOfficeTaskPane\(\{/u);
   assert.doesNotMatch(mainSource, /window\.confirm/u);
   assert.doesNotMatch(mainSource, /data-testid="outlook-disconnect-confirmation"/u);
@@ -236,6 +225,6 @@ test("task pane delegates OAuth, filing, activity, and send-event orchestration 
   assert.match(mainSource, /requestJson\("\/api\/outlook\/readiness"\)/u);
   assert.match(mainSource, /data-testid=\{intervention\.testId\}/u);
   assert.ok(mainSource.includes('render: () => createRoot(document.getElementById("root")).render(<App />)'), "task pane must delegate the first render");
-  assert.match(mainSource, /waitForReady:\s*ensureOfficeReady,[\s\S]*?register:\s*registerOutlookEventHandlersOnce/u);
+  assert.match(mainSource, /waitForReady:\s*ensureOfficeReady,[\s\S]*?register:\s*registerOutlookCommandBridgeOnce/u);
   assert.doesNotMatch(mainSource, /async\s+function\s+mount\s*\([^)]*\)\s*\{[\s\S]*?await\s+(?:window\.Office\.onReady|ensureOfficeReady)/u);
 });

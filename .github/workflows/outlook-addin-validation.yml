@@ -140,7 +140,23 @@ jobs:
           echo "$pg_bin" >> "$GITHUB_PATH"
 
       - name: Add-in tests
-        run: npm --workspace apps/addin run build && node --test --test-concurrency=1 apps/addin/test/*.test.js
+        run: npm --workspace apps/addin run build && node --test --test-concurrency=1 apps/addin/test/*.test.js apps/addin/test/*.test.mjs
+
+      - name: Sealed Vault Add-in build and tests
+        env:
+          LAWOS_OUTLOOK_ADDIN_BUILD_REVISION: amic-os-vault-${{ github.sha }}
+          LAWOS_OUTLOOK_VAULT_ATTACH_ENABLED: "1"
+          LAWOS_OUTLOOK_VAULT_SOURCE_SAVE_ENABLED: "1"
+        run: |
+          npm --workspace apps/addin run build
+          node --test --test-concurrency=1 \
+            apps/addin/test/outlook-matter-rail.test.js \
+            apps/addin/test/outlook-profile-build-artifact.mjs \
+            apps/addin/test/outlook-surface-profile.test.js \
+            apps/addin/test/outlook-vault-attachment-picker-main-browser.test.js \
+            apps/addin/test/outlook-vault-compose-attachment.test.mjs \
+            apps/addin/test/outlook-vault-source-actions.test.mjs \
+            apps/addin/test/outlook-vault-source-save-main-browser.test.js
 
       - name: Release gate unit tests
         run: node --test scripts/test/outlook-release-*.test.mjs
@@ -249,7 +265,6 @@ jobs:
         run: |
           npx --yes office-addin-manifest@2.1.6 validate apps/addin/manifest.xml
           npx --yes office-addin-manifest@2.1.6 validate apps/addin/manifest.canary.taskpane.production.xml
-          npx --yes office-addin-manifest@2.1.6 validate apps/addin/manifest.canary.smart-alerts.production.xml
           npx --yes office-addin-manifest@2.1.6 validate apps/addin/manifest.production.xml
           npx --yes office-addin-manifest@2.1.6 validate apps/addin/manifest.canary.rollback.production.xml
           npx --yes office-addin-manifest@2.1.6 validate apps/addin/manifest.inquiry.xml

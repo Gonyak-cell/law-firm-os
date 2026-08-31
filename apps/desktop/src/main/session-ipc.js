@@ -125,6 +125,7 @@ export function registerSessionIpcHandlers({
     path === OUTLOOK_CONNECTION_COMPLETE_ROUTE
     || /^\/api\/desktop\/installations(?:\/|$|\?)/u.test(path)
     || /^\/api\/outlook\/readiness(?:\?|$)/u.test(path)
+    || /^\/api\/vault\/desktop\/(?:upload-preflight|upload|export-preflight|export-authorize|export-download|export-complete)(?:\?|$)/u.test(path)
   );
   const api = (payload) => mainOnlyOutlookPath(payload?.path)
     ? {

@@ -38,6 +38,65 @@ test("session status omits token bodies while secure store retains main-process 
   assert.equal(secureStore.snapshot().token_set.refresh_token, "refresh_secret");
 });
 
+test("explicit login clears the prior account cache before persisting the new session", async () => {
+  const secureStore = memorySecureStore();
+  const order = [];
+  await secureStore.set("session_token", "prior-session");
+  const coordinator = new MainProcessAuthCoordinator({
+    secureStore,
+    cacheStores: [{
+      async clear() {
+        order.push("cache-clear");
+      },
+    }],
+    runtimeClient: {
+      async login() {
+        order.push("runtime-login");
+        return {
+          ok: true,
+          session_token: "new-session",
+          session: { state: "signed_in", email: "new@example.com" },
+        };
+      },
+    },
+  });
+
+  const result = await coordinator.login({ email: "new@example.com", password: "secret" });
+
+  assert.deepEqual(order, ["cache-clear", "runtime-login"]);
+  assert.equal(secureStore.snapshot().session_token, "new-session");
+  assert.equal(result.session.email, "new@example.com");
+  assert.equal(JSON.stringify(result).includes("new-session"), false);
+});
+
+test("explicit login fails closed before authentication when local preview cleanup fails", async () => {
+  const secureStore = memorySecureStore();
+  let runtimeLoginCount = 0;
+  const coordinator = new MainProcessAuthCoordinator({
+    secureStore,
+    cacheStores: [{
+      async clear() {
+        throw new Error("preview cleanup failed");
+      },
+    }],
+    runtimeClient: {
+      async login() {
+        runtimeLoginCount += 1;
+        return { ok: true };
+      },
+    },
+  });
+
+  const result = await coordinator.login({ email: "new@example.com", password: "secret" });
+
+  assert.equal(runtimeLoginCount, 0);
+  assert.deepEqual(secureStore.snapshot(), {});
+  assert.equal(result.ok, false);
+  assert.equal(result.reason, "local_session_cleanup_failed");
+  assert.equal(result.session.state, "signed_out");
+  assert.equal(JSON.stringify(result).includes("preview cleanup failed"), false);
+});
+
 test("logout clears secure store and registered cache stores", async () => {
   const secureStore = memorySecureStore();
   const apiCache = fakeCache();

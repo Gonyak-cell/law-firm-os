@@ -74,6 +74,8 @@ export function inspectCanonicalMacBundle({
   const infoPlist = readFileSync(infoPlistPath, "utf8");
   assert.equal(plistString(infoPlist, "CFBundleIdentifier"), manifest.app_id, "Info.plist app ID mismatch");
   assert.equal(plistString(infoPlist, "CFBundleShortVersionString"), manifest.version, "Info.plist version mismatch");
+  assert.equal(plistString(infoPlist, "CFBundleDisplayName"), channel.macDisplayName, "Info.plist display name mismatch");
+  assert.equal(plistString(infoPlist, "CFBundleName"), "matter", "Info.plist runtime name mismatch");
   assert.equal(plistString(infoPlist, "CFBundleExecutable"), "matter", "Info.plist executable mismatch");
 
   const renderer = directoryDigest(rendererPath);
@@ -131,11 +133,11 @@ export function parseMatterProcessTable(source, { resolveExecutable } = {}) {
       if (!match) return [];
       const pid = Number(match[1]);
       const command = match[2];
-      const hinted = command.includes("matter.app/Contents/MacOS/matter");
+      const hinted = command.includes(".app/Contents/MacOS/matter");
       const processExecutable = hinted && resolveExecutable
         ? resolveExecutable(pid, command)
         : command;
-      const executableMatch = processExecutable?.match(/^(.+?matter\.app\/Contents\/MacOS\/matter)$/);
+      const executableMatch = processExecutable?.match(/^(.+?\.app\/Contents\/MacOS\/matter)$/);
       return [{
         pid,
         command,

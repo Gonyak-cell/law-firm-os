@@ -78,6 +78,12 @@ import {
   derivePrecedentAuthorityKeys,
 } from "../../../packages/dms/src/search/postgres-precedent-repository.js";
 import { POSTGRES_DMS_CONSUMER_READ_AUTHORITY } from "../../../packages/dms/src/postgres-consumer-storage.js";
+import {
+  OUTLOOK_VAULT_ATTACHMENT_AUTHORIZE_PATH,
+  OUTLOOK_VAULT_ATTACHMENT_COMPLETE_PATH,
+  OUTLOOK_VAULT_ATTACHMENT_DELIVERY_PREFIX,
+} from "./outlook-vault-attachment-delivery-runtime.js";
+import { createVaultOperationOwner } from "./vault-operation-owner.js";
 
 const PRODUCT_DOMAINS = Object.freeze([
   Object.freeze({ key: "masterDataRepository", descriptor: MASTER_DATA_DOMAIN_DESCRIPTOR, create_repository: createMasterDataRepository }),
@@ -168,12 +174,26 @@ function isIntakeEngagementApproval(method, pathname) {
 const OUTLOOK_EMAIL_CORRECTION_MUTATION_PATH = "/api/outlook/email/corrections";
 const OUTLOOK_IDEMPOTENT_MUTATION_PATHS = new Set([
   "/api/outlook/email/file",
+  "/api/outlook/vault/email/save",
+  "/api/outlook/vault/sent/save",
   "/api/outlook/sent/file",
   "/api/outlook/attachments/save",
+  "/api/outlook/vault/attachments/save",
+  "/api/outlook/vault/source/status",
+  OUTLOOK_VAULT_ATTACHMENT_AUTHORIZE_PATH,
+  OUTLOOK_VAULT_ATTACHMENT_COMPLETE_PATH,
   "/api/outlook/followups",
   "/api/outlook/time-entry-drafts",
   "/api/outlook/messages/identity",
   "/api/outlook/operation-receipts/readback",
+]);
+const DESKTOP_VAULT_IDEMPOTENT_MUTATION_PATHS = new Set([
+  "/api/vault/desktop/upload-preflight",
+  "/api/vault/desktop/upload",
+  "/api/vault/desktop/upload-status",
+  "/api/vault/desktop/export-preflight",
+  "/api/vault/desktop/export-authorize",
+  "/api/vault/desktop/export-complete",
 ]);
 
 export function isOutlookIdempotentMutation(method, pathname) {
@@ -182,6 +202,12 @@ export function isOutlookIdempotentMutation(method, pathname) {
     requestPath === OUTLOOK_EMAIL_CORRECTION_MUTATION_PATH
     || OUTLOOK_IDEMPOTENT_MUTATION_PATHS.has(requestPath.replace(/\/+$/u, "") || "/")
   );
+}
+
+export function isDesktopVaultIdempotentMutation(method, pathname) {
+  const requestPath = String(pathname ?? "").replace(/\/+$/u, "") || "/";
+  return String(method ?? "").toUpperCase() === "POST"
+    && DESKTOP_VAULT_IDEMPOTENT_MUTATION_PATHS.has(requestPath);
 }
 
 export function isRetryablePostgresReadConflict(error, method, {
@@ -195,6 +221,10 @@ export function isRetryablePostgresReadConflict(error, method, {
     && (String(pathname ?? "").replace(/\/+$/u, "") || "/")
       === CLIENT_OUTLOOK_HTTPS_CALLBACK_PATH
   ) return false;
+  if (normalizedMethod === "GET"
+      && String(pathname ?? "").startsWith(OUTLOOK_VAULT_ATTACHMENT_DELIVERY_PREFIX)) {
+    return false;
+  }
   return (["GET", "HEAD"].includes(normalizedMethod)
       || (
         allowIdempotentWriteRetry
@@ -378,6 +408,7 @@ function createRequestRuntimes({
   outlookStateAuthority,
   outlookOauthPort,
   offboardingAccessSource,
+  vaultOperationOwner,
 } = {}) {
   const operationalPeopleOutlook =
     typeof peopleOutlookRuntimeFactory === "function"
@@ -436,6 +467,7 @@ function createRequestRuntimes({
     authority: "postgres-v2",
     upload_runtime: dmsUploadRuntime,
     precedent_search_runtime: precedentSearchRuntime,
+    operation_owner: vaultOperationOwner,
   });
   const emailDmsRuntime = Object.freeze({
     authority: "postgres-v2",
@@ -462,6 +494,7 @@ function createRequestRuntimes({
   });
   const matterRuntime = createMatterRuntimeContext({
     repository: repositories.matterRepository,
+    repositoryAuthority: "postgres-v2",
     dmsRuntime,
     hrxRuntime,
     ...(identityUserDirectory ? { userDirectory: identityUserDirectory } : {}),
@@ -556,9 +589,15 @@ export function createPostgresApiRuntimeAuthority({
   precedentAuthoritySecret = null,
   identityRepository = null,
   requireDmsConsumerReadAuthority = false,
+  vaultOperationOwner = null,
 } = {}) {
   if (!ledger || typeof ledger.transactionMany !== "function") {
     throw new TypeError("PostgreSQL domain ledger is required");
+  }
+  const resolvedVaultOperationOwner = vaultOperationOwner
+    ?? createVaultOperationOwner();
+  if (typeof resolvedVaultOperationOwner?.run !== "function") {
+    throw new TypeError("PostgreSQL API authority requires a Vault operation owner");
   }
   if (!dmsStorage || typeof dmsStorage.stageObject !== "function") {
     throw new TypeError("DMS provider storage is required for PostgreSQL API authority");
@@ -667,7 +706,8 @@ export function createPostgresApiRuntimeAuthority({
       || peopleOutlookSelfCompletion
       || intakeEngagementSelfCompletion
       || isPeopleOutlookDisconnect(method, request_context?.pathname)
-      || isOutlookIdempotentMutation(method, request_context?.pathname);
+      || isOutlookIdempotentMutation(method, request_context?.pathname)
+      || isDesktopVaultIdempotentMutation(method, request_context?.pathname);
     return runPostgresReadWithBaselineRetry({
       method,
       pathname: request_context?.pathname,
@@ -764,6 +804,7 @@ export function createPostgresApiRuntimeAuthority({
               outlookStateAuthority,
               outlookOauthPort,
               offboardingAccessSource,
+              vaultOperationOwner: resolvedVaultOperationOwner,
             })),
           });
           return productCommand.result;

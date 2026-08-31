@@ -69,6 +69,7 @@ export const MATTER_API_ERROR_CODES = Object.freeze({
 export const VAULT_BRIDGE_TOKEN_HEADER = "x-lawos-vault-bridge-token";
 export const MATTER_VAULT_BRIDGE_ROUTES = Object.freeze(new Set([
   "GET /api/matters/vault-bridge/status",
+  "GET /api/matters/vault-bridge/canonical-snapshot",
   "GET /api/matters/vault-bridge/matter-lookup",
   "POST /api/matters/vault-bridge/upload-preflight",
   "POST /api/matters/vault-bridge/clients/upsert",
@@ -128,6 +129,7 @@ export const MATTER_BOUNDED_CONTEXT = Object.freeze({
     "PATCH /api/matters/:matter_id",
     "POST /api/matters/openings",
     "GET /api/matters/vault-bridge/status",
+    "GET /api/matters/vault-bridge/canonical-snapshot",
     "GET /api/matters/vault-bridge/matter-lookup",
     "POST /api/matters/vault-bridge/upload-preflight",
     "POST /api/matters/vault-bridge/clients/upsert",
@@ -580,6 +582,7 @@ function createSideEffectAdapter(prefix) {
 
 export function createMatterRuntimeContext({
   repository = createMatterRepository({ seedRecords: MATTER_RUNTIME_SEED.records }),
+  repositoryAuthority = repository?.durable === true ? "durable-file" : "memory",
   hrxRuntime = null,
   employeeDirectory = hrxRuntime ? createHrxEmployeeDirectory(hrxRuntime) : defaultEmployeeDirectory(),
   employeeUserLinkDirectory = hrxRuntime
@@ -596,6 +599,7 @@ export function createMatterRuntimeContext({
 } = {}) {
   const runtime = {
     repository,
+    repositoryAuthority,
     employeeDirectory,
     employeeUserLinkDirectory,
     userDirectory,
@@ -762,7 +766,8 @@ function handleVaultBridgeStatus({ headers, requestId, runtime = DEFAULT_MATTER_
         client_upsert_path: "/api/matters/vault-bridge/clients/upsert",
         matter_upsert_path: "/api/matters/vault-bridge/matters/upsert",
         runtime_write_ready: true,
-        repository_durable: runtime.repository?.durable === true,
+        repository_durable:
+          runtime.repository?.durable === true || runtime.repositoryAuthority === "postgres-v2",
         bridge_enabled: controls.enabled === true,
         allowed_tenant_count: controls.allowedTenantIds.length,
         service_actor_id: controls.serviceActorId,
@@ -773,6 +778,84 @@ function handleVaultBridgeStatus({ headers, requestId, runtime = DEFAULT_MATTER_
       state_idempotent: true,
       count_leak_prevented: true,
       production_ready_claim: false,
+    },
+  };
+}
+
+function sourceTimestamp(records) {
+  const timestamps = records
+    .flatMap((record) => [record.updated_at, record.created_at])
+    .map((value) => Date.parse(value ?? ""))
+    .filter(Number.isFinite);
+  return new Date(timestamps.length > 0 ? Math.max(...timestamps) : Date.parse("2026-07-01T00:00:00+09:00"))
+    .toISOString();
+}
+
+function handleVaultBridgeCanonicalSnapshot({ headers, requestId, runtime = DEFAULT_MATTER_RUNTIME } = {}) {
+  const tenantId = MATTER_VAULT_REGISTERED_TENANT_ID;
+  const authError = validateVaultBridgeAuth({ headers, requestId, tenantId });
+  if (authError) return authError;
+
+  const clients = runtime.repository
+    .list({ tenant_id: tenantId, model_type: "MatterClient" })
+    .filter(isCurrentMatterInventoryRecord)
+    .sort((left, right) => String(left.client_id).localeCompare(String(right.client_id), "en"));
+  const clientsById = new Map(clients.map((client) => [client.client_id, client]));
+  const matters = visibleMatterRecords(runtime.repository.list({ tenant_id: tenantId, model_type: "Matter" }))
+    .filter(isCurrentMatterInventoryRecord)
+    .sort((left, right) => String(left.matter_id).localeCompare(String(right.matter_id), "en"));
+  const axisCounts = matters.reduce((counts, matter) => {
+    const axis = matter.practice_group ?? matter.matter_type_english ?? "";
+    if (axis) counts[axis] = (counts[axis] ?? 0) + 1;
+    return counts;
+  }, {});
+  const records = [...clients, ...matters];
+
+  return {
+    status: 200,
+    headers: { "cache-control": "no-store" },
+    body: {
+      source_revision: AMIC_CURRENT_MATTER_CODE_SOURCE_REVISION,
+      generated_at: sourceTimestamp(records),
+      client_count: clients.length,
+      matter_count: matters.length,
+      axis_counts: axisCounts,
+      clients: clients.map((client) => ({
+        client_id: client.client_id,
+        client_display_name: client.client_display_name ?? client.display_name ?? client.client_short_name,
+        client_short_name: client.client_short_name ?? client.client_display_name ?? client.display_name,
+        canonical_display_name: client.client_display_name ?? client.display_name ?? client.client_short_name,
+        source_lanes: Array.isArray(client.source_lanes) ? client.source_lanes : [],
+        source_revision: client.source_revision,
+      })),
+      matters: matters.map((matter) => {
+        const client = clientsById.get(matter.client_id);
+        return {
+          matter_id: matter.matter_id,
+          tenant_id: tenantId,
+          client_id: matter.client_id,
+          client_display_name:
+            matter.client_display_name ?? client?.client_display_name ?? client?.display_name ?? null,
+          client_short_name:
+            client?.client_short_name ?? client?.client_display_name ?? client?.display_name ?? null,
+          matter_code: matter.matter_code,
+          matter_number: matter.matter_number ?? null,
+          matter_name: matter.matter_name ?? matter.title ?? matter.matter_code,
+          title: matter.title ?? matter.matter_name ?? matter.matter_code,
+          matter_axis: matter.practice_group ?? matter.matter_type_english,
+          matter_litigation_axis: matter.matter_litigation_axis ?? null,
+          matter_type_english: matter.matter_type_english ?? matter.practice_group,
+          matter_detail_type_korean: matter.matter_detail_type_korean,
+          source_lane: matter.source_lane ?? null,
+          source_ref: matter.source_ref ?? null,
+          client_case_role: matter.client_case_role ?? null,
+          client_case_role_confidence: matter.client_case_role_confidence ?? null,
+          source_revision: matter.source_revision,
+          status: matter.status,
+          confidence: matter.confidence ?? null,
+          review_required: matter.review_required === true,
+        };
+      }),
     },
   };
 }
@@ -4091,6 +4174,9 @@ export async function handleMatterApiRequest({
 } = {}) {
   if (pathname === "/api/matters/vault-bridge/status" && method === "GET") {
     return handleVaultBridgeStatus({ headers, requestId, runtime });
+  }
+  if (pathname === "/api/matters/vault-bridge/canonical-snapshot" && method === "GET") {
+    return handleVaultBridgeCanonicalSnapshot({ headers, requestId, runtime });
   }
   if (pathname === "/api/matters/vault-bridge/matter-lookup" && method === "GET") {
     return handleVaultBridgeMatterLookup({ query, headers, context, requestId, runtime });

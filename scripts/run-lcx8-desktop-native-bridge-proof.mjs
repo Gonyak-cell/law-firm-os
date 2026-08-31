@@ -73,17 +73,20 @@ const tempPreviewMain = read("apps/desktop/src/main/tempPreview.js");
 
 assertIncludes(mainSource, "desktopPreloadPath()", "main");
 assertIncludes(mainSource, "../preload/session.cjs", "main");
-assertIncludes(mainSource, "fileBridgeExposed: false", "desktopSkeletonStatus");
+assertIncludes(mainSource, "fileBridgeExposed: true", "desktopSkeletonStatus");
 assertIncludes(windowSource, "contextIsolation: true", "window options");
 assertIncludes(windowSource, "sandbox: true", "window options");
 assertIncludes(sessionPreload, "contextBridge.exposeInMainWorld(\"matterSession\"", "session preload");
 assertNotIncludes(sessionPreload, "materFileBridge", "session preload");
+assertIncludes(sessionPreload, "contextBridge.exposeInMainWorld(\"amicFileBridge\"", "session preload");
 assertNotIncludes(sessionPreload, "materRuntime", "session preload");
-assertIncludes(fileBridgePreload, "contextBridge.exposeInMainWorld(\"materFileBridge\"", "file bridge preload");
+assertIncludes(fileBridgePreload, "contextBridge.exposeInMainWorld(\"amicFileBridge\"", "file bridge preload");
 assertIncludes(fileBridgeMain, "registerFileBridgeIpcHandlers", "file bridge main");
 assertIncludes(tempPreviewMain, "createTempPreviewManager", "temp preview main");
-assertNotIncludes(mainSource, "registerFileBridgeIpcHandlers", "main active shell");
-assertNotIncludes(mainSource, "createTempPreviewManager", "main active shell");
+assertIncludes(mainSource, "registerFileBridgeIpcHandlers", "main active shell");
+assertIncludes(mainSource, "createTempPreviewManager", "main active shell");
+assertIncludes(sessionPreload, "openDocumentPreview", "session preload");
+assertIncludes(fileBridgeMain, "openDocumentPreview", "file bridge main");
 
 const fileBridgeTest = runCommand("npm", ["--workspace", "apps/desktop", "run", "test:file-bridge"]);
 const smokeTest = runCommand("npm", ["--workspace", "apps/desktop", "run", "test:smoke"]);
@@ -98,29 +101,29 @@ const rowProofs = [
     id: "LCX8-ACTION-0247",
     status_decision: "BLOCKED remains BLOCKED / Lane B",
     proof_type: "source_and_desktop_smoke",
-    observed: "Active shell loads session.cjs and exposes matterSession only; no materRuntime/matterRuntime bridge exposure is active.",
+    observed: "Active shell loads session.cjs and exposes matterSession plus the bounded amicFileBridge; no materRuntime/matterRuntime bridge exposure is active.",
     missing_runtime_receipt: "active runtime preload exposure or product shell integration for materRuntime.context"
   },
   {
     id: "LCX8-ACTION-0256",
-    status_decision: "BLOCKED remains BLOCKED / Lane B",
+    status_decision: "ACTIVE source/test / hosted and packaged-host receipt still gated",
     proof_type: "source_and_file_bridge_tests",
-    observed: "File bridge choose-file implementation and preload tests pass, but active shell does not load fileBridge.js or register fileBridge IPC handlers.",
-    missing_runtime_receipt: "visible shell trigger plus active preload/IPC integration for choose file upload"
+    observed: "Active preload, trusted IPC, and Vault upload panel expose server-preflight-bound native selection with five-minute main-memory-only handle retention.",
+    missing_runtime_receipt: "hosted provider preflight plus packaged OS-dialog and upload receipt"
   },
   {
     id: "LCX8-ACTION-0257",
-    status_decision: "BLOCKED remains BLOCKED / Lane B",
+    status_decision: "ACTIVE source/test / hosted and packaged-host receipt still gated",
     proof_type: "source_and_file_bridge_tests",
-    observed: "Save-as implementation and tests pass, but active shell does not load fileBridge.js or register fileBridge IPC handlers.",
-    missing_runtime_receipt: "visible shell trigger plus active preload/IPC integration for save document as"
+    observed: "Save-as uses the active trusted IPC allowlist, exact-version provider, local hash verification, atomic writer, and Vault delivery acknowledgement.",
+    missing_runtime_receipt: "hosted Vault export provider plus packaged OS-dialog and exact-version receipt"
   },
   {
     id: "LCX8-ACTION-0261",
-    status_decision: "BLOCKED remains BLOCKED / Lane B",
+    status_decision: "ACTIVE source/test / real-host receipt still gated",
     proof_type: "source_and_temp_preview_tests",
-    observed: "Temp preview manager and cleanup tests pass, but active shell has no visible trigger, preload method, or IPC registration.",
-    missing_runtime_receipt: "visible shell trigger plus active native bridge integration for temp preview"
+    observed: "Vault detail exposes an explicit preview action through active preload and trusted IPC; exact bytes are hash-checked, opened from protected temp, and lifecycle-cleaned.",
+    missing_runtime_receipt: "hosted Vault export provider plus packaged default-app open and cleanup receipt"
   }
 ];
 
@@ -129,24 +132,24 @@ const proof = {
   generated_at: generatedAt,
   result: "PASS",
   action_ids: ROW_IDS,
-  status_decision: "BLOCKED remains BLOCKED / Lane B",
+  status_decision: "PARTIAL / active source bridge and product triggers; hosted and packaged-host gates remain",
   assertions: {
-    passed: 12,
+    passed: 14,
     failed: 0
   },
   source_observations: {
     active_preload: "apps/desktop/src/preload/session.cjs",
     active_window_options: "contextIsolation=true; sandbox=true; nodeIntegration=false",
-    active_exposed_api: "matterSession",
-    inactive_bridge_preload: "apps/desktop/src/preload/fileBridge.js exposes materFileBridge but is not loaded by startDesktopShell",
-    inactive_temp_preview: "apps/desktop/src/main/tempPreview.js manager exists but is not registered in active shell"
+    active_exposed_api: "matterSession + amicFileBridge",
+    active_bridge_preload: "apps/desktop/src/preload/session.cjs exposes amicFileBridge and startDesktopShell registers trusted fileBridge IPC",
+    active_temp_preview: "apps/desktop/src/main/tempPreview.js is registered in the active shell and exposed only through trusted explicit-action IPC"
   },
   tests: [fileBridgeTest, smokeTest],
   rowProofs,
   non_claims: [
     "desktop unit/contract proof only",
-    "no active file bridge preload loaded in product shell",
-    "no visible product trigger for choose file, save as, or temp preview",
+    "no hosted Vault export-provider receipt is claimed",
+    "no packaged-host upload, save-as, or temp-preview receipt is claimed",
     "no OS-level file dialog receipt from the packaged desktop app",
     "no production-ready, public release, or go-live claim"
   ]
@@ -158,7 +161,7 @@ writeFileSync(PROOF_MD, `${[
   "# LCX8 Desktop Native Bridge Proof",
   "",
   "- Result: PASS for proof execution",
-  "- Status decision: BLOCKED remains BLOCKED / Lane B",
+  "- Status decision: PARTIAL / active bounded file bridge; transport and product triggers remain gated",
   `- Generated: ${generatedAt}`,
   "",
   "## Commands",

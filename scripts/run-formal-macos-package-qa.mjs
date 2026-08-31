@@ -33,7 +33,7 @@ const PACKAGED_APP_ROOT = path.join(RESOURCES, "app");
 const RENDERER_ROOT = path.join(PACKAGED_APP_ROOT, "src/renderer/web");
 const RENDERER_INDEX = path.join(RENDERER_ROOT, "index.html");
 const FORMAL_MARKER = path.join(RESOURCES, "matter-formal-release.json");
-const BUNDLED_API_ENTRY = path.join(PACKAGED_APP_ROOT, "runtime/apps/api/src/server.js");
+const PACKAGED_LOCAL_RUNTIME = path.join(PACKAGED_APP_ROOT, "runtime");
 const MAC_MANIFEST_PATH = path.join(ROOT, `apps/desktop/dist/mac/matter-${DESKTOP_VERSION}-macos-build-manifest.json`);
 const PACKAGED_MANIFEST_PATH = path.join(RESOURCES, "matter-build-manifest.json");
 const WINDOWS_MANIFEST_PATH = path.join(ROOT, `apps/desktop/dist/win/matter-${DESKTOP_VERSION}-win-build-manifest.json`);
@@ -201,7 +201,7 @@ if (REQUIRE_WINDOWS_PARITY) requiredPaths.push(WINDOWS_MANIFEST_PATH, WINDOWS_RE
 for (const requiredPath of requiredPaths) {
   assert.equal(existsSync(requiredPath), true, `missing QA prerequisite: ${path.relative(ROOT, requiredPath)}`);
 }
-assert.equal(existsSync(BUNDLED_API_ENTRY), false, "formal package must not bundle the local API runtime");
+assert.equal(existsSync(PACKAGED_LOCAL_RUNTIME), false, "formal package must not bundle the local API runtime tree");
 assert.ok(account?.email && account?.local_dev?.synthetic_token);
 
 const macManifest = readJson(MAC_MANIFEST_PATH);

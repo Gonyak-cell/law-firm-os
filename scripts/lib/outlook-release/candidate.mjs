@@ -83,10 +83,9 @@ export function validateReleaseCandidateReceipt(receipt, contract, context) {
     bundleHashes.add(artifact.bundle_sha256);
   }
   if (bundleHashes.size !== 2) throw new Error("release candidate task-pane bundles must remain independent");
-  assertExactKeys(receipt.event_runtime, ["byte_size", "path", "sha256"], "release candidate event runtime");
   const eventRuntime = build.inventory.find(({ path: file }) => file === "event-runtime.js");
-  if (JSON.stringify(receipt.event_runtime) !== JSON.stringify(eventRuntime)) {
-    throw new Error("release candidate event runtime binding drifted");
+  if (receipt.event_runtime !== null || eventRuntime !== undefined) {
+    throw new Error("release candidate must not contain an automatic-send event runtime");
   }
   assertExactKeys(receipt.manifest_validation, ["manifests", "official_validation_count", "validator"], "manifest validation receipt");
   if (receipt.manifest_validation.validator !== "office-addin-manifest@2.1.6"

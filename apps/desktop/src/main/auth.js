@@ -25,7 +25,16 @@ const RENDERER_FORBIDDEN_FIELDS = new Set([
 ]);
 
 const ENCRYPTED_SECURE_STORE_SCHEMA_VERSION = "law-firm-os.desktop-secure-store.v1";
-const PERSISTED_SECURE_STORE_KEYS = new Set(["session_token", "session_snapshot"]);
+const PERSISTED_SECURE_STORE_KEYS = new Set([
+  "session_token",
+  "session_snapshot",
+  "pending_vault_uploads",
+]);
+const PENDING_VAULT_UPLOAD_SCHEMA = "law-firm-os.desktop-vault-upload-pending.v1";
+const PENDING_VAULT_UPLOAD_LIMIT = 32;
+const VAULT_UPLOAD_OPERATION_ID = /^vaultop_[a-f0-9]{32}$/u;
+const VAULT_UPLOAD_SHA256 = /^[a-f0-9]{64}$/u;
+const VAULT_UPLOAD_MIME_TYPE = /^[A-Za-z0-9!#$&^_.+-]+\/[A-Za-z0-9!#$&^_.+-]+$/u;
 const TERMINAL_SESSION_RESTORE_SAFE_ERROR_CODES = new Set([
   "AUTH_SESSION_INVALID",
   "AUTH_SESSION_EXPIRED",
@@ -261,6 +270,62 @@ export function sanitizeRendererPayload(value) {
   return sanitized;
 }
 
+function normalizePendingVaultUpload(value = {}, now = Date.now) {
+  const operationId = value.operationId ?? value.operation_id;
+  const expected = value.expected ?? {};
+  const sha256 = expected.sha256;
+  const byteSize = Number(expected.byteSize ?? expected.byte_size);
+  const mimeType = typeof (expected.mimeType ?? expected.mime_type) === "string"
+    ? (expected.mimeType ?? expected.mime_type).trim().toLowerCase()
+    : "";
+  if (!VAULT_UPLOAD_OPERATION_ID.test(operationId ?? "")
+      || !VAULT_UPLOAD_SHA256.test(sha256 ?? "")
+      || !Number.isSafeInteger(byteSize)
+      || byteSize < 1
+      || !VAULT_UPLOAD_MIME_TYPE.test(mimeType)) {
+    throw new TypeError("Pending Vault upload binding is invalid");
+  }
+  const createdAt = Number(value.createdAt ?? value.created_at ?? now());
+  const updatedAt = Number(value.updatedAt ?? value.updated_at ?? now());
+  if (!Number.isSafeInteger(createdAt) || createdAt < 0
+      || !Number.isSafeInteger(updatedAt) || updatedAt < createdAt) {
+    throw new TypeError("Pending Vault upload timestamps are invalid");
+  }
+  return Object.freeze({
+    schema_version: PENDING_VAULT_UPLOAD_SCHEMA,
+    operation_id: operationId,
+    expected: Object.freeze({
+      sha256,
+      byte_size: byteSize,
+      mime_type: mimeType,
+    }),
+    created_at: createdAt,
+    updated_at: updatedAt,
+    raw_path_included: false,
+    raw_bytes_included: false,
+    filename_included: false,
+  });
+}
+
+function validPendingVaultUploads(value, now) {
+  const entries = Array.isArray(value) ? value : [];
+  const valid = [];
+  for (const entry of entries) {
+    try {
+      if (entry?.schema_version !== PENDING_VAULT_UPLOAD_SCHEMA
+          || entry?.raw_path_included !== false
+          || entry?.raw_bytes_included !== false
+          || entry?.filename_included !== false) continue;
+      valid.push(normalizePendingVaultUpload(entry, now));
+    } catch {
+      // Corrupt or obsolete entries are ignored instead of being sent to the runtime.
+    }
+  }
+  return valid
+    .sort((left, right) => right.updated_at - left.updated_at)
+    .slice(0, PENDING_VAULT_UPLOAD_LIMIT);
+}
+
 export class MainProcessAuthCoordinator {
   #pending = null;
   #session = { state: "signed_out" };
@@ -325,6 +390,15 @@ export class MainProcessAuthCoordinator {
     if (state !== this.#pending.state) throw new Error("Auth callback state mismatch");
     if (!code) throw new Error("Auth callback code is required");
 
+    const localCleanup = await wipeSessionCaches({
+      secureStore: this.#secureStore,
+      cacheStores: this.#cacheStores,
+    });
+    if (!localCleanup.ok) {
+      const error = new Error("Local session cache cleanup failed");
+      error.code = "LOCAL_SESSION_CLEANUP_FAILED";
+      throw error;
+    }
     await this.#secureStore.set("token_set", {
       ...tokenSet,
       pkce_verifier: this.#pending.pkce.verifier
@@ -377,6 +451,23 @@ export class MainProcessAuthCoordinator {
   async login(input = {}) {
     const email = typeof input === "string" ? input : input.email;
     const password = typeof input === "string" ? undefined : input.password;
+    const localCleanup = await wipeSessionCaches({
+      secureStore: this.#secureStore,
+      cacheStores: this.#cacheStores,
+    });
+    if (!localCleanup.ok) {
+      this.#stopOutlookLifecycle("login_local_cleanup_failed");
+      this.#session = {
+        state: "signed_out",
+        reason: "local_session_cleanup_failed",
+      };
+      return {
+        ok: false,
+        reason: "local_session_cleanup_failed",
+        session: this.sessionStatus(),
+        token_material_returned: false,
+      };
+    }
     const rawResponse = await this.#runtimeClient?.login?.({ email, password });
     if (rawResponse?.ok && typeof rawResponse.session_token === "string" && rawResponse.session_token) {
       await this.#secureStore.set("session_token", rawResponse.session_token);
@@ -564,6 +655,151 @@ export class MainProcessAuthCoordinator {
         http_status: 0,
         token_material_returned: false
       }
+    );
+  }
+
+  async precheckVaultUpload(input = {}) {
+    const sessionToken = await this.#secureStore.get("session_token");
+    const response = await this.#runtimeClient?.precheckVaultUpload?.({
+      matterId: input.matterId,
+      workspaceId: input.workspaceId ?? null,
+      folderId: input.folderId ?? null,
+      sessionToken,
+    });
+    return sanitizeRendererPayload(
+      response ?? {
+        ok: false,
+        reason: "runtime_client_not_configured",
+        http_status: 0,
+        token_material_returned: false,
+      },
+    );
+  }
+
+  async uploadVaultFile(input = {}) {
+    const sessionToken = await this.#secureStore.get("session_token");
+    const response = await this.#runtimeClient?.uploadVaultFile?.({
+      stream: input.stream,
+      openStream: input.openStream,
+      assertUnchanged: input.assertUnchanged,
+      file: input.file,
+      operationId: input.operationId,
+      sessionToken,
+    });
+    return sanitizeRendererPayload(
+      response ?? {
+        ok: false,
+        reason: "runtime_client_not_configured",
+        http_status: 0,
+        token_material_returned: false,
+      },
+    );
+  }
+
+  async continueVaultUpload(input = {}) {
+    const sessionToken = await this.#secureStore.get("session_token");
+    const response = await this.#runtimeClient?.continueVaultUpload?.({
+      operationId: input.operationId,
+      expected: input.expected,
+      sessionToken,
+    });
+    return sanitizeRendererPayload(
+      response ?? {
+        ok: false,
+        reason: "runtime_client_not_configured",
+        http_status: 0,
+        token_material_returned: false,
+      },
+    );
+  }
+
+  async rememberPendingVaultUpload(input = {}) {
+    const next = normalizePendingVaultUpload(input, this.#now);
+    const current = validPendingVaultUploads(
+      await this.#secureStore.get("pending_vault_uploads"),
+      this.#now,
+    ).filter((entry) => entry.operation_id !== next.operation_id);
+    const entries = [next, ...current].slice(0, PENDING_VAULT_UPLOAD_LIMIT);
+    await this.#secureStore.set("pending_vault_uploads", entries);
+    return next;
+  }
+
+  async pendingVaultUploads() {
+    const entries = validPendingVaultUploads(
+      await this.#secureStore.get("pending_vault_uploads"),
+      this.#now,
+    );
+    return Object.freeze(entries);
+  }
+
+  async forgetPendingVaultUpload(input = {}) {
+    const operationId = input.operationId ?? input.operation_id;
+    if (!VAULT_UPLOAD_OPERATION_ID.test(operationId ?? "")) {
+      throw new TypeError("Pending Vault upload operation ID is invalid");
+    }
+    const current = validPendingVaultUploads(
+      await this.#secureStore.get("pending_vault_uploads"),
+      this.#now,
+    );
+    const entries = current.filter((entry) => entry.operation_id !== operationId);
+    if (entries.length === 0) await this.#secureStore.delete("pending_vault_uploads");
+    else await this.#secureStore.set("pending_vault_uploads", entries);
+    return Object.freeze({ forgotten: entries.length !== current.length, operation_id: operationId });
+  }
+
+  async precheckVaultExport(input = {}) {
+    const sessionToken = await this.#secureStore.get("session_token");
+    const response = await this.#runtimeClient?.precheckVaultExport?.({
+      matterId: input.matterId,
+      exactVersion: input.exactVersion,
+      sessionToken,
+    });
+    return sanitizeRendererPayload(
+      response ?? {
+        ok: false,
+        reason: "runtime_client_not_configured",
+        http_status: 0,
+        token_material_returned: false,
+      },
+    );
+  }
+
+  async downloadVaultExactVersion(input = {}) {
+    const sessionToken = await this.#secureStore.get("session_token");
+    if (typeof this.#runtimeClient?.downloadVaultExactVersion !== "function") {
+      const error = new Error("Desktop Vault exact export runtime is not configured");
+      error.code = "VAULT_EXPORT_RUNTIME_UNAVAILABLE";
+      throw error;
+    }
+    return this.#runtimeClient.downloadVaultExactVersion({
+      matterId: input.matterId,
+      exactVersion: input.exactVersion,
+      operationKind: input.operationKind,
+      requestNonceSha256: input.requestNonceSha256,
+      installationRefSha256: input.installationRefSha256,
+      composeTargetSha256: input.composeTargetSha256,
+      sessionToken,
+    });
+  }
+
+  async completeVaultExport(input = {}) {
+    const sessionToken = await this.#secureStore.get("session_token");
+    const response = await this.#runtimeClient?.completeVaultExport?.({
+      operationId: input.operationId,
+      exactVersion: input.exactVersion,
+      operationKind: input.operationKind,
+      completionStage: input.completionStage,
+      installationRefSha256: input.installationRefSha256,
+      composeTargetSha256: input.composeTargetSha256,
+      sessionToken,
+    });
+    return sanitizeRendererPayload(
+      response ?? {
+        ok: false,
+        reason: "runtime_client_not_configured",
+        http_status: 0,
+        token_material_returned: false,
+      },
     );
   }
 

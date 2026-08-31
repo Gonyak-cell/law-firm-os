@@ -1,6 +1,6 @@
 {
-  "schema_version": "law-firm-os.manual-qa.upl-c09-c12-outlook-addin.v1",
-  "generated_at": "2026-07-30T15:02:30.961Z",
+  "schema_version": "law-firm-os.manual-qa.upl-c09-c12-outlook-addin.v2",
+  "generated_at": "2026-08-28T08:57:41.755Z",
   "tuw_ids": [
     "UPL-C-09",
     "UPL-C-10",
@@ -8,11 +8,16 @@
     "UPL-C-12",
     "UPL-E-04"
   ],
-  "scope": "Outlook add-in task pane local browser proof with noninteractive MSAL bridge initialization, real API routes, DMS file storage, matter timeline readback, OnMessageSend handler completion, and warning-only Smart Alerts.",
-  "api_base": "http://127.0.0.1:51350",
-  "taskpane_url": "http://127.0.0.1:51351/?apiBase=http%3A%2F%2F127.0.0.1%3A51350&tenantId=tenant_upl_c09_c12_outlook&matterId=matter_upl_c09_c12_outlook&entraClientId=00000000-0000-0000-0000-000000000000&entraTenantId=organizations&msalScope=User.Read&msalScope=Mail.Read",
+  "scope": "Built Outlook add-in bundles with fixed matter-full and inquiry-only profiles, one portal overlay, signed local session, DMS-backed filing, and bounded item/Matter/session fences.",
+  "api_base": "http://127.0.0.1:55324",
+  "taskpane_url": "http://127.0.0.1:55325/addin/",
+  "inquiry_url": "http://127.0.0.1:55325/outlook-addin/",
+  "actual_outlook_proved": false,
+  "actual_windows_new_outlook_proved": false,
+  "actual_outlook_for_mac_proved": false,
   "e04_local_receipt": "artifacts/manual-qa/upl-e04-smart-alerts-local-proof-2026-07-03.json",
   "screenshot_path": "docs/lazycodex/evidence/matter-web/artifacts/upl-c09-c12-screenshots/taskpane-proof.png",
+  "inquiry_screenshot_path": "docs/lazycodex/evidence/matter-web/artifacts/upl-c09-c12-screenshots/inquiry-proof.png",
   "external_receipt_boundary": {
     "entra_admin_consent_receipt_present": false,
     "outlook_web_smoke_receipt_present": false,
@@ -26,73 +31,236 @@
     "initialized": true,
     "account_count": 0,
     "scopes": [
-      "User.Read",
-      "Mail.Read"
+      "api://upl-browser-proof-client/access_as_user"
     ],
+    "nested_app_auth": "1.1",
     "provider_runtime_executed": false,
     "graph_request_executed": false,
     "token_material_returned": false,
-    "production_write_claim": false
+    "production_ready_claim": false
+  },
+  "profile_probe": {
+    "matter_full": {
+      "profile": "matter-full",
+      "profileBinding": "matter-full",
+      "rail": [
+        "mail.save-with-attachments",
+        "matter.search",
+        "task.create",
+        "time-entry.draft",
+        "all-functions"
+      ],
+      "railAriaLabels": [
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "expectedRail": [
+        "mail.save-with-attachments",
+        "matter.search",
+        "task.create",
+        "time-entry.draft",
+        "all-functions"
+      ],
+      "shellCount": 1
+    },
+    "inquiry_only": {
+      "profile": "inquiry-only",
+      "profileBinding": "inquiry-only",
+      "rail": [
+        "inquiry.entry"
+      ],
+      "expectedRail": [
+        "inquiry.entry"
+      ],
+      "fullRailPresent": false
+    }
+  },
+  "overlay_probe": {
+    "matter_full": {
+      "overlayCount": 1,
+      "panelCount": 1,
+      "feature": "all-functions",
+      "actionRows": [
+        "conversation.auto-save",
+        "document.create-and-sign-status",
+        "filing.correct-placement",
+        "precedent.search",
+        "matter-readbacks"
+      ],
+      "staleCatalogActions": []
+    },
+    "inquiry_only": {
+      "layerCount": 1,
+      "panelCount": 1,
+      "inquiryOverlayCount": 1
+    }
+  },
+  "inquiry_evidence_probe": {
+    "pass": true,
+    "post_observation": {
+      "method": "POST",
+      "pathname": "/api/outlook/inquiries",
+      "status": 201,
+      "has_authorization_header": true,
+      "server_authorization_token_sha256": "b700f6e3c411125b1598ed2e1b470fa839d7ef96db325bee827381bd5def99b7",
+      "outcome": "registered",
+      "item_outcome": "registered",
+      "inquiry_email_evidence_id": "inquiry_email_evidence_9c2b1954a48b0fc0828ef87c2166f28b",
+      "lead_id": "lead_inquiry_73e4e26b2e4c2a14b28afd0849252f57",
+      "capture_status": "complete"
+    },
+    "repository": {
+      "evidence_count": 1,
+      "file_object_count": 2,
+      "evidence": {
+        "model_type": "InquiryEmailEvidence",
+        "tenant_id": "tenant_amic_matter_vault",
+        "inquiry_email_evidence_id": "inquiry_email_evidence_9c2b1954a48b0fc0828ef87c2166f28b",
+        "lead_id": "lead_inquiry_73e4e26b2e4c2a14b28afd0849252f57",
+        "capture_status": "complete",
+        "mime_file_object_id": "inquiry_evidence_file_9f834ac3c7798fcb1a32c6d7bb49898d",
+        "display_file_object_id": "inquiry_evidence_file_8b6754fdea43c7e9de0f15439f354505",
+        "mime_sha256": "b6e2f12d9c02f5c4e318f70fcf8f91a51f841981cc8c83ad60167dfb3ac48d97",
+        "mime_byte_size": 586
+      },
+      "file_objects": [
+        {
+          "model_type": "InquiryEvidenceFileObject",
+          "tenant_id": "tenant_amic_matter_vault",
+          "inquiry_evidence_file_object_id": "inquiry_evidence_file_9f834ac3c7798fcb1a32c6d7bb49898d",
+          "inquiry_email_evidence_id": "inquiry_email_evidence_9c2b1954a48b0fc0828ef87c2166f28b",
+          "object_kind": "original_mime",
+          "sha256": "b6e2f12d9c02f5c4e318f70fcf8f91a51f841981cc8c83ad60167dfb3ac48d97",
+          "byte_size": 586,
+          "mime_type": "message/rfc822",
+          "scan_status": "clean",
+          "immutable_original": true
+        },
+        {
+          "model_type": "InquiryEvidenceFileObject",
+          "tenant_id": "tenant_amic_matter_vault",
+          "inquiry_evidence_file_object_id": "inquiry_evidence_file_8b6754fdea43c7e9de0f15439f354505",
+          "inquiry_email_evidence_id": "inquiry_email_evidence_9c2b1954a48b0fc0828ef87c2166f28b",
+          "object_kind": "sanitized_display",
+          "sha256": "5c13b4b7baabcb9c34d4275043255cb96ada5444eaeee61bd519d8aa33e10894",
+          "byte_size": 207,
+          "mime_type": "text/plain; charset=utf-8",
+          "scan_status": "clean",
+          "immutable_original": false
+        }
+      ]
+    },
+    "storage_readback": {
+      "read_method": "readEvidenceContent",
+      "read_status": "ok",
+      "inquiry_email_evidence_id": "inquiry_email_evidence_9c2b1954a48b0fc0828ef87c2166f28b",
+      "object_kind": "original_mime",
+      "sha256": "b6e2f12d9c02f5c4e318f70fcf8f91a51f841981cc8c83ad60167dfb3ac48d97",
+      "byte_size": 586,
+      "mime_type": "message/rfc822",
+      "scan_status": "clean",
+      "expected_sha256": "b6e2f12d9c02f5c4e318f70fcf8f91a51f841981cc8c83ad60167dfb3ac48d97",
+      "expected_byte_size": 586,
+      "exact_bytes_match": true,
+      "raw_bytes_read": true,
+      "storage_pointer_ref_included": false
+    }
+  },
+  "fence_probe": {
+    "item": {
+      "held_requests": 2,
+      "current_item": "B",
+      "stale_body_visible": false,
+      "overlay_closed_after_item_change": true
+    },
+    "matter": {
+      "stale_matter_revalidation_blocked": true,
+      "server_revalidation_used_foreign_token": false,
+      "task_post_count_delta": 0,
+      "error_visible": true
+    },
+    "session": {
+      "held_requests": 1,
+      "logout_status": 200,
+      "stale_session_token_hash": "ad8f0d7fdee8b27e9c4e30a9f381563d9d9fbc8fbd9d9d07b861ce59969c53c1",
+      "revoked_session_status": null,
+      "revoked_session_validation_count": 0,
+      "stale_session_validation_count_before_401": 4,
+      "login_visible_after_protected_401": true,
+      "interactive_exchange_observed": true,
+      "current_session_token_hash": "8fd2d8ec131e87668c15b27368c2819c1fc7a7e191634f0be80452fda686d589",
+      "revoked_task_status": 401,
+      "current_session_status": 200,
+      "late_result_visible": false,
+      "late_task_persisted": false
+    }
+  },
+  "attachment_probe": {
+    "office_attachment_reads": [
+      "upl-c09-c12-attachment"
+    ],
+    "attachment_save_requests": 1,
+    "filing_replay_requests": 2
   },
   "snapshot": {
     "email_threads": [
       {
         "model_type": "DmsEmailThread",
-        "tenant_id": "tenant_upl_c09_c12_outlook",
+        "tenant_id": "tenant_amic_matter_vault",
         "matter_id": "matter_upl_c09_c12_outlook",
-        "email_thread_id": "thread:conversation-proof-outlook",
-        "email_id": "email:graph-proof-outlook-001",
-        "graph_message_id": "graph-proof-outlook-001",
-        "internet_message_id": "<proof-outlook-001@amic.law>",
-        "conversation_id": "conversation-proof-outlook",
-        "subject": "계약 검토 의견 및 첨부",
+        "email_thread_id": "thread:eacdcd29d59f81b0cd143b630d927ae7f91645fb1c49b16a1c35fc1b0b031a21",
+        "email_id": "email:immutable:rest-upl-c09-c12-proof",
+        "graph_message_id": "immutable:rest-upl-c09-c12-proof",
+        "canonical_graph_message_id": "immutable:rest-upl-c09-c12-proof",
+        "rest_message_id": "rest-upl-c09-c12-proof",
+        "internet_message_id": "<upl-c09-c12-proof@example.invalid>",
+        "conversation_id": "upl-c09-c12-conversation",
+        "item_key": "rest-upl-c09-c12-proof\u001f<upl-c09-c12-proof@example.invalid>\u001fupl-c09-c12-conversation",
+        "subject": "Outlook C09-C12 browser proof",
         "from": {
-          "display_name": "상대방 담당자",
-          "address_ref": "counsel@example.com",
-          "external": true
+          "display_name": "증명 발신자",
+          "address_ref": "sender@example.invalid",
+          "external": false
         },
         "to": [
           {
-            "display_name": "AMIC 변호사",
-            "address_ref": "lawyer@amic.law",
+            "display_name": "AMIC",
+            "address_ref": "lawyer@example.invalid",
             "external": false
           }
         ],
-        "cc": [
-          {
-            "display_name": "고객 담당자",
-            "address_ref": "client@example.com",
-            "external": true
-          }
-        ],
+        "cc": [],
         "bcc": [],
-        "body_ref": "sha256:d4ead8b03a5f7ada0e08dd1625dc269b10606f4af91fb36c7f6f6188c3cc6bff",
-        "sent_at": "2026-07-30T15:02:29.685Z",
-        "received_at": "2026-07-30T15:02:29.685Z",
-        "mailbox_ref": "mailbox:proof",
-        "account_ref": "account:outlook-proof",
+        "body_ref": "sha256:6bbc49e8b59f566052820f84c6d6ec43ba48b58785ee3f91cffd98766a9706cc",
+        "sent_at": "2026-08-10T01:00:00.000Z",
+        "received_at": "2026-08-10T01:00:00.000Z",
+        "mailbox_ref": "mailbox:officejs",
+        "account_ref": "lawyer@example.invalid",
         "attachment_metadata": [
           {
-            "attachment_id": "att-proof-contract",
-            "name": "계약검토의견.txt",
+            "attachment_id": "upl-c09-c12-attachment",
+            "name": "proof.txt",
             "content_type": "text/plain",
-            "size": 37,
+            "size": 22,
             "confidentiality": "confidential",
-            "sha256": "b3a8d4cb003c9a162d8dd7cb684d004652bfa6b7cfd9ef9b4b6579e2a50d3330",
-            "bytes_included": false
-          },
-          {
-            "attachment_id": "att-proof-reference",
-            "name": "참고자료.txt",
-            "content_type": "text/plain",
-            "size": 29,
-            "confidentiality": "internal",
-            "sha256": "d54ee5be3f4424852e3518198a67d2ccd73e06cfd69807266795e75e277b007d",
-            "bytes_included": false
+            "sha256": "1a5043217c290bd5e81d63bc8ea130b385f6ef804531b44e10030c595911fdca",
+            "bytes_included": false,
+            "source_provenance": {
+              "authority": "microsoft_graph_mime",
+              "sha256": "1a5043217c290bd5e81d63bc8ea130b385f6ef804531b44e10030c595911fdca",
+              "byte_size": 22,
+              "message_ref": "7c73b93fe8049fce6943d5af05c1655a00b5a86797e6f67d362ed9f1079d5af5",
+              "provider_request_ref": "1051c3df92265244803b45a814d37434a7f4fee4eddb45ae9be3f945febfb086",
+              "occurrence": 0,
+              "raw_bytes_included": false
+            }
           }
         ],
         "filing_user": "user_amic_jwsuh",
-        "filing_time": "2026-07-30T15:02:30.327Z",
+        "filing_time": "2026-08-28T08:57:39.243Z",
         "filing_mode": "manual",
         "confidentiality": "internal",
         "privilege": "undetermined",
@@ -102,8 +270,11 @@
         "field_contract": [
           "email_id",
           "graph_message_id",
+          "canonical_graph_message_id",
+          "rest_message_id",
           "internet_message_id",
           "conversation_id",
+          "item_key",
           "matter_id",
           "from",
           "to",
@@ -119,13 +290,15 @@
           "attachment_metadata",
           "filing_user"
         ],
-        "field_contract_count": 18,
+        "field_contract_count": 21,
         "status": "active",
         "message_ids": [
-          "graph-proof-outlook-001",
-          "<proof-outlook-001@amic.law>"
+          "immutable:rest-upl-c09-c12-proof",
+          "<upl-c09-c12-proof@example.invalid>"
         ],
-        "filed_document_ids": [],
+        "filed_document_ids": [
+          "doc:thread:eacdcd29d59f81b0cd143b630d927ae7f91645fb1c49b16a1c35fc1b0b031a21:original-mime:b6e2f12d9c02f5c4e318f70fcf8f91a51f841981cc8c83ad60167dfb3ac48d97"
+        ],
         "permission_envelope_id": "perm:email-dms",
         "audit_trace_id": "audit:email-dms",
         "credential_material_included": false,
@@ -141,35 +314,31 @@
         "exposes_extracted_text": false,
         "email_runtime_executed": false,
         "reserved_for_rp08": true,
-        "resource_id": "thread:conversation-proof-outlook",
-        "created_at": "2026-07-30T15:02:30.329Z",
-        "updated_at": "2026-07-30T15:02:30.329Z",
-        "body_preview_sha256": "d4ead8b03a5f7ada0e08dd1625dc269b10606f4af91fb36c7f6f6188c3cc6bff"
+        "resource_id": "thread:eacdcd29d59f81b0cd143b630d927ae7f91645fb1c49b16a1c35fc1b0b031a21",
+        "created_at": "2026-08-28T08:57:39.246Z",
+        "updated_at": "2026-08-28T08:57:39.309Z",
+        "body_preview_sha256": "6bbc49e8b59f566052820f84c6d6ec43ba48b58785ee3f91cffd98766a9706cc"
       }
     ],
     "documents": [
       {
-        "document_id": "doc:thread:conversation-proof-outlook:att-proof-contract",
+        "document_id": "doc:thread:eacdcd29d59f81b0cd143b630d927ae7f91645fb1c49b16a1c35fc1b0b031a21:original-mime:b6e2f12d9c02f5c4e318f70fcf8f91a51f841981cc8c83ad60167dfb3ac48d97",
         "matter_id": "matter_upl_c09_c12_outlook",
-        "title": "계약검토의견.txt",
+        "title": "Outlook C09-C12 browser proof.eml",
         "folder_id": "folder:matter_upl_c09_c12_outlook:00_Email",
-        "current_version_id": "version:doc:thread:conversation-proof-outlook:att-proof-contract:1",
-        "latest_sha256": "b3a8d4cb003c9a162d8dd7cb684d004652bfa6b7cfd9ef9b4b6579e2a50d3330",
-        "source_email_thread_id": "thread:conversation-proof-outlook",
-        "source_attachment_id": "att-proof-contract",
+        "current_version_id": "version:doc:thread:eacdcd29d59f81b0cd143b630d927ae7f91645fb1c49b16a1c35fc1b0b031a21:original-mime:b6e2f12d9c02f5c4e318f70fcf8f91a51f841981cc8c83ad60167dfb3ac48d97:1",
+        "latest_sha256": "b6e2f12d9c02f5c4e318f70fcf8f91a51f841981cc8c83ad60167dfb3ac48d97",
         "document_bytes_included": false,
         "storage_pointer_ref_included": false,
         "production_ready_claim": false
       },
       {
-        "document_id": "doc:thread:conversation-proof-outlook:att-proof-reference",
+        "document_id": "doc:thread:eacdcd29d59f81b0cd143b630d927ae7f91645fb1c49b16a1c35fc1b0b031a21:upl-c09-c12-attachment",
         "matter_id": "matter_upl_c09_c12_outlook",
-        "title": "참고자료.txt",
+        "title": "proof.txt",
         "folder_id": "folder:matter_upl_c09_c12_outlook:00_Email",
-        "current_version_id": "version:doc:thread:conversation-proof-outlook:att-proof-reference:1",
-        "latest_sha256": "d54ee5be3f4424852e3518198a67d2ccd73e06cfd69807266795e75e277b007d",
-        "source_email_thread_id": "thread:conversation-proof-outlook",
-        "source_attachment_id": "att-proof-reference",
+        "current_version_id": "version:doc:thread:eacdcd29d59f81b0cd143b630d927ae7f91645fb1c49b16a1c35fc1b0b031a21:upl-c09-c12-attachment:1",
+        "latest_sha256": "1a5043217c290bd5e81d63bc8ea130b385f6ef804531b44e10030c595911fdca",
         "document_bytes_included": false,
         "storage_pointer_ref_included": false,
         "production_ready_claim": false
@@ -177,40 +346,31 @@
     ],
     "timeline": [
       {
-        "event_id": "outlook.email.filed:tenant_upl_c09_c12_outlook:matter_upl_c09_c12_outlook:thread:conversation-proof-outlook",
-        "tenant_id": "tenant_upl_c09_c12_outlook",
+        "event_id": "outlook.attachment.saved:tenant_amic_matter_vault:matter_upl_c09_c12_outlook:doc:thread:eacdcd29d59f81b0cd143b630d927ae7f91645fb1c49b16a1c35fc1b0b031a21:upl-c09-c12-attachment",
+        "tenant_id": "tenant_amic_matter_vault",
         "matter_id": "matter_upl_c09_c12_outlook",
-        "occurred_at": "2026-07-30T15:02:30.327Z",
+        "occurred_at": "2026-08-28T08:57:39.380Z",
+        "type": "outlook.attachment.saved",
+        "title": "proof.txt",
+        "source_ref": "doc:thread:eacdcd29d59f81b0cd143b630d927ae7f91645fb1c49b16a1c35fc1b0b031a21:upl-c09-c12-attachment"
+      },
+      {
+        "event_id": "outlook.email.filed:tenant_amic_matter_vault:matter_upl_c09_c12_outlook:thread:eacdcd29d59f81b0cd143b630d927ae7f91645fb1c49b16a1c35fc1b0b031a21",
+        "tenant_id": "tenant_amic_matter_vault",
+        "matter_id": "matter_upl_c09_c12_outlook",
+        "occurred_at": "2026-08-28T08:57:39.243Z",
         "type": "outlook.email.filed",
-        "title": "계약 검토 의견 및 첨부",
-        "source_ref": "thread:conversation-proof-outlook"
+        "title": "Outlook C09-C12 browser proof",
+        "source_ref": "thread:eacdcd29d59f81b0cd143b630d927ae7f91645fb1c49b16a1c35fc1b0b031a21"
       },
       {
-        "event_id": "outlook.attachment.saved:tenant_upl_c09_c12_outlook:matter_upl_c09_c12_outlook:doc:thread:conversation-proof-outlook:att-proof-contract",
-        "tenant_id": "tenant_upl_c09_c12_outlook",
+        "event_id": "matter.timeline.activity:tenant_amic_matter_vault:matter_upl_c09_c12_outlook:outlook_task_dbe48d57a1b03a5e9427d042",
+        "tenant_id": "tenant_amic_matter_vault",
         "matter_id": "matter_upl_c09_c12_outlook",
-        "occurred_at": "2026-07-30T15:02:30.544Z",
-        "type": "outlook.attachment.saved",
-        "title": "계약검토의견.txt",
-        "source_ref": "doc:thread:conversation-proof-outlook:att-proof-contract"
-      },
-      {
-        "event_id": "outlook.attachment.saved:tenant_upl_c09_c12_outlook:matter_upl_c09_c12_outlook:doc:thread:conversation-proof-outlook:att-proof-reference",
-        "tenant_id": "tenant_upl_c09_c12_outlook",
-        "matter_id": "matter_upl_c09_c12_outlook",
-        "occurred_at": "2026-07-30T15:02:30.677Z",
-        "type": "outlook.attachment.saved",
-        "title": "참고자료.txt",
-        "source_ref": "doc:thread:conversation-proof-outlook:att-proof-reference"
-      },
-      {
-        "event_id": "matter.timeline.activity:tenant_upl_c09_c12_outlook:matter_upl_c09_c12_outlook:task_thread_conversation-proof-outlook",
-        "tenant_id": "tenant_upl_c09_c12_outlook",
-        "matter_id": "matter_upl_c09_c12_outlook",
-        "occurred_at": "2026-07-30T15:02:30.716Z",
+        "occurred_at": "2026-08-28T08:57:38.760Z",
         "type": "matter.activity.task",
-        "title": "메일 검토 후 후속 조치",
-        "source_ref": "task_thread_conversation-proof-outlook"
+        "title": "C09-C12 browser proof task",
+        "source_ref": "OutlookTask"
       }
     ],
     "folder_structure": [
@@ -225,8 +385,11 @@
     "email_object_field_contract": [
       "email_id",
       "graph_message_id",
+      "canonical_graph_message_id",
+      "rest_message_id",
       "internet_message_id",
       "conversation_id",
+      "item_key",
       "matter_id",
       "from",
       "to",
@@ -241,44 +404,677 @@
       "account_ref",
       "attachment_metadata",
       "filing_user"
+    ],
+    "time_entries": [
+      {
+        "time_entry_id": "time_outlook_774d6b49b471b864277735e8",
+        "tenant_id": "tenant_amic_matter_vault",
+        "matter_id": "matter_upl_c09_c12_outlook",
+        "role_id": "partner",
+        "work_date": "2026-08-28",
+        "narrative": "C09-C12 browser proof time entry",
+        "duration_minutes": 30,
+        "billable": true,
+        "status": "draft",
+        "approved_for_wip": false,
+        "source_ref": "OutlookMatter:b140ff6a3568a809a04b665a996cfd8f4bc9e2d8f375bab2274f6476edf07b20",
+        "model_type": "TimeEntry",
+        "actor_id": "user_amic_jwsuh",
+        "resource_id": "time_outlook_774d6b49b471b864277735e8",
+        "owner_module": "finance",
+        "created_at": "2026-08-28T08:57:38.999Z",
+        "updated_at": "2026-08-28T08:57:38.999Z",
+        "writes_product_state": true,
+        "creates_database_rows": true,
+        "updates_database_rows": false,
+        "deletes_database_rows": false,
+        "evaluates_runtime_permission": true,
+        "writes_audit_event": true,
+        "dispatches_finance_runtime": true,
+        "executes_api_handler": false,
+        "posts_gl_entries": false,
+        "g7_runtime_readiness_claim": "runtime_write_ready",
+        "production_ready_claim": false
+      }
     ]
   },
-  "handler_probe": {
-    "associated_actions": [
-      "onMessageSendHandler"
-    ],
-    "handler_available": true,
-    "completed_payload": {
-      "allowEvent": true
+  "automatic_send_probe": {
+    "associated_actions": [],
+    "handler_available": false,
+    "event_probe_present": false
+  },
+  "browser_request_observation": [
+    {
+      "method": "GET",
+      "pathname": "/api/outlook/connection",
+      "has_authorization_header": true,
+      "permission_context_header_sent": false,
+      "authorization_token_sha256": "ad8f0d7fdee8b27e9c4e30a9f381563d9d9fbc8fbd9d9d07b861ce59969c53c1",
+      "server_authorization_token_sha256": "ad8f0d7fdee8b27e9c4e30a9f381563d9d9fbc8fbd9d9d07b861ce59969c53c1",
+      "status": 200,
+      "held_before_server": false
     },
-    "probe": {
-      "msal_bridge": {
-        "configured": true,
-        "initialized": true,
-        "account_count": 0,
-        "scopes": [
-          "User.Read",
-          "Mail.Read"
-        ],
-        "provider_runtime_executed": false,
-        "graph_request_executed": false,
-        "token_material_returned": false,
-        "production_write_claim": false
-      },
-      "last_completion": {
-        "allowEvent": true,
-        "completed_at": "2026-07-30T15:02:30.770Z"
-      },
-      "last_send_handler_result": {
-        "outcome": "evaluated",
-        "warning_count": 0,
-        "send_blocked": false,
-        "provider_runtime_executed": false,
-        "allowEvent": true,
-        "raw_body_written": false,
-        "attachment_bytes_written": false
-      }
+    {
+      "method": "GET",
+      "pathname": "/api/outlook/readiness",
+      "has_authorization_header": true,
+      "permission_context_header_sent": false,
+      "authorization_token_sha256": "ad8f0d7fdee8b27e9c4e30a9f381563d9d9fbc8fbd9d9d07b861ce59969c53c1",
+      "server_authorization_token_sha256": "ad8f0d7fdee8b27e9c4e30a9f381563d9d9fbc8fbd9d9d07b861ce59969c53c1",
+      "status": 200,
+      "held_before_server": false
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/outlook/bootstrap",
+      "has_authorization_header": true,
+      "permission_context_header_sent": false,
+      "authorization_token_sha256": "ad8f0d7fdee8b27e9c4e30a9f381563d9d9fbc8fbd9d9d07b861ce59969c53c1",
+      "server_authorization_token_sha256": "ad8f0d7fdee8b27e9c4e30a9f381563d9d9fbc8fbd9d9d07b861ce59969c53c1",
+      "status": 200,
+      "held_before_server": false
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/outlook/matters",
+      "has_authorization_header": true,
+      "permission_context_header_sent": false,
+      "authorization_token_sha256": "ad8f0d7fdee8b27e9c4e30a9f381563d9d9fbc8fbd9d9d07b861ce59969c53c1",
+      "server_authorization_token_sha256": "ad8f0d7fdee8b27e9c4e30a9f381563d9d9fbc8fbd9d9d07b861ce59969c53c1",
+      "status": 200,
+      "held_before_server": false
+    },
+    {
+      "method": "POST",
+      "pathname": "/api/outlook/messages/identity",
+      "has_authorization_header": true,
+      "permission_context_header_sent": false,
+      "authorization_token_sha256": "ad8f0d7fdee8b27e9c4e30a9f381563d9d9fbc8fbd9d9d07b861ce59969c53c1",
+      "server_authorization_token_sha256": "ad8f0d7fdee8b27e9c4e30a9f381563d9d9fbc8fbd9d9d07b861ce59969c53c1",
+      "status": 200,
+      "held_before_server": false
+    },
+    {
+      "method": "POST",
+      "pathname": "/api/outlook/operation-receipts/readback",
+      "has_authorization_header": true,
+      "permission_context_header_sent": false,
+      "authorization_token_sha256": "ad8f0d7fdee8b27e9c4e30a9f381563d9d9fbc8fbd9d9d07b861ce59969c53c1",
+      "server_authorization_token_sha256": "ad8f0d7fdee8b27e9c4e30a9f381563d9d9fbc8fbd9d9d07b861ce59969c53c1",
+      "status": 200,
+      "held_before_server": false
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/outlook/matters/matter_upl_c09_c12_outlook/timeline",
+      "has_authorization_header": true,
+      "permission_context_header_sent": false,
+      "authorization_token_sha256": "ad8f0d7fdee8b27e9c4e30a9f381563d9d9fbc8fbd9d9d07b861ce59969c53c1",
+      "server_authorization_token_sha256": "ad8f0d7fdee8b27e9c4e30a9f381563d9d9fbc8fbd9d9d07b861ce59969c53c1",
+      "status": 200,
+      "held_before_server": false
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/outlook/matters/matter_upl_c09_c12_outlook/documents",
+      "has_authorization_header": true,
+      "permission_context_header_sent": false,
+      "authorization_token_sha256": "ad8f0d7fdee8b27e9c4e30a9f381563d9d9fbc8fbd9d9d07b861ce59969c53c1",
+      "server_authorization_token_sha256": "ad8f0d7fdee8b27e9c4e30a9f381563d9d9fbc8fbd9d9d07b861ce59969c53c1",
+      "status": 200,
+      "held_before_server": false
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/outlook/matters",
+      "has_authorization_header": true,
+      "permission_context_header_sent": false,
+      "authorization_token_sha256": "ad8f0d7fdee8b27e9c4e30a9f381563d9d9fbc8fbd9d9d07b861ce59969c53c1",
+      "server_authorization_token_sha256": "ad8f0d7fdee8b27e9c4e30a9f381563d9d9fbc8fbd9d9d07b861ce59969c53c1",
+      "status": 200,
+      "held_before_server": false
+    },
+    {
+      "method": "POST",
+      "pathname": "/api/outlook/tasks",
+      "has_authorization_header": true,
+      "permission_context_header_sent": false,
+      "authorization_token_sha256": "ad8f0d7fdee8b27e9c4e30a9f381563d9d9fbc8fbd9d9d07b861ce59969c53c1",
+      "server_authorization_token_sha256": "ad8f0d7fdee8b27e9c4e30a9f381563d9d9fbc8fbd9d9d07b861ce59969c53c1",
+      "status": 201,
+      "held_before_server": false
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/outlook/matters/matter_upl_c09_c12_outlook/timeline",
+      "has_authorization_header": true,
+      "permission_context_header_sent": false,
+      "authorization_token_sha256": "ad8f0d7fdee8b27e9c4e30a9f381563d9d9fbc8fbd9d9d07b861ce59969c53c1",
+      "server_authorization_token_sha256": "ad8f0d7fdee8b27e9c4e30a9f381563d9d9fbc8fbd9d9d07b861ce59969c53c1",
+      "status": 200,
+      "held_before_server": false
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/outlook/matters/matter_upl_c09_c12_outlook/documents",
+      "has_authorization_header": true,
+      "permission_context_header_sent": false,
+      "authorization_token_sha256": "ad8f0d7fdee8b27e9c4e30a9f381563d9d9fbc8fbd9d9d07b861ce59969c53c1",
+      "server_authorization_token_sha256": "ad8f0d7fdee8b27e9c4e30a9f381563d9d9fbc8fbd9d9d07b861ce59969c53c1",
+      "status": 200,
+      "held_before_server": false
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/outlook/matters",
+      "has_authorization_header": true,
+      "permission_context_header_sent": false,
+      "authorization_token_sha256": "ad8f0d7fdee8b27e9c4e30a9f381563d9d9fbc8fbd9d9d07b861ce59969c53c1",
+      "server_authorization_token_sha256": "ad8f0d7fdee8b27e9c4e30a9f381563d9d9fbc8fbd9d9d07b861ce59969c53c1",
+      "status": 200,
+      "held_before_server": false
+    },
+    {
+      "method": "POST",
+      "pathname": "/api/outlook/time-entry-drafts",
+      "has_authorization_header": true,
+      "permission_context_header_sent": false,
+      "authorization_token_sha256": "ad8f0d7fdee8b27e9c4e30a9f381563d9d9fbc8fbd9d9d07b861ce59969c53c1",
+      "server_authorization_token_sha256": "ad8f0d7fdee8b27e9c4e30a9f381563d9d9fbc8fbd9d9d07b861ce59969c53c1",
+      "status": 201,
+      "held_before_server": false
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/outlook/matters/matter_upl_c09_c12_outlook/timeline",
+      "has_authorization_header": true,
+      "permission_context_header_sent": false,
+      "authorization_token_sha256": "ad8f0d7fdee8b27e9c4e30a9f381563d9d9fbc8fbd9d9d07b861ce59969c53c1",
+      "server_authorization_token_sha256": "ad8f0d7fdee8b27e9c4e30a9f381563d9d9fbc8fbd9d9d07b861ce59969c53c1",
+      "status": 200,
+      "held_before_server": false
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/outlook/matters/matter_upl_c09_c12_outlook/documents",
+      "has_authorization_header": true,
+      "permission_context_header_sent": false,
+      "authorization_token_sha256": "ad8f0d7fdee8b27e9c4e30a9f381563d9d9fbc8fbd9d9d07b861ce59969c53c1",
+      "server_authorization_token_sha256": "ad8f0d7fdee8b27e9c4e30a9f381563d9d9fbc8fbd9d9d07b861ce59969c53c1",
+      "status": 200,
+      "held_before_server": false
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/outlook/matters",
+      "has_authorization_header": true,
+      "permission_context_header_sent": false,
+      "authorization_token_sha256": "ad8f0d7fdee8b27e9c4e30a9f381563d9d9fbc8fbd9d9d07b861ce59969c53c1",
+      "server_authorization_token_sha256": "ad8f0d7fdee8b27e9c4e30a9f381563d9d9fbc8fbd9d9d07b861ce59969c53c1",
+      "status": 200,
+      "held_before_server": false
+    },
+    {
+      "method": "POST",
+      "pathname": "/api/outlook/messages/identity",
+      "has_authorization_header": true,
+      "permission_context_header_sent": false,
+      "authorization_token_sha256": "ad8f0d7fdee8b27e9c4e30a9f381563d9d9fbc8fbd9d9d07b861ce59969c53c1",
+      "server_authorization_token_sha256": "ad8f0d7fdee8b27e9c4e30a9f381563d9d9fbc8fbd9d9d07b861ce59969c53c1",
+      "status": 200,
+      "held_before_server": false
+    },
+    {
+      "method": "POST",
+      "pathname": "/api/outlook/email/file",
+      "has_authorization_header": true,
+      "permission_context_header_sent": false,
+      "authorization_token_sha256": "ad8f0d7fdee8b27e9c4e30a9f381563d9d9fbc8fbd9d9d07b861ce59969c53c1",
+      "server_authorization_token_sha256": "ad8f0d7fdee8b27e9c4e30a9f381563d9d9fbc8fbd9d9d07b861ce59969c53c1",
+      "status": 201,
+      "held_before_server": false
+    },
+    {
+      "method": "POST",
+      "pathname": "/api/outlook/attachments/save",
+      "has_authorization_header": true,
+      "permission_context_header_sent": false,
+      "authorization_token_sha256": "ad8f0d7fdee8b27e9c4e30a9f381563d9d9fbc8fbd9d9d07b861ce59969c53c1",
+      "server_authorization_token_sha256": "ad8f0d7fdee8b27e9c4e30a9f381563d9d9fbc8fbd9d9d07b861ce59969c53c1",
+      "status": 201,
+      "held_before_server": false
+    },
+    {
+      "method": "POST",
+      "pathname": "/api/outlook/email/file",
+      "has_authorization_header": true,
+      "permission_context_header_sent": false,
+      "authorization_token_sha256": "ad8f0d7fdee8b27e9c4e30a9f381563d9d9fbc8fbd9d9d07b861ce59969c53c1",
+      "server_authorization_token_sha256": "ad8f0d7fdee8b27e9c4e30a9f381563d9d9fbc8fbd9d9d07b861ce59969c53c1",
+      "status": 200,
+      "held_before_server": false
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/outlook/matters/matter_upl_c09_c12_outlook/timeline",
+      "has_authorization_header": true,
+      "permission_context_header_sent": false,
+      "authorization_token_sha256": "ad8f0d7fdee8b27e9c4e30a9f381563d9d9fbc8fbd9d9d07b861ce59969c53c1",
+      "server_authorization_token_sha256": "ad8f0d7fdee8b27e9c4e30a9f381563d9d9fbc8fbd9d9d07b861ce59969c53c1",
+      "status": 200,
+      "held_before_server": false
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/outlook/matters/matter_upl_c09_c12_outlook/documents",
+      "has_authorization_header": true,
+      "permission_context_header_sent": false,
+      "authorization_token_sha256": "ad8f0d7fdee8b27e9c4e30a9f381563d9d9fbc8fbd9d9d07b861ce59969c53c1",
+      "server_authorization_token_sha256": "ad8f0d7fdee8b27e9c4e30a9f381563d9d9fbc8fbd9d9d07b861ce59969c53c1",
+      "status": 200,
+      "held_before_server": false
+    },
+    {
+      "method": "POST",
+      "pathname": "/api/outlook/smart-alerts/evaluate",
+      "has_authorization_header": true,
+      "permission_context_header_sent": false,
+      "authorization_token_sha256": "ad8f0d7fdee8b27e9c4e30a9f381563d9d9fbc8fbd9d9d07b861ce59969c53c1",
+      "server_authorization_token_sha256": "ad8f0d7fdee8b27e9c4e30a9f381563d9d9fbc8fbd9d9d07b861ce59969c53c1",
+      "status": 200,
+      "held_before_server": false
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/outlook/connection",
+      "has_authorization_header": true,
+      "permission_context_header_sent": false,
+      "authorization_token_sha256": "ad8f0d7fdee8b27e9c4e30a9f381563d9d9fbc8fbd9d9d07b861ce59969c53c1",
+      "server_authorization_token_sha256": "ad8f0d7fdee8b27e9c4e30a9f381563d9d9fbc8fbd9d9d07b861ce59969c53c1",
+      "status": 200,
+      "held_before_server": false
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/outlook/readiness",
+      "has_authorization_header": true,
+      "permission_context_header_sent": false,
+      "authorization_token_sha256": "ad8f0d7fdee8b27e9c4e30a9f381563d9d9fbc8fbd9d9d07b861ce59969c53c1",
+      "server_authorization_token_sha256": "ad8f0d7fdee8b27e9c4e30a9f381563d9d9fbc8fbd9d9d07b861ce59969c53c1",
+      "status": 200,
+      "held_before_server": false
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/outlook/matters",
+      "has_authorization_header": true,
+      "permission_context_header_sent": false,
+      "authorization_token_sha256": "ad8f0d7fdee8b27e9c4e30a9f381563d9d9fbc8fbd9d9d07b861ce59969c53c1",
+      "server_authorization_token_sha256": "ad8f0d7fdee8b27e9c4e30a9f381563d9d9fbc8fbd9d9d07b861ce59969c53c1",
+      "status": 200,
+      "held_before_server": false
+    },
+    {
+      "method": "POST",
+      "pathname": "/api/outlook/messages/identity",
+      "has_authorization_header": true,
+      "permission_context_header_sent": false,
+      "authorization_token_sha256": "ad8f0d7fdee8b27e9c4e30a9f381563d9d9fbc8fbd9d9d07b861ce59969c53c1",
+      "server_authorization_token_sha256": "ad8f0d7fdee8b27e9c4e30a9f381563d9d9fbc8fbd9d9d07b861ce59969c53c1",
+      "status": 200,
+      "held_before_server": false
+    },
+    {
+      "method": "POST",
+      "pathname": "/api/outlook/operation-receipts/readback",
+      "has_authorization_header": true,
+      "permission_context_header_sent": false,
+      "authorization_token_sha256": "ad8f0d7fdee8b27e9c4e30a9f381563d9d9fbc8fbd9d9d07b861ce59969c53c1",
+      "server_authorization_token_sha256": "ad8f0d7fdee8b27e9c4e30a9f381563d9d9fbc8fbd9d9d07b861ce59969c53c1",
+      "status": 200,
+      "held_before_server": false
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/outlook/matters/matter_upl_c09_c12_outlook/timeline",
+      "has_authorization_header": true,
+      "permission_context_header_sent": false,
+      "authorization_token_sha256": "ad8f0d7fdee8b27e9c4e30a9f381563d9d9fbc8fbd9d9d07b861ce59969c53c1",
+      "server_authorization_token_sha256": "ad8f0d7fdee8b27e9c4e30a9f381563d9d9fbc8fbd9d9d07b861ce59969c53c1",
+      "status": 200,
+      "held_before_server": false
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/outlook/matters/matter_upl_c09_c12_outlook/documents",
+      "has_authorization_header": true,
+      "permission_context_header_sent": false,
+      "authorization_token_sha256": "ad8f0d7fdee8b27e9c4e30a9f381563d9d9fbc8fbd9d9d07b861ce59969c53c1",
+      "server_authorization_token_sha256": "ad8f0d7fdee8b27e9c4e30a9f381563d9d9fbc8fbd9d9d07b861ce59969c53c1",
+      "status": 200,
+      "held_before_server": false
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/outlook/matters/matter_upl_c09_c12_outlook/timeline",
+      "has_authorization_header": true,
+      "permission_context_header_sent": false,
+      "authorization_token_sha256": "ad8f0d7fdee8b27e9c4e30a9f381563d9d9fbc8fbd9d9d07b861ce59969c53c1",
+      "server_authorization_token_sha256": "ad8f0d7fdee8b27e9c4e30a9f381563d9d9fbc8fbd9d9d07b861ce59969c53c1",
+      "status": 200,
+      "held_before_server": true
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/outlook/matters/matter_upl_c09_c12_outlook/documents",
+      "has_authorization_header": true,
+      "permission_context_header_sent": false,
+      "authorization_token_sha256": "ad8f0d7fdee8b27e9c4e30a9f381563d9d9fbc8fbd9d9d07b861ce59969c53c1",
+      "server_authorization_token_sha256": "ad8f0d7fdee8b27e9c4e30a9f381563d9d9fbc8fbd9d9d07b861ce59969c53c1",
+      "status": 200,
+      "held_before_server": true
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/outlook/connection",
+      "has_authorization_header": true,
+      "permission_context_header_sent": false,
+      "authorization_token_sha256": "ad8f0d7fdee8b27e9c4e30a9f381563d9d9fbc8fbd9d9d07b861ce59969c53c1",
+      "server_authorization_token_sha256": "ad8f0d7fdee8b27e9c4e30a9f381563d9d9fbc8fbd9d9d07b861ce59969c53c1",
+      "status": 200,
+      "held_before_server": false
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/outlook/readiness",
+      "has_authorization_header": true,
+      "permission_context_header_sent": false,
+      "authorization_token_sha256": "ad8f0d7fdee8b27e9c4e30a9f381563d9d9fbc8fbd9d9d07b861ce59969c53c1",
+      "server_authorization_token_sha256": "ad8f0d7fdee8b27e9c4e30a9f381563d9d9fbc8fbd9d9d07b861ce59969c53c1",
+      "status": 200,
+      "held_before_server": false
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/outlook/matters",
+      "has_authorization_header": true,
+      "permission_context_header_sent": false,
+      "authorization_token_sha256": "ad8f0d7fdee8b27e9c4e30a9f381563d9d9fbc8fbd9d9d07b861ce59969c53c1",
+      "server_authorization_token_sha256": "ad8f0d7fdee8b27e9c4e30a9f381563d9d9fbc8fbd9d9d07b861ce59969c53c1",
+      "status": 200,
+      "held_before_server": false
+    },
+    {
+      "method": "POST",
+      "pathname": "/api/outlook/messages/identity",
+      "has_authorization_header": true,
+      "permission_context_header_sent": false,
+      "authorization_token_sha256": "ad8f0d7fdee8b27e9c4e30a9f381563d9d9fbc8fbd9d9d07b861ce59969c53c1",
+      "server_authorization_token_sha256": "ad8f0d7fdee8b27e9c4e30a9f381563d9d9fbc8fbd9d9d07b861ce59969c53c1",
+      "status": 200,
+      "held_before_server": false
+    },
+    {
+      "method": "POST",
+      "pathname": "/api/outlook/operation-receipts/readback",
+      "has_authorization_header": true,
+      "permission_context_header_sent": false,
+      "authorization_token_sha256": "ad8f0d7fdee8b27e9c4e30a9f381563d9d9fbc8fbd9d9d07b861ce59969c53c1",
+      "server_authorization_token_sha256": "ad8f0d7fdee8b27e9c4e30a9f381563d9d9fbc8fbd9d9d07b861ce59969c53c1",
+      "status": 200,
+      "held_before_server": false
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/outlook/matters/matter_upl_c09_c12_outlook/timeline",
+      "has_authorization_header": true,
+      "permission_context_header_sent": false,
+      "authorization_token_sha256": "ad8f0d7fdee8b27e9c4e30a9f381563d9d9fbc8fbd9d9d07b861ce59969c53c1",
+      "server_authorization_token_sha256": "ad8f0d7fdee8b27e9c4e30a9f381563d9d9fbc8fbd9d9d07b861ce59969c53c1",
+      "status": 200,
+      "held_before_server": false
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/outlook/matters/matter_upl_c09_c12_outlook/documents",
+      "has_authorization_header": true,
+      "permission_context_header_sent": false,
+      "authorization_token_sha256": "ad8f0d7fdee8b27e9c4e30a9f381563d9d9fbc8fbd9d9d07b861ce59969c53c1",
+      "server_authorization_token_sha256": "ad8f0d7fdee8b27e9c4e30a9f381563d9d9fbc8fbd9d9d07b861ce59969c53c1",
+      "status": 200,
+      "held_before_server": false
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/outlook/matters",
+      "has_authorization_header": true,
+      "permission_context_header_sent": false,
+      "authorization_token_sha256": "ad8f0d7fdee8b27e9c4e30a9f381563d9d9fbc8fbd9d9d07b861ce59969c53c1",
+      "server_authorization_token_sha256": "8cf2eedbcdc3cb2cd0812ce9d578ad40305dd698eb5ac0f548f7c961ab38d763",
+      "status": 403,
+      "held_before_server": false
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/outlook/connection",
+      "has_authorization_header": true,
+      "permission_context_header_sent": false,
+      "authorization_token_sha256": "ad8f0d7fdee8b27e9c4e30a9f381563d9d9fbc8fbd9d9d07b861ce59969c53c1",
+      "server_authorization_token_sha256": "ad8f0d7fdee8b27e9c4e30a9f381563d9d9fbc8fbd9d9d07b861ce59969c53c1",
+      "status": 200,
+      "held_before_server": false
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/outlook/readiness",
+      "has_authorization_header": true,
+      "permission_context_header_sent": false,
+      "authorization_token_sha256": "ad8f0d7fdee8b27e9c4e30a9f381563d9d9fbc8fbd9d9d07b861ce59969c53c1",
+      "server_authorization_token_sha256": "ad8f0d7fdee8b27e9c4e30a9f381563d9d9fbc8fbd9d9d07b861ce59969c53c1",
+      "status": 200,
+      "held_before_server": false
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/outlook/matters",
+      "has_authorization_header": true,
+      "permission_context_header_sent": false,
+      "authorization_token_sha256": "ad8f0d7fdee8b27e9c4e30a9f381563d9d9fbc8fbd9d9d07b861ce59969c53c1",
+      "server_authorization_token_sha256": "ad8f0d7fdee8b27e9c4e30a9f381563d9d9fbc8fbd9d9d07b861ce59969c53c1",
+      "status": 200,
+      "held_before_server": false
+    },
+    {
+      "method": "POST",
+      "pathname": "/api/outlook/messages/identity",
+      "has_authorization_header": true,
+      "permission_context_header_sent": false,
+      "authorization_token_sha256": "ad8f0d7fdee8b27e9c4e30a9f381563d9d9fbc8fbd9d9d07b861ce59969c53c1",
+      "server_authorization_token_sha256": "ad8f0d7fdee8b27e9c4e30a9f381563d9d9fbc8fbd9d9d07b861ce59969c53c1",
+      "status": 200,
+      "held_before_server": false
+    },
+    {
+      "method": "POST",
+      "pathname": "/api/outlook/operation-receipts/readback",
+      "has_authorization_header": true,
+      "permission_context_header_sent": false,
+      "authorization_token_sha256": "ad8f0d7fdee8b27e9c4e30a9f381563d9d9fbc8fbd9d9d07b861ce59969c53c1",
+      "server_authorization_token_sha256": "ad8f0d7fdee8b27e9c4e30a9f381563d9d9fbc8fbd9d9d07b861ce59969c53c1",
+      "status": 200,
+      "held_before_server": false
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/outlook/matters/matter_upl_c09_c12_outlook/timeline",
+      "has_authorization_header": true,
+      "permission_context_header_sent": false,
+      "authorization_token_sha256": "ad8f0d7fdee8b27e9c4e30a9f381563d9d9fbc8fbd9d9d07b861ce59969c53c1",
+      "server_authorization_token_sha256": "ad8f0d7fdee8b27e9c4e30a9f381563d9d9fbc8fbd9d9d07b861ce59969c53c1",
+      "status": 200,
+      "held_before_server": false
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/outlook/matters/matter_upl_c09_c12_outlook/documents",
+      "has_authorization_header": true,
+      "permission_context_header_sent": false,
+      "authorization_token_sha256": "ad8f0d7fdee8b27e9c4e30a9f381563d9d9fbc8fbd9d9d07b861ce59969c53c1",
+      "server_authorization_token_sha256": "ad8f0d7fdee8b27e9c4e30a9f381563d9d9fbc8fbd9d9d07b861ce59969c53c1",
+      "status": 200,
+      "held_before_server": false
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/outlook/matters",
+      "has_authorization_header": true,
+      "permission_context_header_sent": false,
+      "authorization_token_sha256": "ad8f0d7fdee8b27e9c4e30a9f381563d9d9fbc8fbd9d9d07b861ce59969c53c1",
+      "server_authorization_token_sha256": "ad8f0d7fdee8b27e9c4e30a9f381563d9d9fbc8fbd9d9d07b861ce59969c53c1",
+      "status": 200,
+      "held_before_server": false
+    },
+    {
+      "method": "POST",
+      "pathname": "/api/outlook/tasks",
+      "has_authorization_header": true,
+      "permission_context_header_sent": false,
+      "authorization_token_sha256": "ad8f0d7fdee8b27e9c4e30a9f381563d9d9fbc8fbd9d9d07b861ce59969c53c1",
+      "server_authorization_token_sha256": "ad8f0d7fdee8b27e9c4e30a9f381563d9d9fbc8fbd9d9d07b861ce59969c53c1",
+      "status": 401,
+      "held_before_server": true
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/outlook/connection",
+      "has_authorization_header": true,
+      "permission_context_header_sent": false,
+      "authorization_token_sha256": "8fd2d8ec131e87668c15b27368c2819c1fc7a7e191634f0be80452fda686d589",
+      "server_authorization_token_sha256": "8fd2d8ec131e87668c15b27368c2819c1fc7a7e191634f0be80452fda686d589",
+      "status": 200,
+      "held_before_server": false
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/outlook/readiness",
+      "has_authorization_header": true,
+      "permission_context_header_sent": false,
+      "authorization_token_sha256": "8fd2d8ec131e87668c15b27368c2819c1fc7a7e191634f0be80452fda686d589",
+      "server_authorization_token_sha256": "8fd2d8ec131e87668c15b27368c2819c1fc7a7e191634f0be80452fda686d589",
+      "status": 200,
+      "held_before_server": false
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/outlook/bootstrap",
+      "has_authorization_header": true,
+      "permission_context_header_sent": false,
+      "authorization_token_sha256": "8fd2d8ec131e87668c15b27368c2819c1fc7a7e191634f0be80452fda686d589",
+      "server_authorization_token_sha256": "8fd2d8ec131e87668c15b27368c2819c1fc7a7e191634f0be80452fda686d589",
+      "status": 200,
+      "held_before_server": false
     }
+  ],
+  "release_manifest_probe": [
+    {
+      "path": "apps/addin/manifest.xml",
+      "profile": "matter-full",
+      "product_id": "8f3cc90d-56dd-4c1c-b9c2-0a1100500101",
+      "source_locations": [
+        "https://localhost:5186/index.html"
+      ],
+      "permission": "ReadItem",
+      "client_outlook_oauth_scopes": [
+        "openid",
+        "profile",
+        "email",
+        "offline_access",
+        "Calendars.ReadWrite",
+        "Mail.Read"
+      ],
+      "client_outlook_graph_connection_scopes": [
+        "Calendars.ReadWrite",
+        "Mail.Read",
+        "offline_access"
+      ]
+    },
+    {
+      "path": "apps/addin/manifest.production.xml",
+      "profile": "matter-full",
+      "product_id": "8f3cc90d-56dd-4c1c-b9c2-0a1100500101",
+      "source_locations": [
+        "https://d2mthcc8vp3cr2.cloudfront.net/addin/index.html"
+      ],
+      "permission": "ReadItem",
+      "client_outlook_oauth_scopes": [
+        "openid",
+        "profile",
+        "email",
+        "offline_access",
+        "Calendars.ReadWrite",
+        "Mail.Read"
+      ],
+      "client_outlook_graph_connection_scopes": [
+        "Calendars.ReadWrite",
+        "Mail.Read",
+        "offline_access"
+      ]
+    },
+    {
+      "path": "apps/addin/manifest.inquiry.xml",
+      "profile": "inquiry-only",
+      "product_id": "952431be-51b8-42a2-9bf6-769a15934e85",
+      "source_locations": [
+        "https://localhost:5186/outlook-addin/index.html?tenantId=tenant_amic_matter_vault&clientInquiryOnly=1"
+      ],
+      "permission": "ReadItem",
+      "client_outlook_oauth_scopes": [
+        "openid",
+        "profile",
+        "email",
+        "offline_access",
+        "Calendars.ReadWrite",
+        "Mail.Read"
+      ],
+      "client_outlook_graph_connection_scopes": [
+        "Calendars.ReadWrite",
+        "Mail.Read",
+        "offline_access"
+      ]
+    },
+    {
+      "path": "apps/addin/manifest.inquiry.production.xml",
+      "profile": "inquiry-only",
+      "product_id": "952431be-51b8-42a2-9bf6-769a15934e85",
+      "source_locations": [
+        "https://d2mthcc8vp3cr2.cloudfront.net/outlook-addin/index.html?tenantId=tenant_amic_matter_vault&clientInquiryOnly=1"
+      ],
+      "permission": "ReadItem",
+      "client_outlook_oauth_scopes": [
+        "openid",
+        "profile",
+        "email",
+        "offline_access",
+        "Calendars.ReadWrite",
+        "Mail.Read"
+      ],
+      "client_outlook_graph_connection_scopes": [
+        "Calendars.ReadWrite",
+        "Mail.Read",
+        "offline_access"
+      ]
+    }
+  ],
+  "signed_boundary_probe": {
+    "exact_session_token_observed": true,
+    "invalid_token_status": 401,
+    "invalid_token_safe_error_codes": [
+      "AUTH_SESSION_INVALID"
+    ],
+    "foreign_token_status": 403,
+    "foreign_token_safe_error_codes": [
+      "AUTH_SESSION_TENANT_DENIED"
+    ]
   },
   "checks": [
     {
@@ -286,8 +1082,24 @@
       "passed": true
     },
     {
-      "id": "c09-auth-shell-provider-gated-visible",
+      "id": "c09-matter-full-five-icon-rail",
+      "passed": true,
+      "rail": [
+        "mail.save-with-attachments",
+        "matter.search",
+        "task.create",
+        "time-entry.draft",
+        "all-functions"
+      ]
+    },
+    {
+      "id": "c09-matter-full-single-portal-overlay",
       "passed": true
+    },
+    {
+      "id": "c09-auth-shell-provider-gated-visible",
+      "passed": true,
+      "release_manifest_contract_pass": true
     },
     {
       "id": "c09-msal-bridge-initialized",
@@ -299,11 +1111,112 @@
     },
     {
       "id": "c09-signed-session-authorization-observed",
-      "passed": true
+      "passed": true,
+      "exact_session_token_observed": true,
+      "invalid_token_status": 401,
+      "invalid_token_safe_error_codes": [
+        "AUTH_SESSION_INVALID"
+      ],
+      "foreign_token_status": 403,
+      "foreign_token_safe_error_codes": [
+        "AUTH_SESSION_TENANT_DENIED"
+      ]
     },
     {
       "id": "c09-legacy-permission-context-not-sent",
       "passed": true
+    },
+    {
+      "id": "c09-no-stale-shell-marker",
+      "passed": true
+    },
+    {
+      "id": "c09-inquiry-only-fixed-profile",
+      "passed": true,
+      "rail": [
+        "inquiry.entry"
+      ]
+    },
+    {
+      "id": "c09-inquiry-only-single-portal-overlay",
+      "passed": true
+    },
+    {
+      "id": "c09-inquiry-new-action-current-selector",
+      "passed": true
+    },
+    {
+      "id": "c09-inquiry-evidence-storage-readback",
+      "passed": true,
+      "pass": true,
+      "post_observation": {
+        "method": "POST",
+        "pathname": "/api/outlook/inquiries",
+        "status": 201,
+        "has_authorization_header": true,
+        "server_authorization_token_sha256": "b700f6e3c411125b1598ed2e1b470fa839d7ef96db325bee827381bd5def99b7",
+        "outcome": "registered",
+        "item_outcome": "registered",
+        "inquiry_email_evidence_id": "inquiry_email_evidence_9c2b1954a48b0fc0828ef87c2166f28b",
+        "lead_id": "lead_inquiry_73e4e26b2e4c2a14b28afd0849252f57",
+        "capture_status": "complete"
+      },
+      "repository": {
+        "evidence_count": 1,
+        "file_object_count": 2,
+        "evidence": {
+          "model_type": "InquiryEmailEvidence",
+          "tenant_id": "tenant_amic_matter_vault",
+          "inquiry_email_evidence_id": "inquiry_email_evidence_9c2b1954a48b0fc0828ef87c2166f28b",
+          "lead_id": "lead_inquiry_73e4e26b2e4c2a14b28afd0849252f57",
+          "capture_status": "complete",
+          "mime_file_object_id": "inquiry_evidence_file_9f834ac3c7798fcb1a32c6d7bb49898d",
+          "display_file_object_id": "inquiry_evidence_file_8b6754fdea43c7e9de0f15439f354505",
+          "mime_sha256": "b6e2f12d9c02f5c4e318f70fcf8f91a51f841981cc8c83ad60167dfb3ac48d97",
+          "mime_byte_size": 586
+        },
+        "file_objects": [
+          {
+            "model_type": "InquiryEvidenceFileObject",
+            "tenant_id": "tenant_amic_matter_vault",
+            "inquiry_evidence_file_object_id": "inquiry_evidence_file_9f834ac3c7798fcb1a32c6d7bb49898d",
+            "inquiry_email_evidence_id": "inquiry_email_evidence_9c2b1954a48b0fc0828ef87c2166f28b",
+            "object_kind": "original_mime",
+            "sha256": "b6e2f12d9c02f5c4e318f70fcf8f91a51f841981cc8c83ad60167dfb3ac48d97",
+            "byte_size": 586,
+            "mime_type": "message/rfc822",
+            "scan_status": "clean",
+            "immutable_original": true
+          },
+          {
+            "model_type": "InquiryEvidenceFileObject",
+            "tenant_id": "tenant_amic_matter_vault",
+            "inquiry_evidence_file_object_id": "inquiry_evidence_file_8b6754fdea43c7e9de0f15439f354505",
+            "inquiry_email_evidence_id": "inquiry_email_evidence_9c2b1954a48b0fc0828ef87c2166f28b",
+            "object_kind": "sanitized_display",
+            "sha256": "5c13b4b7baabcb9c34d4275043255cb96ada5444eaeee61bd519d8aa33e10894",
+            "byte_size": 207,
+            "mime_type": "text/plain; charset=utf-8",
+            "scan_status": "clean",
+            "immutable_original": false
+          }
+        ]
+      },
+      "storage_readback": {
+        "read_method": "readEvidenceContent",
+        "read_status": "ok",
+        "inquiry_email_evidence_id": "inquiry_email_evidence_9c2b1954a48b0fc0828ef87c2166f28b",
+        "object_kind": "original_mime",
+        "sha256": "b6e2f12d9c02f5c4e318f70fcf8f91a51f841981cc8c83ad60167dfb3ac48d97",
+        "byte_size": 586,
+        "mime_type": "message/rfc822",
+        "scan_status": "clean",
+        "expected_sha256": "b6e2f12d9c02f5c4e318f70fcf8f91a51f841981cc8c83ad60167dfb3ac48d97",
+        "expected_byte_size": 586,
+        "exact_bytes_match": true,
+        "raw_bytes_read": true,
+        "storage_pointer_ref_included": false
+      }
     },
     {
       "id": "c10-email-thread-created",
@@ -311,9 +1224,9 @@
       "email_threads": 1
     },
     {
-      "id": "c10-email-object-18-fields",
+      "id": "c10-email-object-current-fields",
       "passed": true,
-      "field_count": 18
+      "field_count": 21
     },
     {
       "id": "c10-timeline-email-visible",
@@ -321,7 +1234,13 @@
     },
     {
       "id": "c11-attachment-document-visible",
-      "passed": true
+      "passed": true,
+      "attachment_document_id": "doc:thread:eacdcd29d59f81b0cd143b630d927ae7f91645fb1c49b16a1c35fc1b0b031a21:upl-c09-c12-attachment",
+      "office_attachment_reads": [
+        "upl-c09-c12-attachment"
+      ],
+      "attachment_save_requests": 1,
+      "filing_replay_requests": 2
     },
     {
       "id": "c11-folder-structure-00-99",
@@ -332,19 +1251,36 @@
       "passed": true
     },
     {
-      "id": "c12-smart-alert-warning-not-block",
+      "id": "c12-time-entry-draft-visible",
+      "passed": true,
+      "time_entries": 1
+    },
+    {
+      "id": "c12-explicit-send-review-warning-not-block",
       "passed": true
     },
     {
-      "id": "c12-on-message-send-handler-associated",
+      "id": "c12-automatic-send-handler-absent",
       "passed": true
     },
     {
-      "id": "c12-on-message-send-handler-completes-allow-event",
+      "id": "c12-automatic-send-event-probe-absent",
       "passed": true
     },
     {
-      "id": "c12-on-message-send-handler-warning-only",
+      "id": "c12-item-fence-suppresses-late-response",
+      "passed": true
+    },
+    {
+      "id": "c12-matter-fence-rejects-stale-selection",
+      "passed": true
+    },
+    {
+      "id": "c12-session-fence-suppresses-late-write",
+      "passed": true
+    },
+    {
+      "id": "c12-no-stale-catalog-actions",
       "passed": true
     }
   ],

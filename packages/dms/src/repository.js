@@ -225,6 +225,63 @@ export function createDmsRepository({ filePath, seedRecords = [], preserveSeedRe
       persist();
       return value;
     },
+    claimIdempotency(entry = {}) {
+      assertOpen();
+      assertNoDmsPersistedSecrets(entry, "idempotency_claim");
+      assertTenant(entry.tenant_id);
+      const key = typeof entry.key === "string" ? entry.key.trim() : "";
+      const requestHash = typeof entry.request_hash === "string"
+        ? entry.request_hash.trim()
+        : "";
+      if (!key) throw new TypeError("idempotency key is required");
+      if (!/^[a-f0-9]{64}$/u.test(requestHash)) {
+        throw new TypeError("idempotency request_hash must be a SHA-256 hash");
+      }
+      const storageKey = `${entry.tenant_id}:${key}`;
+      const current = idempotency.get(storageKey);
+      if (current) {
+        if (current.request_fingerprint !== requestHash) {
+          throw Object.assign(
+            new Error("idempotency key reused with a different request"),
+            {
+              code: "LAWOS_IDEMPOTENCY_CONFLICT",
+              safe_error_code: "IDEMPOTENCY_KEY_REUSED",
+              status: 409,
+            },
+          );
+        }
+        return Object.freeze({
+          replayed: true,
+          record: Object.freeze({
+            tenant_id: current.tenant_id,
+            key: current.idempotency_key,
+            request_hash: current.request_fingerprint,
+            response: clone(current.response),
+            created_at: current.created_at,
+          }),
+        });
+      }
+      const value = Object.freeze({
+        tenant_id: entry.tenant_id,
+        idempotency_key: key,
+        operation: `request-hash:${requestHash}`,
+        request_fingerprint: requestHash,
+        response: clone(entry.response ?? null),
+        created_at: entry.created_at ?? new Date().toISOString(),
+      });
+      idempotency.set(storageKey, clone(value));
+      persist();
+      return Object.freeze({
+        replayed: false,
+        record: Object.freeze({
+          tenant_id: value.tenant_id,
+          key: value.idempotency_key,
+          request_hash: value.request_fingerprint,
+          response: clone(value.response),
+          created_at: value.created_at,
+        }),
+      });
+    },
     getIdempotency(ref = {}) {
       assertOpen();
       return Object.freeze(clone(idempotency.get(`${ref.tenant_id}:${ref.idempotency_key}`)));

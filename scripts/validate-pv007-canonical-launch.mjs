@@ -9,6 +9,7 @@ import {
   inspectCanonicalMacBundle,
   parseMatterProcessTable,
 } from "./lib/matter-desktop-canonical-launch.mjs";
+import { desktopReleaseChannelConfig } from "./lib/matter-desktop-provenance.mjs";
 
 const usage = "usage: node scripts/validate-pv007-canonical-launch.mjs --source|--package|--help";
 const mode = process.argv[2];
@@ -34,7 +35,7 @@ assert.equal(
   "package.json must expose one canonical desktop launcher",
 );
 assert.match(launcher, /--expected-sha is required/);
-assert.match(launcher, /canonical matter\.app launcher requires macOS/);
+assert.match(launcher, /canonical desktop app launcher requires macOS/);
 assert.match(launcher, /assertCanonicalLaunchProcessState/);
 assert.match(launcher, /signal\(pid, "SIGTERM"\)/);
 assert.match(launcher, /spawn\(inspection\.executable/);
@@ -59,12 +60,13 @@ if (mode === "--source") {
 
 const expectedSourceSha = process.env.MATTER_DESKTOP_EXPECTED_SOURCE_SHA;
 assert.match(expectedSourceSha ?? "", /^[0-9a-f]{40}$/, "MATTER_DESKTOP_EXPECTED_SOURCE_SHA must be a full Git SHA");
-const appBundlePath = path.join(ROOT, "apps/desktop/dist/mac/matter.app");
+const expectedChannel = process.env.MATTER_DESKTOP_RELEASE_CHANNEL ?? "internal";
+const appBundlePath = path.join(ROOT, "apps/desktop/dist/mac", desktopReleaseChannelConfig(expectedChannel).macAppBundleName);
 const inspection = inspectCanonicalMacBundle({
   repoRoot: ROOT,
   appBundlePath,
   expectedSourceSha,
-  expectedChannel: process.env.MATTER_DESKTOP_RELEASE_CHANNEL ?? "internal",
+  expectedChannel,
 });
 const processes = parseMatterProcessTable(
   execFileSync("ps", ["-axo", "pid=,command="], { encoding: "utf8" }),

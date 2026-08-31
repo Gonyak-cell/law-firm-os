@@ -1,8 +1,8 @@
 {
-  "schema_version": "law-firm-os.manual-qa.upl-e04-smart-alerts.local_receipt.v0.1",
-  "generated_at": "2026-07-30T15:02:30.947Z",
+  "schema_version": "law-firm-os.manual-qa.upl-e04-explicit-send-review.local_receipt.v0.2",
+  "generated_at": "2026-08-28T08:57:41.754Z",
   "tuw_id": "UPL-E-04",
-  "scope": "Local signed-session taskpane and API proof for warning-only Smart Alerts. External Outlook web/new desktop runtime is not claimed.",
+  "scope": "Local signed-session task pane and API proof for an explicit warning-only send review action. Automatic Outlook Send interception is absent and no external Outlook runtime is claimed.",
   "screenshot_path": "artifacts/manual-qa/screenshots/upl-e04-smart-alerts-local-proof-2026-07-03.png",
   "external_receipt_boundary": {
     "entra_admin_consent_receipt_present": false,
@@ -15,17 +15,13 @@
   "browser_request_observation": [
     {
       "method": "POST",
-      "url_path": "/api/outlook/smart-alerts/evaluate",
+      "pathname": "/api/outlook/smart-alerts/evaluate",
       "has_authorization_header": true,
+      "authorization_token_sha256": "ad8f0d7fdee8b27e9c4e30a9f381563d9d9fbc8fbd9d9d07b861ce59969c53c1",
       "permission_context_header_sent": false,
-      "post_data_sha256": "8ee96590fc2bd904864aaabe045e16e0b14609b399f959f40c3ef4726a7a12ac"
-    },
-    {
-      "method": "POST",
-      "url_path": "/api/outlook/smart-alerts/evaluate",
-      "has_authorization_header": true,
-      "permission_context_header_sent": false,
-      "post_data_sha256": "075d54df74d9eb55498b9c1d6cff3e69170c00856fe463d331944e24d4917e2b"
+      "status": 200,
+      "held_before_server": false,
+      "server_authorization_token_sha256": "ad8f0d7fdee8b27e9c4e30a9f381563d9d9fbc8fbd9d9d07b861ce59969c53c1"
     }
   ],
   "direct_api_evaluations": {
@@ -61,7 +57,7 @@
       "credential_material_included": false,
       "message_hashes": {
         "body_preview_sha256": "ca49957003e01c9a280012a1e487106035dc85696100d05af3f33e869d623e68",
-        "recipients_sha256": "cbdeed21a9d9d1e744ef2a7d414d3a4ba60fe425722099ef87cd832dd73f0a8a",
+        "recipients_sha256": "e948d6bad94b28113a7ba8b46c8669f54144aaa173e89424d7db0d0851da6f8d",
         "attachment_metadata_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
       }
     },
@@ -77,7 +73,7 @@
       "credential_material_included": false,
       "message_hashes": {
         "body_preview_sha256": "c05a422f60195eaf403d8f92740ac8bf8ffc4e306ff190d6f89eaae89f619bcc",
-        "recipients_sha256": "cbdeed21a9d9d1e744ef2a7d414d3a4ba60fe425722099ef87cd832dd73f0a8a",
+        "recipients_sha256": "e948d6bad94b28113a7ba8b46c8669f54144aaa173e89424d7db0d0851da6f8d",
         "attachment_metadata_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
       }
     },
@@ -87,16 +83,16 @@
         "AUTH_SESSION_REQUIRED"
       ],
       "request_hash": "c1fde2b8a2b905d27a7a62e1a7958ba69aed7a2590d709cbee6f8dbcb388c609",
-      "response_hash": "0bac4731df8d8a2f5764b8da1bb0fcd187af1fd4b18894e6c1503efa646076fd"
+      "response_hash": "947715c8bb0b2f61a8f393efdd4006c8572a076e8fbacc558296cef30d64148e"
     }
   },
   "request_response_hashes": {
-    "confidential_external_request": "edfc69975aac2cf1092fd68146edd3650cfe8229058b8543eb690a2036534ebe",
-    "confidential_external_response": "01d3e259fee7ae83dc907502856f7de66046679967ac3145278435b59ae79add",
-    "missing_attachment_request": "bda1d454bd418da9ac45a4f5d920087f85348387c31c26d5cd0580d10f01a20f",
-    "missing_attachment_response": "e14d219b40361d00673851859f79608b9681fc6873ca4b5faed88e221d63d7ef",
-    "clean_message_request": "eb316fd71a60838971e3342864f3713d0ca768dce219275cdd2faca33b87cf23",
-    "clean_message_response": "97b3ea4b683c8205f860d625572df033c7e0d4d5466e8c032fa210d37be90eb5"
+    "confidential_external_request": "32565a6fd2fd1cb1db728692f19475163f70c38de99dc817edcf3256331c4d54",
+    "confidential_external_response": "88df66fcb17194feaf48e51ca689b14c6e8a6c51ac3498738e314ab16f2a2dc6",
+    "missing_attachment_request": "ebf2ed52adea5f1bf12df0cd8c8dfa7882a5ee20dbf549d57f5e2bf722266cc6",
+    "missing_attachment_response": "34bbaefc504da46e2c49b5c1a2b223dccd7935d62a8db29d5eb761903a2489e3",
+    "clean_message_request": "36cb8bb22deadc8d9184a19abba1f0aef1ebeaedea32e5a6f195951a6196109c",
+    "clean_message_response": "3afe3e9aee9303bdd2f4d0906361e4beee55b9daf38308cb218c7fb2a7f891ba"
   },
   "secret_material_included": false,
   "raw_body_included": false,

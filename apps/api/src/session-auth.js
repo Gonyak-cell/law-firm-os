@@ -42,6 +42,7 @@ import {
   createAuthPasswordResetStore,
 } from "./auth-password-reset-store.js";
 import { createAuthPasswordResetQueue } from "./auth-password-reset-queue.js";
+import { resolveVaultCapabilityProjection } from "./vault-capability-projection.js";
 
 export const AUTHORIZATION_HEADER = "authorization";
 export const API_AUTH_BOUNDED_CONTEXT = Object.freeze({
@@ -766,6 +767,7 @@ export function createApiSessionAuth({
   officeSsoProvider = null,
   identityRepository = null,
   objectAclResolver = null,
+  vaultCapabilityResolver = null,
 } = {}) {
   const runtimeProfile = resolveRuntimeProfile({ LAWOS_RUNTIME_PROFILE: profile });
   const sessionSecret = resolveSessionSecret({ profile: runtimeProfile, explicitSecret: secret });
@@ -2181,6 +2183,14 @@ export function createApiSessionAuth({
         });
   }
 
+  async function resolveVaultCapabilities({ principal, requestId = "req_unset" } = {}) {
+    return resolveVaultCapabilityProjection({
+      principal,
+      resolver: vaultCapabilityResolver,
+      request_id: requestId,
+    });
+  }
+
   async function handleAuthApiRequest({ pathname, method, body = {}, headers = {}, requestId = "req_unset" } = {}) {
     if (pathname === "/api/auth/office-sso/config") {
       if (method !== "GET") {
@@ -2223,6 +2233,10 @@ export function createApiSessionAuth({
           body: resolved.body ?? errorBody(requestId, "AUTH_SESSION_REQUIRED", "auth_session_required"),
         });
       }
+      const vaultCapabilities = await resolveVaultCapabilities({
+        principal: resolved.principal,
+        requestId,
+      });
       return Object.freeze({
         status: 200,
         body: Object.freeze({
@@ -2230,6 +2244,7 @@ export function createApiSessionAuth({
           outcome: "passed",
           ok: true,
           session: resolved.session,
+          vault_capabilities: vaultCapabilities,
           production_ready_claim: false,
         }),
       });
@@ -2715,6 +2730,7 @@ export function createApiSessionAuth({
     confirmPasswordReset,
     verifyToken,
     verifyOutlookCallbackPrincipal,
+    resolveVaultCapabilities,
     resolvePermissionContextFromHeaders,
     appendProviderCallbackAudit,
     handleAuthApiRequest,

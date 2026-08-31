@@ -1,6 +1,6 @@
 {
   "schema_version": "lawos.wave1.external-receipt-readiness.v1",
-  "generated_at": "2026-07-12T05:26:13.418Z",
+  "generated_at": "2026-08-28T08:57:46.186Z",
   "status": "PASS_EXTERNAL_RECEIPT_READINESS_LEDGER",
   "strict_completion_claim": false,
   "production_ready_claim": false,
@@ -61,7 +61,7 @@
     {
       "row_id": "UPL-C-09",
       "current_status": "BLOCKED",
-      "local_state": "Add-in manifest, taskpane shell, local browser proof, filing, attachment save, sent-mail task, code-side MSAL bridge, code-side OnMessageSend handler, and warning-only Smart Alerts proof exist.",
+      "local_state": "Add-in manifest, taskpane shell, local browser proof, filing, attachment save, sent-mail task, code-side MSAL bridge, zero automatic Send interception, and explicit warning-only send review proof exist.",
       "credential_presence": {
         "OUTLOOK_ADDIN_MANIFEST_URL": false,
         "MICROSOFT_TENANT_ID": false,
@@ -111,8 +111,9 @@
           "msal_bridge_initialized": true,
           "msal_bridge_provider_runtime_executed": false,
           "msal_bridge_token_material_returned": false,
-          "on_message_send_handler_associated": true,
-          "on_message_send_handler_completed_allow_event": true
+          "automatic_send_handler_absent": true,
+          "automatic_send_event_probe_absent": true,
+          "explicit_send_review_warning_proved": true
         },
         "external_receipt_intake": {
           "path": "artifacts/manual-qa/upl-c09-outlook-external-receipt-readiness.json",
@@ -140,11 +141,11 @@
         "TAX_INVOICE_VENDOR": false,
         "TAX_INVOICE_SANDBOX_URL": false,
         "TAX_INVOICE_SANDBOX_API_KEY": false,
-        "POPBILL_LINK_ID": true,
-        "POPBILL_SECRET_KEY": true,
-        "POPBILL_CORP_NUM": true,
-        "POPBILL_TEST_MODE": true,
-        "POPBILL_ALLOW_SANDBOX_ISSUE": true
+        "POPBILL_LINK_ID": false,
+        "POPBILL_SECRET_KEY": false,
+        "POPBILL_CORP_NUM": false,
+        "POPBILL_TEST_MODE": false,
+        "POPBILL_ALLOW_SANDBOX_ISSUE": false
       },
       "external_receipts_required": [
         "Popbill test certificate setup confirmation",

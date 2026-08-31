@@ -48,10 +48,17 @@ const EXPECTED = Object.freeze([
   ["POST", "/api/outlook/messages/identity", O],
   ["POST", "/api/outlook/operation-receipts/readback", R],
   ["POST", "/api/outlook/email/file", O],
+  ["POST", "/api/outlook/vault/email/save", O],
+  ["POST", "/api/outlook/vault/sent/save", O],
   ["POST", "/api/outlook/email/corrections", O],
   ["GET", "/api/outlook/email/corrections/current", R],
   ["POST", "/api/outlook/sent/file", O],
   ["POST", "/api/outlook/attachments/save", O],
+  ["POST", "/api/outlook/vault/attachments/save", O],
+  ["POST", "/api/outlook/vault/source/status", O],
+  ["POST", "/api/outlook/vault/attachments/authorize", O],
+  ["GET", "/api/outlook/vault/attachments/delivery/:delivery_token", W],
+  ["POST", "/api/outlook/vault/attachments/complete", O],
   ["POST", "/api/outlook/tasks", O],
   ["PATCH", "/api/outlook/tasks/:task_id", O],
   ["POST", "/api/outlook/followups", O],
@@ -82,7 +89,7 @@ function samplePath(template, suffix = "sample") {
   return template.replace(/:[a-z_]+/gu, suffix);
 }
 
-test("the Outlook installation policy is one complete non-overlapping 47-route matrix", () => {
+test("the Outlook installation policy is one complete non-overlapping 54-route matrix", () => {
   assert.deepEqual(
     OUTLOOK_INSTALLATION_ROUTE_POLICIES.map(({ method, template, classification }) => (
       [method, template, classification]
@@ -90,7 +97,7 @@ test("the Outlook installation policy is one complete non-overlapping 47-route m
     EXPECTED,
   );
   assert.deepEqual(auditOutlookInstallationRoutePolicies(), {
-    policy_count: 47,
+    policy_count: 54,
     duplicate_id_count: 0,
     duplicate_route_count: 0,
     ambiguous_sample_count: 0,
@@ -107,7 +114,10 @@ test("every bounded-context endpoint and separate document/e-sign dispatch is cl
     assert.equal(decision.match_count, 1, contract);
   }
 
-  for (const [method, template] of EXPECTED.slice(33, 40)) {
+  for (const [method, template] of EXPECTED.filter(([, path]) => (
+    path.startsWith("/api/outlook/documents")
+      || path.startsWith("/api/outlook/esign-requests")
+  ))) {
     const decision = classifyOutlookInstallationRoute(method, samplePath(template));
     assert.equal(decision.known, true, `${method} ${template}`);
     assert.equal(decision.requires_active_installation, true, `${method} ${template}`);
@@ -501,7 +511,7 @@ test("active authority then revoke denies every protected read and write before 
   const protectedRequests = EXPECTED
     .filter(([, , classification]) => [R, O].includes(classification))
     .map(([method, template]) => [method, samplePath(template, "guard")]);
-  assert.equal(protectedRequests.length, 31);
+  assert.equal(protectedRequests.length, 37);
 
   const ready = await authorizeOutlookInstallationProtectedRoute({
     method: "POST",

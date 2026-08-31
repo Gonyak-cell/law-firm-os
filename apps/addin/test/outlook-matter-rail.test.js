@@ -26,18 +26,38 @@ test("OUTM-09 matter profile leaf owns exactly five ordered text actions", () =>
     assert.doesNotMatch(descriptor, /Icon:/u);
     cursor = next;
   }
-  assert.equal((MATTER_SOURCE.match(/featureId: "/gu) ?? []).length, EXPECTED_RAIL.length);
+  const baseRailSource = MATTER_SOURCE.slice(
+    MATTER_SOURCE.indexOf("export const OUTLOOK_MATTER_RAIL"),
+    MATTER_SOURCE.indexOf("export const OUTLOOK_VAULT_ATTACHMENT_RAIL_ITEM"),
+  );
+  assert.equal((baseRailSource.match(/featureId: "/gu) ?? []).length, EXPECTED_RAIL.length);
   assert.match(MATTER_SOURCE, /view: "catalog"/u);
   assert.doesNotMatch(MATTER_SOURCE, /inquiry\.entry|문의 기능|UserPlus|lucide-react/u);
+});
+
+test("Vault attachment is added only to the enabled compose rail", () => {
+  assert.match(MATTER_SOURCE, /featureId: "vault\.attach-exact-version"/u);
+  assert.match(MATTER_SOURCE, /label: "Vault에서 첨부"/u);
+  assert.match(MATTER_SOURCE, /itemMode === "compose" && vaultExactAttachmentEnabled === true/u);
+  assert.match(MATTER_SOURCE, /Object\.freeze\(\[OUTLOOK_VAULT_ATTACHMENT_RAIL_ITEM, \.\.\.OUTLOOK_MATTER_RAIL\]\)/u);
+  assert.doesNotMatch(
+    MATTER_SOURCE.slice(
+      MATTER_SOURCE.indexOf("OUTLOOK_VAULT_ATTACHMENT_RAIL_ITEM"),
+      MATTER_SOURCE.indexOf("export function outlookMatterRailForContext"),
+    ),
+    /Icon:/u,
+  );
 });
 
 test("the matter wrapper fixes its profile and descriptor and fails closed on a mismatch", () => {
   assert.match(MATTER_SOURCE, /export function OutlookMatterCompactShell\(/u);
   assert.match(MATTER_SOURCE, /profile = MATTER_PROFILE/u);
-  assert.match(MATTER_SOURCE, /railItems: _railItems/u);
+  assert.doesNotMatch(MATTER_SOURCE, /railItems:/u);
   assert.match(MATTER_SOURCE, /if \(profile !== MATTER_PROFILE\) return null/u);
   assert.match(MATTER_SOURCE, /profile=\{MATTER_PROFILE\}/u);
-  assert.match(MATTER_SOURCE, /railItems=\{OUTLOOK_MATTER_RAIL\}/u);
+  assert.match(MATTER_SOURCE, /railItems=\{outlookMatterRailForContext/u);
+  assert.match(MATTER_SOURCE, /itemMode/u);
+  assert.match(MATTER_SOURCE, /vaultExactAttachmentEnabled/u);
   assert.match(MATTER_SOURCE, /layout="filing"/u);
   assert.doesNotMatch(MATTER_SOURCE, /profile=\{props\.profile\}|railItems=\{props\.railItems\}/u);
 });

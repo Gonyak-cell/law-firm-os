@@ -186,7 +186,7 @@ export async function createOutlookReleaseCandidateReceipt({
   }
   const artifacts = await profileArtifacts(contract, build.inventory, { root });
   const eventRuntime = build.inventory.find(({ path: file }) => file === "event-runtime.js");
-  if (!eventRuntime) throw new Error("event runtime is missing from the release inventory");
+  if (eventRuntime) throw new Error("automatic-send event runtime is present in the release inventory");
   const finalIdentity = exactGitIdentity({ expectedSourceSha: sourceSha, runCommand });
   if (finalIdentity.sourceTree !== sourceTree) {
     throw new Error("release validation changed or drifted from the exact source tree");
@@ -210,7 +210,7 @@ export async function createOutlookReleaseCandidateReceipt({
     inventory_sha256: build.inventory_sha256,
     inventory: build.inventory,
     profile_artifacts: artifacts,
-    event_runtime: eventRuntime,
+    event_runtime: null,
     profiles: candidateResult.profiles,
     manifest_validation: {
       validator: "office-addin-manifest@2.1.6",

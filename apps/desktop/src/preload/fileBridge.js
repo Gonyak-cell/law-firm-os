@@ -1,59 +1,85 @@
 import { contextBridge, ipcRenderer } from "electron";
 import { assertNoRendererDocumentBytes, pickAllowedRequestFields } from "../shared/rendererBytePolicy.js";
 
-export const PRELOAD_CHANNEL_ALLOWLIST = Object.freeze({
+export const FILE_BRIDGE_CHANNEL_ALLOWLIST = Object.freeze({
+  status: "fileBridge:status",
+  precheckUpload: "fileBridge:precheck-upload",
   chooseFileForUpload: "fileBridge:choose-file-for-upload",
-  saveDocumentAs: "fileBridge:save-document-as"
+  cancelUpload: "fileBridge:cancel-upload",
+  uploadSelectedFile: "fileBridge:upload-selected-file",
+  resumePendingUploads: "fileBridge:resume-pending-uploads",
+  saveDocumentAs: "fileBridge:save-document-as",
+  openDocumentPreview: "fileBridge:open-document-preview",
+  attachDocumentToClassicOutlook: "fileBridge:attach-document-to-classic-outlook"
 });
 
-export const TRUSTED_GESTURE_TYPES = Object.freeze(["click", "keydown", "drop"]);
-export const CHOOSE_FILE_FOR_UPLOAD_REQUEST_FIELDS = Object.freeze(["matterId", "documentId", "tenantIdHash"]);
-export const SAVE_DOCUMENT_AS_REQUEST_FIELDS = Object.freeze([
-  "matterId",
-  "documentId",
-  "tenantIdHash",
-  "suggestedName",
-  "title"
-]);
-
-export function createGestureContext(event) {
-  if (!event || event.isTrusted !== true || !TRUSTED_GESTURE_TYPES.includes(event.type)) {
-    throw new Error("matter file picker requires a trusted user gesture");
-  }
-  return {
-    userGesture: true,
-    gestureType: event.type,
-    gestureToken: `gesture:${event.type}:${Date.now()}`
-  };
-}
-
 function invokeAllowed(command, payload) {
-  const channel = PRELOAD_CHANNEL_ALLOWLIST[command];
+  const channel = FILE_BRIDGE_CHANNEL_ALLOWLIST[command];
   if (!channel) throw new Error(`Blocked preload file bridge command: ${command}`);
   return ipcRenderer.invoke(channel, payload);
 }
 
-export function sanitizeChooseFileForUploadRequest(request = {}) {
+function activeUserInteraction() {
+  if (globalThis.navigator?.userActivation?.isActive !== true) {
+    throw new Error("AMIC OS file action requires an active user interaction");
+  }
+  return { userActivation: true };
+}
+
+export function sanitizeUploadPrecheckRequest(request = {}) {
   assertNoRendererDocumentBytes(request);
-  return pickAllowedRequestFields(request, CHOOSE_FILE_FOR_UPLOAD_REQUEST_FIELDS);
+  return pickAllowedRequestFields(request, ["matterId", "workspaceId", "folderId"]);
 }
 
 export function sanitizeSaveDocumentAsRequest(request = {}) {
   assertNoRendererDocumentBytes(request);
-  return pickAllowedRequestFields(request, SAVE_DOCUMENT_AS_REQUEST_FIELDS);
+  return pickAllowedRequestFields(request, [
+    "matterId", "documentId", "versionId", "fileObjectId", "sha256",
+    "byteSize", "mimeType", "suggestedName", "title",
+  ]);
+}
+
+export function sanitizeOpenDocumentPreviewRequest(request = {}) {
+  assertNoRendererDocumentBytes(request);
+  return pickAllowedRequestFields(request, [
+    "matterId", "documentId", "versionId", "fileObjectId", "sha256",
+    "byteSize", "mimeType", "suggestedName",
+  ]);
+}
+
+export function sanitizeClassicOutlookAttachRequest(request = {}) {
+  assertNoRendererDocumentBytes(request);
+  return pickAllowedRequestFields(request, [
+    "requestHandle", "matterId", "documentId", "versionId", "fileObjectId", "sha256",
+    "byteSize", "mimeType", "suggestedName",
+  ]);
 }
 
 export const fileBridgeApi = Object.freeze({
-  chooseFileForUpload: (event, request = {}) =>
-    invokeAllowed("chooseFileForUpload", {
-      ...sanitizeChooseFileForUploadRequest(request),
-      ...createGestureContext(event)
-    }),
-  saveDocumentAs: (event, request = {}) =>
-    invokeAllowed("saveDocumentAs", {
-      ...sanitizeSaveDocumentAsRequest(request),
-      ...createGestureContext(event)
-    })
+  status: () => invokeAllowed("status"),
+  precheckUpload: (request = {}) => invokeAllowed("precheckUpload", sanitizeUploadPrecheckRequest(request)),
+  chooseFileForUpload: (preflightId) => invokeAllowed("chooseFileForUpload", {
+    preflightId,
+    ...activeUserInteraction()
+  }),
+  cancelUpload: (handleId) => invokeAllowed("cancelUpload", { handleId }),
+  uploadSelectedFile: (handleId) => invokeAllowed("uploadSelectedFile", { handleId }),
+  resumePendingUploads: () => invokeAllowed("resumePendingUploads", {}),
+  saveDocumentAs: (request = {}) => invokeAllowed("saveDocumentAs", {
+    ...sanitizeSaveDocumentAsRequest(request),
+    ...activeUserInteraction()
+  }),
+  openDocumentPreview: (request = {}) => invokeAllowed("openDocumentPreview", {
+    ...sanitizeOpenDocumentPreviewRequest(request),
+    ...activeUserInteraction()
+  }),
+  attachDocumentToClassicOutlook: (request = {}) => invokeAllowed(
+    "attachDocumentToClassicOutlook",
+    {
+      ...sanitizeClassicOutlookAttachRequest(request),
+      ...activeUserInteraction()
+    }
+  )
 });
 
-contextBridge.exposeInMainWorld("materFileBridge", fileBridgeApi);
+contextBridge.exposeInMainWorld("amicFileBridge", fileBridgeApi);

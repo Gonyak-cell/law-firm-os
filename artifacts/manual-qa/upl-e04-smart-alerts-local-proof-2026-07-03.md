@@ -1,11 +1,11 @@
-# UPL E04 Smart Alerts Local Proof
+# UPL E04 Explicit Send Review Local Proof
 
-Generated at: 2026-07-30T15:02:30.947Z
+Generated at: 2026-08-28T08:57:41.754Z
 
 - PASS: true
 - Screenshot: `artifacts/manual-qa/screenshots/upl-e04-smart-alerts-local-proof-2026-07-03.png`
+- Automatic Outlook Send interception: absent
 - External Outlook runtime: owner-required, not claimed
-- Legacy unsigned permission-context: blocked with 401
 
 ## Checks
 

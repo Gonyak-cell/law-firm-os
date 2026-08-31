@@ -87,7 +87,6 @@ function exactCanaryWorkflowCommands(source) {
   assert.deepEqual(steps.get("Validate all local and production manifests"), [
     "npx --yes office-addin-manifest@2.1.6 validate apps/addin/manifest.xml",
     "npx --yes office-addin-manifest@2.1.6 validate apps/addin/manifest.canary.taskpane.production.xml",
-    "npx --yes office-addin-manifest@2.1.6 validate apps/addin/manifest.canary.smart-alerts.production.xml",
     "npx --yes office-addin-manifest@2.1.6 validate apps/addin/manifest.production.xml",
     "npx --yes office-addin-manifest@2.1.6 validate apps/addin/manifest.canary.rollback.production.xml",
     "npx --yes office-addin-manifest@2.1.6 validate apps/addin/manifest.inquiry.xml",
@@ -104,7 +103,7 @@ test("one-user canary manifest set is exact, staged, least-privilege, and non-ex
     product_id: "8f3cc90d-56dd-4c1c-b9c2-0a1100500101",
     artifact_version: "1.3.0.1",
     prior_known_manifest_version: "1.2.0.2",
-    manifest_set_sha256: "3c5c01a24e4c9736fb77de9bc438229989473b6cd6dc778fd28bca5fe1dd2218",
+    manifest_set_sha256: "60554677f7617af4ac6590b5d95af24b45ebf6aa3824109d19cb172e2df68b8c",
     stages: [
       {
         id: "taskpane_only",
@@ -114,11 +113,11 @@ test("one-user canary manifest set is exact, staged, least-privilege, and non-ex
         launch_events: [],
       },
       {
-        id: "smart_alerts",
-        manifest_path: "apps/addin/manifest.canary.smart-alerts.production.xml",
-        manifest_sha256: "8ecd85da962b632d8fa69182fffb5a4b5dd526dd51896e7d37428cd87dd38d51",
+        id: "candidate_taskpane",
+        manifest_path: "apps/addin/manifest.production.xml",
+        manifest_sha256: "57faac9f6b2aa407480f84ae617009913f8aec36ff2d9f287285beb87b4c0c26",
         manifest_version: "1.3.0.1",
-        launch_events: ["OnMessageSend:onMessageSendHandler:PromptUser"],
+        launch_events: [],
       },
     ],
     rollback_manifest: {
@@ -133,21 +132,21 @@ test("one-user canary manifest set is exact, staged, least-privilege, and non-ex
   });
 });
 
-test("taskpane-only stage rejects hidden Smart Alerts or event runtime capabilities", async () => {
-  const smartAlerts = (await readFile(
+test("candidate stage rejects a hidden automatic-send launch event", async () => {
+  const retiredEventfulManifest = await readFile(
     path.join(repoRoot, "apps/addin/manifest.canary.smart-alerts.production.xml"),
     "utf8",
-  )).replace("<Version>1.3.0.1</Version>", "<Version>1.3.0.0</Version>");
+  );
   const mutated = changedContract((value) => {
-    bindFile(value, "apps/addin/manifest.canary.taskpane.production.xml", smartAlerts);
+    bindFile(value, "apps/addin/manifest.production.xml", retiredEventfulManifest);
   });
   await assert.rejects(
     validateOutlookM365CanaryManifestSet({
       repoRoot,
       contractOverride: mutated,
-      fileOverrides: { "apps/addin/manifest.canary.taskpane.production.xml": smartAlerts },
+      fileOverrides: { "apps/addin/manifest.production.xml": retiredEventfulManifest },
     }),
-    /taskpane-only extension points/u,
+    /candidate taskpane-only extension points/u,
   );
 });
 
@@ -160,7 +159,6 @@ test("only candidate full-product V1.1 read and compose taskpanes support pinnin
     "apps/addin/manifest.xml",
     "apps/addin/manifest.production.xml",
     "apps/addin/manifest.canary.taskpane.production.xml",
-    "apps/addin/manifest.canary.smart-alerts.production.xml",
   ]) {
     const manifest = parseOutlookManifest(await readFile(path.join(repoRoot, manifestPath), "utf8"));
     assert.deepEqual(manifest.supports_pinning, expected, manifestPath);
@@ -229,7 +227,7 @@ test("pinning and monotonic-version mutations fail closed after contract reseal"
   }
 });
 
-test("Smart Alerts cannot precede taskpane, OAuth, assignment-readback, and runtime proofs", async () => {
+test("candidate taskpane cannot skip OAuth, assignment, or automatic-send-zero proofs", async () => {
   const mutated = changedContract((value) => {
     value.stages[1].requires.splice(1, 1);
   });
@@ -361,7 +359,7 @@ test("callback and OAuth source checks reject resealed executable-target drift",
   });
 });
 
-test("rollback must disable Smart Alerts before exact-canary unassignment and cannot delete the ProductId", async (t) => {
+test("rollback must preserve zero automatic Send interception before exact-canary unassignment", async (t) => {
   for (const [name, mutate] of [
     ["skip rollback", (value) => { value.rollback_removal.remove_canary.operations.shift(); }],
     ["delete ProductId", (value) => { value.rollback_removal.remove_canary.delete_product_id_allowed = true; }],

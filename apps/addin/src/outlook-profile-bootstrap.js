@@ -42,6 +42,10 @@ function entrypointDescriptor(entrypoint, buildProfile) {
     productId: buildProfile.productId,
     productionSourceLocation: buildProfile.productionSourceLocation,
     productionBase: buildProfile.productionBase,
+    vaultExactAttachmentEnabled:
+      buildProfile.vaultExactAttachmentEnabled === true,
+    vaultSourceSaveEnabled:
+      buildProfile.vaultSourceSaveEnabled === true,
     ...(Array.isArray(buildProfile.itemModes) ? { itemModes: [...buildProfile.itemModes] } : {}),
     ...(Array.isArray(buildProfile.actions) ? { actions: [...buildProfile.actions] } : {}),
   });
@@ -65,6 +69,10 @@ export function bootstrapOutlookSurface(
   const profile = deepFreeze({
     key: descriptor.key,
     productId: descriptor.productId,
+    vaultExactAttachmentEnabled:
+      descriptor.vaultExactAttachmentEnabled,
+    vaultSourceSaveEnabled:
+      descriptor.vaultSourceSaveEnabled,
     ...(descriptor.itemModes ? { itemModes: descriptor.itemModes } : {}),
     ...(descriptor.actions ? { actions: descriptor.actions } : {}),
   });

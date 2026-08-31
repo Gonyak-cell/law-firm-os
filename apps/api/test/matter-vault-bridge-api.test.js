@@ -4,8 +4,9 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 import { startApiServer } from "../src/server.js";
+import { MATTER_VAULT_REGISTERED_TENANT_ID } from "../src/matter-vault-account-registry.js";
 
-const TENANT = "tenant_vault_bridge";
+const TENANT = MATTER_VAULT_REGISTERED_TENANT_ID;
 const TOKEN = "test-vault-bridge-token";
 const SERVICE_ACTOR = "vault-bridge-service-test";
 
@@ -213,6 +214,7 @@ test("Vault bridge upserts Matter app client and matter with idempotent replay",
     assert.equal(status.status, 200);
     assert.equal(status.body.item.source_mode, "matter_app_api");
     assert.equal(status.body.item.runtime_write_ready, true);
+    assert.equal(status.body.item.repository_durable, true);
     assert.equal(status.body.item.bridge_enabled, true);
     assert.equal(status.body.item.allowed_tenant_count, 1);
     assert.equal(status.body.item.service_actor_id, SERVICE_ACTOR);
@@ -251,6 +253,36 @@ test("Vault bridge upserts Matter app client and matter with idempotent replay",
     assert.equal(replay.status, 200);
     assert.equal(replay.body.action, "skipped_idempotent");
     assert.equal(replay.body.idempotent_replay, true);
+  });
+});
+
+test("Vault bridge exposes the deterministic current canonical snapshot to the service credential only", async () => {
+  process.env.LAWOS_VAULT_BRIDGE_TOKEN = TOKEN;
+  await withServer(async (baseUrl) => {
+    const denied = await json(baseUrl, "/api/matters/vault-bridge/canonical-snapshot");
+    assert.equal(denied.status, 403);
+    assert.deepEqual(denied.body.safe_error_codes, ["MATTER_VAULT_BRIDGE_BLOCKED"]);
+
+    const snapshot = await json(baseUrl, "/api/matters/vault-bridge/canonical-snapshot", {
+      headers: bridgeHeaders(),
+    });
+    assert.equal(snapshot.status, 200);
+    assert.equal(snapshot.body.source_revision, "amic_current_onedrive_matter_code_inventory_2026_07_01");
+    assert.equal(snapshot.body.client_count, 99);
+    assert.equal(snapshot.body.matter_count, 148);
+    assert.equal(snapshot.body.clients.length, snapshot.body.client_count);
+    assert.equal(snapshot.body.matters.length, snapshot.body.matter_count);
+    assert.deepEqual(snapshot.body.axis_counts, { Advisory: 14, DEAL: 28, Dispute: 7, LIT: 99 });
+    assert.equal(snapshot.body.clients[0].source_revision, snapshot.body.source_revision);
+    assert.equal(snapshot.body.matters[0].source_revision, snapshot.body.source_revision);
+    assert.equal(snapshot.body.matters[0].tenant_id, TENANT);
+    assert.equal("document_bytes" in snapshot.body, false);
+    assert.equal("storage_pointer" in snapshot.body, false);
+
+    const replay = await json(baseUrl, "/api/matters/vault-bridge/canonical-snapshot", {
+      headers: bridgeHeaders(),
+    });
+    assert.deepEqual(replay.body, snapshot.body);
   });
 });
 

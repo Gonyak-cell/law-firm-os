@@ -35,10 +35,10 @@ assertDesktopFormalBuildProvenance({
   expectedSourceSha: process.env.MATTER_DESKTOP_EXPECTED_SOURCE_SHA,
 });
 const appId = channelConfig.appId;
-const artifactName = `${channelConfig.artifactPrefix}-${packageJson.version}`;
+const artifactName = `${channelConfig.windowsArtifactPrefix}-${packageJson.version}`;
 const packageDir = join(distRoot, `${artifactName}-win32-x64`);
 const packageZipPath = join(distRoot, `${artifactName}-win32-x64-unsigned.zip`);
-const executablePath = join(packageDir, "matter.exe");
+const executablePath = join(packageDir, `${channelConfig.windowsExecutableName}.exe`);
 const artifactPath = join(distRoot, `${artifactName}-win-installer-manifest.json`);
 const signaturePath = `${artifactPath}.sig`;
 const externalBuildManifestPath = join(distRoot, `${artifactName}-win-build-manifest.json`);
@@ -113,8 +113,8 @@ try {
     overwrite: true,
     platform: "win32",
     arch: "x64",
-    name: "matter",
-    executableName: "matter",
+    name: channelConfig.windowsProductName,
+    executableName: channelConfig.windowsExecutableName,
     appVersion: packageJson.version,
     buildVersion: packageJson.version,
     icon: iconPath,
@@ -159,7 +159,9 @@ const packageZipHash = sha256(await readFile(packageZipPath));
 const packageDirStat = await stat(packageDir);
 const nativeInstallSmoke = `not_run_on_${process.platform}`;
 const artifact = {
-  productName: "matter",
+  productName: channelConfig.windowsProductName,
+  artifactPrefix: channelConfig.windowsArtifactPrefix,
+  executableName: `${channelConfig.windowsExecutableName}.exe`,
   appId,
   version: packageJson.version,
   platform: "win32",
@@ -176,7 +178,7 @@ const artifact = {
   icon: "build/icon.ico",
   iconSha256: iconHash,
   packageDirectory: `apps/desktop/dist/win/${artifactName}-win32-x64`,
-  executable: `apps/desktop/dist/win/${artifactName}-win32-x64/matter.exe`,
+  executable: `apps/desktop/dist/win/${artifactName}-win32-x64/${channelConfig.windowsExecutableName}.exe`,
   executableSha256: executableHash,
   packageZip: `apps/desktop/dist/win/${artifactName}-win32-x64-unsigned.zip`,
   packageZipSha256: packageZipHash,
@@ -199,12 +201,14 @@ Status: ${channelConfig.receiptStatusPrefix}_windows_build_manifest_created
 Source TUW: MDT-P6-W01-T04
 Installer manifest: \`apps/desktop/dist/win/${artifactName}-win-installer-manifest.json\`
 Windows package directory: \`apps/desktop/dist/win/${artifactName}-win32-x64\`
-Windows executable: \`apps/desktop/dist/win/${artifactName}-win32-x64/matter.exe\`
+Windows executable: \`apps/desktop/dist/win/${artifactName}-win32-x64/${channelConfig.windowsExecutableName}.exe\`
 Windows unsigned package zip: \`apps/desktop/dist/win/${artifactName}-win32-x64-unsigned.zip\`
 App icon: \`apps/desktop/build/icon.ico\`
 App icon sha256: \`${iconHash}\`
 App ID: \`${appId}\`
-Product name: \`matter\`
+Product name: \`${channelConfig.windowsProductName}\`
+Artifact prefix: \`${channelConfig.windowsArtifactPrefix}\`
+Executable name: \`${channelConfig.windowsExecutableName}.exe\`
 Version: \`${packageJson.version}\`
 Channel: \`${releaseChannel}\`
 Build manifest: \`apps/desktop/dist/win/${artifactName}-win-build-manifest.json\`
@@ -256,11 +260,14 @@ console.log(
       verdict: "PASS",
       artifact: `apps/desktop/dist/win/${artifactName}-win-installer-manifest.json`,
       package_directory: `apps/desktop/dist/win/${artifactName}-win32-x64`,
-      executable: `apps/desktop/dist/win/${artifactName}-win32-x64/matter.exe`,
+      executable: `apps/desktop/dist/win/${artifactName}-win32-x64/${channelConfig.windowsExecutableName}.exe`,
       unsigned_package_zip: `apps/desktop/dist/win/${artifactName}-win32-x64-unsigned.zip`,
       receipt: receiptPath,
       release_channel: releaseChannel,
       app_id: appId,
+      product_name: channelConfig.windowsProductName,
+      artifact_prefix: channelConfig.windowsArtifactPrefix,
+      executable_name: `${channelConfig.windowsExecutableName}.exe`,
       build_manifest: `apps/desktop/dist/win/${artifactName}-win-build-manifest.json`,
       packaged_build_manifest: `apps/desktop/dist/win/${artifactName}-win32-x64/resources/matter-build-manifest.json`,
       build_manifest_sha256: buildManifestHash,

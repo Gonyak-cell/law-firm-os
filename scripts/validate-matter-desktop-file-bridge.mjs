@@ -2,14 +2,17 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { lstatSync, readFileSync, readdirSync } from "node:fs";
-import { join } from "node:path";
+import { join, relative, sep } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const REPO_ROOT = fileURLToPath(new URL("..", import.meta.url));
 
 const AUDITED_DESKTOP_SOURCE_ROOTS = [
   "apps/desktop/src/main",
   "apps/desktop/src/preload",
-  "apps/desktop/src/shared",
+  "apps/desktop/src/shared"
 ];
-const AUDITED_DESKTOP_SOURCE_MANIFEST_SHA256 = "a39efd7ace494e382e50e2c02a06ceb7ef0c60e97904363e70acf63e72bb8ccc";
+const AUDITED_DESKTOP_SOURCE_MANIFEST_SHA256 = "047533f19298cd430f0d0102709e454fd8e4ec9d504eac28e3aba31cb8f11df1";
 
 function listFiles(dir) {
   const directoryStat = lstatSync(dir);
@@ -19,13 +22,9 @@ function listFiles(dir) {
   const files = [];
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
     const filePath = join(dir, entry.name);
-    if (entry.isDirectory()) {
-      files.push(...listFiles(filePath));
-    } else if (entry.isFile()) {
-      files.push(filePath);
-    } else {
-      throw new Error(`desktop execution source must be a regular file: ${filePath}`);
-    }
+    if (entry.isDirectory()) files.push(...listFiles(filePath));
+    else if (entry.isFile()) files.push(filePath);
+    else throw new Error(`desktop execution source must be a regular file: ${filePath}`);
   }
   return files.sort();
 }
@@ -36,48 +35,92 @@ function sha256(value) {
 
 function sourceFindings(filePath, source) {
   const findings = [];
-  const checks = [
+  const lineChecks = [
     ["directory_watch", /\b(?:fs\.)?(?:watch|watchFile)\s*\(|chokidar|createWatcher/],
     ["recursive_scan", /\b(?:(?:fs\.)?(?:readdir|readdirSync|opendir|opendirSync)|glob)\s*\(|fast-glob/],
     ["renderer_file_bytes", /\b(?:request|payload|params|input)\.(?:bytes|fileBytes|documentBytes|content|blob|arrayBuffer)\b/],
-    ["path_retention", /\b(?:localStorage|sessionStorage|indexedDB|JSON\.stringify|writeFile|writeFileSync|appendFile|appendFileSync)\b.*(?:\bpath\b|filePath|absolutePath)/i],
-    ["path_retention", /selectedHandles\.set\([^\n]*(?:\bpath\b|filePath|absolutePath)/],
+    ["persistent_path_storage", /\b(?:localStorage|sessionStorage|indexedDB|writeFile|writeFileSync|appendFile|appendFileSync)\b.*(?:\bpath\b|filePath|absolutePath)/i],
+    ["path_logging", /\bconsole\.(?:log|info|warn|error|debug)\b.*(?:filePath|absolutePath)/i],
+    ["renderer_raw_path", /pathVisibleToRenderer\s*:\s*true/]
   ];
   for (const [lineNumber, line] of source.split("\n").entries()) {
-    for (const [code, pattern] of checks.slice(0, 4)) {
+    for (const [code, pattern] of lineChecks) {
       if (pattern.test(line)) findings.push(`${filePath}:${lineNumber + 1}:${code}`);
     }
-  }
-  for (const [code, pattern] of checks.slice(4)) {
-    if (pattern.test(source)) findings.push(`${filePath}:source:${code}`);
   }
   return findings;
 }
 
-const desktopSources = AUDITED_DESKTOP_SOURCE_ROOTS.flatMap(listFiles)
+const desktopSources = AUDITED_DESKTOP_SOURCE_ROOTS.flatMap((sourceRoot) => listFiles(join(REPO_ROOT, sourceRoot)))
   .sort()
-  .map((filePath) => {
-    const bytes = readFileSync(filePath);
+  .map((absolutePath) => {
+    const filePath = relative(REPO_ROOT, absolutePath).split(sep).join("/");
+    const bytes = readFileSync(absolutePath);
     return { filePath, bytes, source: bytes.toString("utf8") };
   });
-assert.ok(desktopSources.some(({ filePath }) => filePath === "apps/desktop/src/preload/session.cjs"), "active CommonJS preload was not scanned");
-const findings = [];
+const sourceByPath = new Map(desktopSources.map((entry) => [entry.filePath, entry.source]));
+const activePreload = sourceByPath.get("apps/desktop/src/preload/session.cjs") ?? "";
+const bridgePreload = sourceByPath.get("apps/desktop/src/preload/fileBridge.js") ?? "";
+const bridgeMain = sourceByPath.get("apps/desktop/src/main/fileBridge.js") ?? "";
+const desktopMain = sourceByPath.get("apps/desktop/src/main/main.js") ?? "";
+const authMain = sourceByPath.get("apps/desktop/src/main/auth.js") ?? "";
+const tempPreviewMain = sourceByPath.get("apps/desktop/src/main/tempPreview.js") ?? "";
 
-for (const { filePath, source } of desktopSources) {
-  findings.push(...sourceFindings(filePath, source));
-}
+assert.ok(activePreload, "active CommonJS preload was not scanned");
+assert.match(activePreload, /contextBridge\.exposeInMainWorld\("amicFileBridge"/);
+assert.match(activePreload, /navigator\?\.userActivation\?\.isActive !== true/);
+assert.match(activePreload, /openDocumentPreview: "fileBridge:open-document-preview"/);
+assert.match(activePreload, /resumePendingUploads: "fileBridge:resume-pending-uploads"/);
+assert.doesNotMatch(activePreload, /materFileBridge/);
+assert.match(bridgePreload, /contextBridge\.exposeInMainWorld\("amicFileBridge"/);
+assert.match(bridgePreload, /openDocumentPreview/);
+assert.match(bridgePreload, /resumePendingUploads/);
+assert.doesNotMatch(bridgePreload, /tenantId|actorId|idempotencyKey|filePath|absolutePath/);
+assert.match(desktopMain, /registerFileBridgeIpcHandlers/);
+assert.match(desktopMain, /fileBridgeExposed: true/);
+assert.match(desktopMain, /createFileSystemTempPreviewStorage\(\{ basePath: app\.getPath\("temp"\) \}\)/);
+assert.match(desktopMain, /cacheStores: \[tempPreviewManager\]/);
+assert.match(bridgeMain, /FILE_BRIDGE_HANDLE_TTL_MS = 5 \* 60 \* 1000/);
+assert.match(bridgeMain, /const selectedHandles = new Map\(\)/);
+assert.match(bridgeMain, /setExpiringEntry\(selectedHandles/);
+assert.match(bridgeMain, /clearMapEntry\(selectedHandles/);
+assert.match(bridgeMain, /ownerForIpcEvent/);
+assert.match(bridgeMain, /isTrustedSender/);
+assert.match(bridgeMain, /openedFile\.stat\(\)/);
+assert.match(bridgeMain, /openDocumentPreview/);
+assert.match(bridgeMain, /resumePendingUploads/);
+assert.match(bridgeMain, /DOCUMENT_PROVIDER_HASH_MISMATCH/);
+assert.match(bridgeMain, /dispose\(\)/);
+assert.doesNotMatch(bridgeMain, /Math\.random/);
+assert.match(tempPreviewMain, /TEMP_PREVIEW_DIRECTORY = "amic-os-vault-preview-cache"/);
+assert.match(tempPreviewMain, /DEFAULT_TEMP_PREVIEW_TTL_MS = 5 \* 60 \* 1000/);
+assert.match(tempPreviewMain, /openImpl\(nativePath, "wx", 0o600\)/);
+assert.match(tempPreviewMain, /mkdirImpl\(rootPath, \{ recursive: false, mode: 0o700 \}\)/);
+assert.match(tempPreviewMain, /pathVisibleToRenderer: false/);
+assert.match(tempPreviewMain, /handleLogout\(\)/);
+assert.match(tempPreviewMain, /handleTenantSwitch\(\)/);
+assert.match(tempPreviewMain, /handleAppQuit\(\)/);
+assert.match(authMain, /local_session_cleanup_failed/);
+assert.match(authMain, /law-firm-os\.desktop-vault-upload-pending\.v1/);
+assert.match(authMain, /raw_path_included: false/);
+assert.match(authMain, /raw_bytes_included: false/);
+assert.match(authMain, /filename_included: false/);
+
+const findings = desktopSources.flatMap(({ filePath, source }) => sourceFindings(filePath, source));
 const sourceManifest = desktopSources.map(({ filePath, bytes }) => `${sha256(bytes)}  ${filePath}\n`).join("");
 assert.equal(
   sha256(sourceManifest),
   AUDITED_DESKTOP_SOURCE_MANIFEST_SHA256,
-  "desktop main/preload/shared source manifest changed; explicit filesystem-boundary review required",
+  "desktop main/preload/shared source manifest changed; explicit filesystem-boundary review required"
 );
 
 const probes = {
   directory_watch: sourceFindings("probe-directory-watch.js", "fs.watch('/Users/example', () => {})"),
   recursive_scan: sourceFindings("probe-recursive-scan.js", "readdirSync('/Users/example')\nopendir('/Users/example')\nglob('**/*')"),
   renderer_file_bytes: sourceFindings("probe-renderer-file-bytes.js", "writer.write({ bytes: request.bytes })"),
-  path_retention: sourceFindings("probe-path-retention.js", "localStorage.setItem('lastPath', filePath); selectedHandles.set(id, { filePath })"),
+  persistent_path_storage: sourceFindings("probe-path-retention.js", "localStorage.setItem('lastPath', filePath)"),
+  path_logging: sourceFindings("probe-path-logging.js", "console.log(filePath)"),
+  renderer_raw_path: sourceFindings("probe-renderer-path.js", "return { pathVisibleToRenderer: true }")
 };
 for (const [code, probeFindings] of Object.entries(probes)) {
   assert.ok(probeFindings.some((finding) => finding.endsWith(`:${code}`)), `${code} probe was not detected`);
@@ -90,6 +133,8 @@ console.log(JSON.stringify({
   audited_desktop_sources: desktopSources.length,
   audited_source_manifest_sha256: AUDITED_DESKTOP_SOURCE_MANIFEST_SHA256,
   findings,
+  path_policy: "bounded-main-process-memory-plus-protected-temp",
+  active_preload_api: "amicFileBridge",
   policy: "any new, removed, renamed, or changed main/preload/shared source requires explicit filesystem-boundary review",
-  probes: Object.fromEntries(Object.keys(probes).map((code) => [code, "detected"])),
+  probes: Object.fromEntries(Object.keys(probes).map((code) => [code, "detected"]))
 }, null, 2));

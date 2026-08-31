@@ -14,6 +14,14 @@ export function validateReleaseContract(contract) {
   if (contract.release_version !== "1.3.0.1" || contract.rollback_version !== "1.0.1.1") {
     throw new Error("Outlook release and rollback versions drifted");
   }
+  assertEqual(contract.automatic_send_policy, {
+    active_launch_events: [],
+    active_event_runtime_required: false,
+    legacy_smart_alert_manifest_status: "retired_source_only",
+    legacy_eventful_rollback_activation_allowed: false,
+    forward_rollback_contract: "contracts/outlook-addin-forward-static-rollback.json",
+    forward_rollback_launch_event_count: 0,
+  }, "automatic Send policy");
   const profiles = contract.profiles ?? [];
   assertEqual(sorted(profiles.map(({ product_id }) => product_id)), sorted(PRODUCT_IDS), "release ProductIds");
   assertEqual(sorted(profiles.map(({ profile }) => profile)), sorted(PROFILE_NAMES), "release profiles");
@@ -75,7 +83,7 @@ export function validateReleaseContract(contract) {
   assertEqual(sorted(contract.m365?.required_mutation_actions ?? []), sorted(REQUIRED_MUTATION_ACTIONS), "M365 mutation actions");
   const distribution = validateProductionDistributionContract(contract.m365?.production_distribution);
   assertEqual(contract.m365?.required_profile_scenarios, {
-    "matter-full": ["read", "compose", "on-message-send"],
+    "matter-full": ["read", "compose"],
     "inquiry-only": ["read"],
   }, "M365 profile scenarios");
   const evidence = contract.m365?.protected_evidence;

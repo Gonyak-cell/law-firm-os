@@ -12,12 +12,6 @@ const MANIFEST_BINDINGS = [
     version: "1.3.0.0",
   },
   {
-    path: "apps/addin/manifest.canary.smart-alerts.production.xml",
-    profile: "matter-full",
-    stage: "smart_alerts",
-    version: "1.3.0.1",
-  },
-  {
     path: "apps/addin/manifest.canary.rollback.production.xml",
     profile: "matter-full",
     stage: "forward_rollback",
@@ -26,7 +20,7 @@ const MANIFEST_BINDINGS = [
   {
     path: "apps/addin/manifest.production.xml",
     profile: "matter-full",
-    stage: "production",
+    stage: "candidate_taskpane",
     version: "1.3.0.1",
   },
   {

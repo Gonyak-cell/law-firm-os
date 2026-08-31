@@ -8,11 +8,26 @@ export const OUTLOOK_MATTER_RAIL = Object.freeze([
   Object.freeze({ featureId: "all-functions", label: "추가 작업", view: "catalog" }),
 ]);
 
+export const OUTLOOK_VAULT_ATTACHMENT_RAIL_ITEM = Object.freeze({
+  featureId: "vault.attach-exact-version",
+  label: "Vault에서 첨부",
+});
+
+export function outlookMatterRailForContext({
+  itemMode,
+  vaultExactAttachmentEnabled = false,
+} = {}) {
+  return itemMode === "compose" && vaultExactAttachmentEnabled === true
+    ? Object.freeze([OUTLOOK_VAULT_ATTACHMENT_RAIL_ITEM, ...OUTLOOK_MATTER_RAIL])
+    : OUTLOOK_MATTER_RAIL;
+}
+
 const MATTER_PROFILE = "matter-full";
 
 export function OutlookMatterCompactShell({
   profile = MATTER_PROFILE,
-  railItems: _railItems,
+  itemMode,
+  vaultExactAttachmentEnabled = false,
   ...props
 }) {
   if (profile !== MATTER_PROFILE) return null;
@@ -20,7 +35,10 @@ export function OutlookMatterCompactShell({
     <OutlookCompactShell
       {...props}
       profile={MATTER_PROFILE}
-      railItems={OUTLOOK_MATTER_RAIL}
+      railItems={outlookMatterRailForContext({
+        itemMode,
+        vaultExactAttachmentEnabled,
+      })}
       layout="filing"
     />
   );

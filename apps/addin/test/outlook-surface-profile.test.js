@@ -34,7 +34,7 @@ test("exact manifest ProductIds select the frozen Outlook capability profiles", 
       "matter.file-sent",
       "matter.save-attachments",
       "matter.create-follow-up",
-      "matter.evaluate-smart-alerts",
+      "matter.review-send-explicitly",
     ],
   });
   assert.deepEqual(resolveOutlookSurfaceProfile(OUTLOOK_PRODUCT_IDS.inquiryOnly), {

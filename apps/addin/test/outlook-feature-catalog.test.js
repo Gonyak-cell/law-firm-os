@@ -50,7 +50,7 @@ const EXPECTED_ROWS = [
   ["document.create-and-sign-status", "문서 만들기·서명 상태", "matter-full", true, true, []],
   ["inquiry.create", "새 문의 등록", "inquiry-only", true, false, []],
   ["inquiry.link-existing", "기존 문의 연결", "inquiry-only", true, false, []],
-  ["smart-alert.on-message-send", "보내기 전 알림", "matter-full", false, true, ["OnMessageSend"]],
+  ["send-review.explicit", "보내기 전 확인", "matter-full", false, true, []],
 ];
 
 const EXPECTED_ENDPOINTS = {
@@ -66,7 +66,7 @@ const EXPECTED_ENDPOINTS = {
   "document.create-and-sign-status": "/api/outlook/documents",
   "inquiry.create": "/api/outlook/inquiries",
   "inquiry.link-existing": "/api/outlook/inquiries",
-  "smart-alert.on-message-send": "/api/outlook/smart-alerts/evaluate",
+  "send-review.explicit": "/api/outlook/smart-alerts/evaluate",
 };
 
 test("catalog has only the retained stable feature IDs and complete active contracts", () => {
@@ -111,7 +111,7 @@ test("catalog has only the retained stable feature IDs and complete active contr
     assert.deepEqual(requiredKeys.filter((key) => !Object.hasOwn(feature, key)), []);
     assert.deepEqual(Object.keys(feature).filter((key) => !allowedKeys.has(key)), []);
     assert.equal(feature.implementationState, "active");
-    assert.ok(["rail icon", "all-functions row", "inquiry icon", "event"].includes(feature.opener));
+    assert.ok(["rail icon", "all-functions row", "inquiry icon"].includes(feature.opener));
     assert.ok(feature.endpoint.length > 0);
     assert.ok(feature.domainService.length > 0);
     assert.ok(feature.duplicateSemantics.length > 0);
@@ -192,7 +192,7 @@ test("required current-item and Matter prerequisites match the retained contract
     "document.create-and-sign-status": [[], true],
     "inquiry.create": [inquiryFields, false],
     "inquiry.link-existing": [inquiryFields, false],
-    "smart-alert.on-message-send": [["recipients", "subject", "bodyPreview"], false],
+    "send-review.explicit": [["recipients", "subject", "bodyPreview"], false],
   };
   assert.deepEqual(
     Object.fromEntries(OUTLOOK_FEATURE_CATALOG.map((feature) => [
@@ -209,7 +209,7 @@ test("required current-item and Matter prerequisites match the retained contract
       "mail.save-sent",
       "inquiry.create",
       "inquiry.link-existing",
-      "smart-alert.on-message-send",
+      "send-review.explicit",
     ],
   );
   assert.deepEqual(getOutlookFeatureById("mail.save-sent").itemConstraints, {

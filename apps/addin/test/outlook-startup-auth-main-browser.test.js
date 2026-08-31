@@ -157,6 +157,30 @@ test("built startup 401 opens one NAA popup, then 20 ItemChanged events make zer
       local: Object.entries(localStorage),
       session: Object.entries(sessionStorage),
     });
+    let itemChangedActivityObserver = null;
+    const itemChangedActivity = { busyMounts: 0 };
+    window.__TODO10_START_ITEM_CHANGED_ACTIVITY_PROBE = () => {
+      itemChangedActivityObserver?.disconnect();
+      itemChangedActivity.busyMounts = 0;
+      itemChangedActivityObserver = new MutationObserver((records) => {
+        for (const record of records) {
+          for (const node of record.addedNodes) {
+            if (!(node instanceof Element)) continue;
+            if (node.matches("[data-testid='busy-state']")) {
+              itemChangedActivity.busyMounts += 1;
+            }
+            itemChangedActivity.busyMounts += node.querySelectorAll?.(
+              "[data-testid='busy-state']",
+            ).length ?? 0;
+          }
+        }
+      });
+      itemChangedActivityObserver.observe(document.documentElement, {
+        childList: true,
+        subtree: true,
+      });
+    };
+    window.__TODO10_ITEM_CHANGED_ACTIVITY = () => ({ ...itemChangedActivity });
     window.sessionStorage.setItem("lawos_addin_session_token", "lawos_session_v1.todo10-expired");
   });
 
@@ -241,6 +265,8 @@ test("built startup 401 opens one NAA popup, then 20 ItemChanged events make zer
       });
     }
 
+    const requestsBeforePendingItemChanges = requests.map((request) => ({ ...request }));
+    await page.evaluate(() => window.__TODO10_START_ITEM_CHANGED_ACTIVITY_PROBE());
     for (let index = 1; index <= 5; index += 1) {
       await page.evaluate((next) => window.__TODO10_SET_ITEM(next), index);
       await page.waitForFunction((next) => (
@@ -251,6 +277,11 @@ test("built startup 401 opens one NAA popup, then 20 ItemChanged events make zer
       "GetInitContext",
       "GetTokenPopup",
     ]);
+    assert.deepEqual(requests, requestsBeforePendingItemChanges);
+    assert.deepEqual(await page.evaluate(() => window.__TODO10_ITEM_CHANGED_ACTIVITY()), {
+      busyMounts: 0,
+    });
+    assert.equal(await page.locator("[data-testid='busy-state']").count(), 0);
     assert.deepEqual(
       STARTUP_PATHS.map((pathname) => requests.filter(({ path: candidate }) => candidate === pathname).length),
       [1, 0, 1, 0, 0],
@@ -290,17 +321,24 @@ test("built startup 401 opens one NAA popup, then 20 ItemChanged events make zer
     assert.equal(persisted.includes("todo10-user"), false);
 
     const beforeItemChanges = countStartupPaths();
+    const requestsBeforeReadyItemChanges = requests.map((request) => ({ ...request }));
+    await page.evaluate(() => window.__TODO10_START_ITEM_CHANGED_ACTIVITY_PROBE());
     for (let index = 6; index <= 25; index += 1) {
       await page.evaluate((next) => window.__TODO10_SET_ITEM(next), index);
       await page.waitForFunction((next) => (
         document.querySelector("#outlook-message-subject")?.textContent === `Todo10 item ${next}`
       ), index);
     }
+    assert.deepEqual(requests, requestsBeforeReadyItemChanges);
     assert.deepEqual(countStartupPaths(), beforeItemChanges);
     assert.deepEqual(await page.evaluate(() => window.__TODO10_AUTH().methods), [
       "GetInitContext",
       "GetTokenPopup",
     ]);
+    assert.deepEqual(await page.evaluate(() => window.__TODO10_ITEM_CHANGED_ACTIVITY()), {
+      busyMounts: 0,
+    });
+    assert.equal(await page.locator("[data-testid='busy-state']").count(), 0);
   } finally {
     await page.close();
     await browser.close();

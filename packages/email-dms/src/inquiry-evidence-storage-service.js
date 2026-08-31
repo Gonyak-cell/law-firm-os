@@ -404,6 +404,9 @@ function collectMimeParts(bytes, state, depth = 0) {
       }),
       ...manifest,
       sha256: sha256Hex(decoded),
+      ...(state.include_attachment_bytes
+        ? { content_bytes: Buffer.from(decoded) }
+        : {}),
     }));
     return;
   }
@@ -452,6 +455,7 @@ export function createSafeInquiryDisplayCopy({
     plain: [],
     html: [],
     attachments: [],
+    include_attachment_bytes: false,
     max_text_source_bytes: Math.min(
       maxDisplayBytes * 4,
       8 * 1024 * 1024,
@@ -488,6 +492,52 @@ export function createSafeInquiryDisplayCopy({
     active_content_preserved: false,
     external_resources_loaded: false,
   });
+}
+
+/**
+ * Decode attachment payloads from a server-owned canonical MIME artifact.
+ *
+ * This function is intentionally server-only: callers must never serialize the
+ * returned buffers into an API response, renderer message, audit event, or
+ * durable LawOS record. It exists so a provider integration can upload the
+ * Microsoft Graph MIME authority bytes without trusting an Office.js payload.
+ */
+export function extractInquiryMimeAttachments({
+  mime_bytes,
+  max_mime_bytes = DEFAULT_MAX_MIME_BYTES,
+  max_total_attachment_bytes = DEFAULT_MAX_MIME_BYTES,
+} = {}) {
+  const maxMimeBytes = positiveInteger(
+    max_mime_bytes,
+    DEFAULT_MAX_MIME_BYTES,
+    "max_mime_bytes",
+  );
+  const maxAttachmentBytes = positiveInteger(
+    max_total_attachment_bytes,
+    DEFAULT_MAX_MIME_BYTES,
+    "max_total_attachment_bytes",
+  );
+  const state = {
+    part_count: 0,
+    plain: [],
+    html: [],
+    attachments: [],
+    include_attachment_bytes: true,
+    max_text_source_bytes: 1,
+  };
+  collectMimeParts(mimeBytes(mime_bytes, maxMimeBytes), state);
+  const totalBytes = state.attachments.reduce(
+    (total, attachment) => total + attachment.byte_size,
+    0,
+  );
+  if (totalBytes > maxAttachmentBytes) {
+    throw serviceError(
+      INQUIRY_EVIDENCE_STORAGE_ERROR_CODES.invalid_mime,
+      "Inquiry email attachments exceed the allowed size",
+      413,
+    );
+  }
+  return Object.freeze(state.attachments);
 }
 
 function assertRepository(repository) {

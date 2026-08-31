@@ -168,6 +168,22 @@ test("document authorization precedes provider integrity and remounts only allow
   });
   assert.equal(documents.status, 200);
   assert.deepEqual(documents.body.items.map((entry) => entry.document_id), [DOCUMENT_ID, ATTACH_DOCUMENT_ID]);
+  const originalMime = documents.body.items.find((entry) => entry.document_id === DOCUMENT_ID);
+  assert.equal(originalMime.exact_version_available, true);
+  assert.deepEqual(originalMime.exact_version, {
+    document_id: DOCUMENT_ID,
+    version_id: "version:readback-a",
+    file_object_id: "file:readback-a",
+    sha256: "a".repeat(64),
+    byte_size: 1,
+    mime_type: "message/rfc822",
+  });
+  assert.equal(originalMime.document_bytes_included, false);
+  assert.equal(originalMime.storage_pointer_ref_included, false);
+  assert.doesNotMatch(
+    JSON.stringify(documents.body),
+    /"storage_pointer_ref":|object:readback-a|"document_bytes":|"raw_path":/iu,
+  );
   const response = await readback({ ...fixture, context }, readbackBody(), "request:readback-mixed");
   assert.equal(response.status, 200);
   assert.deepEqual(response.body.items.map((entry) => entry.operation), ["file_email", "save_attachments", "create_followup"]);

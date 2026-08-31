@@ -63,8 +63,9 @@ assert.equal(rowById["UPL-C-09"].local_proof.local_addin_browser_receipt.provide
 assert.equal(rowById["UPL-C-09"].local_proof.local_addin_browser_receipt.msal_bridge_initialized, true);
 assert.equal(rowById["UPL-C-09"].local_proof.local_addin_browser_receipt.msal_bridge_provider_runtime_executed, false);
 assert.equal(rowById["UPL-C-09"].local_proof.local_addin_browser_receipt.msal_bridge_token_material_returned, false);
-assert.equal(rowById["UPL-C-09"].local_proof.local_addin_browser_receipt.on_message_send_handler_associated, true);
-assert.equal(rowById["UPL-C-09"].local_proof.local_addin_browser_receipt.on_message_send_handler_completed_allow_event, true);
+assert.equal(rowById["UPL-C-09"].local_proof.local_addin_browser_receipt.automatic_send_handler_absent, true);
+assert.equal(rowById["UPL-C-09"].local_proof.local_addin_browser_receipt.automatic_send_event_probe_absent, true);
+assert.equal(rowById["UPL-C-09"].local_proof.local_addin_browser_receipt.explicit_send_review_warning_proved, true);
 assert.equal(c09ExternalReceiptReadiness.schema_version, "lawos.wave1.upl-c09.outlook-external-receipt-readiness.v1");
 assert.equal(c09ExternalReceiptReadiness.status, "READY_NEEDS_OUTLOOK_EXTERNAL_RECEIPT");
 assert.equal(c09ExternalReceiptReadiness.external_receipt_present, false);

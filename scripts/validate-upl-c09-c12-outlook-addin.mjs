@@ -23,7 +23,6 @@ const requiredFiles = [
   "apps/addin/src/outlook-compact-shell.jsx",
   "apps/addin/src/outlook-filing.js",
   "apps/addin/src/outlook-attachment-actions.js",
-  "apps/addin/src/outlook-send-events.js",
   "apps/addin/src/addin-auth.js",
   "apps/addin/src/main.jsx",
   "apps/addin/src/styles.css",
@@ -69,6 +68,11 @@ for (const manifestPath of releaseContract.manifests) {
     `${manifestPath} must use the approved ${profile.permission} permission`,
   );
   assert.doesNotMatch(manifestText, /ReadWriteMailbox/u, `${manifestPath} must not request ReadWriteMailbox`);
+  assert.doesNotMatch(
+    manifestText,
+    /OnMessageSend|LaunchEvent|<Runtimes>|WebViewRuntime\.Url|JSRuntime\.Url/u,
+    `${manifestPath} must not activate automatic Outlook Send interception`,
+  );
   assert.match(
     manifestText,
     new RegExp(escapeRegExp(profile.taskpane_html), "u"),
@@ -110,18 +114,16 @@ assert.match(compactShell, /data-outlook-profile/u);
 assert.match(compactShell, /data-outlook-rail/u);
 const filing = read("apps/addin/src/outlook-filing.js");
 const attachments = read("apps/addin/src/outlook-attachment-actions.js");
-const sendEvents = read("apps/addin/src/outlook-send-events.js");
 const auth = read("apps/addin/src/addin-auth.js");
 assert.match(filing, /\/api\/outlook\/email\/file/u);
 assert.match(attachments, /\/api\/outlook\/attachments\/save/u);
-assert.match(sendEvents, /\/api\/outlook\/smart-alerts\/evaluate/u);
 assert.match(auth, /lawos_addin_session_token/u);
 
 const manifest = read("apps/addin/manifest.xml");
 assert.match(manifest, /ShowTaskpane/);
 assert.match(manifest, /MessageReadCommandSurface/);
 assert.match(manifest, /MessageComposeCommandSurface/);
-assert.match(manifest, /OnMessageSend/);
+assert.doesNotMatch(manifest, /OnMessageSend|LaunchEvent|<Runtimes>|WebViewRuntime\.Url|JSRuntime\.Url/u);
 assert.match(manifest, /<Permissions>\s*ReadItem\s*<\/Permissions>/u);
 assert.doesNotMatch(manifest, /ReadWriteMailbox/u);
 
@@ -157,10 +159,7 @@ const pane = read("apps/addin/src/main.jsx");
 for (const marker of [
   "PublicClientApplication",
   "__LAWOS_INIT_MSAL_BRIDGE",
-  "registerOutlookSendHandler",
-  "onMessageSendHandler",
-  "event?.completed",
-  "allowEvent: true",
+  "registerOutlookCommandBridgeOnce",
   "/api/outlook/bootstrap",
   "/api/outlook/smart-alerts/evaluate",
   "Outlook 연결이 필요합니다.",
@@ -168,6 +167,7 @@ for (const marker of [
 ]) {
   assert.ok(pane.includes(marker), `pane missing marker: ${marker}`);
 }
+assert.doesNotMatch(pane, /handleOutlookMessageSend|registerOutlookSendHandler|onMessageSendHandler/u);
 assert.doesNotMatch(pane, /data-outlook-addin-taskpane/u, "legacy task pane marker must stay removed");
 assert.doesNotMatch(pane, /x-lawos-permission-context/);
 
@@ -287,9 +287,9 @@ for (const id of [
   "c11-attachment-document-visible",
   "c11-folder-structure-00-99",
   "c12-manual-task-visible",
-  "c12-smart-alert-warning-not-block",
-  "c12-on-message-send-handler-associated",
-  "c12-on-message-send-handler-warning-only",
+  "c12-explicit-send-review-warning-not-block",
+  "c12-automatic-send-handler-absent",
+  "c12-automatic-send-event-probe-absent",
 ]) {
   assert.equal(artifact.checks.find((check) => check.id === id)?.passed, true, `artifact check failed: ${id}`);
 }
@@ -300,22 +300,13 @@ const fieldContractCheck = artifact.checks.find((check) => [
 ].includes(check.id));
 assert.equal(fieldContractCheck?.passed, true, "artifact email field contract check failed");
 assert.equal(fieldContractCheck?.field_count, fieldCount, "artifact email field contract count drifted");
-const handlerCompletionCheck = artifact.checks.find((check) => [
-  "c12-on-message-send-handler-completes-allow-event",
-  "c12-on-message-send-handler-completes-warning-only",
-].includes(check.id));
-assert.equal(handlerCompletionCheck?.passed, true, "artifact warning-only handler check failed");
-assert.equal(artifact.handler_probe.handler_available, true);
-assert.equal(artifact.handler_probe.associated_actions.includes("onMessageSendHandler"), true);
-assert.equal(artifact.handler_probe.completed_payload.allowEvent, false);
-assert.equal(artifact.handler_probe.probe.last_completion.allowEvent, false);
-assert.equal(artifact.handler_probe.probe.last_send_handler_result.send_blocked, false);
-assert.equal(artifact.handler_probe.probe.last_send_handler_result.allowEvent, false);
-assert.equal(artifact.handler_probe.probe.last_send_handler_result.provider_runtime_executed, false);
+assert.equal(artifact.automatic_send_probe.handler_available, false);
+assert.deepEqual(artifact.automatic_send_probe.associated_actions, []);
+assert.equal(artifact.automatic_send_probe.event_probe_present, false);
 assert.equal(artifact.e04_local_receipt, "artifacts/manual-qa/upl-e04-smart-alerts-local-proof-2026-07-03.json");
 
 const e04 = JSON.parse(read("artifacts/manual-qa/upl-e04-smart-alerts-local-proof-2026-07-03.json"));
-assert.equal(e04.pass, true, "E04 Smart Alerts local proof must pass");
+assert.equal(e04.pass, true, "E04 explicit send review local proof must pass");
 assert.equal(e04.external_receipt_boundary.provider_runtime_executed, false);
 assert.equal(e04.external_receipt_boundary.production_write_claim, false);
 assert.equal(e04.raw_body_included, false);

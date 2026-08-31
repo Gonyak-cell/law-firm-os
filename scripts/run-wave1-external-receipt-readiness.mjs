@@ -148,8 +148,12 @@ function localProofs() {
         msal_bridge_initialized: c09?.msal_bridge_probe?.initialized === true,
         msal_bridge_provider_runtime_executed: c09?.msal_bridge_probe?.provider_runtime_executed === true,
         msal_bridge_token_material_returned: c09?.msal_bridge_probe?.token_material_returned === true,
-        on_message_send_handler_associated: c09?.handler_probe?.associated_actions?.includes("onMessageSendHandler") === true,
-        on_message_send_handler_completed_allow_event: c09?.handler_probe?.completed_payload?.allowEvent === true,
+        automatic_send_handler_absent: c09?.automatic_send_probe?.handler_available === false
+          && c09?.automatic_send_probe?.associated_actions?.includes("onMessageSendHandler") === false,
+        automatic_send_event_probe_absent: c09?.automatic_send_probe?.event_probe_present === false,
+        explicit_send_review_warning_proved: c09?.checks?.some(
+          (check) => check.id === "c12-explicit-send-review-warning-not-block" && check.passed === true,
+        ) === true,
       }),
       external_receipt_intake: Object.freeze({
         path: c09ExternalPath,
@@ -205,7 +209,7 @@ function readinessRows(matrix, proofs) {
     Object.freeze({
       row_id: "UPL-C-09",
       current_status: statusFor("UPL-C-09"),
-      local_state: "Add-in manifest, taskpane shell, local browser proof, filing, attachment save, sent-mail task, code-side MSAL bridge, code-side OnMessageSend handler, and warning-only Smart Alerts proof exist.",
+      local_state: "Add-in manifest, taskpane shell, local browser proof, filing, attachment save, sent-mail task, code-side MSAL bridge, zero automatic Send interception, and explicit warning-only send review proof exist.",
       credential_presence: envPresence("UPL-C-09"),
       external_receipts_required: Object.freeze([
         "Outlook web taskpane load and login smoke receipt",
@@ -332,8 +336,9 @@ function rowMarkdownDetails(row) {
     return [
       `MSAL bridge initialized: ${addinReceipt.msal_bridge_initialized}`,
       `MSAL bridge provider runtime executed: ${addinReceipt.msal_bridge_provider_runtime_executed}`,
-      `OnMessageSend handler associated: ${addinReceipt.on_message_send_handler_associated}`,
-      `OnMessageSend handler completed allowEvent: ${addinReceipt.on_message_send_handler_completed_allow_event}`,
+      `Automatic Send handler absent: ${addinReceipt.automatic_send_handler_absent}`,
+      `Automatic Send event probe absent: ${addinReceipt.automatic_send_event_probe_absent}`,
+      `Explicit send review warning proved: ${addinReceipt.explicit_send_review_warning_proved}`,
       `Provider runtime executed: ${addinReceipt.provider_runtime_executed}`,
       `External receipt intake: ${row.local_proof.external_receipt_intake.status}`,
       `External receipt present: ${row.local_proof.external_receipt_intake.external_receipt_present}`,

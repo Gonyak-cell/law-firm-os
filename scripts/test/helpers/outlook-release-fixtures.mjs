@@ -104,7 +104,7 @@ export function releaseCandidate(
       bundle_path: index ? "outlook-addin/assets/inquiry.js" : "assets/matter.js",
       bundle_sha256: index ? hex("e") : hex("d"),
     })),
-    event_runtime: build.inventory.find(({ path }) => path === "event-runtime.js"),
+    event_runtime: null,
     manifest_validation: {
       validator: "office-addin-manifest@2.1.6",
       official_validation_count: 4,

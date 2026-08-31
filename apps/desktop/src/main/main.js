@@ -10,6 +10,11 @@ import {
 import { MainProcessAuthCoordinator, encryptedFileSecureStore, memorySecureStore } from "./auth.js";
 import { installMatterAppProtocol, matterAppRendererUrl, registerMatterAppScheme } from "./app-protocol.js";
 import { parseMatterDeepLink, redactDeepLinkIntent } from "./deepLinks.js";
+import { createFileBridgeController, registerFileBridgeIpcHandlers } from "./fileBridge.js";
+import {
+  CLASSIC_OUTLOOK_ATTACH_REQUEST_CHANNEL,
+  createClassicOutlookBridgeController,
+} from "./broker/classicOutlookBridge.js";
 import { startDesktopLocalApiServer, stopDesktopLocalApiServer } from "./local-api.js";
 import { assertApprovedRendererUrl, installNavigationGuards, isApprovedRendererUrl } from "./origin-policy.js";
 import {
@@ -18,6 +23,7 @@ import {
   readOutlookDesktopBuildIdentity,
 } from "./outlook-installation.js";
 import { registerSessionIpcHandlers } from "./session-ipc.js";
+import { createFileSystemTempPreviewStorage, createTempPreviewManager } from "./tempPreview.js";
 import { createMainWindow } from "./window.js";
 
 const moduleDir = dirname(fileURLToPath(import.meta.url));
@@ -29,7 +35,7 @@ export const desktopSkeletonStatus = Object.freeze({
   nodeIntegration: false,
   contextIsolation: true,
   sandbox: true,
-  fileBridgeExposed: false,
+  fileBridgeExposed: true,
   authTokenStorageExposed: false,
   updateChannelExposed: false
 });
@@ -279,19 +285,23 @@ export function createDesktopInstanceCoordinator({
   getAuthCoordinator = () => null,
   setTimeoutImpl = setTimeout,
   clearTimeoutImpl = clearTimeout,
-  retryDelayMs = OUTLOOK_CALLBACK_RETRY_DELAY_MS
+  retryDelayMs = OUTLOOK_CALLBACK_RETRY_DELAY_MS,
+  classicOutlookBridge = null,
 } = {}) {
   const pendingDeepLinks = [];
   const pendingAuthCallbacks = new Map();
   const rememberedAuthCallbacks = new Map();
   const pendingOutlookResults = [];
+  const pendingClassicOutlookRequests = [];
   const authCallbackPhaseTrace = [];
   let activeWindow = null;
   let deliveredDeepLinkCount = 0;
   let deliveredOutlookResultCount = 0;
+  let deliveredClassicOutlookRequestCount = 0;
   let rejectedDeepLinkCount = 0;
   let duplicateAuthCallbackCount = 0;
   let authCallbackLimitRejectionCount = 0;
+  let rejectedClassicOutlookRequestCount = 0;
   let completedAuthCallbackCount = 0;
   let terminalAuthCallbackCount = 0;
   let lastIntent = null;
@@ -364,6 +374,47 @@ export function createDesktopInstanceCoordinator({
     while (pendingOutlookResults.length > 0) {
       if (!deliverOutlookResult(pendingOutlookResults[0])) break;
       pendingOutlookResults.shift();
+    }
+  }
+
+  function deliverClassicOutlookRequest(payload) {
+    if (typeof activeWindow?.webContents?.send !== "function") return false;
+    try {
+      activeWindow.webContents.send(CLASSIC_OUTLOOK_ATTACH_REQUEST_CHANNEL, payload);
+      deliveredClassicOutlookRequestCount += 1;
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  function sendClassicOutlookRequest(payload) {
+    if (deliverClassicOutlookRequest(payload)) return true;
+    if (pendingClassicOutlookRequests.length >= 16) pendingClassicOutlookRequests.shift();
+    pendingClassicOutlookRequests.push(payload);
+    return false;
+  }
+
+  function deliverPendingClassicOutlookRequests() {
+    while (pendingClassicOutlookRequests.length > 0) {
+      if (!deliverClassicOutlookRequest(pendingClassicOutlookRequests[0])) break;
+      pendingClassicOutlookRequests.shift();
+    }
+  }
+
+  function dispatchClassicOutlookArgv(candidateArgv) {
+    if (!classicOutlookBridge?.acceptArgv) return { accepted: false, reason: "bridge_unavailable" };
+    try {
+      const request = classicOutlookBridge.acceptArgv(candidateArgv);
+      if (!request) return { accepted: false, reason: "not_classic_outlook_request" };
+      sendClassicOutlookRequest(request);
+      return { accepted: true, request };
+    } catch (error) {
+      rejectedClassicOutlookRequestCount += 1;
+      return {
+        accepted: false,
+        reason: error?.code ?? "CLASSIC_OUTLOOK_INVOCATION_INVALID",
+      };
     }
   }
 
@@ -541,6 +592,7 @@ export function createDesktopInstanceCoordinator({
   }
 
   for (const candidate of collectMatterDeepLinkArgs(argv)) dispatch(candidate);
+  dispatchClassicOutlookArgv(argv);
 
   app.on("open-url", (event, url) => {
     event.preventDefault();
@@ -550,13 +602,17 @@ export function createDesktopInstanceCoordinator({
   });
   app.on("second-instance", (_event, secondArgv = []) => {
     for (const url of collectMatterDeepLinkArgs(secondArgv)) dispatch(url);
-    focusDesktopWindow(activeWindow);
+    const classicResult = dispatchClassicOutlookArgv(secondArgv);
+    if (collectMatterDeepLinkArgs(secondArgv).length > 0 || classicResult.accepted) {
+      focusDesktopWindow(activeWindow);
+    }
   });
 
   return Object.freeze({
     setActiveWindow(window) {
       activeWindow = window;
       deliverPendingOutlookResults();
+      deliverPendingClassicOutlookRequests();
       const results = deliverPendingDeepLinks();
       void retryPendingAuthCallbacks();
       return results;
@@ -572,11 +628,14 @@ export function createDesktopInstanceCoordinator({
         pending_deep_link_count: pendingDeepLinks.length + pendingAuthCallbacks.size,
         pending_auth_callback_count: pendingAuthCallbacks.size,
         pending_outlook_result_count: pendingOutlookResults.length,
+        pending_classic_outlook_request_count: pendingClassicOutlookRequests.length,
         delivered_deep_link_count: deliveredDeepLinkCount,
         delivered_outlook_result_count: deliveredOutlookResultCount,
+        delivered_classic_outlook_request_count: deliveredClassicOutlookRequestCount,
         rejected_deep_link_count: rejectedDeepLinkCount,
         duplicate_auth_callback_count: duplicateAuthCallbackCount,
         auth_callback_limit_rejection_count: authCallbackLimitRejectionCount,
+        rejected_classic_outlook_request_count: rejectedClassicOutlookRequestCount,
         completed_auth_callback_count: completedAuthCallbackCount,
         terminal_auth_callback_count: terminalAuthCallbackCount,
         remembered_auth_callback_count: rememberedAuthCallbacks.size,
@@ -593,6 +652,7 @@ export async function startDesktopShell({
   windowOptions,
   ipcMain,
   coordinator,
+  fileBridgeController,
   openExternal,
   writeClipboard,
   onSessionAvailable,
@@ -621,10 +681,288 @@ export async function startDesktopShell({
       waitForLogoIntroReady
     })
     : null;
+  const fileBridgeIpc = ipcMain && fileBridgeController
+    ? registerFileBridgeIpcHandlers({
+      ipcMain,
+      controller: fileBridgeController,
+      isTrustedSender
+    })
+    : null;
   installNavigationGuards(window, originOptions);
   await window.loadURL(target);
   const initialDeepLink = sendPasswordResetDeepLink(window, initialDeepLinkUrl);
-  return { window, target, sessionIpc, initialDeepLink };
+  return { window, target, sessionIpc, fileBridgeIpc, initialDeepLink };
+}
+
+export function createDesktopFileBridgePermissionClient(coordinator) {
+  if (!coordinator?.precheckVaultUpload) throw new Error("Desktop file bridge permission client requires the auth coordinator");
+  return Object.freeze({
+    async precheckFileBridgeAction(request = {}) {
+      if ([
+        "save_document_as",
+        "open_temp_preview",
+        "attach_document_to_classic_outlook",
+      ].includes(request.actionId)) {
+        if (typeof coordinator.precheckVaultExport !== "function") {
+          return { allowed: false, reason: "vault_export_precheck_unavailable" };
+        }
+        const body = await coordinator.precheckVaultExport({
+          matterId: request.matterId,
+          exactVersion: request.exactVersion,
+        });
+        const exact = body?.exact_version;
+        const expected = request.exactVersion;
+        const sameExact = [
+          "document_id",
+          "version_id",
+          "file_object_id",
+          "sha256",
+          "byte_size",
+          "mime_type",
+        ].every((field) => exact?.[field] === expected?.[field]);
+        const allowed = body?.http_status === 200
+          && body?.ok === true
+          && body?.outcome === "preflight_passed"
+          && body?.lawos_permission_checked === true
+          && body?.provider_authority_checked === false
+          && body?.provider_grant_created === false
+          && sameExact;
+        return {
+          allowed,
+          reason: allowed
+            ? null
+            : body?.safe_error_codes?.[0] ?? body?.reason ?? "vault_document_download_not_enabled",
+          decisionId: allowed ? body.request_id ?? null : null,
+        };
+      }
+      if (request.actionId !== "precheck_file_upload") {
+        return { allowed: false, reason: "file_bridge_action_not_supported" };
+      }
+      const body = await coordinator.precheckVaultUpload({
+        matterId: request.matterId,
+        workspaceId: request.workspaceId ?? null,
+        folderId: request.folderId ?? null,
+      });
+      const item = body?.item;
+      const allowed = body?.http_status === 200
+        && body?.ok === true
+        && body?.outcome === "preflight_passed"
+        && item?.permission_checked === true
+        && item?.vault_document_write_enabled === true
+        && body?.vault_document_write_enabled === true;
+      return {
+        allowed,
+        reason: allowed
+          ? null
+          : body?.safe_error_codes?.[0] ?? body?.reason ?? "vault_document_write_not_enabled",
+        operationId: allowed ? item.operation_id ?? body.operation_id ?? null : null,
+        maxUploadBytes: allowed ? item.max_upload_bytes ?? body.max_upload_bytes : null
+      };
+    }
+  });
+}
+
+export function createDesktopVaultDocumentProvider(coordinator) {
+  if (!coordinator?.downloadVaultExactVersion || !coordinator?.completeVaultExport) {
+    throw new Error("Desktop Vault document provider requires the auth coordinator");
+  }
+  return Object.freeze({
+    async fetchDocumentForSave(request = {}) {
+      const operationKind = request.operationKind === "attach_outlook"
+        ? "attach_outlook"
+        : "export_exact_version";
+      const downloadRequest = {
+        matterId: request.matterId,
+        exactVersion: request.exactVersion,
+      };
+      if (operationKind === "attach_outlook") Object.assign(downloadRequest, {
+        operationKind,
+        requestNonceSha256: request.requestNonceSha256,
+        installationRefSha256: request.installationRefSha256,
+        composeTargetSha256: request.composeTargetSha256,
+      });
+      const response = await coordinator.downloadVaultExactVersion(downloadRequest);
+      if (response?.ok !== true
+          || response?.http_status !== 200
+          || !Buffer.isBuffer(response?.bytes)) {
+        const error = new Error("Vault exact export did not return verified main-process bytes");
+        error.code = response?.safe_error_codes?.[0]
+          ?? response?.reason
+          ?? "VAULT_EXPORT_FAILED";
+        throw error;
+      }
+      return Object.freeze({
+        bytes: response.bytes,
+        operationId: response.operation_id,
+        exactVersion: response.exact_version,
+        attachmentName: response.attachment_name,
+        operationKind: response.operation_kind,
+      });
+    },
+    async completeDocumentSave(request = {}) {
+      const operationKind = request.operationKind === "attach_outlook"
+        ? "attach_outlook"
+        : "export_exact_version";
+      const expectedStage = operationKind === "attach_outlook" ? "attached" : "delivered";
+      const completionRequest = {
+        operationId: request.operationId,
+        exactVersion: request.exactVersion,
+      };
+      if (operationKind === "attach_outlook") Object.assign(completionRequest, {
+        operationKind,
+        completionStage: expectedStage,
+        installationRefSha256: request.installationRefSha256,
+        composeTargetSha256: request.composeTargetSha256,
+      });
+      const response = await coordinator.completeVaultExport(completionRequest);
+      if (response?.ok !== true
+          || response?.http_status !== 200
+          || response?.outcome !== expectedStage
+          || response?.receipt?.stage !== expectedStage) {
+        const error = new Error("Vault exact export delivery receipt was not recorded");
+        error.code = response?.safe_error_codes?.[0]
+          ?? response?.reason
+          ?? "VAULT_EXPORT_COMPLETION_FAILED";
+        throw error;
+      }
+      return Object.freeze({
+        state: expectedStage,
+        operationId: response.operation_id,
+        receiptId: response.receipt.receipt_id,
+      });
+    },
+  });
+}
+
+export function createDesktopVaultUploadProvider(coordinator, {
+  wait = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds)),
+  maxStatusChecks = 12,
+} = {}) {
+  if (!coordinator?.uploadVaultFile
+      || typeof coordinator.continueVaultUpload !== "function"
+      || typeof coordinator.rememberPendingVaultUpload !== "function"
+      || typeof coordinator.pendingVaultUploads !== "function"
+      || typeof coordinator.forgetPendingVaultUpload !== "function") {
+    throw new Error("Desktop Vault upload provider requires the durable auth coordinator");
+  }
+
+  function uploadedReceipt(response) {
+    const item = response?.item;
+    if (response?.ok !== true
+        || ![200, 201].includes(response?.http_status)
+        || item?.exact_readback_verified !== true) {
+      const error = new Error("Vault upload did not produce an exact readback receipt");
+      error.code = response?.safe_error_codes?.[0] ?? response?.reason ?? "VAULT_UPLOAD_FAILED";
+      throw error;
+    }
+    return Object.freeze({
+      state: "uploaded",
+      requestId: response.request_id,
+      operationId: item.operation_id,
+      ...(typeof item.receipt?.matter_id === "string" && item.receipt.matter_id
+        ? { matterId: item.receipt.matter_id }
+        : {}),
+      documentId: item.document_id,
+      versionId: item.version_id,
+      fileObjectId: item.file_object_id,
+      sha256: item.sha256,
+      byteSize: item.byte_size,
+      mimeType: item.mime_type,
+      auditEventId: item.audit_event_id,
+    });
+  }
+
+  function processingReceipt(response, operationId, expected) {
+    const item = response?.item;
+    if (response?.ok !== true
+        || response?.outcome !== "processing"
+        || item?.operation_id !== operationId
+        || !Number.isSafeInteger(item?.retry_after_ms)
+        || item.retry_after_ms < 250
+        || item.retry_after_ms > 60_000) {
+      const error = new Error("Vault upload continuation receipt is invalid");
+      error.code = "VAULT_UPLOAD_RECEIPT_MISMATCH";
+      throw error;
+    }
+    return Object.freeze({
+      state: "processing",
+      requestId: response.request_id,
+      operationId,
+      ...(typeof item.receipt?.matter_id === "string" && item.receipt.matter_id
+        ? { matterId: item.receipt.matter_id }
+        : {}),
+      stage: item.stage,
+      retryAfterMs: item.retry_after_ms,
+      sha256: expected.sha256,
+      byteSize: expected.byteSize,
+      mimeType: expected.mimeType,
+      exactReadbackVerified: false,
+      pathVisibleToRenderer: false,
+      rawBytesIncluded: false,
+      filenameIncluded: false,
+    });
+  }
+
+  async function resolvePending(response, operationId, expected) {
+    let current = response;
+    for (let statusChecks = 0; current?.outcome === "processing"; statusChecks += 1) {
+      await coordinator.rememberPendingVaultUpload({ operationId, expected });
+      const pending = processingReceipt(current, operationId, expected);
+      if (statusChecks >= maxStatusChecks) return pending;
+      await wait(Math.min(pending.retryAfterMs, 5_000));
+      current = await coordinator.continueVaultUpload({ operationId, expected });
+    }
+    const receipt = uploadedReceipt(current);
+    await coordinator.forgetPendingVaultUpload({ operationId });
+    return receipt;
+  }
+
+  return Object.freeze({
+    async uploadSelectedFile(request = {}) {
+      const response = await coordinator.uploadVaultFile({
+        stream: request.stream,
+        openStream: request.openStream,
+        assertUnchanged: request.assertUnchanged,
+        file: request.file,
+        operationId: request.operationId,
+      });
+      const expected = Object.freeze({
+        sha256: response?.local_stream_sha256,
+        byteSize: response?.local_stream_byte_size,
+        mimeType: request.file?.mimeType,
+      });
+      return resolvePending(response, request.operationId, expected);
+    },
+
+    async resumePendingUploads() {
+      const pending = await coordinator.pendingVaultUploads();
+      const results = [];
+      for (const entry of pending) {
+        const expected = Object.freeze({
+          sha256: entry.expected.sha256,
+          byteSize: entry.expected.byte_size,
+          mimeType: entry.expected.mime_type,
+        });
+        try {
+          const response = await coordinator.continueVaultUpload({
+            operationId: entry.operation_id,
+            expected,
+          });
+          results.push(await resolvePending(response, entry.operation_id, expected));
+        } catch (error) {
+          results.push(Object.freeze({
+            state: "retryable",
+            operationId: entry.operation_id,
+            safeErrorCode: error?.code ?? error?.safe_error_code ?? "VAULT_UPLOAD_RESUME_FAILED",
+            pathVisibleToRenderer: false,
+            rawBytesIncluded: false,
+            filenameIncluded: false,
+          }));
+        }
+      }
+      return Object.freeze(results);
+    },
+  });
 }
 
 export async function startElectronApp() {
@@ -632,6 +970,7 @@ export async function startElectronApp() {
     app,
     BrowserWindow,
     clipboard: electronClipboard,
+    dialog,
     ipcMain,
     net,
     protocol,
@@ -641,11 +980,16 @@ export async function startElectronApp() {
   if (!acquireDesktopSingleInstance(app)) return { primaryInstance: false };
   registerMatterAppScheme(protocol);
   let coordinator = null;
+  let fileBridgeController = null;
+  let tempPreviewManager = null;
+  let desktopShell = null;
   let outlookLifecycle = null;
+  const classicOutlookBridge = createClassicOutlookBridgeController();
   const instanceCoordinator = createDesktopInstanceCoordinator({
     app,
     argv: process.argv,
-    getAuthCoordinator: () => coordinator
+    getAuthCoordinator: () => coordinator,
+    classicOutlookBridge,
   });
   const userDataPath = desktopUserDataPath(app);
   await app.whenReady();
@@ -662,10 +1006,19 @@ export async function startElectronApp() {
     process.env.MATTER_DESKTOP_RUNTIME_BASE_URL = localApi.baseUrl;
   }
   app.on("before-quit", () => {
+    desktopShell?.fileBridgeIpc?.dispose?.();
+    fileBridgeController?.dispose?.();
+    classicOutlookBridge.dispose();
+    if (!fileBridgeController) tempPreviewManager?.dispose?.();
     outlookLifecycle?.stop?.({ reason: "quit" });
     stopDesktopLocalApiServer(localApi);
   });
   const runtimeClient = runtimeClientFromEnv();
+  tempPreviewManager = createTempPreviewManager({
+    storage: createFileSystemTempPreviewStorage({ basePath: app.getPath("temp") }),
+    openPreview: (nativePath) => electronShell.openPath(nativePath),
+  });
+  await tempPreviewManager.initialize();
   const secureStore = desktopSecureStoreForRuntime({
     runtimeClient,
     filePath: join(userDataPath, "secure-session-store.json"),
@@ -693,20 +1046,30 @@ export async function startElectronApp() {
   coordinator = new MainProcessAuthCoordinator({
     runtimeClient,
     secureStore,
+    cacheStores: [tempPreviewManager],
     outlookLifecycle,
   });
   await coordinator.restoreSession();
-  const shell = await startDesktopShell({
+  fileBridgeController = createFileBridgeController({
+    dialog,
+    permissionClient: createDesktopFileBridgePermissionClient(coordinator),
+    documentProvider: createDesktopVaultDocumentProvider(coordinator),
+    uploadProvider: createDesktopVaultUploadProvider(coordinator),
+    previewManager: tempPreviewManager,
+    classicOutlookBridge,
+  });
+  desktopShell = await startDesktopShell({
     BrowserWindowConstructor: BrowserWindow,
     ipcMain,
     coordinator,
+    fileBridgeController,
     openExternal: (url) => electronShell.openExternal(url),
     writeClipboard: (url) => electronClipboard.writeText(url),
     onSessionAvailable: () => instanceCoordinator.retryPendingAuthCallbacks(),
     packaged: app.isPackaged === true,
   });
-  instanceCoordinator.setActiveWindow(shell.window);
-  return shell;
+  instanceCoordinator.setActiveWindow(desktopShell.window);
+  return desktopShell;
 }
 
 export function isMainEntryPoint({

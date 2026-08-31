@@ -1,11 +1,24 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 
+const configuredVaultAttach =
+  process.env.LAWOS_OUTLOOK_VAULT_ATTACH_ENABLED ?? "0";
+if (!new Set(["0", "1"]).has(configuredVaultAttach)) {
+  throw new TypeError("LAWOS_OUTLOOK_VAULT_ATTACH_ENABLED must be 0 or 1");
+}
+const configuredVaultSourceSave =
+  process.env.LAWOS_OUTLOOK_VAULT_SOURCE_SAVE_ENABLED ?? "0";
+if (!new Set(["0", "1"]).has(configuredVaultSourceSave)) {
+  throw new TypeError("LAWOS_OUTLOOK_VAULT_SOURCE_SAVE_ENABLED must be 0 or 1");
+}
+
 const matterProfile = Object.freeze({
   key: "matter-full",
   productId: "8f3cc90d-56dd-4c1c-b9c2-0a1100500101",
   productionSourceLocation: "/addin/index.html",
   productionBase: "/addin/",
+  vaultExactAttachmentEnabled: configuredVaultAttach === "1",
+  vaultSourceSaveEnabled: configuredVaultSourceSave === "1",
 });
 const configuredBuildRevision = process.env.LAWOS_OUTLOOK_ADDIN_BUILD_REVISION;
 const buildRevision = configuredBuildRevision === undefined ? "local" : configuredBuildRevision;

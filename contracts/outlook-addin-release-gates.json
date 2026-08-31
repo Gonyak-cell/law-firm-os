@@ -5,6 +5,14 @@
   "baseline_receipt": "contracts/outlook-addin-deployment-baseline.json",
   "surface_contract": "contracts/outlook-addin-surfaces.json",
   "rollback_contract": "contracts/outlook-addin-rollback.json",
+  "automatic_send_policy": {
+    "active_launch_events": [],
+    "active_event_runtime_required": false,
+    "legacy_smart_alert_manifest_status": "retired_source_only",
+    "legacy_eventful_rollback_activation_allowed": false,
+    "forward_rollback_contract": "contracts/outlook-addin-forward-static-rollback.json",
+    "forward_rollback_launch_event_count": 0
+  },
   "manifests": [
     "apps/addin/manifest.xml",
     "apps/addin/manifest.production.xml",
@@ -20,7 +28,7 @@
       "mailbox_min_version": "1.14",
       "production_manifest": "apps/addin/manifest.production.xml",
       "taskpane_html": "index.html",
-      "required_static_paths": ["index.html", "event-runtime.html", "event-runtime.js"]
+      "required_static_paths": ["index.html"]
     },
     {
       "profile": "inquiry-only",
@@ -39,8 +47,6 @@
     "required_static_paths": [
       "amic-law-icon.png",
       "amic-law-logo.svg",
-      "event-runtime.html",
-      "event-runtime.js",
       "index.html",
       "oauth-callback.html",
       "oauth-callback.js",
@@ -366,7 +372,7 @@
       ]
     },
     "required_profile_scenarios": {
-      "matter-full": ["read", "compose", "on-message-send"],
+      "matter-full": ["read", "compose"],
       "inquiry-only": ["read"]
     },
     "protected_evidence": {

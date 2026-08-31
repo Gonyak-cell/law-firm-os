@@ -19,8 +19,7 @@ export function validateSurfaceSeparation(surface, baseline, contract) {
   }
   const matter = profiles.get(PRODUCT_IDS[0])?.manifest_fingerprint;
   const inquiry = profiles.get(PRODUCT_IDS[1])?.manifest_fingerprint;
-  if (!matter || !inquiry || matter.launch_events?.length !== 1
-    || !matter.launch_events[0].startsWith("OnMessageSend:")
+  if (!matter || !inquiry || matter.launch_events?.length !== 0
     || inquiry.launch_events?.length !== 0
     || inquiry.rule_fingerprints?.some((rule) => rule.endsWith(":Edit"))) {
     throw new Error("Matter and inquiry host/event profiles leaked across ProductIds");

@@ -12,7 +12,7 @@ export const PROFILE_CONTRACTS = {
     mailbox_min_version: "1.14",
     production_manifest: "apps/addin/manifest.production.xml",
     taskpane_html: "index.html",
-    required_static_paths: ["event-runtime.html", "event-runtime.js", "index.html"],
+    required_static_paths: ["index.html"],
   },
   [PRODUCT_IDS[1]]: {
     profile: "inquiry-only",
@@ -290,7 +290,7 @@ export const REQUIRED_TEST_PATHS = [
   "scripts/test/outlook-release-static-files.test.mjs",
 ];
 export const REQUIRED_STATIC_PATHS = [
-  "amic-law-icon.png", "amic-law-logo.svg", "event-runtime.html", "event-runtime.js", "index.html",
+  "amic-law-icon.png", "amic-law-logo.svg", "index.html",
   "oauth-callback.html", "oauth-callback.js", "oauth-start.html", "oauth-start.js",
   "outlook-addin/index.html",
 ];

@@ -1,6 +1,6 @@
 {
   "name": "@law-firm-os/desktop",
-  "version": "0.1.27",
+  "version": "0.1.31",
   "private": true,
   "type": "module",
   "main": "src/main/main.js",
@@ -8,13 +8,16 @@
   "scripts": {
     "start": "electron .",
     "prepare:web-renderer": "node ../../scripts/prepare-matter-desktop-web-renderer.mjs",
+    "prebuild:mac": "node ../../scripts/validate-amic-os-vault-single-install-source.mjs && node ../../scripts/validate-amic-os-desktop-release-lineage.mjs --build && node ../../scripts/validate-desktop-file-bridge-contract.mjs && node ../../scripts/validate-matter-desktop-file-bridge.mjs",
     "build:mac": "node ../../scripts/build-matter-desktop-mac.mjs",
+    "prebuild:win": "node ../../scripts/validate-amic-os-vault-single-install-source.mjs && node ../../scripts/validate-amic-os-desktop-release-lineage.mjs --build && node ../../scripts/validate-desktop-file-bridge-contract.mjs && node ../../scripts/validate-matter-desktop-file-bridge.mjs",
     "build:win": "node ../../scripts/build-matter-desktop-win.mjs",
+    "prebuild:win:installer": "node ../../scripts/validate-amic-os-vault-single-install-source.mjs && node ../../scripts/validate-amic-os-desktop-release-lineage.mjs --build && node ../../scripts/validate-desktop-file-bridge-contract.mjs && node ../../scripts/validate-matter-desktop-file-bridge.mjs",
     "build:win:installer": "node ../../scripts/build-matter-desktop-win-installer.mjs",
     "test:smoke": "node --test test/*.test.mjs",
     "test:session": "node --test test/auth-coordinator.test.mjs test/aws-runtime-client.test.mjs test/session-ipc.test.mjs test/session-cleanup.test.mjs",
     "test:update": "node --test test/update-rollback.test.mjs",
-    "test:file-bridge": "node --test test/file-bridge.test.mjs test/file-picker-gesture.test.mjs test/file-upload-bridge.test.mjs test/file-save-as.test.mjs test/temp-preview-cleanup.test.mjs && cd ../.. && node scripts/validate-desktop-file-bridge-contract.mjs && node scripts/validate-matter-desktop-file-bridge.mjs"
+    "test:file-bridge": "node --test test/file-bridge.test.mjs test/file-picker-gesture.test.mjs test/file-upload-bridge.test.mjs test/file-save-as.test.mjs test/file-preview.test.mjs test/temp-preview-cleanup.test.mjs && cd ../.. && node scripts/validate-desktop-file-bridge-contract.mjs && node scripts/validate-matter-desktop-file-bridge.mjs"
   },
   "devDependencies": {
     "@electron/packager": "^20.0.1",

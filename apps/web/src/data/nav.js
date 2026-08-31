@@ -12,6 +12,6 @@ export const navItems = [
   { id: "clients", label: "Client", icon: Building2 },
   { id: "matters", label: "Matter", icon: BriefcaseBusiness },
   { id: "people", label: "People", icon: UserRoundCheck },
-  { id: "vault", label: "Search", icon: FolderOpen },
+  { id: "vault", label: "Vault", icon: FolderOpen },
   { id: "portal", label: "Portal", icon: Share2 }
 ];

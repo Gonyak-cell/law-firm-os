@@ -320,6 +320,12 @@ test("session IPC exposes account login and smoke without renderer token materia
     "/api/desktop/installations/odi_renderer_must_not_choose_0001/heartbeat",
     "/api/desktop/installations/odi_renderer_must_not_choose_0001/retire",
     "/api/outlook/readiness?installation_id=odi_renderer_must_not_choose_0001",
+    "/api/vault/desktop/upload-preflight",
+    "/api/vault/desktop/upload",
+    "/api/vault/desktop/export-preflight",
+    "/api/vault/desktop/export-authorize",
+    "/api/vault/desktop/export-download",
+    "/api/vault/desktop/export-complete",
   ]) {
     assert.deepEqual(await ipcMain.invoke(SESSION_CHANNELS.api, {
       path,

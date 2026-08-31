@@ -1,0 +1,392 @@
+{
+  "schema_version": "law-firm-os.amic-os-vault-operation-boundary.v1",
+  "decision": {
+    "database_migration_required": false,
+    "lawos_database_migration_count": 0,
+    "vault_database_migration_count": 0,
+    "runtime_integration_pending": true,
+    "production_ready_claim": false,
+    "authority": "vault",
+    "client_authority_fields_trusted": false,
+    "automatic_latest_version_allowed": false,
+    "operation_receipts_append_only": true
+  },
+  "data_classes": [
+    {
+      "id": "native_identity",
+      "rule": "Tenant and actor are taken only from the verified server session; clients receive hashes, not native actor identifiers."
+    },
+    {
+      "id": "local_path",
+      "rule": "A raw path exists only inside the process that selected or created the file and never crosses IPC, HTTP, UI, audit, or logging boundaries."
+    },
+    {
+      "id": "document_bytes",
+      "rule": "Bytes use bounded streaming into the API and bounded binary content channels only. The API may materialize only within a hard cap before fixed-origin multipart delivery. Bytes never enter JSON, renderer state, receipts, audit metadata, or logs."
+    },
+    {
+      "id": "credentials",
+      "rule": "Desktop session material stays in the owning main or broker process and Vault provider credentials stay server-side."
+    },
+    {
+      "id": "storage_locator",
+      "rule": "Object keys, buckets, storage URIs, unrestricted URLs, and long-lived signed URLs are never client-visible."
+    },
+    {
+      "id": "mail_pii",
+      "rule": "Subjects, bodies, recipients, mailbox addresses, provider item IDs, and draft IDs are absent from common receipts and logs; target identities are hashed."
+    },
+    {
+      "id": "exact_version",
+      "rule": "Every successful export or attachment binds document_id, version_id, file_object_id, sha256, byte_size, and mime_type; latest substitution is forbidden."
+    }
+  ],
+  "surfaces": [
+    {
+      "id": "desktop_renderer",
+      "trust": "untrusted_ui",
+      "allowed_inputs": [
+        "safe capability projection",
+        "opaque file handle",
+        "safe file metadata",
+        "safe operation receipt"
+      ],
+      "forbidden_inputs": [
+        "raw local path",
+        "document bytes",
+        "desktop session token",
+        "Vault provider credential",
+        "storage locator",
+        "unrestricted or long-lived URL"
+      ]
+    },
+    {
+      "id": "desktop_main",
+      "trust": "local_secret_owner",
+      "allowed_inputs": [
+        "explicit renderer command",
+        "selected path held in process memory",
+        "bounded file stream",
+        "desktop session material"
+      ],
+      "forbidden_outputs": [
+        "raw local path to renderer",
+        "session material to renderer",
+        "raw path or bytes to logs",
+        "client-selected tenant or actor authority"
+      ]
+    },
+    {
+      "id": "api_bff",
+      "trust": "server_authority_bridge",
+      "allowed_inputs": [
+        "verified AMIC OS principal",
+        "untrusted resource selectors",
+        "bounded authenticated stream",
+        "server operation binding"
+      ],
+      "forbidden_outputs": [
+        "Vault provider credential",
+        "storage locator",
+        "raw tenant or actor identity in a client receipt",
+        "unrestricted or long-lived URL",
+        "raw policy body"
+      ]
+    },
+    {
+      "id": "vault_authority",
+      "trust": "document_and_policy_authority",
+      "allowed_inputs": [
+        "mapped native tenant and actor",
+        "exact Matter and document selectors",
+        "bounded bytes",
+        "correlation and idempotency identities"
+      ],
+      "forbidden_outputs": [
+        "storage locator to clients",
+        "raw policy body to clients",
+        "authorization based only on AMIC OS role names"
+      ]
+    },
+    {
+      "id": "office_js",
+      "trust": "untrusted_host_ui",
+      "allowed_inputs": [
+        "explicit compose command",
+        "safe picker projection",
+        "same-origin protected attachment stream",
+        "safe operation receipt"
+      ],
+      "forbidden_inputs": [
+        "Vault provider credential",
+        "raw storage locator",
+        "long-lived bearer",
+        "raw local path"
+      ]
+    },
+    {
+      "id": "classic_native",
+      "trust": "publisher_verified_local_adapter",
+      "allowed_inputs": [
+        "explicit compose Ribbon command",
+        "bounded bytes from authenticated local broker",
+        "safe operation receipt"
+      ],
+      "forbidden_inputs": [
+        "desktop session token",
+        "Vault provider credential",
+        "exportable installation private key",
+        "broker-owned raw path"
+      ]
+    },
+    {
+      "id": "local_broker",
+      "trust": "local_secret_and_installation_proof_owner",
+      "allowed_inputs": [
+        "publisher and process verified Named Pipe request",
+        "one-time nonce",
+        "non-exportable installation proof",
+        "desktop session material"
+      ],
+      "forbidden_outputs": [
+        "session token to native adapter",
+        "private key material",
+        "raw path or bytes to logs",
+        "replayable authorization"
+      ]
+    },
+    {
+      "id": "protected_temp",
+      "trust": "current_user_ephemeral_storage",
+      "allowed_inputs": [
+        "exact-version bytes after hash verification",
+        "opaque random local name",
+        "current-user ACL and bounded TTL"
+      ],
+      "forbidden_outputs": [
+        "raw path over IPC or HTTP",
+        "path or content in telemetry",
+        "cross-user readability",
+        "post-cleanup residue"
+      ]
+    }
+  ],
+  "crossings": [
+    {
+      "id": "renderer_to_main_choose",
+      "from": "desktop_renderer",
+      "to": "desktop_main",
+      "trigger": "explicit Vault upload action",
+      "payload": "closed command and untrusted safe selectors",
+      "invariants": [
+        "main returns an opaque handle only",
+        "raw path and bytes do not cross",
+        "no action occurs on item selection"
+      ]
+    },
+    {
+      "id": "main_to_api_upload",
+      "from": "desktop_main",
+      "to": "api_bff",
+      "trigger": "authorized upload after preflight",
+      "payload": "bounded authenticated binary body and operation ID",
+      "invariants": [
+        "tenant and actor are server-derived",
+        "hash and byte size are verified",
+        "retry uses the same server nonce",
+        "API materialization never exceeds the configured hard cap"
+      ]
+    },
+    {
+      "id": "api_to_vault_authority",
+      "from": "api_bff",
+      "to": "vault_authority",
+      "trigger": "per-operation authorization and document command",
+      "payload": "mapped native identity, exact selectors, strict multipart metadata and bounded file bytes, correlation",
+      "invariants": [
+        "Vault rechecks permission, Ethical Wall, Records, and DLP",
+        "Vault owns document, version, file object, bytes, hash, and audit",
+        "missing authority fails closed"
+      ]
+    },
+    {
+      "id": "officejs_to_api_attach",
+      "from": "office_js",
+      "to": "api_bff",
+      "trigger": "explicit Vault에서 첨부 command",
+      "payload": "untrusted exact-version selector and hashed compose target",
+      "invariants": [
+        "ItemChanged performs zero login, readiness, Vault network, or processing",
+        "server reauthorizes the exact version",
+        "cancel leaves the draft unchanged"
+      ]
+    },
+    {
+      "id": "native_to_broker_attach",
+      "from": "classic_native",
+      "to": "local_broker",
+      "trigger": "explicit compose Ribbon command",
+      "payload": "versioned local request, installation proof, nonce, hashed compose target",
+      "invariants": [
+        "publisher, process, SID, nonce, expiry, and schema are verified",
+        "native receives no session token or private key",
+        "startup and item selection perform zero network work"
+      ]
+    },
+    {
+      "id": "broker_to_api_attach",
+      "from": "local_broker",
+      "to": "api_bff",
+      "trigger": "click-time silent-first session reuse",
+      "payload": "authenticated exact-version request and installation binding",
+      "invariants": [
+        "interaction appears only for authoritative interaction-required",
+        "grant is one-time and short-lived",
+        "replay cannot redownload or reattach"
+      ]
+    },
+    {
+      "id": "broker_to_native_stream",
+      "from": "local_broker",
+      "to": "classic_native",
+      "trigger": "authorized exact-version delivery",
+      "payload": "bounded byte stream plus exact hash and size",
+      "invariants": [
+        "native verifies the stream before Attachments.Add",
+        "native creates and owns the protected temp path internally",
+        "the path never crosses IPC or enters a receipt"
+      ]
+    },
+    {
+      "id": "native_to_protected_temp",
+      "from": "classic_native",
+      "to": "protected_temp",
+      "trigger": "verified stream materialization for Outlook Attachments.Add",
+      "payload": "exact bytes inside the native process boundary",
+      "invariants": [
+        "current-user ACL is applied before content is written",
+        "path traversal and reparse points are rejected",
+        "success, cancel, crash, and reboot cleanup are additive audit stages"
+      ]
+    }
+  ],
+  "receipt": {
+    "schema_version": "law-firm-os.amic-os-vault-operation-receipt.v1",
+    "operation_kinds": [
+      "save_local_file",
+      "save_email",
+      "save_email_attachment",
+      "export_exact_version",
+      "attach_outlook",
+      "cleanup_temp"
+    ],
+    "stages": [
+      "requested",
+      "authorized",
+      "transferring",
+      "quarantined",
+      "scanning",
+      "promoted",
+      "readback_verified",
+      "downloaded",
+      "delivered",
+      "attached",
+      "blocked",
+      "failed",
+      "cancelled",
+      "cleaned"
+    ],
+    "exact_version_fields": [
+      "document_id",
+      "version_id",
+      "file_object_id",
+      "sha256",
+      "byte_size",
+      "mime_type"
+    ],
+    "server_internal_only_fields": [
+      "tenant_id",
+      "actor_id",
+      "server_nonce_sha256",
+      "source_ref_sha256",
+      "target_ref_sha256",
+      "idempotency_key"
+    ],
+    "client_safe_identity_fields": [
+      "operation_id",
+      "correlation_id",
+      "request_fingerprint",
+      "idempotency_key_sha256",
+      "tenant_ref_sha256",
+      "actor_ref_sha256",
+      "matter_id",
+      "installation_ref_sha256",
+      "compose_target_sha256",
+      "lawos_event_id",
+      "vault_event_id",
+      "authority_ref_sha256"
+    ],
+    "never_included": [
+      "raw path",
+      "raw bytes",
+      "credentials or tokens",
+      "storage locator",
+      "mail subject, body, recipient, mailbox, provider item ID, or draft ID",
+      "raw idempotency key"
+    ],
+    "replay_rule": "Same idempotency key hash and request fingerprint returns the existing receipt with should_execute false; any changed fingerprint is a conflict.",
+    "transition_rule": "Stages are append-only and flow-ordered; an exact replay is not appended, save operations expose no exact version before promotion, exact version identity never changes, and cleanup is the only append after a terminal failure."
+  },
+  "negative_matrix": [
+    {
+      "id": "SEC-N01",
+      "attack": "raw local or protected temp path in IPC, UI, HTTP, audit, or log payload",
+      "expected_safe_error_code": "VAULT_BOUNDARY_SECRET_FORBIDDEN"
+    },
+    {
+      "id": "SEC-N02",
+      "attack": "access, refresh, ID, session, provider, or grant token in a public payload",
+      "expected_safe_error_code": "VAULT_BOUNDARY_SECRET_FORBIDDEN"
+    },
+    {
+      "id": "SEC-N03",
+      "attack": "storage locator, unrestricted URL, or long-lived signed URL in a client payload",
+      "expected_safe_error_code": "VAULT_BOUNDARY_SECRET_FORBIDDEN"
+    },
+    {
+      "id": "SEC-N04",
+      "attack": "client-supplied tenant, actor, user, role, scope, capability, or permission decision",
+      "expected_safe_error_code": "VAULT_CLIENT_AUTHORITY_FIELD_FORBIDDEN"
+    },
+    {
+      "id": "SEC-N05",
+      "attack": "raw document bytes or a binary container in JSON, receipt, audit, or log payload",
+      "expected_safe_error_code": "VAULT_BOUNDARY_SECRET_FORBIDDEN"
+    },
+    {
+      "id": "SEC-N06",
+      "attack": "mail PII or provider compose identity in a common receipt",
+      "expected_safe_error_code": "VAULT_BOUNDARY_SECRET_FORBIDDEN"
+    },
+    {
+      "id": "AUD-N01",
+      "attack": "same idempotency scope reused with a changed request fingerprint",
+      "expected_safe_error_code": "VAULT_OPERATION_IDEMPOTENCY_CONFLICT"
+    },
+    {
+      "id": "AUD-N02",
+      "attack": "success receipt without exact document, version, file object, hash, size, and MIME identity",
+      "expected_safe_error_code": "VAULT_OPERATION_EXACT_VERSION_REQUIRED"
+    },
+    {
+      "id": "AUD-N03",
+      "attack": "automatic latest substitution or exact-version identity change during one operation",
+      "expected_safe_error_code": "VAULT_OPERATION_EXACT_VERSION_MISMATCH"
+    },
+    {
+      "id": "AUD-N04",
+      "attack": "stage skip, regression, post-cleanup mutation, or non-cleanup append after failure",
+      "expected_safe_error_code": "VAULT_OPERATION_TRANSITION_INVALID"
+    }
+  ]
+}

@@ -103,6 +103,14 @@ test("profile artifacts have exact identity bytes and 952 has no Matter runtime"
     readFile(new URL("../dist/outlook-addin/event-runtime.js", import.meta.url)),
     { code: "ENOENT" },
   );
+  await assert.rejects(
+    readFile(new URL("../dist/event-runtime.html", import.meta.url)),
+    { code: "ENOENT" },
+  );
+  await assert.rejects(
+    readFile(new URL("../dist/event-runtime.js", import.meta.url)),
+    { code: "ENOENT" },
+  );
   const fullGraph = await generatedJavaScriptGraph(fullHtml, "addin", "");
   const inquiryGraph = await generatedJavaScriptGraph(inquiryHtml, "outlook-addin");
   const fullGraphText = await generatedJavaScriptGraphText(fullGraph, "addin", "");
@@ -118,6 +126,7 @@ test("profile artifacts have exact identity bytes and 952 has no Matter runtime"
   );
   assert.ok(fullGraph.some((asset) => /\/main-[^/]+\.js$/u.test(asset)));
   assert.ok(inquiryGraph.length > 0);
+  assert.equal(fullGraph.some((asset) => /event-runtime\.js$/u.test(asset)), false);
   assert.equal(inquiryGraph.some((asset) => /event-runtime\.js$/u.test(asset)), false);
   // The Matter catalog may describe inquiry-only actions, but its executable
   // identity must never carry the 952 ProductId or SourceLocation.

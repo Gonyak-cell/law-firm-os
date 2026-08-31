@@ -80,6 +80,30 @@ test("built taskpane prepares once and 20 ItemChanged events stay item-only", as
       calls: officeRuntimeCalls.map((call) => [...call]),
       entries: [...officeRuntimeValues.entries()],
     });
+    let itemChangedActivityObserver = null;
+    const itemChangedActivity = { busyMounts: 0 };
+    window.__TODO9_START_ITEM_CHANGED_ACTIVITY_PROBE = () => {
+      itemChangedActivityObserver?.disconnect();
+      itemChangedActivity.busyMounts = 0;
+      itemChangedActivityObserver = new MutationObserver((records) => {
+        for (const record of records) {
+          for (const node of record.addedNodes) {
+            if (!(node instanceof Element)) continue;
+            if (node.matches("[data-testid='busy-state']")) {
+              itemChangedActivity.busyMounts += 1;
+            }
+            itemChangedActivity.busyMounts += node.querySelectorAll?.(
+              "[data-testid='busy-state']",
+            ).length ?? 0;
+          }
+        }
+      });
+      itemChangedActivityObserver.observe(document.documentElement, {
+        childList: true,
+        subtree: true,
+      });
+    };
+    window.__TODO9_ITEM_CHANGED_ACTIVITY = () => ({ ...itemChangedActivity });
     window.sessionStorage.setItem("lawos_addin_session_token", session);
   }, { session: SESSION });
 
@@ -131,8 +155,11 @@ test("built taskpane prepares once and 20 ItemChanged events stay item-only", as
     assert.equal(requests.find(({ path: candidate }) => candidate === "/api/outlook/readiness")?.search, "");
     assert.equal(JSON.parse(await page.evaluate(() => localStorage.getItem("lawos.outlook.prepare.v1"))).state, "ready");
     assert.deepEqual(await page.evaluate(() => window.__TODO9_OFFICE_RUNTIME()), { calls: [], entries: [] });
+    assert.equal(await page.locator("[data-testid='busy-state']").count(), 0);
 
     await page.evaluate(() => window.dispatchEvent(new Event("lawos:office-ready")));
+    const requestsBeforeItemChanges = requests.map((request) => ({ ...request }));
+    await page.evaluate(() => window.__TODO9_START_ITEM_CHANGED_ACTIVITY_PROBE());
     const observed = [];
     for (let index = 1; index <= 20; index += 1) {
       await page.evaluate((next) => window.__TODO9_SET_ITEM(next), index);
@@ -147,8 +174,14 @@ test("built taskpane prepares once and 20 ItemChanged events stay item-only", as
       remove: 1,
       active: 1,
     });
+    assert.deepEqual(requests, requestsBeforeItemChanges);
     assert.deepEqual(FORBIDDEN.map(count), [1, 0, 1, 1, 1]);
     assert.equal(await page.evaluate(() => window.__TODO9_DIALOGS), 0);
+    assert.deepEqual(await page.evaluate(() => window.__TODO9_ITEM_CHANGED_ACTIVITY()), {
+      busyMounts: 0,
+    });
+    assert.equal(await page.locator("[data-testid='busy-state']").count(), 0);
+    assert.deepEqual(await page.evaluate(() => window.__TODO9_OFFICE_RUNTIME()), { calls: [], entries: [] });
 
     await page.reload({ waitUntil: "domcontentloaded" });
     await page.waitForFunction(() => document.querySelector("[data-feature-id='matter.search']")?.disabled === false);

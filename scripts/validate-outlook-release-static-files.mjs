@@ -24,7 +24,6 @@ const repoRoot = path.resolve(path.dirname(scriptPath), "..");
 const forwardRollbackContractRef = "contracts/outlook-addin-forward-static-rollback.json";
 const productionManifestPaths = [
   "apps/addin/manifest.canary.taskpane.production.xml",
-  "apps/addin/manifest.canary.smart-alerts.production.xml",
   "apps/addin/manifest.canary.rollback.production.xml",
   "apps/addin/manifest.production.xml",
   "apps/addin/manifest.inquiry.production.xml",

@@ -45,6 +45,12 @@ test("release contract binds two source ProductIds but exactly one production-vi
   const wrongCohort = clone(contract);
   wrongCohort.m365.production_distribution.eligible_user_count = 9;
   assert.throws(() => validateReleaseContract(wrongCohort), /production distribution contract mismatch/);
+  const automaticSend = clone(contract);
+  automaticSend.automatic_send_policy.active_launch_events = ["OnMessageSend"];
+  assert.throws(() => validateReleaseContract(automaticSend), /automatic Send policy mismatch/);
+  const eventfulRollback = clone(contract);
+  eventfulRollback.automatic_send_policy.legacy_eventful_rollback_activation_allowed = true;
+  assert.throws(() => validateReleaseContract(eventfulRollback), /automatic Send policy mismatch/);
   const unreviewedOverride = clone(contract);
   unreviewedOverride.license_metadata_overrides = {
     ...(unreviewedOverride.license_metadata_overrides ?? {}),
@@ -95,7 +101,7 @@ test("OAuth scope release proof binds the runtime byte order while Graph remains
 
 });
 
-test("surface preserves ProductId-specific events while distribution and rollback own assignments", () => {
+test("active surfaces reject event leakage while historical rollback evidence remains identity-bound", () => {
   assert.equal(validateSurfaceSeparation(surface, baseline, contract).permission_event_diff, "none");
   assert.ok(surface.profiles.every((profile) => !("assignment_count" in profile)
     && !("assignment_fingerprint_sha256" in profile)));

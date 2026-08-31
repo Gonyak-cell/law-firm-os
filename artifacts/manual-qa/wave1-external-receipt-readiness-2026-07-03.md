@@ -15,12 +15,13 @@ This is a blocker/readiness receipt, not a Wave-1 completion claim.
 
 ### UPL-C-09 (BLOCKED)
 
-Add-in manifest, taskpane shell, local browser proof, filing, attachment save, sent-mail task, code-side MSAL bridge, code-side OnMessageSend handler, and warning-only Smart Alerts proof exist.
+Add-in manifest, taskpane shell, local browser proof, filing, attachment save, sent-mail task, code-side MSAL bridge, zero automatic Send interception, and explicit warning-only send review proof exist.
 
 MSAL bridge initialized: true
 MSAL bridge provider runtime executed: false
-OnMessageSend handler associated: true
-OnMessageSend handler completed allowEvent: true
+Automatic Send handler absent: true
+Automatic Send event probe absent: true
+Explicit send review warning proved: true
 Provider runtime executed: false
 External receipt intake: READY_NEEDS_OUTLOOK_EXTERNAL_RECEIPT
 External receipt present: false

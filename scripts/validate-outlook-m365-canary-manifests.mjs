@@ -16,10 +16,9 @@ const INQUIRY_PRODUCT_ID = "952431be-51b8-42a2-9bf6-769a15934e85";
 const ARTIFACT_VERSION = "1.3.0.1";
 const PRIOR_KNOWN_MANIFEST_VERSION = "1.2.0.2";
 const TASKPANE_MANIFEST_VERSION = "1.3.0.0";
-const SMART_ALERTS_MANIFEST_VERSION = "1.3.0.1";
+const CANDIDATE_MANIFEST_VERSION = "1.3.0.1";
 const ROLLBACK_MANIFEST_VERSION = "1.3.0.2";
 const TASKPANE_SEMANTIC_SHA256 = "850786886c41350c5ca8a96f71991b41418baf50a601ec1955cd9543692a5a42";
-const SMART_ALERTS_SEMANTIC_SHA256 = "af51e952ee500380f87577bac5ecda6c6da59542a7f4fb1416b9712ac71aea35";
 const PINNED_V11_TASKPANES = [
   "VersionOverridesV1_1:MessageComposeCommandSurface:ShowTaskpane:true",
   "VersionOverridesV1_1:MessageReadCommandSurface:ShowTaskpane:true",
@@ -28,24 +27,26 @@ const ORIGIN = "https://d2mthcc8vp3cr2.cloudfront.net";
 const TASKPANE = `${ORIGIN}/addin/index.html`;
 const COMMANDS = `${TASKPANE}?commands=1`;
 const TASKPANE_MANIFEST = "apps/addin/manifest.canary.taskpane.production.xml";
-const SMART_ALERTS_MANIFEST = "apps/addin/manifest.canary.smart-alerts.production.xml";
+const CANDIDATE_MANIFEST = "apps/addin/manifest.production.xml";
 const ROLLBACK_MANIFEST = "apps/addin/manifest.canary.rollback.production.xml";
-const CANONICAL_SMART_ALERTS_MANIFEST = "apps/addin/manifest.production.xml";
 const INQUIRY_MANIFEST = "apps/addin/manifest.inquiry.xml";
 const INQUIRY_PRODUCTION_MANIFEST = "apps/addin/manifest.inquiry.production.xml";
+const RETIRED_SOURCE_ARTIFACTS = [
+  "apps/addin/manifest.canary.smart-alerts.production.xml",
+  "apps/addin/src/outlook-event-entry.js",
+  "apps/addin/src/outlook-event-runtime.js",
+  "apps/addin/src/outlook-send-events.js",
+];
 const TRUSTED_EXECUTABLE_SOURCE_ARTIFACT_SHA256 = new Map([
   ["apps/addin/public/oauth-start.html", "8c8726ce00dfb24a7773025defc524b948237344da632ba9d49594191e0bc09e"],
   ["apps/addin/public/oauth-start.js", "59ca7c2645d54903615c125991e4e3b3aadd47b306b5c8b5bc528750e5c5f940"],
   ["apps/addin/public/oauth-callback.html", "c88310367397556776f500dbd762b971ff26f3cca60845df14de473af2752870"],
   ["apps/addin/public/oauth-callback.js", "1ae8a5d5131f967102078b990760039685d8f4634e013d896b9d727c915da4da"],
-  ["apps/addin/public/event-runtime.html", "868944d2a2c2114bed40be663632dfb5eb17a9475f3ec00cffe31de6f9467e70"],
-  ["apps/addin/public/event-runtime.js", "31219926e4830e8a544ede0ffe3312ca18f4600f8715e209e14ff422ef8e33f1"],
 ]);
 const SOURCE_ARTIFACT_PATHS = [
   TASKPANE_MANIFEST,
-  SMART_ALERTS_MANIFEST,
   ROLLBACK_MANIFEST,
-  CANONICAL_SMART_ALERTS_MANIFEST,
+  CANDIDATE_MANIFEST,
   INQUIRY_MANIFEST,
   INQUIRY_PRODUCTION_MANIFEST,
   ...TRUSTED_EXECUTABLE_SOURCE_ARTIFACT_SHA256.keys(),
@@ -102,7 +103,7 @@ function validateContractShape(contract) {
   exactKeys(contract, [
     "artifact_version", "canary_assignment", "claims",
     "manifest_set_sha256", "product_id", "production_urls", "rollback_removal",
-    "prior_known_manifest_version", "schema_version", "source_artifacts", "stages",
+    "prior_known_manifest_version", "retired_source_artifacts", "schema_version", "source_artifacts", "stages",
   ], "contract");
   if (contract.schema_version !== "amic-os.outlook-m365-canary-manifest-set.v1") fail("schema version drifted");
   if (
@@ -121,10 +122,9 @@ function validateContractShape(contract) {
     oauth_start: `${ORIGIN}/addin/oauth-start.html`,
     oauth_callbacks: [`${ORIGIN}/addin/oauth-callback.html`],
     naa_redirects: [TASKPANE],
-    event_webview_runtime: `${ORIGIN}/addin/event-runtime.html`,
-    event_javascript_runtime: `${ORIGIN}/addin/event-runtime.js`,
     entra_authority_host: "login.microsoftonline.com",
   }, "production URL contract");
+  exact(contract.retired_source_artifacts, RETIRED_SOURCE_ARTIFACTS, "retired automatic-send source artifacts");
   exact(contract.canary_assignment, {
     eligible_user_count: 1,
     excluded_user_count: 0,
@@ -139,6 +139,7 @@ function validateContractShape(contract) {
   exact(contract.claims, {
     provider_mutation_performed: false,
     m365_deployment_performed: false,
+    automatic_send_interception_authorized: false,
     broad_rollout_authorized: false,
     go_live_proved: false,
   }, "non-execution claims");
@@ -182,16 +183,16 @@ function validateStages(contract, hashes) {
       ],
     },
     {
-      id: "smart_alerts",
+      id: "candidate_taskpane",
       order: 2,
-      manifest_path: SMART_ALERTS_MANIFEST,
-      manifest_version: SMART_ALERTS_MANIFEST_VERSION,
-      launch_events: ["OnMessageSend:onMessageSendHandler:PromptUser"],
+      manifest_path: CANDIDATE_MANIFEST,
+      manifest_version: CANDIDATE_MANIFEST_VERSION,
+      launch_events: [],
       requires: [
         "taskpane_real_outlook_pass",
         "oauth_callback_connected_pass",
         "assignment_readback_unchanged",
-        "smart_alert_runtime_pass",
+        "automatic_send_zero_readback",
       ],
     },
   ];
@@ -237,9 +238,8 @@ function validateTaskpaneOnlyManifest(manifest, label) {
 
 function validateManifestSemantics(
   taskpane,
-  smartAlerts,
+  candidate,
   rollback,
-  canonicalSmartAlerts,
   inquiry,
   inquiryProduction,
   contract,
@@ -253,18 +253,16 @@ function validateManifestSemantics(
     "icon_url", "high_resolution_icon_url", "support_url", "app_domains",
   ];
   for (const field of common) {
-    exact(taskpane[field], smartAlerts[field], `forward manifest ${field}`);
+    exact(taskpane[field], candidate[field], `forward manifest ${field}`);
     exact(taskpane[field], rollback[field], `rollback manifest ${field}`);
   }
   if (
     taskpane.product_id !== PRODUCT_ID
-    || smartAlerts.product_id !== PRODUCT_ID
+    || candidate.product_id !== PRODUCT_ID
     || rollback.product_id !== PRODUCT_ID
-    || canonicalSmartAlerts.product_id !== PRODUCT_ID
     || taskpane.version !== TASKPANE_MANIFEST_VERSION
-    || smartAlerts.version !== SMART_ALERTS_MANIFEST_VERSION
+    || candidate.version !== CANDIDATE_MANIFEST_VERSION
     || rollback.version !== ROLLBACK_MANIFEST_VERSION
-    || canonicalSmartAlerts.version !== ARTIFACT_VERSION
     || taskpane.provider_name !== "AMIC OS"
     || taskpane.display_name !== "AMIC OS"
     || taskpane.permission !== "ReadItem"
@@ -272,6 +270,7 @@ function validateManifestSemantics(
   exact(taskpane.app_domains, [ORIGIN], "manifest AppDomains");
   exact(taskpane.form_source_locations, [TASKPANE], "manifest taskpane SourceLocation");
   validateTaskpaneOnlyManifest(taskpane, "taskpane-only");
+  validateTaskpaneOnlyManifest(candidate, "candidate taskpane-only");
   exact(rollback.extension_points, [
     "MessageComposeCommandSurface", "MessageComposeCommandSurface",
     "MessageReadCommandSurface", "MessageReadCommandSurface",
@@ -283,24 +282,6 @@ function validateManifestSemantics(
     `Commands.Url=${COMMANDS}`, `Commands.Url=${COMMANDS}`,
     `Taskpane.Url=${TASKPANE}`, `Taskpane.Url=${TASKPANE}`,
   ], "rollback taskpane-only URLs");
-  exact(smartAlerts.extension_points, [
-    "LaunchEvent", "MessageComposeCommandSurface", "MessageComposeCommandSurface",
-    "MessageReadCommandSurface", "MessageReadCommandSurface",
-  ], "Smart Alerts extension points");
-  exact(smartAlerts.launch_events, ["OnMessageSend:onMessageSendHandler:PromptUser"], "Smart Alerts launch events");
-  exact(smartAlerts.semantic_manifest_sha256, SMART_ALERTS_SEMANTIC_SHA256, "Smart Alerts semantic capabilities");
-  exact(smartAlerts.supports_pinning, PINNED_V11_TASKPANES, "Smart Alerts pinned taskpanes");
-  exact(smartAlerts.url_resources, [
-    `Commands.Url=${COMMANDS}`, `Commands.Url=${COMMANDS}`,
-    `JSRuntime.Url=${ORIGIN}/addin/event-runtime.js`,
-    `Taskpane.Url=${TASKPANE}`, `Taskpane.Url=${TASKPANE}`,
-    `WebViewRuntime.Url=${ORIGIN}/addin/event-runtime.html`,
-  ], "Smart Alerts URLs");
-  for (const field of Object.keys(smartAlerts)) {
-    if (field !== "version") {
-      exact(smartAlerts[field], canonicalSmartAlerts[field], `canonical Smart Alerts ${field}`);
-    }
-  }
   for (const [label, manifest] of [["local", inquiry], ["production", inquiryProduction]]) {
     if (manifest.product_id !== INQUIRY_PRODUCT_ID || manifest.version !== "1.1.0.0") {
       fail(`inquiry-only ${label} manifest identity drifted`);
@@ -310,7 +291,7 @@ function validateManifestSemantics(
     exact(manifest.supports_pinning, [], `inquiry-only ${label} pinned taskpanes`);
   }
   exact(contract.stages[0].launch_events, taskpane.launch_events, "taskpane stage event binding");
-  exact(contract.stages[1].launch_events, smartAlerts.launch_events, "Smart Alerts stage event binding");
+  exact(contract.stages[1].launch_events, candidate.launch_events, "candidate stage event binding");
   if (contract.rollback_removal.rollback_to_taskpane_only.manifest_version !== rollback.version) {
     fail("rollback manifest version binding drifted");
   }
@@ -320,14 +301,25 @@ async function validateReleaseBinding(repoRoot) {
   const release = JSON.parse(await readFile(path.join(repoRoot, releaseContractPath), "utf8"));
   if (release.release_version !== ARTIFACT_VERSION) fail("release artifact version is not shared");
   const matter = release.profiles?.find((profile) => profile.product_id === PRODUCT_ID);
-  if (!matter || matter.production_manifest !== CANONICAL_SMART_ALERTS_MANIFEST || matter.permission !== "ReadItem") {
-    fail("Smart Alerts stage is not the canonical Matter release manifest");
+  if (!matter || matter.production_manifest !== CANDIDATE_MANIFEST || matter.permission !== "ReadItem") {
+    fail("taskpane-only candidate is not the canonical Matter release manifest");
   }
   const requiredStatic = new Set(release.build?.required_static_paths ?? []);
   for (const relativePath of [
     "oauth-start.html", "oauth-start.js", "oauth-callback.html", "oauth-callback.js",
-    "event-runtime.html", "event-runtime.js", "index.html",
+    "index.html",
   ]) if (!requiredStatic.has(relativePath)) fail(`release artifact omits ${relativePath}`);
+  for (const relativePath of ["event-runtime.html", "event-runtime.js"]) {
+    if (requiredStatic.has(relativePath)) fail(`release artifact still requires retired ${relativePath}`);
+  }
+  exact(release.automatic_send_policy, {
+    active_launch_events: [],
+    active_event_runtime_required: false,
+    legacy_smart_alert_manifest_status: "retired_source_only",
+    legacy_eventful_rollback_activation_allowed: false,
+    forward_rollback_contract: "contracts/outlook-addin-forward-static-rollback.json",
+    forward_rollback_launch_event_count: 0,
+  }, "release automatic Send policy");
   const namespace = release.static_deploy?.namespaces?.find((entry) => entry.product_id === PRODUCT_ID);
   if (!namespace || namespace.target_prefix !== "addin/" || namespace.source_prefix !== "") {
     fail("Matter static namespace drifted");
@@ -353,16 +345,14 @@ export async function validateOutlookM365CanaryManifestSet({
   const hashes = await validateArtifacts(contract, repoRoot, fileOverrides);
   validateStages(contract, hashes);
   let taskpane;
-  let smartAlerts;
+  let candidate;
   let rollback;
-  let canonicalSmartAlerts;
   let inquiry;
   let inquiryProduction;
   try {
     taskpane = parseOutlookManifest((await bytes(repoRoot, TASKPANE_MANIFEST, fileOverrides)).toString("utf8"));
-    smartAlerts = parseOutlookManifest((await bytes(repoRoot, SMART_ALERTS_MANIFEST, fileOverrides)).toString("utf8"));
+    candidate = parseOutlookManifest((await bytes(repoRoot, CANDIDATE_MANIFEST, fileOverrides)).toString("utf8"));
     rollback = parseOutlookManifest((await bytes(repoRoot, ROLLBACK_MANIFEST, fileOverrides)).toString("utf8"));
-    canonicalSmartAlerts = parseOutlookManifest((await bytes(repoRoot, CANONICAL_SMART_ALERTS_MANIFEST, fileOverrides)).toString("utf8"));
     inquiry = parseOutlookManifest((await bytes(repoRoot, INQUIRY_MANIFEST, fileOverrides)).toString("utf8"));
     inquiryProduction = parseOutlookManifest((await bytes(repoRoot, INQUIRY_PRODUCTION_MANIFEST, fileOverrides)).toString("utf8"));
   } catch (error) {
@@ -370,9 +360,8 @@ export async function validateOutlookM365CanaryManifestSet({
   }
   validateManifestSemantics(
     taskpane,
-    smartAlerts,
+    candidate,
     rollback,
-    canonicalSmartAlerts,
     inquiry,
     inquiryProduction,
     contract,

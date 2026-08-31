@@ -1,0 +1,130 @@
+{
+  "schema_version": "law-firm-os.amic-os-vault-single-install-source.v1",
+  "goal": {
+    "user_visible_product": "AMIC OS",
+    "user_visible_product_count": 1,
+    "separate_vault_product_count": 0,
+    "vault_is_capability_not_product": true
+  },
+  "current_desktop_lineage": {
+    "source_package": "apps/desktop",
+    "package_name": "@law-firm-os/desktop",
+    "app_id": "com.amic.matter.desktop.internal",
+    "artifact_product_name": "matter",
+    "artifact_name_template": "matter-internal-${version}-${os}-${arch}.${ext}",
+    "technical_runtime_name": "matter",
+    "technical_executable_name": "matter",
+    "technical_url_scheme": "matter",
+    "internal_artifact_prefix": "AMIC-OS-internal",
+    "internal_macos_app_bundle_name": "AMIC OS.app",
+    "internal_macos_display_name": "AMIC OS",
+    "internal_windows_product_name": "AMIC OS",
+    "main_window_title": "AMIC OS",
+    "renderer_document_title": "AMIC OS",
+    "user_visible_identity_aligned": true,
+    "identity_transition_requires_upgrade_lineage_gate": true
+  },
+  "platform_packages": [
+    {
+      "id": "windows",
+      "package_target": "nsis",
+      "user_visible_entrypoint_count": 1,
+      "required_component_roles": [
+        "desktop_shell",
+        "classic_outlook_adapter",
+        "click_time_broker",
+        "required_runtime"
+      ],
+      "classic_native_component_allowed": true,
+      "classic_native_source_present": true,
+      "broker_source_present": true,
+      "integrated_package_verified": false
+    },
+    {
+      "id": "macos",
+      "package_target": "dmg",
+      "user_visible_entrypoint_count": 1,
+      "required_component_roles": [
+        "desktop_shell",
+        "secure_file_bridge"
+      ],
+      "classic_native_component_allowed": false,
+      "integrated_package_verified": false
+    }
+  ],
+  "deployment_boundaries": {
+    "installer_may_mutate_m365_assignment": false,
+    "officejs_deployment_owner": "m365_admin",
+    "classic_and_officejs_cohort_intersection_required": 0,
+    "vault_provider_credentials_are_server_side": true
+  },
+  "forbidden_user_visible_surfaces": [
+    "vault_desktop_application",
+    "vault_installer",
+    "vault_launcher",
+    "vault_tray",
+    "vault_login",
+    "vault_updater"
+  ],
+  "forbidden_product_roots": [
+    "apps/vault-desktop",
+    "apps/amic-vault-desktop",
+    "apps/vault-installer",
+    "apps/amic-vault-installer"
+  ],
+  "uninstall_preservation": {
+    "installer_may_call_remote_delete": false,
+    "local_components_may_be_removed": [
+      "amic_os_desktop",
+      "classic_outlook_adapter",
+      "click_time_broker",
+      "local_cache",
+      "protected_temp"
+    ],
+    "remote_or_immutable_data_never_deleted": [
+      "vault_documents",
+      "vault_immutable_versions",
+      "vault_audit_records",
+      "legal_hold_or_retention_material",
+      "outlook_drafts",
+      "outlook_sent_mail",
+      "recipient_copies"
+    ],
+    "custom_nsis_uninstall_hook_present": true
+  },
+  "source_evidence": {
+    "desktop_package_path": "apps/desktop/package.json",
+    "builder_config_path": "apps/desktop/electron-builder.yml",
+    "desktop_build_scripts": [
+      "build:mac",
+      "build:win",
+      "build:win:installer"
+    ],
+    "desktop_build_preflight": "node ../../scripts/validate-amic-os-vault-single-install-source.mjs",
+    "desktop_release_lineage_preflight": "node ../../scripts/validate-amic-os-desktop-release-lineage.mjs --build",
+    "desktop_file_bridge_contract_preflight": "node ../../scripts/validate-desktop-file-bridge-contract.mjs",
+    "desktop_file_bridge_source_preflight": "node ../../scripts/validate-matter-desktop-file-bridge.mjs",
+    "desktop_product_roots": [
+      "apps/desktop"
+    ],
+    "separate_vault_desktop_roots_present": [],
+    "classic_native_project_root": "apps/outlook-classic-native",
+    "classic_native_project_root_present": true,
+    "broker_candidate_roots": [
+      "apps/desktop/src/main/broker",
+      "apps/desktop/src/broker",
+      "apps/desktop/native"
+    ],
+    "broker_candidate_roots_present": [
+      "apps/desktop/src/main/broker"
+    ]
+  },
+  "release_status": {
+    "source_inventory_verified": true,
+    "integrated_installer_verified": false,
+    "signed_artifact_verified": false,
+    "install_repair_upgrade_uninstall_verified": false,
+    "real_host_verified": false,
+    "production_ready_claim": false
+  }
+}

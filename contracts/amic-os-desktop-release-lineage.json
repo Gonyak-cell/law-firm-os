@@ -1,0 +1,48 @@
+{
+  "schema_version": "law-firm-os.amic-os-desktop-release-lineage.v1",
+  "goal_regression_savepoint": "LAWOS-SP-20260828-1787901890994922",
+  "product_identity": {
+    "user_visible_product": "AMIC OS",
+    "technical_package_name": "@law-firm-os/desktop",
+    "technical_executable_name": "matter",
+    "technical_url_scheme": "matter",
+    "internal_app_id": "com.amic.matter.desktop.internal"
+  },
+  "protected_baseline": {
+    "contract_ref": "contracts/outlook-addin-forward-rollback-packet.json",
+    "contract_sha256": "d98262b9b7d42f48a7319108df94dcfcc86ed7b1204f5ffc8537fdbc6e931a8d",
+    "desktop_surface_sha256": "4cbc22e0c2a05fdd2c8634de19a44b482a71091005e6ca09fe1ff5ec4bb3e16c",
+    "desktop_action": "none_remain_on_sealed_0.1.29",
+    "version_floor": "0.1.29",
+    "platforms": [
+      "macos-arm64",
+      "windows-x64"
+    ],
+    "minimum_developer_id_notarized_profile_count": 1,
+    "windows_unsigned_internal_canary_must_not_be_promoted_to_signed": true
+  },
+  "enforcement": {
+    "release_version_rule": "strictly_greater_than_protected_baseline",
+    "always_release_intent_channels": [
+      "candidate",
+      "formal"
+    ],
+    "probe_channels": [
+      "dev",
+      "internal"
+    ],
+    "internal_probe_requires_build_receipt_disabled": true,
+    "internal_probe_forbids_developer_id_signing": true,
+    "internal_probe_forbids_notarization": true,
+    "explicit_release_intent_is_irreversible_for_the_process": true,
+    "release_version_selection_recorded": true,
+    "selected_release_version": "0.1.31"
+  },
+  "claims": {
+    "candidate_artifact_built": false,
+    "candidate_artifact_signed": false,
+    "upgrade_verified": false,
+    "rollback_verified": false,
+    "production_ready": false
+  }
+}

@@ -13,10 +13,13 @@ test('Matter-Vault UI hardening exposes breadcrumb, badges, table, detail, and a
     readFile(resolve(webRoot, 'src/components/VaultDocumentTable.jsx'), 'utf8'),
     readFile(resolve(webRoot, 'src/components/VaultDocumentDetail.jsx'), 'utf8'),
   ]);
+  const detailSource = files[3];
   const source = files.join("\n");
   assert.match(source, /aria-label="Matter Vault 위치"/);
   assert.match(source, /data-mv-vault-security-badges="true"/);
   assert.match(source, /DataTable/);
   assert.match(source, /버전 기록/);
   assert.doesNotMatch(source, /Version History|standard privilege|No hold/);
+  assert.match(detailSource, /data-vault-version-history="unavailable"/);
+  assert.doesNotMatch(detailSource, /document\?\.versions|current_version_id\s*\?\s*\[|DataTable/);
 });

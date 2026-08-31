@@ -26,4 +26,8 @@ win:
     - nsis
   icon: build/icon.ico
 
+nsis:
+  include: build/installer.nsh
+  perMachine: false
+
 publish: null

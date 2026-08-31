@@ -16,12 +16,13 @@ import { PeopleHome } from "./people/PeopleHome.tsx";
 import { resolvePeopleRoute } from "./people/peopleFeatureCatalog.js";
 import { readPeopleWebFeatureFlags } from "./people/peopleFeatureFlags.ts";
 import { parsePeopleOutlookConnectionResult, presentPeopleOutlookConnectionResult } from "./people/outlookConnectionResult.js";
-import { isDesktopRendererLocation, loginLawosApiSession, readLawosApiSession, readLawosSessionEnvelope } from "./data/apiClient.js";
+import { fetchLawosVaultCapabilities, isDesktopRendererLocation, loginLawosApiSession, readLawosApiSession, readLawosSessionEnvelope } from "./data/apiClient.js";
 import { canAccessHomeCompany } from "./data/homeAccess.js";
 import { canAccessHomeFinanceSection } from "./data/financeAccess.js";
 import { fetchHomeMessageItems } from "./data/homeMessages.js";
 import { emitHomeMetric } from "./data/homeTelemetry.js";
 import { canAdjustLeaveLedger, canApproveLeave, canApproveOvertime, canExecuteLeaveAccrual, canExportLeaveReport, canManageLeavePolicy, canManageLeavePromotion, canSettleLeaveTermination } from "./data/hrxAccess.js";
+import { EMPTY_VAULT_CAPABILITY_PROJECTION, normalizeVaultCapabilityProjection } from "./data/vaultCapabilities.js";
 
 const productAxisIds = new Set(navItems.map((item) => item.id));
 const emptyHomeActionCounts = Object.freeze({ approval: 0, task_late: 0, task_today: 0 });
@@ -50,18 +51,31 @@ const homeSectionIds = new Set([
   "home-esign",
   "home-company"
 ]);
-const vaultFallbackSection = "vault-search-home";
+const vaultFallbackSection = "vault-home";
 const vaultSectionIds = new Set([
   vaultFallbackSection,
+  "vault-files",
+  "vault-recent",
+  "vault-favorites",
+  "vault-upload",
   "vault-search-all",
-  "vault-search-documents",
   "vault-search-recent",
-  "vault-search-saved"
+  "vault-search-saved",
+  "vault-work",
+  "vault-checkout",
+  "vault-review",
+  "vault-outlook",
+  "vault-email",
+  "vault-audit",
+  "vault-ethical-wall",
+  "vault-records",
+  "vault-dlp"
 ]);
 const vaultLegacySections = Object.freeze({
-  "vault-documents": "vault-search-documents",
-  "vault-detail": "vault-search-documents",
-  "vault-email": "vault-search-home"
+  "vault-search-home": "vault-home",
+  "vault-search-documents": "vault-search-all",
+  "vault-documents": "vault-files",
+  "vault-detail": "vault-files"
 });
 const defaultModeReturnTarget = Object.freeze({ view: "home", section: "home-dashboard" });
 const desktopLocalDefaultPassword = "local-loopback-desktop-session";
@@ -149,10 +163,14 @@ export function App() {
   const [homeActionCounts, setHomeActionCounts] = useState(emptyHomeActionCounts);
   const [globalRefreshSignal, setGlobalRefreshSignal] = useState(0);
   const [outlookConnectionNotice, setOutlookConnectionNotice] = useState(null);
+  const [classicOutlookAttachRequest, setClassicOutlookAttachRequest] = useState(null);
   const [routeRevision, setRouteRevision] = useState(0);
   const readMessageIdsRef = useRef(new Set());
   const [desktopSessionChecked, setDesktopSessionChecked] = useState(() => !isDesktopRenderer());
   const [desktopSessionIdentity, setDesktopSessionIdentity] = useState(null);
+  const [vaultCapabilities, setVaultCapabilities] = useState(() => normalizeVaultCapabilityProjection(
+    readLawosApiSession()?.vault_capabilities
+  ));
   const [modeReturnTarget, setModeReturnTarget] = useState(() =>
     modeExceptionUtilityViewIds.includes(initialView) || ["auth", "loading"].includes(initialView)
       ? defaultModeReturnTarget
@@ -184,8 +202,9 @@ export function App() {
     canAdjustLeaveLedger: leaveLedgerAccess,
     canExportLeaveReport: leaveReportExportAccess,
     canSettleLeaveTermination: leaveTerminationAccess,
-    canManageLeavePromotion: leavePromotionAccess
-  }), [labels, homeApprovalCount, homeMessageCount, canViewCompanyStatus, leavePolicyAccess, leaveApprovalAccess, leaveAccrualAccess, leaveLedgerAccess, leaveReportExportAccess, leaveTerminationAccess, leavePromotionAccess]);
+    canManageLeavePromotion: leavePromotionAccess,
+    vaultCapabilities
+  }), [labels, homeApprovalCount, homeMessageCount, canViewCompanyStatus, leavePolicyAccess, leaveApprovalAccess, leaveAccrualAccess, leaveLedgerAccess, leaveReportExportAccess, leaveTerminationAccess, leavePromotionAccess, vaultCapabilities]);
   const notificationItems = useMemo(() => buildNotificationItems({ homeActionCounts, labels }), [homeActionCounts, labels]);
   const notificationSignature = notificationItems.map((item) => item.id).join("|");
   const notificationUnreadCount = notificationItemsRead ? 0 : notificationItems.length;
@@ -478,6 +497,8 @@ export function App() {
       setAuthError("로그인 정보를 확인하세요.");
       return;
     }
+    const capabilityResult = await fetchLawosVaultCapabilities();
+    setVaultCapabilities(normalizeVaultCapabilityProjection(capabilityResult.body));
     setHandoffSplashVisible(true);
     navigateToView("home");
   }
@@ -490,14 +511,27 @@ export function App() {
   }, [locale]);
 
   useEffect(() => {
+    if (isDesktopRenderer() || !readLawosApiSession()) return undefined;
+    let cancelled = false;
+    fetchLawosVaultCapabilities().then((result) => {
+      if (!cancelled) setVaultCapabilities(normalizeVaultCapabilityProjection(result.body));
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
     if (!isDesktopRenderer()) return undefined;
     let cancelled = false;
     async function verifyDesktopSession() {
       try {
         const status = await window.matterSession.status();
         if (status?.state === "signed_in") {
+          const capabilityResult = await fetchLawosVaultCapabilities();
           if (!cancelled) {
             setDesktopSessionIdentity(status);
+            setVaultCapabilities(normalizeVaultCapabilityProjection(capabilityResult.body));
             setDesktopSessionChecked(true);
           }
           return;
@@ -510,8 +544,10 @@ export function App() {
             password: desktopLocalDefaultPassword
           });
           if (result?.ok) {
+            const capabilityResult = await fetchLawosVaultCapabilities();
             if (cancelled) return;
             setCanViewCompanyStatus(readHomeCompanyAccess());
+            setVaultCapabilities(normalizeVaultCapabilityProjection(capabilityResult.body));
             setDesktopSessionChecked(true);
             return;
           }
@@ -523,6 +559,7 @@ export function App() {
       setView("auth");
       setActiveSection("");
       setDesktopSessionIdentity(null);
+      setVaultCapabilities(EMPTY_VAULT_CAPABILITY_PROJECTION);
       setDesktopSessionChecked(true);
     }
     verifyDesktopSession();
@@ -559,6 +596,19 @@ export function App() {
       if (!result || !presentation) return;
       setOutlookConnectionNotice({ ...presentation, status: result.status });
       if (result.status === "connected") setGlobalRefreshSignal((current) => current + 1);
+    });
+    return typeof unsubscribe === "function" ? unsubscribe : undefined;
+  }, [desktopSessionChecked]);
+
+  useEffect(() => {
+    if (!desktopSessionChecked
+        || typeof window.matterSession?.onClassicOutlookAttachRequested !== "function") {
+      return undefined;
+    }
+    const unsubscribe = window.matterSession.onClassicOutlookAttachRequested((request) => {
+      if (request?.type !== "classic_outlook_attach_request") return;
+      setClassicOutlookAttachRequest(request);
+      navigateToView("vault", "vault-outlook");
     });
     return typeof unsubscribe === "function" ? unsubscribe : undefined;
   }, [desktopSessionChecked]);
@@ -810,6 +860,8 @@ export function App() {
                 initialDocumentSha256={requestedDocumentSha256}
                 initialDateFrom={requestedDateFrom}
                 initialDateTo={requestedDateTo}
+                capabilities={vaultCapabilities}
+                classicOutlookAttachRequest={classicOutlookAttachRequest}
                 refreshSignal={globalRefreshSignal}
                 onNavigateSection={(section, routeContext) => navigateToView("vault", section, routeContext)}
               />

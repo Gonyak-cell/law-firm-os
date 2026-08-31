@@ -27,6 +27,7 @@ import { MASTER_DATA_DOMAIN_DESCRIPTOR } from "../../../packages/master-data/src
 import { createPostgresIdentityLedger } from "../../../packages/runtime-auth/src/postgres-identity-ledger.js";
 import {
   createPostgresApiRuntimeAuthority,
+  isDesktopVaultIdempotentMutation,
   isOutlookIdempotentMutation,
   runPostgresReadWithBaselineRetry,
   runWithRequestFailureCompensation,
@@ -443,6 +444,21 @@ test("PostgreSQL API authority retries bounded reads and only explicitly idempot
   }), /slash callback commit conflict/u);
   assert.equal(slashCallbackAttempts, 1);
 
+  let vaultDeliveryAttempts = 0;
+  await assert.rejects(runPostgresReadWithBaselineRetry({
+    method: "GET",
+    pathname: "/api/outlook/vault/attachments/delivery/lawos_ovd_v1.opaque",
+    retryLimit: 4,
+    wait: async () => assert.fail("one-time Vault delivery must not be retried"),
+    execute: async () => {
+      vaultDeliveryAttempts += 1;
+      throw Object.assign(new Error("Vault delivery commit conflict"), {
+        safe_error_code: "DOMAIN_BASELINE_CONFLICT",
+      });
+    },
+  }), /Vault delivery commit conflict/u);
+  assert.equal(vaultDeliveryAttempts, 1);
+
   let mutationAttempts = 0;
   await assert.rejects(runPostgresReadWithBaselineRetry({
     method: "POST",
@@ -549,6 +565,43 @@ test("Outlook identity and receipt readback routes retry only on exact POST path
       assert.equal(isOutlookIdempotentMutation(method, candidatePath), false);
     }
   }
+});
+
+test("Outlook Vault saves and attachment handoff retry only on exact idempotent POST paths", () => {
+  for (const pathname of [
+    "/api/outlook/vault/email/save",
+    "/api/outlook/vault/sent/save",
+    "/api/outlook/vault/attachments/save",
+    "/api/outlook/vault/source/status",
+    "/api/outlook/vault/attachments/authorize",
+    "/api/outlook/vault/attachments/complete",
+  ]) {
+    assert.equal(isOutlookIdempotentMutation("POST", pathname), true);
+    assert.equal(isOutlookIdempotentMutation("POST", `${pathname}/`), true);
+    assert.equal(isOutlookIdempotentMutation("GET", pathname), false);
+    assert.equal(isOutlookIdempotentMutation("POST", `${pathname}/child`), false);
+  }
+});
+
+test("desktop Vault retries only idempotent upload, export authorization, and export completion mutations", () => {
+  for (const pathname of [
+    "/api/vault/desktop/upload-preflight",
+    "/api/vault/desktop/upload",
+    "/api/vault/desktop/upload-status",
+    "/api/vault/desktop/export-preflight",
+    "/api/vault/desktop/export-authorize",
+    "/api/vault/desktop/export-complete",
+  ]) {
+    assert.equal(isDesktopVaultIdempotentMutation("POST", pathname), true);
+    assert.equal(isDesktopVaultIdempotentMutation("POST", `${pathname}/`), true);
+    assert.equal(isDesktopVaultIdempotentMutation("GET", pathname), false);
+    assert.equal(isDesktopVaultIdempotentMutation("POST", `${pathname}/child`), false);
+  }
+  assert.equal(
+    isDesktopVaultIdempotentMutation("POST", "/api/vault/desktop/export-download"),
+    false,
+  );
+  assert.equal(isDesktopVaultIdempotentMutation("POST", "/api/vault/documents"), false);
 });
 
 test("PostgreSQL request success runs post-commit cleanup but never failure compensation", async () => {

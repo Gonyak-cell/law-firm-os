@@ -108,6 +108,11 @@ test("G5 Vault document list is permission gated and never leaks raw storage fie
     assert.equal(body.items[0].owner_user_id, ACTOR_ID);
     assert.equal(body.items[0].registered_account.email, "jwsuh@amic.kr");
     assert.equal(body.items[0].account_linkage.status, "linked");
+    assert.equal(body.items[0].current_version_id, "version_doc_rp07_synthetic_001_1");
+    assert.equal(body.items[0].current_file_object_id, "file_version_doc_rp07_synthetic_001_1");
+    assert.equal(body.items[0].latest_sha256, "seed");
+    assert.equal(body.items[0].current_byte_size, 0);
+    assert.equal(body.items[0].current_mime_type, "application/pdf");
     assert.equal(body.items[0].storage_pointer_ref_included, false);
     assert.equal(body.items[0].document_bytes_included, false);
     assert.equal(body.page_info.omitted_document_count, null);

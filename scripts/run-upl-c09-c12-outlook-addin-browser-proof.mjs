@@ -579,35 +579,13 @@ function safeMsalBridgeProbe(probe = {}) {
   };
 }
 
-function safeHandlerProbe(probe = {}) {
-  const completion = probe.completed_payload ?? {};
-  const sendResult = probe.probe?.last_send_handler_result ?? {};
-  const lastCompletion = probe.probe?.last_completion ?? {};
+function safeAutomaticSendProbe(probe = {}) {
   return {
     associated_actions: Array.isArray(probe.associated_actions)
       ? probe.associated_actions.filter((value) => typeof value === "string")
       : [],
     handler_available: probe.handler_available === true,
-    completed_payload: {
-      allowEvent: completion.allowEvent === true,
-    },
-    probe: {
-      msal_bridge: safeMsalBridgeProbe(probe.probe?.msal_bridge),
-      last_completion: {
-        allowEvent: lastCompletion.allowEvent === true,
-      },
-      last_send_handler_result: {
-        outcome: typeof sendResult.outcome === "string" ? sendResult.outcome : null,
-        warning_count: Number.isSafeInteger(sendResult.warning_count)
-          ? sendResult.warning_count
-          : null,
-        send_blocked: sendResult.send_blocked === true,
-        provider_runtime_executed: sendResult.provider_runtime_executed === true,
-        allowEvent: sendResult.allowEvent === true,
-        raw_body_written: sendResult.raw_body_written === true,
-        attachment_bytes_written: sendResult.attachment_bytes_written === true,
-      },
-    },
+    event_probe_present: probe.event_probe_present === true,
   };
 }
 
@@ -1162,18 +1140,13 @@ async function runFullSurface(page, state) {
   await page.locator("[data-testid='smart-alert-button']").click();
   await page.waitForSelector("[data-testid='operation-result']", { state: "visible", timeout: 15_000 });
   await closeOverlay(page);
-  const handlerProbe = await page.evaluate(async () => {
+  const automaticSendProbe = await page.evaluate(() => {
     const handler = window.__LAWOS_OUTLOOK_ASSOCIATED_HANDLERS?.onMessageSendHandler;
     const associated = window.__LAWOS_OUTLOOK_ASSOCIATED_ACTIONS ?? [];
-    let completedPayload = null;
-    if (typeof handler === "function") {
-      await handler({ completed(payload) { completedPayload = payload ?? {}; } });
-    }
     return {
       associated_actions: associated,
       handler_available: typeof handler === "function",
-      completed_payload: completedPayload,
-      probe: window.__LAWOS_OUTLOOK_EVENT_PROBE ?? null,
+      event_probe_present: window.__LAWOS_OUTLOOK_EVENT_PROBE != null,
     };
   });
   await page.screenshot({ path: SCREENSHOT_PATH, fullPage: true });
@@ -1182,7 +1155,7 @@ async function runFullSurface(page, state) {
     profileProbe,
     msalBridgeProbe,
     catalogProbe,
-    handlerProbe,
+    automaticSendProbe,
     attachmentProbe: await page.evaluate(() => ({
       read_attachment_ids: [...(window.__LAWOS_OUTLOOK_ATTACHMENT_READS ?? [])],
       read_results: [...(window.__LAWOS_OUTLOOK_ATTACHMENT_READ_RESULTS ?? [])],
@@ -1758,10 +1731,9 @@ try {
     passed("c12-time-entry-draft-visible", snapshot.time_entries.some((entry) => entry.status === "draft"), {
       time_entries: snapshot.time_entries.length,
     }),
-    passed("c12-smart-alert-warning-not-block", state.smartAlertResponse?.item?.warning_count === 1 && state.smartAlertResponse?.item?.send_blocked === false),
-    passed("c12-on-message-send-handler-associated", fullProbe.handlerProbe?.associated_actions?.includes("onMessageSendHandler") === true),
-    passed("c12-on-message-send-handler-completes-allow-event", fullProbe.handlerProbe?.completed_payload?.allowEvent === false),
-    passed("c12-on-message-send-handler-warning-only", fullProbe.handlerProbe?.probe?.last_send_handler_result?.send_blocked === false && fullProbe.handlerProbe?.probe?.last_send_handler_result?.provider_runtime_executed === false),
+    passed("c12-explicit-send-review-warning-not-block", state.smartAlertResponse?.item?.warning_count === 1 && state.smartAlertResponse?.item?.send_blocked === false),
+    passed("c12-automatic-send-handler-absent", fullProbe.automaticSendProbe?.handler_available === false && fullProbe.automaticSendProbe?.associated_actions?.includes("onMessageSendHandler") === false),
+    passed("c12-automatic-send-event-probe-absent", fullProbe.automaticSendProbe?.event_probe_present === false),
     passed("c12-item-fence-suppresses-late-response", itemFenceProbe.held_requests >= 2 && itemFenceProbe.overlay_closed_after_item_change && itemFenceProbe.stale_body_visible === false),
     passed("c12-matter-fence-rejects-stale-selection", matterFenceProbe.stale_matter_revalidation_blocked && matterFenceProbe.task_post_count_delta === 0 && matterFenceProbe.error_visible),
     passed("c12-session-fence-suppresses-late-write", sessionFenceProbe.held_requests >= 1 && sessionFenceProbe.logout_status === 200 && sessionFenceProbe.revoked_task_status === 401 && sessionFenceProbe.login_visible_after_protected_401 === true && sessionFenceProbe.revoked_session_status === null && sessionFenceProbe.revoked_session_validation_count === 0 && sessionFenceProbe.interactive_exchange_observed === true && sessionFenceProbe.stale_session_token_hash !== sessionFenceProbe.current_session_token_hash && sessionFenceProbe.current_session_status === 200 && sessionFenceProbe.late_result_visible === false && sessionFenceProbe.late_task_persisted === false),
@@ -1769,10 +1741,10 @@ try {
   ];
 
   const e04Payload = {
-    schema_version: "law-firm-os.manual-qa.upl-e04-smart-alerts.local_receipt.v0.1",
+    schema_version: "law-firm-os.manual-qa.upl-e04-explicit-send-review.local_receipt.v0.2",
     generated_at: new Date().toISOString(),
     tuw_id: "UPL-E-04",
-    scope: "Local signed-session task pane and API proof for warning-only Smart Alerts. External Outlook web/new desktop runtime is not claimed.",
+    scope: "Local signed-session task pane and API proof for an explicit warning-only send review action. Automatic Outlook Send interception is absent and no external Outlook runtime is claimed.",
     screenshot_path: E04_SCREENSHOT_PATH,
     external_receipt_boundary: {
       entra_admin_consent_receipt_present: false,
@@ -1819,7 +1791,7 @@ try {
   ];
   const e04Artifact = { ...e04Payload, checks: e04Checks, pass: e04Checks.every((check) => check.passed) };
   writeFileSync(E04_JSON_PATH, `${JSON.stringify(e04Artifact, null, 2)}\n`);
-  writeFileSync(E04_MD_PATH, `# UPL E04 Smart Alerts Local Proof\n\nGenerated at: ${e04Artifact.generated_at}\n\n- PASS: ${e04Artifact.pass}\n- Screenshot: \`${E04_SCREENSHOT_PATH}\`\n- External Outlook runtime: owner-required, not claimed\n\n## Checks\n\n${e04Checks.map((check) => `- ${check.passed ? "PASS" : "FAIL"} ${check.id}`).join("\n")}\n`);
+  writeFileSync(E04_MD_PATH, `# UPL E04 Explicit Send Review Local Proof\n\nGenerated at: ${e04Artifact.generated_at}\n\n- PASS: ${e04Artifact.pass}\n- Screenshot: \`${E04_SCREENSHOT_PATH}\`\n- Automatic Outlook Send interception: absent\n- External Outlook runtime: owner-required, not claimed\n\n## Checks\n\n${e04Checks.map((check) => `- ${check.passed ? "PASS" : "FAIL"} ${check.id}`).join("\n")}\n`);
   const artifact = {
     schema_version: "law-firm-os.manual-qa.upl-c09-c12-outlook-addin.v2",
     generated_at: new Date().toISOString(),
@@ -1849,7 +1821,7 @@ try {
     fence_probe: { item: itemFenceProbe, matter: matterFenceProbe, session: sessionFenceProbe },
     attachment_probe: attachmentRequestProbe,
     snapshot,
-    handler_probe: safeHandlerProbe(fullProbe.handlerProbe),
+    automatic_send_probe: safeAutomaticSendProbe(fullProbe.automaticSendProbe),
     browser_request_observation: state.outlookRequests.map(safeBrowserRequestObservation),
     release_manifest_probe: releaseManifestProbe,
     signed_boundary_probe: signedBoundaryProbe,

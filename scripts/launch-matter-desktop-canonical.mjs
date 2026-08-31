@@ -10,14 +10,14 @@ import {
   inspectCanonicalMacBundle,
   parseMatterProcessTable,
 } from "./lib/matter-desktop-canonical-launch.mjs";
+import { desktopReleaseChannelConfig } from "./lib/matter-desktop-provenance.mjs";
 
 const ROOT = path.resolve(import.meta.dirname, "..");
-const DEFAULT_APP = path.join(ROOT, "apps/desktop/dist/mac/matter.app");
 const USAGE = [
   "usage: node scripts/launch-matter-desktop-canonical.mjs --expected-sha <40-char-sha> [options]",
   "",
   "Options:",
-  "  --app <absolute-matter.app>  Exact app bundle path (default: repo dist/mac/matter.app)",
+  "  --app <absolute-app>         Exact app bundle path (default: repo internal macOS bundle)",
   "  --channel <channel>          Release channel (default: internal)",
   "  --receipt <path>             Write the launch receipt JSON",
   "  --wait-ms <milliseconds>     Launch/termination timeout, 1000-60000 (default: 15000)",
@@ -33,7 +33,7 @@ function usageError(message) {
 
 function parseArgs(argv) {
   const options = {
-    appBundlePath: DEFAULT_APP,
+    appBundlePath: "",
     channel: "internal",
     dryRun: false,
     expectedSourceSha: "",
@@ -60,6 +60,13 @@ function parseArgs(argv) {
     if (argument === "--wait-ms") options.waitMs = Number(value);
   }
   if (!options.expectedSourceSha) throw usageError("--expected-sha is required");
+  if (!options.appBundlePath) {
+    options.appBundlePath = path.join(
+      ROOT,
+      "apps/desktop/dist/mac",
+      desktopReleaseChannelConfig(options.channel).macAppBundleName,
+    );
+  }
   if (!path.isAbsolute(options.appBundlePath)) throw usageError("--app must be an absolute path");
   if (!Number.isInteger(options.waitMs) || options.waitMs < 1_000 || options.waitMs > 60_000) {
     throw usageError("--wait-ms must be an integer between 1000 and 60000");
@@ -102,7 +109,7 @@ async function main() {
     console.log(USAGE);
     return;
   }
-  assert.equal(process.platform, "darwin", "canonical matter.app launcher requires macOS");
+  assert.equal(process.platform, "darwin", "canonical desktop app launcher requires macOS");
   const inspection = inspectCanonicalMacBundle({
     repoRoot: ROOT,
     appBundlePath: options.appBundlePath,

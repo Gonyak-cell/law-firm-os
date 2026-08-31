@@ -47,7 +47,7 @@ function write(target, body, mode) {
 function withFixture(run) {
   const repoRoot = realpathSync(mkdtempSync(path.join(tmpdir(), "matter-pv007-")));
   try {
-    const appBundlePath = path.join(repoRoot, "build outputs", "matter.app");
+    const appBundlePath = path.join(repoRoot, "build outputs", "AMIC OS.app");
     const executablePath = write(
       path.join(appBundlePath, "Contents/MacOS/matter"),
       "#!/bin/sh\nexit 0\n",
@@ -78,6 +78,8 @@ function withFixture(run) {
       "<key>CFBundleIdentifier</key><string>com.amic.matter.desktop.internal</string>",
       "<key>CFBundleShortVersionString</key><string>0.1.17</string>",
       "<key>CFBundleExecutable</key><string>matter</string>",
+      "<key>CFBundleDisplayName</key><string>AMIC OS</string>",
+      "<key>CFBundleName</key><string>matter</string>",
       "</dict></plist>",
       "",
     ].join("\n"));
@@ -89,7 +91,7 @@ function withFixture(run) {
     });
     const stagedManifestPath = path.posix.join(
       releaseRoot,
-      "mac/matter-internal-0.1.17-macos-build-manifest.json",
+      "mac/AMIC-OS-internal-0.1.17-macos-build-manifest.json",
     );
     write(path.join(repoRoot, stagedManifestPath), manifestBody);
     const artifact = {
@@ -169,12 +171,12 @@ test("PV-007 rejects a wrong SHA, tampered renderer, or symlink app alias", () =
 }));
 
 test("PV-007 parses app paths with spaces and separates exact duplicates from other bundles", () => {
-  const target = "/private/tmp/Law Firm OS/apps/desktop/dist/mac/matter.app/Contents/MacOS/matter";
+  const target = "/private/tmp/Law Firm OS/apps/desktop/dist/mac/AMIC OS.app/Contents/MacOS/matter";
   const processes = parseMatterProcessTable([
     `101 ${target} --disable-gpu`,
     `202 ${target}`,
     "303 /Applications/matter.app/Contents/MacOS/matter --inspect=0",
-    "404 /private/tmp/Law Firm OS/apps/desktop/dist/mac/matter.app/Contents/Frameworks/matter Helper.app/Contents/MacOS/matter Helper",
+    "404 /private/tmp/Law Firm OS/apps/desktop/dist/mac/AMIC OS.app/Contents/Frameworks/matter Helper.app/Contents/MacOS/matter Helper",
     "505 /bin/zsh -lc unrelated",
     "606 /bin/zsh -lc echo /tmp/other/matter.app/Contents/MacOS/matter",
   ].join("\n"), {
@@ -182,7 +184,7 @@ test("PV-007 parses app paths with spaces and separates exact duplicates from ot
       [101, target],
       [202, target],
       [303, "/Applications/matter.app/Contents/MacOS/matter"],
-      [404, "/private/tmp/Law Firm OS/apps/desktop/dist/mac/matter.app/Contents/Frameworks/matter Helper.app/Contents/MacOS/matter Helper"],
+      [404, "/private/tmp/Law Firm OS/apps/desktop/dist/mac/AMIC OS.app/Contents/Frameworks/matter Helper.app/Contents/MacOS/matter Helper"],
       [606, "/bin/zsh"],
     ]).get(pid) ?? null,
   });

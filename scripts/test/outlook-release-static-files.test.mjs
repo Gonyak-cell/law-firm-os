@@ -24,7 +24,6 @@ import {
 
 const manifestPaths = [
   "apps/addin/manifest.canary.taskpane.production.xml",
-  "apps/addin/manifest.canary.smart-alerts.production.xml",
   "apps/addin/manifest.canary.rollback.production.xml",
   "apps/addin/manifest.production.xml",
   "apps/addin/manifest.inquiry.production.xml",
@@ -125,9 +124,8 @@ test("production release manifests bind raw and semantic hashes to one exact ori
   const bindings = await productionBindings();
   assert.deepEqual(bindings.map(({ stage, version }) => ({ stage, version })), [
     { stage: "taskpane_only", version: "1.3.0.0" },
-    { stage: "smart_alerts", version: "1.3.0.1" },
     { stage: "forward_rollback", version: "1.3.0.2" },
-    { stage: "production", version: "1.3.0.1" },
+    { stage: "candidate_taskpane", version: "1.3.0.1" },
     { stage: "retained_inquiry", version: "1.1.0.0" },
   ]);
   assert.ok(bindings.every(({ exact_origin, semantic_sha256 }) => exact_origin && /^[a-f0-9]{64}$/u.test(semantic_sha256)));
