@@ -7,16 +7,13 @@ import { matterDesktopAuthenticodePowerShell } from "./matter-desktop-authentico
  * The Windows native QA boundary is intentionally fail-closed.  A file is
  * opened by a long-lived PowerShell process with FileShare.Read, inspected,
  * and kept open until the process which was launched from that exact path has
- * exited.  The file lock is then released before the inherited process job is
- * drained, allowing bootstrap executables such as NSIS uninstallers to finish
- * their self-copy cleanup without reopening a verify-by-path / CreateProcess-by-path
- * gap.
+ * exited. Contained application descendants are terminated when the job closes;
+ * verified NSIS bootstraps may finish their own install or removal cleanup.
  */
 export const WINDOWS_LOCKED_EXECUTABLE_PROTOCOL = "lawos.windows-locked-executable.v1";
 
 const SHA256 = /^[0-9a-f]{64}$/u;
 const DEFAULT_TIMEOUT_MS = 45_000;
-const RELEASE_RESPONSE_GRACE_MS = 5_000;
 
 export class WindowsLockedExecutableError extends Error {
   constructor(code, message, details = {}) {
@@ -202,9 +199,6 @@ public static class LawOsLockedExecutableNative {
   private const uint FileFlagOpenReparsePoint = 0x00200000;
   private const uint JobObjectExtendedLimitInformation = 9;
   private const uint KillOnJobClose = 0x00002000;
-  private const uint WaitObject0 = 0x00000000;
-  private const uint WaitTimeout = 0x00000102;
-  private const uint WaitFailed = 0xFFFFFFFF;
 
   [StructLayout(LayoutKind.Sequential)]
   private struct ByHandleFileInformation {
@@ -289,9 +283,6 @@ public static class LawOsLockedExecutableNative {
   [DllImport("kernel32.dll", SetLastError = true)]
   private static extern bool CloseHandle(IntPtr handle);
 
-  [DllImport("kernel32.dll", SetLastError = true)]
-  private static extern uint WaitForSingleObject(IntPtr handle, uint milliseconds);
-
   private static void ThrowLastError(string action) {
     throw new Win32Exception(Marshal.GetLastWin32Error(), action);
   }
@@ -358,14 +349,6 @@ public static class LawOsLockedExecutableNative {
     if (job != IntPtr.Zero && !CloseHandle(job)) { ThrowLastError("CloseHandle failed for the process job"); }
   }
 
-  public static bool WaitForJobExit(IntPtr job, uint timeoutMilliseconds) {
-    if (job == IntPtr.Zero) { throw new ArgumentException("process job handle is missing", "job"); }
-    var result = WaitForSingleObject(job, timeoutMilliseconds);
-    if (result == WaitObject0) { return true; }
-    if (result == WaitTimeout) { return false; }
-    if (result == WaitFailed) { ThrowLastError("WaitForSingleObject failed for the process job"); }
-    throw new InvalidOperationException("WaitForSingleObject returned an unexpected process job status");
-  }
 }
 '@
 }
@@ -544,32 +527,21 @@ function Stop-ChildIfRunning {
   }
 }
 
-function Wait-ForProcessJobToDrain {
-  if ($null -eq $state.job -or $state.job -eq [IntPtr]::Zero) { return }
-  try {
-    if (-not [LawOsLockedExecutableNative]::WaitForJobExit($state.job, 45000)) {
-      throw 'locked executable process tree exceeded its bounded drain timeout'
-    }
-  } finally {
-    [LawOsLockedExecutableNative]::CloseJob($state.job)
-    $state.job = [IntPtr]::Zero
-  }
-}
-
 function Release-Lock {
   if ($null -ne $state.stream) {
     $state.stream.Dispose()
     $state.stream = $null
   }
-  $drainError = $null
-  try { Wait-ForProcessJobToDrain } catch { $drainError = $_.Exception }
+  if ($null -ne $state.job -and $state.job -ne [IntPtr]::Zero) {
+    [LawOsLockedExecutableNative]::CloseJob($state.job)
+    $state.job = [IntPtr]::Zero
+  }
   if ($null -ne $state.child) {
     $state.child.Dispose()
     $state.child = $null
     $state.child_started = $false
   }
   $state.released = $true
-  if ($null -ne $drainError) { throw $drainError }
 }
 
 function Invoke-Hold($request) {
@@ -886,21 +858,18 @@ class JsonPowerShellTransport {
     try { this.child.kill(); } catch {}
   }
 
-  request(operation, payload = {}, { timeoutMs = this.timeoutMs } = {}) {
+  request(operation, payload = {}) {
     if (this.closed || this.child.stdin.destroyed) {
       return Promise.reject(new WindowsLockedExecutableError("LOCKED_EXECUTABLE_CLOSED", "PowerShell locked executable helper is closed"));
     }
     if (this.pending) return Promise.reject(new WindowsLockedExecutableError("LOCKED_EXECUTABLE_PROTOCOL", "locked executable requests must be sequential"));
-    if (!Number.isSafeInteger(timeoutMs) || timeoutMs < 1) {
-      return Promise.reject(new WindowsLockedExecutableError("LOCKED_EXECUTABLE_TIMEOUT", "locked executable request timeout must be a positive integer"));
-    }
     const request = { protocol: WINDOWS_LOCKED_EXECUTABLE_PROTOCOL, id: this.nextId++, operation, ...payload };
     return new Promise((resolve, reject) => {
       const timer = setTimeout(() => {
         this.pending = null;
         this.terminateHelper();
         reject(new WindowsLockedExecutableError("LOCKED_EXECUTABLE_TIMEOUT", `locked executable operation timed out: ${operation}`));
-      }, timeoutMs);
+      }, this.timeoutMs);
       this.pending = { resolve, reject, timer, id: request.id };
       this.child.stdin.write(`${JSON.stringify(request)}\n`);
     });
@@ -998,9 +967,7 @@ export class WindowsLockedExecutableSession {
 
   async abort() {
     if (this.released) return this.abortEvidence;
-    const evidence = validateAbort(await this.transport.request("abort", {}, {
-      timeoutMs: this.transport.timeoutMs + RELEASE_RESPONSE_GRACE_MS,
-    }));
+    const evidence = validateAbort(await this.transport.request("abort"));
     this.released = true;
     this.abortEvidence = evidence;
     this.transport.child.stdin.end();
@@ -1009,9 +976,7 @@ export class WindowsLockedExecutableSession {
 
   async release() {
     if (this.released) return this.releaseEvidence ?? this.abortEvidence;
-    const response = validateRelease(await this.transport.request("release", {}, {
-      timeoutMs: this.transport.timeoutMs + RELEASE_RESPONSE_GRACE_MS,
-    }));
+    const response = validateRelease(await this.transport.request("release"));
     this.released = true;
     this.releaseEvidence = response;
     this.transport.child.stdin.end();

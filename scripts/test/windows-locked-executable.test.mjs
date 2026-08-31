@@ -16,7 +16,7 @@ import { matterDesktopAuthenticodePowerShell } from "../lib/matter-desktop-authe
 const HASH = "a".repeat(64);
 
 class FakePowerShell extends EventEmitter {
-  constructor({ failLaunch = false, failAbort = false, projectDictionaryMetadata = false, responseDelayMs = {} } = {}) {
+  constructor({ failLaunch = false, failAbort = false, projectDictionaryMetadata = false } = {}) {
     super();
     this.stdout = new PassThrough();
     this.stderr = new PassThrough();
@@ -29,7 +29,6 @@ class FakePowerShell extends EventEmitter {
     this.failLaunch = failLaunch;
     this.failAbort = failAbort;
     this.projectDictionaryMetadata = projectDictionaryMetadata;
-    this.responseDelayMs = responseDelayMs;
     this.responses = [];
     this.stdin.on("data", (chunk) => {
       for (const line of String(chunk).split(/\r?\n/u).filter(Boolean)) {
@@ -120,13 +119,13 @@ class FakePowerShell extends EventEmitter {
           };
         }
         this.responses.push(response);
-        setTimeout(() => {
+        setImmediate(() => {
           this.stdout.write(`${JSON.stringify(response)}\n`);
           if (["release", "abort"].includes(request.operation) && response.ok === true) {
             this.stdout.end();
             this.emit("close", 0, null);
           }
-        }, this.responseDelayMs[request.operation] ?? 0);
+        });
       }
     });
   }
@@ -159,9 +158,6 @@ test("PowerShell helper is a long-lived exact-path read lock and identity gate",
     "KillOnClose",
     "AssignProcessToJobObject",
     "verified-bootstrap",
-    "WaitForSingleObject",
-    "WaitForJobExit",
-    "Wait-ForProcessJobToDrain",
     "authProbe",
     "FromBase64String",
     "ScriptBlock]::Create($authProbe)",
@@ -213,15 +209,14 @@ test("PowerShell helper is a long-lived exact-path read lock and identity gate",
   assert.doesNotMatch(script, /Invoke-Adopt[\s\S]*?Assert-ProcessIdentity \$requestedPid/u);
   assert.match(script, /locked executable launch failed \(\$launchError\) and exact child cleanup failed/u);
   assert.match(script, /CloseHandle failed for the process job/u);
-  assert.match(script, /WaitForSingleObject failed for the process job/u);
   const stopBody = script.slice(script.indexOf("function Stop-ChildIfRunning"), script.indexOf("function Release-Lock"));
   assert.doesNotMatch(stopBody, /catch\s*\{\s*\}/u);
   const releaseBody = script.slice(script.indexOf("function Release-Lock"), script.indexOf("function Invoke-Hold"));
   assert.ok(
-    releaseBody.indexOf("$state.stream.Dispose()") < releaseBody.indexOf("Wait-ForProcessJobToDrain"),
-    "the verified path lock must be released before waiting for inherited bootstrap cleanup",
+    releaseBody.indexOf("$state.stream.Dispose()") < releaseBody.indexOf("CloseJob"),
+    "the verified path lock must be released before the contained descendant job closes",
   );
-  assert.match(releaseBody, /\$drainError = \$null[\s\S]*Wait-ForProcessJobToDrain[\s\S]*throw \$drainError/u);
+  assert.doesNotMatch(releaseBody, /Wait-ForProcessJobToDrain|WaitForJobExit/u);
   const finalizer = script.slice(script.lastIndexOf("} finally {"));
   assert.doesNotMatch(finalizer, /try\s*\{\s*Stop-ChildIfRunning|try\s*\{\s*Release-Lock/u);
   assert.doesNotMatch(script, /\$pid\b/u, "PowerShell's read-only automatic $PID variable must not be shadowed");
@@ -257,19 +252,6 @@ test("compressed PowerShell bootstrap reconstructs the exact helper below the Wi
   );
   assert.deepEqual(spawnCall.options.stdio, ["pipe", "pipe", "pipe"]);
   await session.release();
-});
-
-test("release response timeout includes bounded process-tree drain headroom", async () => {
-  const child = new FakePowerShell({ responseDelayMs: { release: 1_100 } });
-  const session = await openWindowsLockedExecutable({
-    executablePath: "C:\\runner\\matter.exe",
-    expectedSha256: HASH,
-    platform: "win32",
-    spawnPowerShell: () => child,
-    timeoutMs: 1_000,
-  });
-  assert.deepEqual(await session.release(), { released: true });
-  assert.equal(session.released, true);
 });
 
 test("dictionary metadata projection cannot satisfy the closed helper protocol", async () => {
