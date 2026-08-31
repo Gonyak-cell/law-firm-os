@@ -651,6 +651,19 @@ function normalizedMailboxAddress(value) {
   return typeof value === "string" ? value.trim().toLowerCase() : "";
 }
 
+const outlookComposeContextIds = new WeakMap();
+
+function outlookComposeContextId(item) {
+  if (!item || typeof item !== "object") return null;
+  const current = outlookComposeContextIds.get(item);
+  if (current) return current;
+  const randomId = globalThis.crypto?.randomUUID?.();
+  if (!randomId) return null;
+  const next = `outlook-compose:${randomId}`;
+  outlookComposeContextIds.set(item, next);
+  return next;
+}
+
 function officeItemSnapshot(canonicalIdentity = null) {
   const item = window.Office?.context?.mailbox?.item;
   if (!item) return null;
@@ -669,6 +682,7 @@ function officeItemSnapshot(canonicalIdentity = null) {
   const snapshot = {
     rest_message_id: restMessageId,
     graph_message_id: restMessageId,
+    compose_context_id: compose ? outlookComposeContextId(item) : null,
     internet_message_id: typeof item.internetMessageId === "string" && item.internetMessageId.trim() ? item.internetMessageId : null,
     conversation_id: typeof item.conversationId === "string" && item.conversationId.trim() ? item.conversationId : null,
     mode: compose ? "compose" : "read",

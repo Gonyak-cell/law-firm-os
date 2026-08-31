@@ -130,6 +130,42 @@ test("작성 중 초안은 저장된 REST ID로만 컨텍스트를 고정하고 
   }), "");
 });
 
+test("저장 전 작성 초안은 현재 Office item 세션에만 결합하고 저장 뒤에도 같은 세션 컨텍스트를 유지한다", () => {
+  const unsavedDraft = {
+    rest_message_id: null,
+    graph_message_id: null,
+    compose_context_id: "outlook-compose:11111111-1111-4111-8111-111111111111",
+    internet_message_id: null,
+    conversation_id: null,
+    mode: "compose",
+    provenance: "draft",
+  };
+  const savedDraft = {
+    ...unsavedDraft,
+    rest_message_id: "rest-draft-001",
+    graph_message_id: "rest-draft-001",
+  };
+  const anotherDraft = {
+    ...unsavedDraft,
+    compose_context_id: "outlook-compose:22222222-2222-4222-8222-222222222222",
+  };
+
+  assert.equal(isSameOutlookItem(unsavedDraft, savedDraft), true);
+  assert.equal(isSameOutlookItem(unsavedDraft, anotherDraft), false);
+  assert.equal(
+    outlookItemContextKey({
+      item: unsavedDraft,
+      mode: unsavedDraft.mode,
+      provenance: unsavedDraft.provenance,
+    }),
+    outlookItemContextKey({
+      item: savedDraft,
+      mode: savedDraft.mode,
+      provenance: savedDraft.provenance,
+    }),
+  );
+});
+
 test("mutating action은 PII 본문 없이 불변 item/Matter/operation snapshot을 만든다", () => {
   const sourceItem = {
     ...item("001"),

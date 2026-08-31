@@ -93,7 +93,7 @@ test("sealed build flag controls the compose picker; flag-on cancellation, exact
     const hostCalls = [];
     const attachments = [];
     const compose = {
-      itemId: "office-vault-picker-compose",
+      itemId: null,
       internetMessageId: null,
       conversationId: null,
       subject: {
