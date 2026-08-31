@@ -1822,10 +1822,48 @@ function listMatterDocuments({ repository, tenant_id, matter_id } = {}) {
 
 async function listMatterDocumentsWithExactVersions({
   dmsRuntime,
+  vaultUploadProvider,
   tenant_id,
   matter_id,
   actor_id,
 } = {}) {
+  if (typeof vaultUploadProvider?.listDocuments === "function") {
+    const result = await vaultUploadProvider.listDocuments({
+      principal: {
+        tenant_id,
+        user_id: actor_id,
+      },
+      lawos_matter_id: matter_id,
+      page: 1,
+      page_size: 50,
+    });
+    if (!Array.isArray(result?.items)
+        || result.items.some((entry) => entry?.matter_id !== matter_id)) {
+      throw new TypeError("Vault provider document read response is invalid");
+    }
+    return Object.freeze(result.items.map((entry) => safeMatterDocumentExactVersion({
+      document: {
+        document_id: entry.document_id,
+        matter_id: entry.matter_id,
+        title: entry.title,
+        current_version_id: entry.current_version_id,
+        latest_sha256: entry.latest_sha256,
+      },
+      version: {
+        document_id: entry.document_id,
+        version_id: entry.version_id,
+        file_object_id: entry.file_object_id,
+        sha256: entry.content_sha256,
+      },
+      fileObject: {
+        file_object_id: entry.file_object_id,
+        sha256: entry.content_sha256,
+        byte_size: entry.byte_size,
+        content_type: entry.mime_type,
+        status: "committed",
+      },
+    })));
+  }
   if (typeof dmsRuntime?.upload_runtime?.listDocuments === "function") {
     const entries = await dmsRuntime.upload_runtime.listDocuments({
       tenant_id,
@@ -4738,6 +4776,7 @@ export async function handleOutlookAddinApiRequest({ pathname, method, query = {
       if (decision.effect !== "allow") return permissionDeniedResponse({ requestId, decision, auditHintRef: query.audit_hint_ref });
       const items = (await listMatterDocumentsWithExactVersions({
         dmsRuntime: runtime.dmsRuntime,
+        vaultUploadProvider: runtime.vaultUploadProvider,
         tenant_id: tenantId,
         matter_id: matterId,
         actor_id: actorFrom(context),
