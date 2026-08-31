@@ -181,12 +181,21 @@ test("non-URL behavior and XML hierarchy drift fail closed", async () => {
       '              <Group id="clientInquiryGroup">',
       '              <Group id="clientInquiryGroup">\n                <FunctionFile resid="Commands.Url" />',
     );
+  const equivalentAddinHierarchyDrift = matterLocal
+    .replace("      <EquivalentAddins>\n", "")
+    .replace("      </EquivalentAddins>\n", "");
   const cases = [
     ["rule mode", "apps/addin/manifest.xml", matterLocal.replace('Mode="Or"', 'Mode="And"'), /rule_collection_modes/u],
     ["height", "apps/addin/manifest.inquiry.xml", inquiryLocal.replace("<RequestedHeight>450", "<RequestedHeight>10"), /requested_heights/u],
     ["entity highlighting", "apps/addin/manifest.inquiry.xml", inquiryLocal.replace("<DisableEntityHighlighting>false", "<DisableEntityHighlighting>true"), /disable_entity_highlighting/u],
     ["action type", "apps/addin/manifest.inquiry.xml", inquiryLocal.replace('xsi:type="ShowTaskpane"', 'xsi:type="ExecuteFunction"'), /action_types/u],
     ["hierarchy", "apps/addin/manifest.inquiry.xml", hierarchyDrift, /semantic_manifest_sha256/u],
+    [
+      "equivalent add-in hierarchy",
+      "apps/addin/manifest.xml",
+      equivalentAddinHierarchyDrift,
+      /EquivalentAddin must be a direct child of EquivalentAddins/u,
+    ],
   ];
 
   for (const [name, manifestPath, xml, expected] of cases) {

@@ -7,7 +7,7 @@
     "static": {
       "action": "restore_prior_aliases_from_verified_snapshot",
       "contract_ref": "contracts/outlook-addin-forward-static-rollback.json",
-      "contract_sha256": "39ed701a3f24d85168b98474af25e482ec28133d35af5d1c7b211e027cda8a29",
+      "contract_sha256": "8244dc917af2c63f38c7503acc1cd7786bf2b3603599a828346f0573c6d6d4a7",
       "snapshot_inventory_sha256": "a37b05476b9243a3af01f51992b82f920202d2eed62a3ada876f0a7eae3e194d",
       "snapshot_inventory_canonical_sha256": "27e7b6fe79b547742e2ac5433796be3db059fdddb841f2832f490f184a99126d",
       "restore_profiles": [
@@ -25,7 +25,7 @@
       ],
       "forward_manifest_path": "apps/addin/manifest.canary.rollback.production.xml",
       "forward_manifest_version": "1.3.0.4",
-      "forward_manifest_sha256": "b725fdae04a7706632577aac529c61e1e9ed849dc0d1612f4cacd646c6e6a811",
+      "forward_manifest_sha256": "d43445dc16fab1e01e7d404468b3157792db2a22614e1124220ead9a976893f2",
       "launch_event_count": 0,
       "assignment_policy": "reconcile_to_fresh_same_authorized_single_principal",
       "assignment_count": 1,

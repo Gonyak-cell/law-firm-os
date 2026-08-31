@@ -103,26 +103,26 @@ test("one-user canary manifest set is exact, staged, least-privilege, and non-ex
     product_id: "8f3cc90d-56dd-4c1c-b9c2-0a1100500101",
     artifact_version: "1.3.0.3",
     prior_known_manifest_version: "1.3.0.1",
-    manifest_set_sha256: "f00297a3b205ceab9baf2ca1e6dcdab6f32571de9b1814fca312cfe9c8470bb4",
+    manifest_set_sha256: "b093cd5a9a4f49b1512e6b14fd39a781c594d285473acf6af7184d3d9140e171",
     stages: [
       {
         id: "taskpane_only",
         manifest_path: "apps/addin/manifest.canary.taskpane.production.xml",
-        manifest_sha256: "02a8c63f9ecf1fcf9cd0667251bc0a27594c89c123e2b1d343e7bf120de7a905",
+        manifest_sha256: "99f4801153d607d7b2dbafa24b9068c6c74afe781560cd9b9ec789a43aa3aabb",
         manifest_version: "1.3.0.2",
         launch_events: [],
       },
       {
         id: "candidate_taskpane",
         manifest_path: "apps/addin/manifest.production.xml",
-        manifest_sha256: "5ae386b5d43a0a1dabc5093cf08e9164ac611cbe59f577b6ed3d6c997f10aa5d",
+        manifest_sha256: "7a252e90e7ab04902da680f7affe463d426d496f08242ed9aaa2d2ed086075d7",
         manifest_version: "1.3.0.3",
         launch_events: [],
       },
     ],
     rollback_manifest: {
       manifest_path: "apps/addin/manifest.canary.rollback.production.xml",
-      manifest_sha256: "b725fdae04a7706632577aac529c61e1e9ed849dc0d1612f4cacd646c6e6a811",
+      manifest_sha256: "d43445dc16fab1e01e7d404468b3157792db2a22614e1124220ead9a976893f2",
       manifest_version: "1.3.0.4",
       launch_events: [],
     },
@@ -148,6 +148,41 @@ test("candidate stage rejects a hidden automatic-send launch event", async () =>
     }),
     /forward manifest permission|candidate taskpane-only extension points/u,
   );
+});
+
+test("Matter manifests fail closed unless the exact Classic Outlook ProgID wins on Windows", async (t) => {
+  const manifestPath = "apps/addin/manifest.production.xml";
+  const source = await readFile(path.join(repoRoot, manifestPath), "utf8");
+  for (const [name, changed, expected] of [
+    [
+      "missing equivalent add-in",
+      source.replace(/\n      <EquivalentAddins>[\s\S]*?<\/EquivalentAddins>/u, ""),
+      /forward manifest equivalent_addins|candidate taskpane-only equivalent add-in/u,
+    ],
+    [
+      "wrong ProgID",
+      source.replace("AMIC.OS.Vault.Outlook", "AMIC.OS.Wrong.Outlook"),
+      /forward manifest equivalent_addins|candidate taskpane-only equivalent add-in/u,
+    ],
+    [
+      "unsupported Outlook effect",
+      source.replace("      </EquivalentAddins>", "        <Effect>DisableWithNotification</Effect>\n      </EquivalentAddins>"),
+      /forward manifest equivalent_addin_effects|candidate taskpane-only equivalent add-in effects/u,
+    ],
+  ]) {
+    await t.test(name, async () => {
+      assert.notEqual(changed, source);
+      const mutated = changedContract((value) => bindFile(value, manifestPath, changed));
+      await assert.rejects(
+        validateOutlookM365CanaryManifestSet({
+          repoRoot,
+          contractOverride: mutated,
+          fileOverrides: { [manifestPath]: changed },
+        }),
+        expected,
+      );
+    });
+  }
 });
 
 test("only candidate full-product V1.1 read and compose taskpanes support pinning", async () => {
