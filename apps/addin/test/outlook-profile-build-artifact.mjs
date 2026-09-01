@@ -97,8 +97,13 @@ function assertIdentityIsolation(graphText, own, opposite, { rejectOppositeKey =
 test("profile artifacts have exact identity bytes and 952 has no Matter runtime", async () => {
   const fullHtml = await readFile(new URL("../dist/index.html", import.meta.url), "utf8");
   const inquiryHtml = await readFile(new URL("../dist/outlook-addin/index.html", import.meta.url), "utf8");
+  const commandHtml = await readFile(new URL("../dist/commands.html", import.meta.url), "utf8");
+  const commandSource = await readFile(new URL("../dist/commands.js", import.meta.url), "utf8");
   assert.match(fullHtml, /src="\/addin\/assets\//u);
   assert.match(inquiryHtml, /src="\/outlook-addin\/assets\//u);
+  assert.match(commandHtml, /src="\.\/commands\.js"/u);
+  assert.match(commandSource, /Office\?\.onReady/u);
+  assert.doesNotMatch(commandSource, /fetch|XMLHttpRequest|createRoot|import\s*\(|ItemChanged/u);
   await assert.rejects(
     readFile(new URL("../dist/outlook-addin/event-runtime.js", import.meta.url)),
     { code: "ENOENT" },

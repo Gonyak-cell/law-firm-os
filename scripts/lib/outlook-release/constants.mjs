@@ -154,6 +154,8 @@ export const REQUIRED_RELEASE_PATHS = [
   "apps/addin/src/outlook-task-datetime.js",
   "apps/addin/src/styles.css",
   "apps/addin/public/amic-law-logo.svg",
+  "apps/addin/public/commands.html",
+  "apps/addin/public/commands.js",
   "apps/addin/vite.config.js",
   "apps/addin/vite.inquiry.config.js",
   "apps/api/src/json-postgres-program-admin-lambda.js",

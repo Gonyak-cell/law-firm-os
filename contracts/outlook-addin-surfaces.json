@@ -126,10 +126,10 @@
       },
       "environment_fingerprints": {
         "local": {
-          "semantic_manifest_sha256": "56d45c1af25a5ddfd5e03120db860ed418caf7cf25b2ea2a42fa91330e037b4e",
+          "semantic_manifest_sha256": "e1a501515a2b8622411c865b6df3539f5883aed729e94de220201e13712396a8",
           "url_resources": [
-            "Commands.Url=https://localhost:5186/index.html?commands=1",
-            "Commands.Url=https://localhost:5186/index.html?commands=1",
+            "Commands.Url=https://localhost:5186/commands.html",
+            "Commands.Url=https://localhost:5186/commands.html",
             "Taskpane.Url=https://localhost:5186/index.html",
             "Taskpane.Url=https://localhost:5186/index.html"
           ],
@@ -148,10 +148,10 @@
           "app_domains": ["http://127.0.0.1:5186", "https://localhost:5186"]
         },
         "production": {
-          "semantic_manifest_sha256": "68dcee70e318b4c7c14b90f5aef687c8633c3ba7a78642fa8cc6bb8c43dfbdc9",
+          "semantic_manifest_sha256": "b15ffadf0caadbcb5bca04626c3b87f453f08b0c148d2542ba0d316f0ce7bf5e",
           "url_resources": [
-            "Commands.Url=https://d2mthcc8vp3cr2.cloudfront.net/addin/index.html?commands=1",
-            "Commands.Url=https://d2mthcc8vp3cr2.cloudfront.net/addin/index.html?commands=1",
+            "Commands.Url=https://d2mthcc8vp3cr2.cloudfront.net/addin/commands.html",
+            "Commands.Url=https://d2mthcc8vp3cr2.cloudfront.net/addin/commands.html",
             "Taskpane.Url=https://d2mthcc8vp3cr2.cloudfront.net/addin/index.html",
             "Taskpane.Url=https://d2mthcc8vp3cr2.cloudfront.net/addin/index.html"
           ],

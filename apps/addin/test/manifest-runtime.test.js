@@ -114,7 +114,7 @@ test("production manifest points Taskpane and Commands at the /addin bundle", as
   const production = await read("apps/addin/manifest.production.xml");
   const expectedUrls = [
     'id="Taskpane.Url" DefaultValue="https://d2mthcc8vp3cr2.cloudfront.net/addin/index.html"',
-    'id="Commands.Url" DefaultValue="https://d2mthcc8vp3cr2.cloudfront.net/addin/index.html?commands=1"',
+    'id="Commands.Url" DefaultValue="https://d2mthcc8vp3cr2.cloudfront.net/addin/commands.html"',
   ];
   for (const expected of expectedUrls) {
     assert.ok(production.includes(expected), `missing production URL: ${expected}`);
@@ -133,6 +133,18 @@ test("production manifest points Taskpane and Commands at the /addin bundle", as
     /<SourceLocation\s+DefaultValue="https:\/\/d2mthcc8vp3cr2\.cloudfront\.net\/addin\/index\.html"\s*\/>/u,
     "item form must also load the /addin bundle",
   );
+});
+
+test("hidden command runtime initializes Office without mounting the task pane or calling APIs", async () => {
+  const [commandHtml, commandSource] = await Promise.all([
+    read("apps/addin/public/commands.html"),
+    read("apps/addin/public/commands.js"),
+  ]);
+
+  assert.match(commandHtml, /appsforoffice\.microsoft\.com\/lib\/1\/hosted\/office\.js/u);
+  assert.match(commandHtml, /src="\.\/commands\.js"/u);
+  assert.match(commandSource, /Office\?\.onReady/u);
+  assert.doesNotMatch(commandSource, /fetch|XMLHttpRequest|createRoot|import\s*\(|ItemChanged/u);
 });
 
 test("production build and runtime-config entry points are present without an automatic-send bundle", async () => {
