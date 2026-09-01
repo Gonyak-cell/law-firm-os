@@ -84,6 +84,9 @@ import {
   OUTLOOK_VAULT_ATTACHMENT_DELIVERY_PREFIX,
 } from "./outlook-vault-attachment-delivery-runtime.js";
 import {
+  DESKTOP_VAULT_EXPORT_DOWNLOAD_PATH,
+} from "./desktop-vault-export-runtime.js";
+import {
   LAWOS_AMIC_VAULT_UPLOAD_PROVIDER_TOKEN_ENV,
   resolveAmicVaultHttpUploadProvider,
 } from "./amic-vault-http-upload-provider.js";
@@ -4762,8 +4765,10 @@ export function createLambdaHttpHandler({
       redirect: "manual",
     });
     const path = event.rawPath || event.path || "/";
-    const binaryVaultDelivery = method === "GET"
-      && path.startsWith(OUTLOOK_VAULT_ATTACHMENT_DELIVERY_PREFIX)
+    const binaryVaultDelivery = (
+      (method === "GET" && path.startsWith(OUTLOOK_VAULT_ATTACHMENT_DELIVERY_PREFIX))
+      || (method === "POST" && path === DESKTOP_VAULT_EXPORT_DOWNLOAD_PATH)
+    )
       && response.status >= 200
       && response.status < 300;
     const body = binaryVaultDelivery
