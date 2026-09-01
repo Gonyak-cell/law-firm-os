@@ -137,7 +137,7 @@ function downloadResponse(overrides = {}) {
   return new Response(BYTES, {
     status: 201,
     headers: {
-      "cache-control": "no-store",
+      "cache-control": "no-store, no-cache, max-age=0, must-revalidate, private",
       "content-type": EXACT_VERSION.mime_type,
       "content-length": String(BYTES.byteLength),
       "content-disposition": contentDisposition(ATTACHMENT_NAME),
@@ -261,6 +261,9 @@ test("AMIC Vault HTTP export provider rejects redirects, malformed metadata, ove
     async () => new Response(null, { status: 302, headers: { location: "https://elsewhere.test" } }),
     async () => downloadResponse({ "content-disposition": "attachment; filename=wrong.pdf" }),
     async () => downloadResponse({ "content-length": String(BYTES.byteLength + 1) }),
+    async () => downloadResponse({ "cache-control": "private, max-age=0" }),
+    async () => downloadResponse({ "cache-control": "public, no-store" }),
+    async () => downloadResponse({ "cache-control": "no-store, max-age=60" }),
   ];
   for (const fetchFn of scenarios) {
     const provider = createAmicVaultHttpExportProvider({

@@ -192,11 +192,23 @@ function exactContentDisposition(filename) {
   return `attachment; filename="${fallback}"; filename*=UTF-8''${encoded}`;
 }
 
+function safeNoStoreCacheControl(value) {
+  if (typeof value !== "string") return false;
+  const directives = value.split(",").map((entry) => entry.trim().toLowerCase());
+  if (!directives.includes("no-store")) return false;
+  return !directives.some((directive) => (
+    directive === "public"
+    || directive === "immutable"
+    || directive.startsWith("s-maxage=")
+    || (directive.startsWith("max-age=") && directive !== "max-age=0")
+  ));
+}
+
 function exactDownloadMetadata(response, authorization) {
   const mimeType = String(response.headers.get("content-type") ?? "").toLowerCase();
   const sha256 = String(response.headers.get("x-amic-vault-sha256") ?? "");
   const byteSize = Number(response.headers.get("x-amic-vault-byte-size"));
-  if (response.headers.get("cache-control") !== "no-store"
+  if (!safeNoStoreCacheControl(response.headers.get("cache-control"))
       || response.headers.get("x-content-type-options") !== "nosniff"
       || response.headers.get("content-encoding") != null
       || !MIME_TYPE.test(mimeType)
