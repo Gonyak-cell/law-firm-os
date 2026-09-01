@@ -11,7 +11,7 @@ import { assertEqual, canonical, sorted } from "./primitives.mjs";
 
 export function validateReleaseContract(contract) {
   if (contract?.schema_version !== 2) throw new Error("Outlook release gate schema_version must be 2");
-  if (contract.release_version !== "1.3.0.3" || contract.rollback_version !== "1.0.1.1") {
+  if (contract.release_version !== "1.3.0.5" || contract.rollback_version !== "1.0.1.1") {
     throw new Error("Outlook release and rollback versions drifted");
   }
   assertEqual(contract.automatic_send_policy, {

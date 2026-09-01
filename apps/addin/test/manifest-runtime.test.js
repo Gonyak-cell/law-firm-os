@@ -28,7 +28,7 @@ function assertNoAutomaticSendRuntime(manifest, name) {
 }
 
 function assertOfficialBrand(manifest, name) {
-  assert.match(manifest, /<Version>1\.3\.0\.3<\/Version>/u, `${name} must use the release candidate version`);
+  assert.match(manifest, /<Version>1\.3\.0\.5<\/Version>/u, `${name} must use the release candidate version`);
   assert.match(manifest, /<ProviderName>AMIC OS<\/ProviderName>/u, `${name} must use the official provider name`);
   assert.match(manifest, /<DisplayName\s+DefaultValue="AMIC OS"\s*\/>/u, `${name} must use the official app name`);
   assert.equal(

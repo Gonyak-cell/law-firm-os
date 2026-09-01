@@ -101,9 +101,9 @@ test("one-user canary manifest set is exact, staged, least-privilege, and non-ex
     schema_version: "amic-os.outlook-m365-canary-manifest-set-validation.v1",
     verdict: "PASS",
     product_id: "8f3cc90d-56dd-4c1c-b9c2-0a1100500101",
-    artifact_version: "1.3.0.3",
+    artifact_version: "1.3.0.5",
     prior_known_manifest_version: "1.3.0.1",
-    manifest_set_sha256: "da8d2f6391d39da5b13d62ce3eac779f558646d1b91356187939269b98988344",
+    manifest_set_sha256: "c41129a54b40ddf221a8e5e5518474698d96be2984a470ddaa9b91965895c06a",
     stages: [
       {
         id: "taskpane_only",
@@ -115,15 +115,15 @@ test("one-user canary manifest set is exact, staged, least-privilege, and non-ex
       {
         id: "candidate_taskpane",
         manifest_path: "apps/addin/manifest.production.xml",
-        manifest_sha256: "408ada27a3f2b1ab67610f42d49572c85d1924b3daf025b97bb24c25407aef95",
-        manifest_version: "1.3.0.3",
+        manifest_sha256: "f3ae624738a97457f8391791beecccd789d6904ddd98635e10d4ea5cb2a0f330",
+        manifest_version: "1.3.0.5",
         launch_events: [],
       },
     ],
     rollback_manifest: {
       manifest_path: "apps/addin/manifest.canary.rollback.production.xml",
-      manifest_sha256: "d43445dc16fab1e01e7d404468b3157792db2a22614e1124220ead9a976893f2",
-      manifest_version: "1.3.0.4",
+      manifest_sha256: "a3760e74d56f7ce3ef768e6ae07bf24e489dbd86ba524f6e34ce4c698643adcf",
+      manifest_version: "1.3.0.6",
       launch_events: [],
     },
     canary_user_count: 1,
