@@ -160,7 +160,9 @@ test("explicit compose action saves the draft, authorizes one URI, adds one exac
   ]);
   assert.equal(requests[0].options.body.compose_target_ref, "rest-compose-draft-001");
   assert.equal(requests[0].options.body.request_nonce_sha256, "07".repeat(32));
+  assert.equal(requests[0].options.timeoutMs, undefined);
   assert.equal(requests[1].options.headers["idempotency-key"], OPERATION_ID);
+  assert.equal(requests[1].options.timeoutMs, 110_000);
   assert.deepEqual(requests[1].options.body.attachment_ack, {
     attachment_id: "office-vault-attachment-001",
     attachment_name: "compose-exact.pdf",
