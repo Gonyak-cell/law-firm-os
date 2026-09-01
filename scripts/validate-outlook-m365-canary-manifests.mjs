@@ -29,7 +29,8 @@ const PINNED_V11_TASKPANES = [
 ];
 const ORIGIN = "https://d2mthcc8vp3cr2.cloudfront.net";
 const TASKPANE = `${ORIGIN}/addin/index.html`;
-const COMMANDS = `${TASKPANE}?commands=1`;
+const LEGACY_COMMANDS = `${TASKPANE}?commands=1`;
+const COMMANDS = `${ORIGIN}/addin/commands.html`;
 const TASKPANE_MANIFEST = "apps/addin/manifest.canary.taskpane.production.xml";
 const CANDIDATE_MANIFEST = "apps/addin/manifest.production.xml";
 const ROLLBACK_MANIFEST = "apps/addin/manifest.canary.rollback.production.xml";
@@ -42,6 +43,8 @@ const RETIRED_SOURCE_ARTIFACTS = [
   "apps/addin/src/outlook-send-events.js",
 ];
 const TRUSTED_EXECUTABLE_SOURCE_ARTIFACT_SHA256 = new Map([
+  ["apps/addin/public/commands.html", "a2df0705239da61cd434f0d58749086f8460203f4be81d04e9d70dfa71dc67eb"],
+  ["apps/addin/public/commands.js", "3d8ff309dd986981e7440efd29aa3e954d5930f2d5dc8ef3d730d26c79195708"],
   ["apps/addin/public/oauth-start.html", "8c8726ce00dfb24a7773025defc524b948237344da632ba9d49594191e0bc09e"],
   ["apps/addin/public/oauth-start.js", "59ca7c2645d54903615c125991e4e3b3aadd47b306b5c8b5bc528750e5c5f940"],
   ["apps/addin/public/oauth-callback.html", "c88310367397556776f500dbd762b971ff26f3cca60845df14de473af2752870"],
@@ -226,7 +229,7 @@ function validateStages(contract, hashes) {
   }, "canary removal");
 }
 
-function validateTaskpaneOnlyManifest(manifest, label) {
+function validateTaskpaneOnlyManifest(manifest, label, commands, semanticManifestSha256) {
   exact(manifest.extension_points, [
     "MessageComposeCommandSurface", "MessageComposeCommandSurface",
     "MessageReadCommandSurface", "MessageReadCommandSurface",
@@ -234,10 +237,10 @@ function validateTaskpaneOnlyManifest(manifest, label) {
   exact(manifest.launch_events, [], `${label} launch events`);
   exact(manifest.equivalent_addins, CLASSIC_OUTLOOK_EQUIVALENT_ADDINS, `${label} equivalent add-in`);
   exact(manifest.equivalent_addin_effects, [], `${label} equivalent add-in effects`);
-  exact(manifest.semantic_manifest_sha256, TASKPANE_SEMANTIC_SHA256, `${label} semantic capabilities`);
+  exact(manifest.semantic_manifest_sha256, semanticManifestSha256, `${label} semantic capabilities`);
   exact(manifest.supports_pinning, PINNED_V11_TASKPANES, `${label} pinned taskpanes`);
   exact(manifest.url_resources, [
-    `Commands.Url=${COMMANDS}`, `Commands.Url=${COMMANDS}`,
+    `Commands.Url=${commands}`, `Commands.Url=${commands}`,
     `Taskpane.Url=${TASKPANE}`, `Taskpane.Url=${TASKPANE}`,
   ], `${label} URLs`);
 }
@@ -276,8 +279,8 @@ function validateManifestSemantics(
   ) fail("manifest identity or least-privilege permission drifted");
   exact(taskpane.app_domains, [ORIGIN], "manifest AppDomains");
   exact(taskpane.form_source_locations, [TASKPANE], "manifest taskpane SourceLocation");
-  validateTaskpaneOnlyManifest(taskpane, "taskpane-only");
-  validateTaskpaneOnlyManifest(candidate, "candidate taskpane-only");
+  validateTaskpaneOnlyManifest(taskpane, "taskpane-only", LEGACY_COMMANDS, TASKPANE_SEMANTIC_SHA256);
+  validateTaskpaneOnlyManifest(candidate, "candidate taskpane-only", COMMANDS, "b15ffadf0caadbcb5bca04626c3b87f453f08b0c148d2542ba0d316f0ce7bf5e");
   exact(rollback.extension_points, [
     "MessageComposeCommandSurface", "MessageComposeCommandSurface",
     "MessageReadCommandSurface", "MessageReadCommandSurface",
@@ -288,7 +291,7 @@ function validateManifestSemantics(
   exact(rollback.semantic_manifest_sha256, "74686413fd795369790e9b2b3efe7c1eb49e0401feb5a317d7814a1a4506e11b", "rollback taskpane-only semantic capabilities");
   exact(rollback.supports_pinning, [], "rollback pinned taskpanes");
   exact(rollback.url_resources, [
-    `Commands.Url=${COMMANDS}`, `Commands.Url=${COMMANDS}`,
+    `Commands.Url=${LEGACY_COMMANDS}`, `Commands.Url=${LEGACY_COMMANDS}`,
     `Taskpane.Url=${TASKPANE}`, `Taskpane.Url=${TASKPANE}`,
   ], "rollback taskpane-only URLs");
   for (const [label, manifest] of [["local", inquiry], ["production", inquiryProduction]]) {
@@ -339,7 +342,7 @@ async function validateReleaseBinding(repoRoot) {
 
 function validateCallbackBoundary(contract) {
   validateUrl(contract.production_urls.taskpane, { pathname: "/addin/index.html" }, "taskpane URL");
-  validateUrl(contract.production_urls.commands, { pathname: "/addin/index.html", search: "?commands=1" }, "commands URL");
+  validateUrl(contract.production_urls.commands, { pathname: "/addin/commands.html" }, "commands URL");
   validateUrl(contract.production_urls.oauth_start, { pathname: "/addin/oauth-start.html" }, "OAuth start URL");
   validateUrl(contract.production_urls.oauth_callbacks[0], { pathname: "/addin/oauth-callback.html" }, "OAuth callback URL");
   validateUrl(contract.production_urls.naa_redirects[0], { pathname: "/addin/index.html" }, "NAA redirect URL");

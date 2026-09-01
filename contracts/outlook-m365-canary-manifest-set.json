@@ -3,7 +3,7 @@
   "product_id": "8f3cc90d-56dd-4c1c-b9c2-0a1100500101",
   "artifact_version": "1.3.0.3",
   "prior_known_manifest_version": "1.3.0.1",
-  "manifest_set_sha256": "b093cd5a9a4f49b1512e6b14fd39a781c594d285473acf6af7184d3d9140e171",
+  "manifest_set_sha256": "da8d2f6391d39da5b13d62ce3eac779f558646d1b91356187939269b98988344",
   "source_artifacts": [
     {
       "path": "apps/addin/manifest.canary.taskpane.production.xml",
@@ -15,7 +15,7 @@
     },
     {
       "path": "apps/addin/manifest.production.xml",
-      "sha256": "7a252e90e7ab04902da680f7affe463d426d496f08242ed9aaa2d2ed086075d7"
+      "sha256": "408ada27a3f2b1ab67610f42d49572c85d1924b3daf025b97bb24c25407aef95"
     },
     {
       "path": "apps/addin/manifest.inquiry.xml",
@@ -24,6 +24,14 @@
     {
       "path": "apps/addin/manifest.inquiry.production.xml",
       "sha256": "697006d7c95a10621877806469bd2573f355bcc227b73e8f2f060c206ff16661"
+    },
+    {
+      "path": "apps/addin/public/commands.html",
+      "sha256": "a2df0705239da61cd434f0d58749086f8460203f4be81d04e9d70dfa71dc67eb"
+    },
+    {
+      "path": "apps/addin/public/commands.js",
+      "sha256": "3d8ff309dd986981e7440efd29aa3e954d5930f2d5dc8ef3d730d26c79195708"
     },
     {
       "path": "apps/addin/public/oauth-start.html",
@@ -54,7 +62,7 @@
       "https://d2mthcc8vp3cr2.cloudfront.net"
     ],
     "taskpane": "https://d2mthcc8vp3cr2.cloudfront.net/addin/index.html",
-    "commands": "https://d2mthcc8vp3cr2.cloudfront.net/addin/index.html?commands=1",
+    "commands": "https://d2mthcc8vp3cr2.cloudfront.net/addin/commands.html",
     "oauth_start": "https://d2mthcc8vp3cr2.cloudfront.net/addin/oauth-start.html",
     "oauth_callbacks": [
       "https://d2mthcc8vp3cr2.cloudfront.net/addin/oauth-callback.html"
@@ -94,7 +102,7 @@
       "id": "candidate_taskpane",
       "order": 2,
       "manifest_path": "apps/addin/manifest.production.xml",
-      "manifest_sha256": "7a252e90e7ab04902da680f7affe463d426d496f08242ed9aaa2d2ed086075d7",
+      "manifest_sha256": "408ada27a3f2b1ab67610f42d49572c85d1924b3daf025b97bb24c25407aef95",
       "manifest_version": "1.3.0.3",
       "launch_events": [],
       "requires": [

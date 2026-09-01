@@ -103,7 +103,7 @@ test("one-user canary manifest set is exact, staged, least-privilege, and non-ex
     product_id: "8f3cc90d-56dd-4c1c-b9c2-0a1100500101",
     artifact_version: "1.3.0.3",
     prior_known_manifest_version: "1.3.0.1",
-    manifest_set_sha256: "b093cd5a9a4f49b1512e6b14fd39a781c594d285473acf6af7184d3d9140e171",
+    manifest_set_sha256: "da8d2f6391d39da5b13d62ce3eac779f558646d1b91356187939269b98988344",
     stages: [
       {
         id: "taskpane_only",
@@ -115,7 +115,7 @@ test("one-user canary manifest set is exact, staged, least-privilege, and non-ex
       {
         id: "candidate_taskpane",
         manifest_path: "apps/addin/manifest.production.xml",
-        manifest_sha256: "7a252e90e7ab04902da680f7affe463d426d496f08242ed9aaa2d2ed086075d7",
+        manifest_sha256: "408ada27a3f2b1ab67610f42d49572c85d1924b3daf025b97bb24c25407aef95",
         manifest_version: "1.3.0.3",
         launch_events: [],
       },
