@@ -289,7 +289,7 @@ function completeInput(state, authorization, overrides = {}) {
   };
 }
 
-test("explicit Outlook action authorizes an opaque URI, streams exact bytes once, and records a hashed host acknowledgement", async () => {
+test("explicit Outlook action authorizes a bounded cacheable URI, streams exact bytes once, and records a hashed host acknowledgement", async () => {
   const state = harness();
   const authorization = await handleOutlookVaultAttachmentAuthorize(authorizeInput(state));
   assert.equal(authorization.status, 200);
@@ -312,7 +312,10 @@ test("explicit Outlook action authorizes an opaque URI, streams exact bytes once
   assert.equal(delivery.status, 200);
   assert.deepEqual(delivery.body, BYTES);
   assert.equal(delivery.attachment_name, authorization.body.attachment_name);
-  assert.equal(delivery.headers["cache-control"], "private, max-age=60, immutable");
+  assert.equal(
+    delivery.headers["cache-control"],
+    "public, max-age=45, s-maxage=45, immutable",
+  );
 
   const completion = await handleOutlookVaultAttachmentComplete(
     completeInput(state, authorization),
@@ -388,6 +391,28 @@ test("delivery fails closed after installation retirement and a consumed operati
   assert.equal(replay.status, 409);
   assert.deepEqual(replay.body.safe_error_codes, ["VAULT_EXPORT_ALREADY_CONSUMED"]);
   assert.equal(state.provider.calls.filter(({ method }) => method === "downloadExactExport").length, 1);
+});
+
+test("delivery refuses a sub-second cache window before consuming provider bytes", async () => {
+  const state = harness();
+  const authorization = await handleOutlookVaultAttachmentAuthorize(authorizeInput(state));
+  state.advance(44_100);
+  const response = await handleOutlookVaultAttachmentDelivery({
+    verifiedDelivery: verifiedDelivery(state, authorization),
+    requestId: "request-delivery-cache-window-expired",
+    outlookDesktopRuntime: state.outlookDesktopRuntime,
+    dmsRuntime: state.dmsRuntime,
+    vaultExportProvider: state.provider,
+    now: state.now,
+  });
+  assert.equal(response.status, 410);
+  assert.deepEqual(response.body.safe_error_codes, [
+    "OUTLOOK_VAULT_DELIVERY_TOKEN_EXPIRED",
+  ]);
+  assert.equal(
+    state.provider.calls.filter(({ method }) => method === "downloadExactExport").length,
+    0,
+  );
 });
 
 test("capability denial, binding drift, and false Office metadata cannot authorize or complete an attachment", async () => {

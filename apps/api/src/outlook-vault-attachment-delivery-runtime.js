@@ -239,6 +239,22 @@ function deliveryOrigin(value) {
   }
 }
 
+function deliveryCacheControl({ verifiedDelivery, now }) {
+  const expiresAt = Number(verifiedDelivery?.claims?.exp);
+  const current = Number(now());
+  const maxAge = Math.min(60, Math.floor((expiresAt - current) / 1_000));
+  if (!Number.isSafeInteger(expiresAt)
+      || !Number.isFinite(current)
+      || maxAge < 1) {
+    fail(
+      "OUTLOOK_VAULT_DELIVERY_TOKEN_EXPIRED",
+      "Outlook Vault delivery token expired before the response was ready",
+      410,
+    );
+  }
+  return `public, max-age=${maxAge}, s-maxage=${maxAge}, immutable`;
+}
+
 function principalSnapshot(principal) {
   return Object.freeze({
     tenant_id: requiredId(principal?.tenant_id, "principal.tenant_id"),
@@ -861,6 +877,7 @@ export async function handleOutlookVaultAttachmentDelivery({
         verifiedDelivery?.status ?? 403,
       );
     }
+    const cacheControl = deliveryCacheControl({ verifiedDelivery, now });
     const claims = verifiedDelivery.claims;
     const principal = principalSnapshot(claims);
     const installation = await currentTrustedInstallation({
@@ -894,7 +911,7 @@ export async function handleOutlookVaultAttachmentDelivery({
       exact_version: downloaded.public_response.exact_version,
       public_response: downloaded.public_response,
       headers: Object.freeze({
-        "cache-control": "private, max-age=60, immutable",
+        "cache-control": cacheControl,
         "x-content-type-options": "nosniff",
       }),
     });
