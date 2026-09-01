@@ -84,7 +84,7 @@ function validateM365Surface(surface, forwardStatic, rollbackManifestBytes) {
   }
   if (surface.action !== "central_manifest_forward_update" || surface.product_id !== PRODUCT_ID
     || surface.forward_manifest_path !== "apps/addin/manifest.canary.rollback.production.xml"
-    || surface.forward_manifest_version !== "1.3.0.4"
+    || surface.forward_manifest_version !== "1.3.0.6"
     || surface.forward_manifest_sha256 !== sha256(rollbackManifestBytes)
     || projection.product_id !== surface.product_id || projection.version !== surface.forward_manifest_version
     || projection.launch_events.length !== 0 || surface.launch_event_count !== 0
@@ -92,7 +92,7 @@ function validateM365Surface(surface, forwardStatic, rollbackManifestBytes) {
     || forwardStatic?.forward_rollback?.manifest_version !== surface.forward_manifest_version) {
     throw new Error("forward rollback manifest identity or semantics drifted");
   }
-  assertEqual(surface.candidate_manifest_versions, ["1.3.0.2", "1.3.0.3"], "candidate manifest versions");
+  assertEqual(surface.candidate_manifest_versions, ["1.3.0.2", "1.3.0.3", "1.3.0.5"], "candidate manifest versions");
   if (surface.assignment_policy !== "reconcile_to_fresh_same_authorized_single_principal"
     || surface.assignment_count !== 1 || surface.fresh_opaque_assignment_snapshot_required !== true) {
     throw new Error("M365 rollback assignment is not bound to one fresh authorized principal");

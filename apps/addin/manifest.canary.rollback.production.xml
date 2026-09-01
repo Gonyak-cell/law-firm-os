@@ -5,7 +5,7 @@
   xmlns:mailappor="http://schemas.microsoft.com/office/mailappversionoverrides/1.0"
   xsi:type="MailApp">
   <Id>8f3cc90d-56dd-4c1c-b9c2-0a1100500101</Id>
-  <Version>1.3.0.4</Version>
+  <Version>1.3.0.6</Version>
   <ProviderName>AMIC OS</ProviderName>
   <DefaultLocale>ko-KR</DefaultLocale>
   <DisplayName DefaultValue="AMIC OS" />
@@ -103,7 +103,7 @@
       </bt:Images>
       <bt:Urls>
         <bt:Url id="Taskpane.Url" DefaultValue="https://d2mthcc8vp3cr2.cloudfront.net/addin/index.html" />
-        <bt:Url id="Commands.Url" DefaultValue="https://d2mthcc8vp3cr2.cloudfront.net/addin/index.html?commands=1" />
+        <bt:Url id="Commands.Url" DefaultValue="https://d2mthcc8vp3cr2.cloudfront.net/addin/commands.html" />
       </bt:Urls>
       <bt:ShortStrings>
         <bt:String id="Group.Label" DefaultValue="AMIC OS" />
@@ -178,7 +178,7 @@
         </bt:Images>
         <bt:Urls>
           <bt:Url id="Taskpane.Url" DefaultValue="https://d2mthcc8vp3cr2.cloudfront.net/addin/index.html" />
-          <bt:Url id="Commands.Url" DefaultValue="https://d2mthcc8vp3cr2.cloudfront.net/addin/index.html?commands=1" />
+          <bt:Url id="Commands.Url" DefaultValue="https://d2mthcc8vp3cr2.cloudfront.net/addin/commands.html" />
         </bt:Urls>
         <bt:ShortStrings>
           <bt:String id="Group.Label" DefaultValue="AMIC OS" />

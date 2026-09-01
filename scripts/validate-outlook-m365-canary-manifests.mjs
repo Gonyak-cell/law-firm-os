@@ -17,11 +17,11 @@ const CLASSIC_OUTLOOK_PROG_ID = "AMIC.OS.Vault.Outlook";
 const CLASSIC_OUTLOOK_EQUIVALENT_ADDINS = [
   `VersionOverridesV1_1:${CLASSIC_OUTLOOK_PROG_ID}:COM`,
 ];
-const ARTIFACT_VERSION = "1.3.0.3";
+const ARTIFACT_VERSION = "1.3.0.5";
 const PRIOR_KNOWN_MANIFEST_VERSION = "1.3.0.1";
 const TASKPANE_MANIFEST_VERSION = "1.3.0.2";
-const CANDIDATE_MANIFEST_VERSION = "1.3.0.3";
-const ROLLBACK_MANIFEST_VERSION = "1.3.0.4";
+const CANDIDATE_MANIFEST_VERSION = "1.3.0.5";
+const ROLLBACK_MANIFEST_VERSION = "1.3.0.6";
 const TASKPANE_SEMANTIC_SHA256 = "68dcee70e318b4c7c14b90f5aef687c8633c3ba7a78642fa8cc6bb8c43dfbdc9";
 const PINNED_V11_TASKPANES = [
   "VersionOverridesV1_1:MessageComposeCommandSurface:ShowTaskpane:true",
@@ -288,10 +288,10 @@ function validateManifestSemantics(
   exact(rollback.launch_events, [], "rollback taskpane-only launch events");
   exact(rollback.equivalent_addins, CLASSIC_OUTLOOK_EQUIVALENT_ADDINS, "rollback taskpane-only equivalent add-in");
   exact(rollback.equivalent_addin_effects, [], "rollback taskpane-only equivalent add-in effects");
-  exact(rollback.semantic_manifest_sha256, "74686413fd795369790e9b2b3efe7c1eb49e0401feb5a317d7814a1a4506e11b", "rollback taskpane-only semantic capabilities");
+  exact(rollback.semantic_manifest_sha256, "e1ef5d5c55ff57a62b46fc52b38534dd089e63d7f9ac3ee336ebd1c70ac9b65d", "rollback taskpane-only semantic capabilities");
   exact(rollback.supports_pinning, [], "rollback pinned taskpanes");
   exact(rollback.url_resources, [
-    `Commands.Url=${LEGACY_COMMANDS}`, `Commands.Url=${LEGACY_COMMANDS}`,
+    `Commands.Url=${COMMANDS}`, `Commands.Url=${COMMANDS}`,
     `Taskpane.Url=${TASKPANE}`, `Taskpane.Url=${TASKPANE}`,
   ], "rollback taskpane-only URLs");
   for (const [label, manifest] of [["local", inquiry], ["production", inquiryProduction]]) {

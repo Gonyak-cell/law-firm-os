@@ -109,6 +109,7 @@ function setup() {
     object_acl: Object.freeze([]),
   });
   let sessionReads = 0;
+  const capabilityPrincipals = [];
   const sessionAuth = Object.freeze({
     capabilities: Object.freeze({}),
     async resolvePermissionContextFromHeaders() {
@@ -120,7 +121,8 @@ function setup() {
         token_payload: Object.freeze({ surface: "outlook_addin" }),
       });
     },
-    async resolveVaultCapabilities() {
+    async resolveVaultCapabilities({ principal: capabilityPrincipal }) {
+      capabilityPrincipals.push(capabilityPrincipal);
       return Object.freeze({
         authoritative: true,
         capabilities: Object.freeze([
@@ -192,6 +194,7 @@ function setup() {
     deliveryAuthority: createOutlookVaultDeliveryTokenAuthority({
       secret: "outlook-vault-http-delivery-test-secret-material-0001",
     }),
+    capabilityPrincipals,
     sessionReadCount() { return sessionReads; },
   };
 }
@@ -240,6 +243,14 @@ test("HTTP Outlook attachment route requires signed explicit authorization but l
     assert.equal(authorizationResponse.status, 200);
     const authorization = await authorizationResponse.json();
     assert.equal(state.sessionReadCount(), 1);
+    assert.deepEqual(state.capabilityPrincipals, [
+      {
+        tenant_id: TENANT,
+        user_id: USER,
+        entra_subject_id: SUBJECT,
+        scopes: [OUTLOOK_DESKTOP_AUTOCONNECT_REQUIRED_SCOPE],
+      },
+    ]);
 
     const issuedUrl = new URL(authorization.delivery_uri);
     const deliveryResponse = await fetch(`${baseUrl}${issuedUrl.pathname}`);
@@ -277,6 +288,20 @@ test("HTTP Outlook attachment route requires signed explicit authorization but l
     assert.equal(completion.client_ack_authoritative, false);
     assert.equal(completion.host_verification_authority, "microsoft-graph-draft-mime");
     assert.equal(state.sessionReadCount(), 2);
+    assert.deepEqual(state.capabilityPrincipals, [
+      {
+        tenant_id: TENANT,
+        user_id: USER,
+        entra_subject_id: SUBJECT,
+        scopes: [OUTLOOK_DESKTOP_AUTOCONNECT_REQUIRED_SCOPE],
+      },
+      {
+        tenant_id: TENANT,
+        user_id: USER,
+        entra_subject_id: SUBJECT,
+        scopes: [OUTLOOK_DESKTOP_AUTOCONNECT_REQUIRED_SCOPE],
+      },
+    ]);
 
     const invalidDelivery = await fetch(
       `${baseUrl}/api/outlook/vault/attachments/delivery/lawos_ovd_v1.invalid.invalid.invalid`,

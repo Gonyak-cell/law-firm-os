@@ -777,7 +777,7 @@ export async function handleOutlookVaultAttachmentAuthorize({
     const signed = principalSnapshot(principal);
     await requireDownloadAuthority({
       sessionAuth,
-      principal: signed,
+      principal,
       context,
       matterRuntime,
       matterId: input.matterId,
@@ -943,7 +943,7 @@ export async function handleOutlookVaultAttachmentComplete({
     }
     await requireDownloadAuthority({
       sessionAuth,
-      principal: signed,
+      principal,
       context,
       matterRuntime,
       matterId: inspected.matter_id,

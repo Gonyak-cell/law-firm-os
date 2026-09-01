@@ -8,7 +8,7 @@ export const PROFILE_NAMES = ["inquiry-only", "matter-full"];
 export const PROFILE_CONTRACTS = {
   [PRODUCT_IDS[0]]: {
     profile: "matter-full",
-    release_version: "1.3.0.3",
+    release_version: "1.3.0.5",
     permission: "ReadWriteItem",
     mailbox_min_version: "1.14",
     production_manifest: "apps/addin/manifest.production.xml",
