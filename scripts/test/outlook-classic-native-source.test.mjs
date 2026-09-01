@@ -56,16 +56,20 @@ test("AMIC OS NSIS installer bundles and user-registers the Classic adapter with
     source("scripts/build-matter-desktop-win-installer.mjs"),
   ]);
 
-  assert.match(builder, /nsis:\s+include: build\/installer\.nsh\s+perMachine: false/su);
+  assert.match(builder, /nsis:\s+include: build\/installer\.nsh\s+perMachine: true/su);
   assert.match(nsis, /!macro customInstall/u);
   assert.match(nsis, /!macro customUnInstall/u);
   assert.match(nsis, /SetRegView 32/u);
   assert.match(nsis, /SetRegView 64/u);
+  assert.match(
+    nsis,
+    /!macro customUnInstall[\s\S]*\$\{If\} \$\{RunningX64\}\s+SetRegView 64\s+\$\{Else\}\s+SetRegView 32\s+\$\{EndIf\}\s+RMDir \/r "\$LOCALAPPDATA\\AMIC OS\\OutlookAttachments"\s+!macroend/u,
+  );
   assert.match(nsis, /WriteRegStr HKCU "Software\\Microsoft\\Office\\Outlook\\Addins\\\$\{AMIC_OUTLOOK_PROGID\}"/u);
   assert.match(nsis, /WriteRegDWORD HKCU .*"LoadBehavior" 3/u);
   assert.match(nsis, /DeleteRegKey HKCU "Software\\Microsoft\\Office\\Outlook\\Addins\\\$\{AMIC_OUTLOOK_PROGID\}"/u);
   assert.match(nsis, /RMDir \/r "\$LOCALAPPDATA\\AMIC OS\\OutlookAttachments"/u);
-  assert.doesNotMatch(nsis, /HKLM|Invoke-WebRequest|curl|vault_documents|immutable_versions|audit_records/iu);
+  assert.doesNotMatch(nsis, /Invoke-WebRequest|curl|vault_documents|immutable_versions|audit_records/iu);
 
   assert.match(buildScript, /"dotnet",\s*\["build", classicOutlookProjectPath/su);
   assert.match(buildScript, /\.release-provenance\/classic-outlook/u);

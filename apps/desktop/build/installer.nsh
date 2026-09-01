@@ -91,6 +91,10 @@
     !insertmacro amicRemoveLegacyUserComRegistration
     !insertmacro amicRemoveMachineComRegistration
   ${EndIf}
-  SetRegView 32
+  ${If} ${RunningX64}
+    SetRegView 64
+  ${Else}
+    SetRegView 32
+  ${EndIf}
   RMDir /r "$LOCALAPPDATA\AMIC OS\OutlookAttachments"
 !macroend

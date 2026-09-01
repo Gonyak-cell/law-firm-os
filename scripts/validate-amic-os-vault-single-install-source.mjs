@@ -415,6 +415,7 @@ export async function validateAmicOsVaultSingleInstallSource({
       || !installerNshSource.includes('DeleteRegKey HKLM "Software\\Classes\\${AMIC_OUTLOOK_PROGID}"')
       || !installerNshSource.includes("SetRegView 32")
       || !installerNshSource.includes("SetRegView 64")
+      || !/!macro customUnInstall[\s\S]*\$\{If\} \$\{RunningX64\}\s+SetRegView 64\s+\$\{Else\}\s+SetRegView 32\s+\$\{EndIf\}\s+RMDir \/r "\$LOCALAPPDATA\\AMIC OS\\OutlookAttachments"\s+!macroend/u.test(installerNshSource)
       || !installerNshSource.includes('RMDir /r "$LOCALAPPDATA\\AMIC OS\\OutlookAttachments"')
       || /WriteReg(?:Str|DWORD)\s+HKCU\s+"Software\\Classes\\/u.test(installerNshSource)
       || /https?:\/\/|vault_documents|immutable_versions|audit_records/iu.test(installerNshSource)) {
