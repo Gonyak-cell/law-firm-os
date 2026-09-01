@@ -28,6 +28,6 @@ win:
 
 nsis:
   include: build/installer.nsh
-  perMachine: false
+  perMachine: true
 
 publish: null
