@@ -10,7 +10,7 @@
   },
   "protected_baseline": {
     "contract_ref": "contracts/outlook-addin-forward-rollback-packet.json",
-    "contract_sha256": "f7f541496f8f74a41512760c35478672e816d3433fa02abf938ff1934abd6988",
+    "contract_sha256": "9792e8166a285ccaa37f226a503ea228dbf3c03c1da7a5fc9eb1980e8edef8ff",
     "desktop_surface_sha256": "4cbc22e0c2a05fdd2c8634de19a44b482a71091005e6ca09fe1ff5ec4bb3e16c",
     "desktop_action": "none_remain_on_sealed_0.1.29",
     "version_floor": "0.1.29",
