@@ -3,8 +3,18 @@ import { createHash } from "node:crypto";
 import test from "node:test";
 
 import { uploadDocument } from "../../../packages/dms/src/document-service.js";
+import {
+  DMS_AUXILIARY_DOMAIN_DESCRIPTOR,
+  createDmsAuxiliaryRepository,
+} from "../../../packages/dms/src/central-ledger.js";
 import { createDmsRepository } from "../../../packages/dms/src/repository.js";
 import { createLocalStorageAdapter } from "../../../packages/dms/src/storage/local-storage-adapter.js";
+import { createPostgresDomainLedger } from "../../../packages/persistence/src/postgres/domain-ledger.js";
+import {
+  decodeRecordDomainIdempotencyResponse,
+  runRecordRepositoryDomainCommand,
+} from "../../../packages/persistence/src/record-domain-adapter.js";
+import { createMigratedPostgresFixture } from "../../../packages/persistence/test/helpers/disposable-postgres.js";
 import {
   authorizeAmicVaultExactExport,
   completeAmicVaultExactExport,
@@ -158,6 +168,17 @@ test("exact export authorizes, verifies provider bytes, consumes once, and recor
       .filter((event) => event.object_id === authorized.operation_id)
       .map((event) => event.after.stage),
     ["requested", "authorized", "downloaded", "delivered"],
+  );
+  const persistedStates = state.repository.snapshot().idempotency
+    .filter((entry) => entry.operation === "amic_os_vault_exact_export_state");
+  assert.deepEqual(
+    persistedStates.map((entry) => entry.response.receipts.at(-1).stage),
+    ["authorized", "downloaded", "delivered"],
+  );
+  assert.equal(new Set(persistedStates.map((entry) => entry.idempotency_key)).size, 3);
+  assert.equal(
+    persistedStates[0].idempotency_key,
+    `amic-os-vault-export-state:${authorized.operation_id}`,
   );
 
   const serializedLedger = JSON.stringify(state.repository.snapshot());
@@ -315,4 +336,50 @@ test("Outlook attachment export requires installation and compose hashes in the 
     requestId: "request-outlook-export-attached",
     now: state.now,
   }).receipt.stage, "attached");
+});
+
+test("PostgreSQL DMS auxiliary ledger preserves exact export stages as immutable entries", async (t) => {
+  const fixture = await createMigratedPostgresFixture(t);
+  if (!fixture) return;
+  const ledger = createPostgresDomainLedger({ pool: fixture.appPool });
+  const state = harness();
+  const run = (command) => runRecordRepositoryDomainCommand({
+    ledger,
+    descriptor: DMS_AUXILIARY_DOMAIN_DESCRIPTOR,
+    tenant_id: TENANT,
+    create_repository: createDmsAuxiliaryRepository,
+    command,
+  });
+  const authorized = (await run((repository) => authorizeAmicVaultExactExport({
+    ...authorizationInput(state),
+    dmsRuntime: { repository },
+  }))).result;
+  const downloaded = (await run((repository) => downloadAuthorizedAmicVaultExactExport({
+    principal: { tenant_id: TENANT, user_id: ACTOR },
+    dmsRuntime: { repository },
+    vaultExportProvider: state.provider,
+    operationId: authorized.operation_id,
+    requestId: "request-postgres-export-download",
+    now: state.now,
+  }))).result;
+  assert.deepEqual(downloaded.server_owned_bytes, CONTENT);
+  const completed = (await run((repository) => completeAmicVaultExactExport({
+    principal: { tenant_id: TENANT, user_id: ACTOR },
+    dmsRuntime: { repository },
+    operationId: authorized.operation_id,
+    completionStage: "delivered",
+    expectedExactVersion: state.exactVersion,
+    requestId: "request-postgres-export-complete",
+    now: state.now,
+  }))).result;
+  assert.equal(completed.receipt.stage, "delivered");
+  const entries = await ledger.listIdempotency({
+    tenant_id: TENANT,
+    domain_id: DMS_AUXILIARY_DOMAIN_DESCRIPTOR.domain_id,
+  });
+  const persistedStages = entries
+    .filter((entry) => entry.key.startsWith(`amic-os-vault-export-state:${authorized.operation_id}`))
+    .map((entry) => decodeRecordDomainIdempotencyResponse(entry.response).response.receipts.at(-1).stage)
+    .sort();
+  assert.deepEqual(persistedStages, ["authorized", "delivered", "downloaded"]);
 });
