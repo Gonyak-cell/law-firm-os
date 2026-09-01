@@ -1211,7 +1211,15 @@ export function VaultSurface({
     const completeDocument = documentsReadable ? documentsResult.items.find((item) => item.document_id === document.document_id) : null;
     const selected = completeDocument ?? document;
     setSelectedDocument(selected);
-    const routeContext = { documentId: selected.document_id };
+    const routeContext = section === "vault-search-all"
+      ? {
+          documentId: selected.document_id,
+          query: submittedQuery,
+          currentVersionOnly: true,
+          dateFrom: submittedDateFrom,
+          dateTo: submittedDateTo,
+        }
+      : { documentId: selected.document_id };
     const versionId = selected.current_version_id ?? selected.version_id;
     const sha256 = selected.latest_sha256 ?? selected.content_sha256;
     if (selected.matter_id && versionId && SAFE_DOCUMENT_TARGET_SHA256.test(sha256 ?? "")) {

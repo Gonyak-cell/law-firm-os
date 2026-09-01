@@ -313,6 +313,16 @@ test("Vault full-capability surface renders canonical groups, exact-version deta
     assert.equal(JSON.stringify(saveCalls).includes("filePath"), false);
     assert.equal(JSON.stringify(saveCalls).includes("idempotency"), false);
 
+    await page.goto(`${baseUrl}?view=vault&ctx=allow&query=${encodeURIComponent("계약")}&current_version=current&date_from=2026-08-01&date_to=2026-08-31#vault-search-all`, { waitUntil: "networkidle" });
+    await page.locator('[data-vault-document-list="true"] .amic-search-row').first().click();
+    await page.locator('[data-vault-exact-version-facts="true"]').waitFor();
+    const searchDetailLocation = new URL(page.url());
+    assert.equal(searchDetailLocation.searchParams.get("query"), "계약");
+    assert.equal(searchDetailLocation.searchParams.get("current_version"), "current");
+    assert.equal(searchDetailLocation.searchParams.get("date_from"), "2026-08-01");
+    assert.equal(searchDetailLocation.searchParams.get("date_to"), "2026-08-31");
+    assert.equal(searchDetailLocation.searchParams.get("document_version_id"), "version-vault-browser-003");
+
     if (screenshotDir) {
       await mkdir(screenshotDir, { recursive: true });
       await page.screenshot({ path: join(screenshotDir, "vault-1440.png"), fullPage: true });
