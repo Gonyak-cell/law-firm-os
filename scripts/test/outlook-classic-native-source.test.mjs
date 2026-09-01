@@ -41,6 +41,11 @@ test("Classic Outlook adapter is compose-click-only and exact-version bound", as
   assert.match(pipe, /FileMode\.CreateNew/u);
   assert.match(pipe, /File\.Delete\(tempFilePath\)/u);
   assert.match(contracts, /IDTExtensibility2/u);
+  assert.match(contracts, /TypeLibTypeFlags\.FDual\s*\|\s*TypeLibTypeFlags\.FDispatchable/u);
+  assert.match(contracts, /InterfaceType\(ComInterfaceType\.InterfaceIsDual\)/u);
+  assert.match(contracts, /\[DispId\(1\)\][\s\S]*\[DispId\(5\)\]/u);
+  assert.match(contracts, /UnmanagedType\.SafeArray, SafeArraySubType = VarEnum\.VT_VARIANT/u);
+  assert.doesNotMatch(contracts, /InterfaceIsIUnknown/u);
   assert.match(contracts, /IRibbonExtensibility/u);
 });
 
