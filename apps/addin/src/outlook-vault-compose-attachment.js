@@ -4,6 +4,7 @@ export const OUTLOOK_VAULT_ATTACHMENT_AUTHORIZE_PATH =
   "/api/outlook/vault/attachments/authorize";
 export const OUTLOOK_VAULT_ATTACHMENT_COMPLETE_PATH =
   "/api/outlook/vault/attachments/complete";
+const OUTLOOK_VAULT_ATTACHMENT_COMPLETE_TIMEOUT_MS = 110_000;
 
 const SHA256 = /^[a-f0-9]{64}$/u;
 const OPERATION_ID = /^vaultop_[a-f0-9]{32}$/u;
@@ -331,6 +332,7 @@ async function completePending({
   assertOperationCurrent();
   const response = await requestJson(OUTLOOK_VAULT_ATTACHMENT_COMPLETE_PATH, {
     method: "POST",
+    timeoutMs: OUTLOOK_VAULT_ATTACHMENT_COMPLETE_TIMEOUT_MS,
     headers: Object.freeze({ "idempotency-key": next.operation_id }),
     body: Object.freeze({
       operation_id: next.operation_id,
