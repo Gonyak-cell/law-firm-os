@@ -366,6 +366,7 @@ export async function validateAmicOsVaultSingleInstallSource({
       || !windowsInstallerSource.includes("classicOutlookDllPath")
       || !windowsInstallerSource.includes('"dotnet",')
       || !windowsInstallerSource.includes(".release-provenance/classic-outlook")
+      || !windowsInstallerSource.includes('classic_outlook_user_registration: "nsis_hklm_regasm_com_hkcu_activation_views_32_and_64"')
       || !windowsInstallerSource.includes("Classic Outlook adapter must match the exact built DLL")) {
     fail("Windows installer must build, bundle, and hash-verify the Classic Outlook adapter");
   }
@@ -402,18 +403,22 @@ export async function validateAmicOsVaultSingleInstallSource({
   if (!/^\s+-\s+dmg\s*$/mu.test(macSection)) fail("macOS DMG target is missing");
   if (!/^\s+-\s+nsis\s*$/mu.test(windowsSection)) fail("Windows NSIS target is missing");
   if (!/^\s+include:\s+build\/installer\.nsh\s*$/mu.test(nsisSection)
-      || !/^\s+perMachine:\s+false\s*$/mu.test(nsisSection)
+      || !/^\s+perMachine:\s+true\s*$/mu.test(nsisSection)
       || /deleteAppDataOnUninstall:\s*true/iu.test(builderSource)) {
-    fail("Windows NSIS must use the user-scoped, local-only integration hook");
+    fail("Windows NSIS must elevate its machine COM registration and keep uninstall cleanup local-only");
   }
   if (!installerNshSource.includes("!macro customInstall")
       || !installerNshSource.includes("!macro customUnInstall")
       || !installerNshSource.includes('WriteRegStr HKCU "Software\\Microsoft\\Office\\Outlook\\Addins\\${AMIC_OUTLOOK_PROGID}"')
+      || !installerNshSource.includes("Microsoft.NET\\${FRAMEWORK}\\v4.0.30319\\RegAsm.exe")
+      || !installerNshSource.includes('DeleteRegKey HKLM "Software\\Classes\\CLSID\\${AMIC_OUTLOOK_CLSID}"')
+      || !installerNshSource.includes('DeleteRegKey HKLM "Software\\Classes\\${AMIC_OUTLOOK_PROGID}"')
       || !installerNshSource.includes("SetRegView 32")
       || !installerNshSource.includes("SetRegView 64")
       || !installerNshSource.includes('RMDir /r "$LOCALAPPDATA\\AMIC OS\\OutlookAttachments"')
-      || /\bHKLM\b|https?:\/\/|vault_documents|immutable_versions|audit_records/iu.test(installerNshSource)) {
-    fail("Windows NSIS integration must register per-user and remove local components only");
+      || /WriteReg(?:Str|DWORD)\s+HKCU\s+"Software\\Classes\\/u.test(installerNshSource)
+      || /https?:\/\/|vault_documents|immutable_versions|audit_records/iu.test(installerNshSource)) {
+    fail("Windows NSIS integration must use machine RegAsm COM registration, current-user Outlook activation, and local-only cleanup");
   }
   if (!nativeProjectSource.includes("<TargetFramework>net48</TargetFramework>")
       || /VSTO|SignAssembly|AssemblyOriginatorKeyFile/iu.test(nativeProjectSource)
