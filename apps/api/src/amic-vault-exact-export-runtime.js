@@ -23,6 +23,13 @@ const SAFE_OPERATION_ID = /^vaultop_[a-f0-9]{32}$/u;
 const DEFAULT_MAX_EXPORT_BYTES = 25 * 1024 * 1024;
 const STATE_PREFIX = "amic-os-vault-export-state:";
 const FINAL_PREFIX = "amic-os-vault-export-final:";
+const STATE_READ_ORDER = Object.freeze([
+  "cleaned",
+  "attached",
+  "delivered",
+  "downloaded",
+  "authorized",
+]);
 
 export class AmicVaultExactExportError extends Error {
   constructor(safeErrorCode, message, status = 400) {
@@ -49,8 +56,9 @@ function nowIso(now) {
   return new Date(now()).toISOString();
 }
 
-function stateKey(operationId) {
-  return `${STATE_PREFIX}${operationId}`;
+function stateKey(operationId, stage = "authorized") {
+  const base = `${STATE_PREFIX}${operationId}`;
+  return stage === "authorized" ? base : `${base}:${stage}`;
 }
 
 function finalKey(operationId) {
@@ -75,14 +83,26 @@ function readStored(repository, tenantId, key) {
   })?.response ?? null;
 }
 
+function readCurrentState(repository, tenantId, operationId) {
+  for (const stage of STATE_READ_ORDER) {
+    const state = readStored(repository, tenantId, stateKey(operationId, stage));
+    if (state) return state;
+  }
+  return null;
+}
+
 function persistState(repository, state) {
+  const stage = state.receipts?.at(-1)?.stage;
+  if (!STATE_READ_ORDER.includes(stage)) {
+    fail("VAULT_EXPORT_STATE_INVALID", "Vault export operation state is invalid", 409);
+  }
   repository.recordIdempotency({
     tenant_id: state.binding.tenant_id,
-    idempotency_key: stateKey(state.binding.operation_id),
+    idempotency_key: stateKey(state.binding.operation_id, stage),
     operation: "amic_os_vault_exact_export_state",
     request_fingerprint: state.binding.request_fingerprint,
     response: state,
-    created_at: state.created_at,
+    created_at: state.receipts.at(-1).occurred_at,
   });
   return state;
 }
@@ -301,7 +321,7 @@ export async function authorizeAmicVaultExactExport({
     }
     fail("VAULT_EXPORT_ALREADY_CONSUMED", "Vault export operation was already consumed", 409);
   }
-  const existing = readStored(repository, binding.tenant_id, stateKey(binding.operation_id));
+  const existing = readCurrentState(repository, binding.tenant_id, binding.operation_id);
   if (existing) {
     const state = assertState(existing, { binding });
     if (state.receipts.at(-1)?.stage !== "authorized") {
@@ -383,7 +403,7 @@ export async function downloadAuthorizedAmicVaultExactExport({
   const final = readStored(repository, principal?.tenant_id, finalKey(operationId));
   if (final) fail("VAULT_EXPORT_ALREADY_CONSUMED", "Vault export operation was already consumed", 409);
   let state = assertState(
-    readStored(repository, principal?.tenant_id, stateKey(operationId)),
+    readCurrentState(repository, principal?.tenant_id, operationId),
     { principal, expectedLastStages: ["authorized"] },
   );
   if (Date.parse(state.provider_export_state.expires_at) <= now()) {
@@ -495,7 +515,7 @@ export function inspectAuthorizedAmicVaultExactExport({
     fail("VAULT_EXPORT_ALREADY_CONSUMED", "Vault export operation was already consumed", 409);
   }
   const state = assertState(
-    readStored(repository, principal?.tenant_id, stateKey(operationId)),
+    readCurrentState(repository, principal?.tenant_id, operationId),
     { principal, expectedLastStages: ["authorized"] },
   );
   if (Date.parse(state.provider_export_state.expires_at) <= now()) {
@@ -526,7 +546,7 @@ export function inspectDownloadedAmicVaultExactExport({
   }
   const repository = repositoryFrom(dmsRuntime);
   const state = assertState(
-    readStored(repository, principal?.tenant_id, stateKey(operationId)),
+    readCurrentState(repository, principal?.tenant_id, operationId),
     { principal, expectedLastStages: ["downloaded", "delivered", "attached"] },
   );
   return Object.freeze({
@@ -565,7 +585,7 @@ export function completeAmicVaultExactExport({
   const repository = repositoryFrom(dmsRuntime);
   const final = readStored(repository, principal?.tenant_id, finalKey(operationId));
   let state = assertState(
-    readStored(repository, principal?.tenant_id, stateKey(operationId)),
+    readCurrentState(repository, principal?.tenant_id, operationId),
     { principal, expectedLastStages: final ? ["delivered", "attached"] : ["downloaded"] },
   );
   const requiredStage = state.binding.operation_kind === "attach_outlook"

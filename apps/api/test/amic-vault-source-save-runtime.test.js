@@ -4,6 +4,16 @@ import test from "node:test";
 
 import { createDmsRepository } from "../../../packages/dms/src/repository.js";
 import {
+  DMS_AUXILIARY_DOMAIN_DESCRIPTOR,
+  createDmsAuxiliaryRepository,
+} from "../../../packages/dms/src/central-ledger.js";
+import { createPostgresDomainLedger } from "../../../packages/persistence/src/postgres/domain-ledger.js";
+import {
+  decodeRecordDomainIdempotencyResponse,
+  runRecordRepositoryDomainCommand,
+} from "../../../packages/persistence/src/record-domain-adapter.js";
+import { createMigratedPostgresFixture } from "../../../packages/persistence/test/helpers/disposable-postgres.js";
+import {
   continueServerOwnedSourceVaultSave,
   saveServerOwnedSourceToAmicVault,
 } from "../src/amic-vault-source-save-runtime.js";
@@ -193,6 +203,17 @@ test("server-owned Outlook source commits to Vault and returns only exact readba
       .map((event) => event.after.stage),
     ["requested", "authorized", "transferring", "quarantined", "scanning", "promoted", "readback_verified"],
   );
+  const persistedStates = repository.snapshot().idempotency
+    .filter((entry) => entry.operation === "amic_os_vault_source_save_state");
+  assert.deepEqual(
+    persistedStates.map((entry) => entry.response.receipts.at(-1).stage),
+    ["authorized", "transferring", "quarantined", "readback_verified"],
+  );
+  assert.equal(new Set(persistedStates.map((entry) => entry.idempotency_key)).size, 4);
+  assert.equal(
+    persistedStates[0].idempotency_key,
+    `amic-os-vault-source-state:${result.item.operation_id}`,
+  );
   const serialized = JSON.stringify({ result, ledger: repository.snapshot() });
   const publicResult = JSON.stringify(result);
   assert.equal(serialized.includes("canonical MIME bytes"), false);
@@ -367,4 +388,58 @@ test("readback mismatch persists no final receipt and retry resumes without a se
   assert.equal(provider.calls.filter(({ method }) => method === "commitUpload").length, 1);
   assert.equal(provider.calls.filter(({ method }) => method === "readbackUpload").length, 2);
   assert.equal(provider.objects.size, 1);
+});
+
+test("PostgreSQL DMS auxiliary ledger resumes source-save stages without mutable idempotency overwrites", async (t) => {
+  const fixture = await createMigratedPostgresFixture(t);
+  if (!fixture) return;
+  const ledger = createPostgresDomainLedger({ pool: fixture.appPool });
+  const provider = providerFixture({
+    readbackStates: ["scanning", "promoted", "readback_verified"],
+  });
+  const run = (command) => runRecordRepositoryDomainCommand({
+    ledger,
+    descriptor: DMS_AUXILIARY_DOMAIN_DESCRIPTOR,
+    tenant_id: TENANT,
+    create_repository: createDmsAuxiliaryRepository,
+    command,
+  });
+  const pending = (await run((repository) => saveServerOwnedSourceToAmicVault({
+    ...input(),
+    dmsRuntime: { repository },
+    vaultUploadProvider: provider,
+  }))).result;
+  assert.equal(pending.item.stage, "scanning");
+  const promoted = (await run((repository) => continueServerOwnedSourceVaultSave({
+    principal: input().principal,
+    dmsRuntime: { repository },
+    vaultUploadProvider: provider,
+    operationId: pending.item.operation_id,
+    requestId: "request-postgres-source-promoted",
+  }))).result;
+  assert.equal(promoted.item.stage, "promoted");
+  const completed = (await run((repository) => continueServerOwnedSourceVaultSave({
+    principal: input().principal,
+    dmsRuntime: { repository },
+    vaultUploadProvider: provider,
+    operationId: pending.item.operation_id,
+    requestId: "request-postgres-source-complete",
+  }))).result;
+  assert.equal(completed.item.receipt.stage, "readback_verified");
+  const entries = await ledger.listIdempotency({
+    tenant_id: TENANT,
+    domain_id: DMS_AUXILIARY_DOMAIN_DESCRIPTOR.domain_id,
+  });
+  const persistedStages = entries
+    .filter((entry) => entry.key.startsWith(`amic-os-vault-source-state:${pending.item.operation_id}`))
+    .map((entry) => decodeRecordDomainIdempotencyResponse(entry.response).response.receipts.at(-1).stage)
+    .sort();
+  assert.deepEqual(persistedStages, [
+    "authorized",
+    "promoted",
+    "quarantined",
+    "readback_verified",
+    "scanning",
+    "transferring",
+  ]);
 });

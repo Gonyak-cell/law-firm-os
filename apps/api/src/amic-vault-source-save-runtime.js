@@ -25,6 +25,18 @@ const SHA256 = /^[a-f0-9]{64}$/u;
 const OPERATION_ID = /^vaultop_[a-f0-9]{32}$/u;
 const STATE_PREFIX = "amic-os-vault-source-state:";
 const FINAL_PREFIX = "amic-os-vault-source-final:";
+const STATE_READ_ORDER = Object.freeze([
+  "cleaned",
+  "cancelled",
+  "failed",
+  "blocked",
+  "readback_verified",
+  "promoted",
+  "scanning",
+  "quarantined",
+  "transferring",
+  "authorized",
+]);
 
 export class AmicVaultSourceSaveError extends Error {
   constructor(safeErrorCode, message, status = 400) {
@@ -82,8 +94,9 @@ function nowIso(now) {
   return new Date(now()).toISOString();
 }
 
-function stateKey(operationId) {
-  return `${STATE_PREFIX}${operationId}`;
+function stateKey(operationId, stage = "authorized") {
+  const base = `${STATE_PREFIX}${operationId}`;
+  return stage === "authorized" ? base : `${base}:${stage}`;
 }
 
 function finalKey(operationId) {
@@ -97,14 +110,26 @@ function readStored(repository, tenantId, key) {
   })?.response ?? null;
 }
 
+function readCurrentState(repository, tenantId, operationId) {
+  for (const stage of STATE_READ_ORDER) {
+    const state = readStored(repository, tenantId, stateKey(operationId, stage));
+    if (state) return state;
+  }
+  return null;
+}
+
 function persistState(repository, state) {
+  const stage = state.receipts?.at(-1)?.stage;
+  if (!STATE_READ_ORDER.includes(stage)) {
+    fail("VAULT_SOURCE_OPERATION_STATE_INVALID", "Vault source operation state is invalid", 409);
+  }
   repository.recordIdempotency({
     tenant_id: state.binding.tenant_id,
-    idempotency_key: stateKey(state.binding.operation_id),
+    idempotency_key: stateKey(state.binding.operation_id, stage),
     operation: "amic_os_vault_source_save_state",
     request_fingerprint: state.binding.request_fingerprint,
     response: state,
-    created_at: state.created_at,
+    created_at: state.receipts.at(-1).occurred_at,
   });
   return state;
 }
@@ -407,7 +432,7 @@ export async function continueServerOwnedSourceVaultSave({
       || typeof repository.appendAudit !== "function") {
     fail("VAULT_SOURCE_LEDGER_UNAVAILABLE", "Vault source operation ledger is unavailable", 503);
   }
-  const state = readStored(repository, principal?.tenant_id, stateKey(operationId));
+  const state = readCurrentState(repository, principal?.tenant_id, operationId);
   if (!state) fail("VAULT_SOURCE_OPERATION_NOT_FOUND", "Vault source operation was not found", 404);
   const checked = assertStoredState(state, {
     binding: state.binding,
@@ -492,7 +517,7 @@ export async function saveServerOwnedSourceToAmicVault({
     if (replay) return replay;
 
     const provider = requireAmicVaultUploadProvider(vaultUploadProvider);
-    let state = readStored(repository, binding.tenant_id, stateKey(binding.operation_id));
+    let state = readCurrentState(repository, binding.tenant_id, binding.operation_id);
   if (state) {
     state = assertStoredState(state, { binding, fingerprint });
   } else {
@@ -632,10 +657,10 @@ export async function saveServerOwnedSourceToAmicVault({
     });
   };
 
-  const existingState = readStored(
+  const existingState = readCurrentState(
     repository,
     binding.tenant_id,
-    stateKey(binding.operation_id),
+    binding.operation_id,
   );
   if (existingState?.provider_commit) return execute();
   const owned = await vaultOperationOwnerForRuntime(dmsRuntime).run({
