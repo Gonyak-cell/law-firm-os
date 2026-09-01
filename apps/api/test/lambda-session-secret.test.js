@@ -503,6 +503,44 @@ test("Lambda HTTP proxy preserves exact Outlook Vault delivery bytes as API Gate
   );
 });
 
+test("Lambda HTTP proxy preserves exact desktop Vault export bytes as API Gateway base64", async () => {
+  const bytes = Buffer.from([0, 255, 1, 2, 128, 64, 10]);
+  let forwardedUrl = null;
+  const lambdaHandler = createLambdaHttpHandler({
+    runtimeCache: Object.freeze({
+      async get() { return { port: 32123 }; },
+    }),
+    fetchFn: async (url) => {
+      forwardedUrl = url;
+      return new Response(bytes, {
+        status: 200,
+        headers: {
+          "content-type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          "content-disposition": "attachment; filename=exact.docx",
+          "cache-control": "private, no-store",
+        },
+      });
+    },
+  });
+
+  const response = await lambdaHandler({
+    rawPath: "/api/vault/desktop/export-download",
+    requestContext: { http: { method: "POST" } },
+  });
+  assert.equal(
+    forwardedUrl,
+    "http://127.0.0.1:32123/api/vault/desktop/export-download",
+  );
+  assert.equal(response.statusCode, 200);
+  assert.equal(response.isBase64Encoded, true);
+  assert.deepEqual(Buffer.from(response.body, "base64"), bytes);
+  assert.equal(
+    response.headers["content-type"],
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  );
+  assert.equal(response.headers["cache-control"], "private, no-store");
+});
+
 test("Lambda Outlook Vault delivery failure logs no opaque delivery token", async () => {
   const logs = [];
   const privateToken = "lawos_ovd_v1.PRIVATE_TOKEN_PART.ciphertext.auth-tag";
