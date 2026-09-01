@@ -479,7 +479,7 @@ test("Lambda HTTP proxy preserves exact Outlook Vault delivery bytes as API Gate
         headers: {
           "content-type": "application/pdf",
           "content-disposition": "attachment; filename=exact.pdf",
-          "cache-control": "private, max-age=60, immutable",
+          "cache-control": "public, max-age=45, s-maxage=45, immutable",
         },
       });
     },
@@ -497,7 +497,10 @@ test("Lambda HTTP proxy preserves exact Outlook Vault delivery bytes as API Gate
   assert.equal(response.isBase64Encoded, true);
   assert.deepEqual(Buffer.from(response.body, "base64"), bytes);
   assert.equal(response.headers["content-type"], "application/pdf");
-  assert.equal(response.headers["cache-control"], "private, max-age=60, immutable");
+  assert.equal(
+    response.headers["cache-control"],
+    "public, max-age=45, s-maxage=45, immutable",
+  );
 });
 
 test("Lambda Outlook Vault delivery failure logs no opaque delivery token", async () => {

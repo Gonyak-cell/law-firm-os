@@ -256,7 +256,11 @@ test("HTTP Outlook attachment route requires signed explicit authorization but l
     const deliveryResponse = await fetch(`${baseUrl}${issuedUrl.pathname}`);
     assert.equal(deliveryResponse.status, 200);
     assert.deepEqual(Buffer.from(await deliveryResponse.arrayBuffer()), BYTES);
-    assert.equal(deliveryResponse.headers.get("cache-control"), "private, max-age=60, immutable");
+    const cacheControl = deliveryResponse.headers.get("cache-control");
+    assert.match(
+      cacheControl,
+      /^public, max-age=([1-9]|[1-3][0-9]|4[0-5]), s-maxage=\1, immutable$/u,
+    );
     assert.equal(deliveryResponse.headers.get("content-type"), "application/pdf");
     assert.equal(state.sessionReadCount(), 1, "Exchange GET must not open the signed session flow");
 
