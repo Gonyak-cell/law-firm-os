@@ -707,8 +707,21 @@ export function createFileBridgeController(options = {}) {
           throw new FileBridgeError("SELECTED_FILE_CHANGED", "Selected file changed after approval");
         }
       };
-      const openStream = () => openedFile.createReadStream({ autoClose: false, start: 0 });
-      stream = openStream();
+      const openStream = async () => {
+        let streamFile = await openImpl(selected.filePath, "r");
+        try {
+          const streamStat = await streamFile.stat();
+          if (streamStat?.isFile?.() !== true || !statMatches(selected.signature, statSignature(streamStat))) {
+            throw new FileBridgeError("SELECTED_FILE_CHANGED", "Selected file changed after approval");
+          }
+          const reopenedStream = streamFile.createReadStream({ autoClose: true, start: 0 });
+          streamFile = null;
+          return reopenedStream;
+        } finally {
+          try { await streamFile?.close?.(); } catch { /* best-effort rejected stream handle close */ }
+        }
+      };
+      stream = await openStream();
       await recordAuditEvent({
         auditLogger,
         actionId: "upload_selected_file",
