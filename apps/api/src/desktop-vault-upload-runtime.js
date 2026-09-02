@@ -38,6 +38,18 @@ const legacyUploadTransport = "lambda-multipart-v1";
 
 const PREFLIGHT_KEY_PREFIX = "amic-os-vault-preflight:";
 const FINAL_KEY_PREFIX = "amic-os-vault-final:";
+const OPERATION_STATE_READ_ORDER = Object.freeze([
+  "cleaned",
+  "cancelled",
+  "failed",
+  "blocked",
+  "readback_verified",
+  "promoted",
+  "scanning",
+  "quarantined",
+  "transferring",
+  "authorized",
+]);
 const OPERATION_ID = /^vaultop_[a-f0-9]{32}$/u;
 const SAFE_ID = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,255}$/u;
 
@@ -179,8 +191,9 @@ async function requireUploadAuthority({ sessionAuth, principal, context, matterI
   return projection;
 }
 
-function operationStateKey(operationId) {
-  return `${PREFLIGHT_KEY_PREFIX}${operationId}`;
+function operationStateKey(operationId, stage = "authorized") {
+  const base = `${PREFLIGHT_KEY_PREFIX}${operationId}`;
+  return stage === "authorized" ? base : `${base}:${stage}`;
 }
 
 function finalStateKey(operationId) {
@@ -188,22 +201,30 @@ function finalStateKey(operationId) {
 }
 
 function persistOperationState(repository, state) {
+  const stage = state.receipts?.at(-1)?.stage;
+  if (!OPERATION_STATE_READ_ORDER.includes(stage)) {
+    fail("VAULT_DESKTOP_OPERATION_STATE_INVALID", "Vault upload operation state is invalid", 409);
+  }
   repository.recordIdempotency({
     tenant_id: state.binding.tenant_id,
-    idempotency_key: operationStateKey(state.binding.operation_id),
+    idempotency_key: operationStateKey(state.binding.operation_id, stage),
     operation: "amic_os_vault_desktop_upload_preflight",
     request_fingerprint: state.binding.request_fingerprint,
     response: state,
-    created_at: state.created_at,
+    created_at: state.receipts.at(-1).occurred_at,
   });
   return state;
 }
 
 function readOperationState(repository, tenantId, operationId) {
-  return repository.getIdempotency({
-    tenant_id: tenantId,
-    idempotency_key: operationStateKey(operationId),
-  })?.response ?? null;
+  for (const stage of OPERATION_STATE_READ_ORDER) {
+    const state = repository.getIdempotency({
+      tenant_id: tenantId,
+      idempotency_key: operationStateKey(operationId, stage),
+    })?.response;
+    if (state) return state;
+  }
+  return null;
 }
 
 function appendStage({
@@ -865,8 +886,20 @@ export async function handleDesktopVaultUploadTransfer({
     if (state.provider_transfer_ref && state.provider_transfer_ref !== transfer.transfer_ref) {
       fail("VAULT_OPERATION_IDEMPOTENCY_CONFLICT", "Vault transfer authority changed", 409);
     }
+    let receipts = state.receipts;
+    const enteringTransfer = receipts.at(-1)?.stage === "authorized";
+    if (enteringTransfer) {
+      receipts = appendStage({
+        repository: dmsRuntime.repository,
+        binding: state.binding,
+        receipts,
+        stage: "transferring",
+        occurredAt: nowIso(now),
+      });
+    }
     state = Object.freeze({
       ...state,
+      receipts,
       transfer_file: fileBinding,
       provider_transfer_ref: transfer.transfer_ref,
     });
@@ -1004,7 +1037,8 @@ export async function handleDesktopVaultUpload({
       fail("VAULT_PROVIDER_PREFLIGHT_MISSING", "Vault provider preflight is missing", 409);
     }
     let receipts = state.receipts;
-    if (receipts.at(-1)?.stage === "authorized") {
+    const enteringTransfer = receipts.at(-1)?.stage === "authorized";
+    if (enteringTransfer) {
       receipts = appendStage({
         repository: dmsRuntime.repository,
         binding: state.binding,
@@ -1012,7 +1046,9 @@ export async function handleDesktopVaultUpload({
         stage: "transferring",
         occurredAt: nowIso(now),
       });
-      state = Object.freeze({ ...state, receipts, upload_fingerprint: fingerprint });
+    }
+    state = Object.freeze({ ...state, receipts, upload_fingerprint: fingerprint });
+    if (enteringTransfer) {
       persistOperationState(dmsRuntime.repository, state);
     }
     if (!new Set(["transferring", ...PROVIDER_PROGRESS_STAGES]).has(receipts.at(-1)?.stage)) {

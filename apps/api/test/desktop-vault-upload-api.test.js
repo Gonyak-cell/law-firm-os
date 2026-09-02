@@ -6,9 +6,26 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 
+import {
+  DMS_AUXILIARY_DOMAIN_DESCRIPTOR,
+  createDmsAuxiliaryRepository,
+} from "../../../packages/dms/src/central-ledger.js";
 import { createDmsRepository } from "../../../packages/dms/src/repository.js";
 import { createLocalStorageAdapter } from "../../../packages/dms/src/storage/local-storage-adapter.js";
 import { createFileStorageAdapter } from "../../../packages/dms/src/storage/file-storage-adapter.js";
+import { createMatterRepository } from "../../../packages/matter/src/repository.js";
+import { createPostgresDomainLedger } from "../../../packages/persistence/src/postgres/domain-ledger.js";
+import {
+  decodeRecordDomainIdempotencyResponse,
+  runRecordRepositoryDomainCommand,
+} from "../../../packages/persistence/src/record-domain-adapter.js";
+import { createMigratedPostgresFixture } from "../../../packages/persistence/test/helpers/disposable-postgres.js";
+import {
+  DESKTOP_VAULT_DIRECT_UPLOAD_HEADER,
+  DESKTOP_VAULT_DIRECT_UPLOAD_TRANSPORT,
+  handleDesktopVaultUploadPreflight,
+  handleDesktopVaultUploadTransfer,
+} from "../src/desktop-vault-upload-runtime.js";
 import { createVaultDmsRuntimeContext } from "../src/vault-dms-runtime-context.js";
 import { MATTER_VAULT_REGISTERED_TENANT_ID } from "../src/matter-vault-account-registry.js";
 import { startApiServer } from "../src/server.js";
@@ -191,7 +208,7 @@ test("desktop Vault preflight and multipart upload commit one exact version with
     const text = "AMIC OS desktop Vault upload\n";
     const expectedSha256 = createHash("sha256").update(text).digest("hex");
     const committed = await upload(baseUrl, headers, approved.body.operation_id, text);
-    assert.equal(committed.response.status, 201);
+    assert.equal(committed.response.status, 201, JSON.stringify(committed.body));
     assert.equal(committed.body.outcome, "readback_verified");
     assert.equal(committed.body.item.sha256, expectedSha256);
     assert.equal(committed.body.item.byte_size, Buffer.byteLength(text));
@@ -283,7 +300,7 @@ test("desktop Vault direct upload keeps bytes out of Lambda and completes from t
       approved.body.operation_id,
       { ...file, sha256 },
     );
-    assert.equal(committed.response.status, 201);
+    assert.equal(committed.response.status, 201, JSON.stringify(committed.body));
     assert.equal(committed.body.outcome, "readback_verified");
     assert.equal(committed.body.item.sha256, sha256);
     assert.equal(committed.body.item.byte_size, bytes.byteLength);
@@ -334,6 +351,110 @@ test("desktop Vault direct transfer accepts exactly 1 GiB metadata and rejects o
     vaultCapabilityResolver: capabilityResolver(),
     vaultUploadProvider: harness.provider,
   });
+});
+
+test("PostgreSQL DMS auxiliary ledger preserves desktop transfer state across request boundaries", async (t) => {
+  const fixture = await createMigratedPostgresFixture(t);
+  if (!fixture) return;
+  const ledger = createPostgresDomainLedger({ pool: fixture.appPool });
+  const providerHarness = dmsHarness();
+  const principal = Object.freeze({ tenant_id: TENANT, user_id: "user_amic_jwsuh" });
+  const context = Object.freeze({
+    principal: Object.freeze({ ...principal, role_ids: Object.freeze(["matter_vault_user"]) }),
+    rules: Object.freeze([Object.freeze({ id: "allow-desktop-vault-postgres", effect: "allow", action: "*" })]),
+    object_acl: Object.freeze([]),
+  });
+  const sessionAuth = Object.freeze({
+    async resolveVaultCapabilities() {
+      return Object.freeze({
+        authoritative: true,
+        capabilities: Object.freeze([
+          Object.freeze({ id: "upload", allowed: true }),
+        ]),
+      });
+    },
+  });
+  const matterRuntime = Object.freeze({
+    repository: createMatterRepository({
+      seedRecords: [{
+        model_type: "Matter",
+        matter_id: MATTER_ID,
+        tenant_id: TENANT,
+        client_id: "client_desktop_upload_postgres",
+        title: "Desktop upload PostgreSQL state test",
+        status: "open",
+        created_by: principal.user_id,
+        created_at: "2026-09-02T00:00:00.000Z",
+        permission_envelope_id: "perm_desktop_upload_postgres",
+        audit_trace_id: "audit_desktop_upload_postgres",
+      }],
+    }),
+  });
+  const run = (command) => runRecordRepositoryDomainCommand({
+    ledger,
+    descriptor: DMS_AUXILIARY_DOMAIN_DESCRIPTOR,
+    tenant_id: TENANT,
+    create_repository: createDmsAuxiliaryRepository,
+    command,
+  });
+  const common = {
+    principal,
+    context,
+    sessionAuth,
+    matterRuntime,
+    vaultUploadProvider: providerHarness.provider,
+  };
+  const approved = (await run((repository) => handleDesktopVaultUploadPreflight({
+    ...common,
+    body: { matter_id: MATTER_ID, workspace_id: WORKSPACE_ID, folder_id: null },
+    headers: { [DESKTOP_VAULT_DIRECT_UPLOAD_HEADER]: DESKTOP_VAULT_DIRECT_UPLOAD_TRANSPORT },
+    requestId: "request-postgres-desktop-preflight",
+    dmsRuntime: { repository },
+  }))).result;
+  assert.equal(approved.status, 200, JSON.stringify(approved.body));
+  const operationId = approved.body.operation_id;
+  const transferInput = {
+    body: {
+      operation_id: operationId,
+      file: { filename: "postgres-transfer.txt", mime_type: "text/plain", byte_size: 25 },
+    },
+    headers: { "idempotency-key": operationId },
+  };
+  const prepared = (await run((repository) => handleDesktopVaultUploadTransfer({
+    ...common,
+    ...transferInput,
+    requestId: "request-postgres-desktop-transfer",
+    dmsRuntime: { repository },
+  }))).result;
+  assert.equal(prepared.status, 200, JSON.stringify(prepared.body));
+  assert.equal(prepared.body.outcome, "transfer_ready");
+
+  const replayed = (await run((repository) => handleDesktopVaultUploadTransfer({
+    ...common,
+    ...transferInput,
+    requestId: "request-postgres-desktop-transfer-replay",
+    dmsRuntime: { repository },
+  }))).result;
+  assert.equal(replayed.status, 200);
+  assert.equal(replayed.body.transfer.transfer_ref, prepared.body.transfer.transfer_ref);
+
+  const entries = await ledger.listIdempotency({
+    tenant_id: TENANT,
+    domain_id: DMS_AUXILIARY_DOMAIN_DESCRIPTOR.domain_id,
+  });
+  const states = entries
+    .filter((entry) => entry.key.startsWith(`amic-os-vault-preflight:${operationId}`))
+    .map((entry) => ({
+      key: entry.key,
+      state: decodeRecordDomainIdempotencyResponse(entry.response).response,
+    }))
+    .sort((left, right) => left.key.localeCompare(right.key));
+  assert.equal(states.length, 2);
+  assert.equal(states[0].key, `amic-os-vault-preflight:${operationId}`);
+  assert.equal(states[0].state.receipts.at(-1).stage, "authorized");
+  assert.equal(states[1].key, `amic-os-vault-preflight:${operationId}:transferring`);
+  assert.equal(states[1].state.receipts.at(-1).stage, "transferring");
+  assert.equal(states[1].state.provider_transfer_ref, prepared.body.transfer.transfer_ref);
 });
 
 test("concurrent desktop uploads share one provider commit, exact version, and audit chain", async () => {
