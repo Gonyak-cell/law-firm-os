@@ -687,12 +687,23 @@ function VaultUploadPanel({ labels, liveCtx, initialMatterId, onOpenReceipt }) {
     && summaryResult.uiState !== "review_required"
     ? summaryResult.item
     : null;
-  const destinationReady = Boolean(
+  const linkedDestinationReady = Boolean(
     selectedMatter
       && vaultSummary
       && SAFE_DOCUMENT_TARGET_ID.test(vaultSummary.vault_workspace_id ?? "")
       && ["active", "opening", "open"].includes(vaultSummary.workspace_status)
   );
+  const providerDestinationReady = Boolean(
+    selectedMatter
+      && summaryResult?.kind === "data"
+      && summaryResult.uiState === "empty"
+      && summaryResult.item === null
+  );
+  const destinationReady = linkedDestinationReady || providerDestinationReady;
+  const destinationVerified = linkedDestinationReady
+    || (providerDestinationReady
+      && (["ready", "selecting", "selected", "uploading", "cancelling", "complete"].includes(phase)
+        || Boolean(recoveredUpload)));
   const recoveredReceipt = recoveredUpload?.documentId ? recoveredUpload : null;
   const recoveredProcessing = new Set(["processing", "retryable"])
     .has(recoveredUpload?.state);
@@ -721,8 +732,8 @@ function VaultUploadPanel({ labels, liveCtx, initialMatterId, onOpenReceipt }) {
     try {
       const result = await bridge.precheckUpload({
         matterId: selectedMatter.matter_id,
-        workspaceId: vaultSummary.vault_workspace_id,
-        folderId: SAFE_DOCUMENT_TARGET_ID.test(vaultSummary.default_folder_id ?? "")
+        workspaceId: linkedDestinationReady ? vaultSummary.vault_workspace_id : null,
+        folderId: SAFE_DOCUMENT_TARGET_ID.test(vaultSummary?.default_folder_id ?? "")
           ? vaultSummary.default_folder_id
           : null
       });
@@ -862,12 +873,14 @@ function VaultUploadPanel({ labels, liveCtx, initialMatterId, onOpenReceipt }) {
       {matterState && <p className="vault-upload-state" role="status">{matterState}</p>}
 
       {selectedMatter && (
-        <div className="vault-upload-destination" data-vault-upload-destination={destinationReady ? "ready" : "checking"}>
+        <div className="vault-upload-destination" data-vault-upload-destination={destinationVerified ? "ready" : providerDestinationReady ? "preflight" : "checking"}>
           <span>{vaultLabel(labels, "vaultUploadLocationLabel", "Vault 저장 위치")}</span>
           <strong>{summaryResult === null
             ? vaultLabel(labels, "vaultUploadLocationChecking", "확인 중")
-            : destinationReady
+            : destinationVerified
               ? vaultLabel(labels, "vaultUploadLocationDefault", "이 Matter의 기본 문서 위치")
+              : providerDestinationReady
+                ? vaultLabel(labels, "vaultUploadLocationPreflight", "저장 준비 확인에서 서버가 확정")
               : vaultLabel(labels, "vaultUploadLocationUnavailable", "활성 위치를 확인할 수 없음")}</strong>
         </div>
       )}

@@ -545,6 +545,7 @@ test("Vault upload requires explicit preflight, native selection, explicit save,
       });
     }, { sessionValue: session(), capabilityValue: projection(), exactSha256: uploadedSha256 });
 
+    let summaryMode = "provider";
     await page.route("**/api/**", async (route) => {
       const url = new URL(route.request().url());
       if (url.pathname === "/api/auth/session") {
@@ -569,7 +570,7 @@ test("Vault upload requires explicit preflight, native selection, explicit save,
         await fulfillJson(route, {
           request_id: "req-vault-upload-summary",
           outcome: "passed",
-          item: {
+          item: summaryMode === "provider" ? null : {
             matter_id: "matter-upload-browser-001",
             vault_workspace_id: "workspace-upload-browser-001",
             default_folder_id: "folder-upload-browser-001",
@@ -580,7 +581,7 @@ test("Vault upload requires explicit preflight, native selection, explicit save,
           },
           safe_error_codes: [],
           audit_hint_ref: "audit-vault-upload-summary",
-          ui_state: null,
+          ui_state: summaryMode === "provider" ? "empty" : null,
           count_leak_prevented: true,
           production_ready_claim: false
         });
@@ -613,12 +614,14 @@ test("Vault upload requires explicit preflight, native selection, explicit save,
     });
 
     await page.goto(`${baseUrl}?view=vault&ctx=allow&matter_id=matter-upload-browser-001#vault-upload`, { waitUntil: "networkidle" });
-    await page.locator('[data-vault-upload-destination="ready"]').waitFor();
+    await page.locator('[data-vault-upload-destination="preflight"]').waitFor();
+    assert.match(await page.locator('[data-vault-upload-destination="preflight"]').textContent(), /저장 준비 확인에서 서버가 확정/);
     assert.equal(await page.locator('input[type="file"]').count(), 0);
     assert.deepEqual(await page.evaluate(() => window.__vaultUploadCalls.map((call) => call.method)), ["status", "resumePendingUploads"]);
 
     await page.getByRole("button", { name: "저장 준비 확인" }).click();
     await page.locator('[data-vault-upload-workflow="ready"]').waitFor();
+    await page.locator('[data-vault-upload-destination="ready"]').waitFor();
     assert.deepEqual(await page.evaluate(() => window.__vaultUploadCalls), [
       { method: "status" },
       { method: "resumePendingUploads" },
@@ -626,8 +629,8 @@ test("Vault upload requires explicit preflight, native selection, explicit save,
         method: "precheckUpload",
         request: {
           matterId: "matter-upload-browser-001",
-          workspaceId: "workspace-upload-browser-001",
-          folderId: "folder-upload-browser-001"
+          workspaceId: null,
+          folderId: null
         }
       }
     ]);
@@ -675,6 +678,20 @@ test("Vault upload requires explicit preflight, native selection, explicit save,
     assert.equal(location.searchParams.get("document_id"), "document-upload-browser-001");
     assert.equal(location.searchParams.get("document_version_id"), "version-upload-browser-001");
     assert.equal(location.searchParams.get("document_sha256"), uploadedSha256);
+
+    summaryMode = "linked";
+    await page.goto(`${baseUrl}?view=vault&ctx=allow&matter_id=matter-upload-browser-001#vault-upload`, { waitUntil: "networkidle" });
+    await page.locator('[data-vault-upload-destination="ready"]').waitFor();
+    await page.getByRole("button", { name: "저장 준비 확인" }).click();
+    await page.locator('[data-vault-upload-workflow="ready"]').waitFor();
+    assert.deepEqual(await page.evaluate(() => window.__vaultUploadCalls.at(-1)), {
+      method: "precheckUpload",
+      request: {
+        matterId: "matter-upload-browser-001",
+        workspaceId: "workspace-upload-browser-001",
+        folderId: "folder-upload-browser-001"
+      }
+    });
   } finally {
     await browser.close();
     await server.close();
