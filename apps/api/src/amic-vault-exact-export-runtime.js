@@ -95,6 +95,7 @@ function appendStage({
   occurredAt,
   vaultEventId = null,
   authorityRef = null,
+  safeReasonCode = null,
 }) {
   const previous = receipts.at(-1) ?? null;
   if (previous?.stage === stage) return Object.freeze(receipts);
@@ -105,6 +106,7 @@ function appendStage({
     lawos_event_id: `vault-operation:${binding.operation_id}:${stage}:${randomUUID()}`,
     vault_event_id: vaultEventId,
     authority_ref: authorityRef,
+    safe_reason_code: safeReasonCode,
     exact_version: binding.resolved_resource.exact_version,
   });
   classifyVaultOperationReceiptTransition({ previous, next: receipt });
@@ -544,14 +546,15 @@ export function inspectDownloadedAmicVaultExactExport({
 
 /**
  * Append delivery only after a trusted adapter has handed the verified body to
- * its host. Outlook attachment completion is recorded separately from a plain
- * desktop export; neither completion path can make provider bytes replayable.
+ * its host. A downloaded Outlook export may instead be terminally failed with
+ * a safe reason code; neither completion path can make provider bytes replayable.
  */
 export function completeAmicVaultExactExport({
   principal,
   dmsRuntime,
   operationId,
   completionStage,
+  safeReasonCode = null,
   expectedExactVersion = null,
   requestId,
   now = Date.now,
@@ -559,20 +562,26 @@ export function completeAmicVaultExactExport({
   if (!SAFE_OPERATION_ID.test(String(operationId ?? ""))) {
     fail("VAULT_EXPORT_OPERATION_INVALID", "Vault export operation ID is invalid");
   }
-  const expectedStage = completionStage === "delivered" || completionStage === "attached"
+  const expectedStage = completionStage === "delivered"
+      || completionStage === "attached"
+      || completionStage === "failed"
     ? completionStage
     : null;
   const repository = repositoryFrom(dmsRuntime);
   const final = readStored(repository, principal?.tenant_id, finalKey(operationId));
   let state = assertState(
     readStored(repository, principal?.tenant_id, stateKey(operationId)),
-    { principal, expectedLastStages: final ? ["delivered", "attached"] : ["downloaded"] },
+    { principal, expectedLastStages: final ? ["delivered", "attached", "failed"] : ["downloaded"] },
   );
   const requiredStage = state.binding.operation_kind === "attach_outlook"
     ? "attached"
     : "delivered";
-  if (expectedStage !== requiredStage) {
+  if (expectedStage !== requiredStage
+      && !(expectedStage === "failed" && state.binding.operation_kind === "attach_outlook")) {
     fail("VAULT_EXPORT_COMPLETION_INVALID", "Vault export completion stage does not match its host operation", 409);
+  }
+  if ((expectedStage === "failed") !== (safeReasonCode != null)) {
+    fail("VAULT_EXPORT_COMPLETION_INVALID", "Vault export failure completion requires one safe reason code", 409);
   }
   if (expectedExactVersion != null
       && !isDeepStrictEqual(
@@ -583,7 +592,8 @@ export function completeAmicVaultExactExport({
   }
   if (final) {
     if (final.request_fingerprint !== state.binding.request_fingerprint
-        || state.receipts.at(-1)?.stage !== requiredStage) {
+        || state.receipts.at(-1)?.stage !== expectedStage
+        || state.receipts.at(-1)?.safe_reason_code !== safeReasonCode) {
       fail("VAULT_OPERATION_IDEMPOTENCY_CONFLICT", "Vault export completion replay changed", 409);
     }
     return completionResponse({ requestId, state });
@@ -592,10 +602,11 @@ export function completeAmicVaultExactExport({
     repository,
     binding: state.binding,
     receipts: state.receipts,
-    stage: requiredStage,
+    stage: expectedStage,
     occurredAt: nowIso(now),
     vaultEventId: state.provider_consumption_audit_ref,
     authorityRef: state.provider_export_state.authority_ref,
+    safeReasonCode,
   });
   state = Object.freeze({ ...state, receipts, completed_at: nowIso(now) });
   persistState(repository, state);

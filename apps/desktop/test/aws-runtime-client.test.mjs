@@ -1464,6 +1464,58 @@ test("desktop runtime preflights, downloads, verifies, and acknowledges one exac
   assert.equal(JSON.stringify({ preflight, completed }).includes("lawos_session_v1.secret"), false);
 });
 
+test("desktop runtime records a safe Outlook host failure without exposing local error text", async () => {
+  const operationId = "vaultop_ffffffffffffffffffffffffffffffff";
+  const exactVersion = {
+    document_id: "document-export-failed-001",
+    version_id: "version-export-failed-001",
+    file_object_id: "file-object-export-failed-001",
+    sha256: "a".repeat(64),
+    byte_size: 42,
+    mime_type: "application/pdf",
+  };
+  const client = createMatterVaultAwsRuntimeClient({
+    baseUrl: "http://127.0.0.1:4812",
+    fetchImpl: async (url, init) => {
+      assert.equal(new URL(url).pathname, "/api/vault/desktop/export-complete");
+      assert.equal(init.headers["idempotency-key"], operationId);
+      assert.deepEqual(JSON.parse(init.body), {
+        operation_id: operationId,
+        exact_version: exactVersion,
+        operation_kind: "attach_outlook",
+        installation_ref_sha256: "b".repeat(64),
+        compose_target_sha256: "c".repeat(64),
+        completion_stage: "failed",
+        safe_reason_code: "CLASSIC_OUTLOOK_HOST_UNAVAILABLE",
+      });
+      return jsonResponse(200, {
+        ok: true,
+        outcome: "failed",
+        operation_kind: "attach_outlook",
+        operation_id: operationId,
+        exact_version: exactVersion,
+        receipt: {
+          stage: "failed",
+          receipt_id: "receipt-export-failed-001",
+          safe_reason_code: "CLASSIC_OUTLOOK_HOST_UNAVAILABLE",
+        },
+      });
+    },
+  });
+  const failed = await client.completeVaultExport({
+    operationId,
+    exactVersion,
+    operationKind: "attach_outlook",
+    completionStage: "failed",
+    safeReasonCode: "CLASSIC_OUTLOOK_HOST_UNAVAILABLE",
+    installationRefSha256: "b".repeat(64),
+    composeTargetSha256: "c".repeat(64),
+    sessionToken: "lawos_session_v1.secret",
+  });
+  assert.equal(failed.receipt.stage, "failed");
+  assert.equal(JSON.stringify(failed).includes("lawos_session_v1.secret"), false);
+});
+
 test("desktop runtime discards exact export bytes when the server header binding changes", async () => {
   const bytes = Buffer.from("tamper check\n");
   const operationId = "vaultop_eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee";

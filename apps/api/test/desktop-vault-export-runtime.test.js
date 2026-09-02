@@ -289,6 +289,61 @@ test("Classic Outlook desktop export binds installation and compose hashes and c
   assert.equal(completed.body.receipt.compose_target_sha256, composeTargetSha256);
 });
 
+test("Classic Outlook desktop export accepts a safe terminal failure after verified download", async () => {
+  const state = harness();
+  const installationRefSha256 = "6".repeat(64);
+  const composeTargetSha256 = "7".repeat(64);
+  const authorized = await handleDesktopVaultExportAuthorize(authorizeInput(state, {
+    body: {
+      operation_kind: "attach_outlook",
+      installation_ref_sha256: installationRefSha256,
+      compose_target_sha256: composeTargetSha256,
+    },
+  }));
+  await handleDesktopVaultExportDownload({
+    body: { operation_id: authorized.body.operation_id },
+    headers: { "idempotency-key": authorized.body.operation_id },
+    principal: state.principal,
+    context: state.context,
+    requestId: "request-desktop-outlook-failed-download",
+    sessionAuth: state.sessionAuth,
+    matterRuntime: state.matterRuntime,
+    dmsRuntime: state.dmsRuntime,
+    vaultExportProvider: state.provider,
+    now: state.now,
+  });
+
+  const failed = await handleDesktopVaultExportComplete({
+    body: {
+      operation_id: authorized.body.operation_id,
+      exact_version: state.exact,
+      operation_kind: "attach_outlook",
+      installation_ref_sha256: installationRefSha256,
+      compose_target_sha256: composeTargetSha256,
+      completion_stage: "failed",
+      safe_reason_code: "CLASSIC_OUTLOOK_HOST_UNAVAILABLE",
+    },
+    headers: { "idempotency-key": authorized.body.operation_id },
+    principal: state.principal,
+    context: state.context,
+    requestId: "request-desktop-outlook-failed-complete",
+    sessionAuth: state.sessionAuth,
+    matterRuntime: state.matterRuntime,
+    dmsRuntime: state.dmsRuntime,
+    now: state.now,
+  });
+  assert.equal(failed.status, 200);
+  assert.equal(failed.body.outcome, "failed");
+  assert.equal(failed.body.receipt.stage, "failed");
+  assert.equal(failed.body.receipt.safe_reason_code, "CLASSIC_OUTLOOK_HOST_UNAVAILABLE");
+  assert.deepEqual(
+    state.repository.listAudit({ tenant_id: TENANT })
+      .filter((event) => event.object_id === authorized.body.operation_id)
+      .map((event) => event.after.stage),
+    ["requested", "authorized", "downloaded", "failed"],
+  );
+});
+
 test("desktop export blocks missing capability, wrong idempotency header, and request authority smuggling before bytes", async () => {
   const denied = harness({ capabilityAllowed: false });
   const deniedAuthorization = await handleDesktopVaultExportAuthorize(authorizeInput(denied));

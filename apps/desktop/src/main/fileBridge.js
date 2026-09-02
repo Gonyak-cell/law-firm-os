@@ -1101,6 +1101,7 @@ export function createFileBridgeController(options = {}) {
     let claim = null;
     let providerResponse = null;
     let deliveryStarted = false;
+    let hostAttached = false;
     try {
       claim = classicOutlookBridge.claimRequest(requestHandle);
       await recordAuditEvent({
@@ -1146,6 +1147,7 @@ export function createFileBridgeController(options = {}) {
           "Classic Outlook host acknowledgement changed the exact version binding",
         );
       }
+      hostAttached = true;
       await documentProvider.completeDocumentSave({
         actionId: "attach_document_to_classic_outlook",
         operationKind: "attach_outlook",
@@ -1182,13 +1184,36 @@ export function createFileBridgeController(options = {}) {
       });
     } catch (error) {
       if (claim && !deliveryStarted) classicOutlookBridge.releaseClaim(claim);
+      const candidateReasonCode = String(error?.code ?? "");
+      const safeReasonCode = SAFE_BINDING_ID.test(candidateReasonCode)
+        ? candidateReasonCode
+        : "OUTLOOK_ATTACH_FAILED";
+      if (providerResponse?.operationId && !hostAttached) {
+        try {
+          await documentProvider.completeDocumentSave({
+            actionId: "attach_document_to_classic_outlook",
+            operationKind: "attach_outlook",
+            completionStage: "failed",
+            safeReasonCode,
+            operationId: providerResponse.operationId,
+            documentId: binding.documentId,
+            matterId: binding.matterId,
+            exactVersion: binding.exactVersion,
+            installationRefSha256: claim?.installationRefSha256,
+            composeTargetSha256: claim?.composeTargetSha256,
+            permissionDecisionId: precheck.decisionId ?? null,
+          });
+        } catch {
+          // Preserve the original host failure; a later readback still exposes an unterminated operation.
+        }
+      }
       await recordAuditEvent({
         auditLogger,
         actionId: "attach_document_to_classic_outlook",
         eventName: FILE_BRIDGE_AUDIT_MAP.attach_document_to_classic_outlook.auditEvents.attachFailed,
         payload: {
           operationId: providerResponse?.operationId ?? null,
-          reason: error.code ?? "outlook_attach_failed",
+          reason: safeReasonCode,
         },
       });
       throw error;

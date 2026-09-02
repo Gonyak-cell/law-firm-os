@@ -316,3 +316,65 @@ test("Outlook attachment export requires installation and compose hashes in the 
     now: state.now,
   }).receipt.stage, "attached");
 });
+
+test("a downloaded Outlook export records one terminal failed receipt when the host cannot attach", async () => {
+  const state = harness();
+  const authorized = await authorizeAmicVaultExactExport(authorizationInput(state, {
+    operationKind: "attach_outlook",
+    installationRefSha256: INSTALLATION,
+    composeTargetSha256: COMPOSE,
+  }));
+  await downloadAuthorizedAmicVaultExactExport({
+    principal: { tenant_id: TENANT, user_id: ACTOR },
+    dmsRuntime: { repository: state.repository },
+    vaultExportProvider: state.provider,
+    operationId: authorized.operation_id,
+    requestId: "request-outlook-export-download-failed",
+    now: state.now,
+  });
+
+  const failed = completeAmicVaultExactExport({
+    principal: { tenant_id: TENANT, user_id: ACTOR },
+    dmsRuntime: { repository: state.repository },
+    operationId: authorized.operation_id,
+    completionStage: "failed",
+    safeReasonCode: "CLASSIC_OUTLOOK_HOST_UNAVAILABLE",
+    expectedExactVersion: state.exactVersion,
+    requestId: "request-outlook-export-failed",
+    now: state.now,
+  });
+  assert.equal(failed.outcome, "failed");
+  assert.equal(failed.receipt.stage, "failed");
+  assert.equal(failed.receipt.safe_reason_code, "CLASSIC_OUTLOOK_HOST_UNAVAILABLE");
+  assert.equal(failed.receipt.decision, "error");
+
+  const replay = completeAmicVaultExactExport({
+    principal: { tenant_id: TENANT, user_id: ACTOR },
+    dmsRuntime: { repository: state.repository },
+    operationId: authorized.operation_id,
+    completionStage: "failed",
+    safeReasonCode: "CLASSIC_OUTLOOK_HOST_UNAVAILABLE",
+    expectedExactVersion: state.exactVersion,
+    requestId: "request-outlook-export-failed-replay",
+    now: state.now,
+  });
+  assert.equal(replay.receipt.receipt_id, failed.receipt.receipt_id);
+  assert.throws(
+    () => completeAmicVaultExactExport({
+      principal: { tenant_id: TENANT, user_id: ACTOR },
+      dmsRuntime: { repository: state.repository },
+      operationId: authorized.operation_id,
+      completionStage: "attached",
+      expectedExactVersion: state.exactVersion,
+      requestId: "request-outlook-export-failed-changed",
+      now: state.now,
+    }),
+    (error) => error?.code === "LAWOS_VAULT_OPERATION_IDEMPOTENCY_CONFLICT",
+  );
+  assert.deepEqual(
+    state.repository.listAudit({ tenant_id: TENANT })
+      .filter((event) => event.object_id === authorized.operation_id)
+      .map((event) => event.after.stage),
+    ["requested", "authorized", "downloaded", "failed"],
+  );
+});
