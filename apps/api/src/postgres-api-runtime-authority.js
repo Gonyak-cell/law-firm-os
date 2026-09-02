@@ -189,6 +189,7 @@ const OUTLOOK_IDEMPOTENT_MUTATION_PATHS = new Set([
 ]);
 const DESKTOP_VAULT_IDEMPOTENT_MUTATION_PATHS = new Set([
   "/api/vault/desktop/upload-preflight",
+  "/api/vault/desktop/upload-transfer",
   "/api/vault/desktop/upload",
   "/api/vault/desktop/upload-status",
   "/api/vault/desktop/export-preflight",

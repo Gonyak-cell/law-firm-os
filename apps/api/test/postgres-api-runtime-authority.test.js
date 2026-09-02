@@ -583,9 +583,10 @@ test("Outlook Vault saves and attachment handoff retry only on exact idempotent 
   }
 });
 
-test("desktop Vault retries only idempotent upload, export authorization, and export completion mutations", () => {
+test("desktop Vault retries only idempotent upload stages, export authorization, and export completion mutations", () => {
   for (const pathname of [
     "/api/vault/desktop/upload-preflight",
+    "/api/vault/desktop/upload-transfer",
     "/api/vault/desktop/upload",
     "/api/vault/desktop/upload-status",
     "/api/vault/desktop/export-preflight",
