@@ -44,7 +44,7 @@ function record(overrides = {}) {
 function unsignedRecord(overrides = {}) {
   return {
     status: "NotSigned",
-    status_message: "The file D:\\a\\law-firm-os\\law-firm-os\\apps\\desktop\\dist\\matter.exe is not digitally signed. You cannot run this script on the current system. For more information about running scripts and setting execution policy, see about_Execution_Policies at https://go.microsoft.com/fwlink/?LinkID=135170",
+    status_message: "Authenticode signature absent.",
     signature_type: "None",
     time_stamper_certificate_present: false,
     signer_subject: null,
@@ -189,6 +189,10 @@ test("Authenticode final gate binds public signer, timestamp, and EKU metadata",
 
 test("PowerShell probe emits only public certificate metadata", () => {
   const source = matterDesktopAuthenticodePowerShell();
+  assert.match(
+    source,
+    /elseif \(\$signature\.Status -eq 'NotSigned'\) \{ 'Authenticode signature absent\.' \}/u,
+  );
   for (const field of [
     "signer_subject",
     "signer_thumbprint",
@@ -296,7 +300,7 @@ test("an unsigned technical candidate rejects incomplete or inconsistent PowerSh
   await rejectsBeforeAction([
     unsignedRecord(),
     unsignedRecord({
-      status_message: "The file not-a-windows-path is not digitally signed. You cannot run this script on the current system. For more information about running scripts and setting execution policy, see about_Execution_Policies at https://go.microsoft.com/fwlink/?LinkID=135170",
+      status_message: "Authenticode signature absent. ",
     }),
   ]);
 

@@ -7,7 +7,7 @@ const CERTIFICATE_SERIAL = /^[0-9A-F]+$/u;
 const OID = /^\d+(?:\.\d+)+$/u;
 const CODE_SIGNING_EKU_OID = "1.3.6.1.5.5.7.3.3";
 const TIME_STAMPING_EKU_OID = "1.3.6.1.5.5.7.3.8";
-const NOT_SIGNED_STATUS_MESSAGE = /^The file (?:[A-Za-z]:\\|\\\\[^\\\r\n]+\\)[^\r\n]+ is not digitally signed\. You cannot run this script on the current system\. For more information about running scripts and setting execution policy, see about_Execution_Policies at https:\/\/go\.microsoft\.com\/fwlink\/\?LinkID=135170$/u;
+const NOT_SIGNED_STATUS_MESSAGE = "Authenticode signature absent.";
 const ALLOWED_TIMESTAMP_URLS = new Set([
   "https://timestamp.digicert.com",
   "https://timestamp.sectigo.com",
@@ -87,7 +87,7 @@ function isUnsignedAuthenticodeRecord(record) {
   if (typeof descriptors.status.value !== "string"
     || descriptors.status.value !== "NotSigned"
     || typeof descriptors.status_message.value !== "string"
-    || !NOT_SIGNED_STATUS_MESSAGE.test(descriptors.status_message.value)
+    || descriptors.status_message.value !== NOT_SIGNED_STATUS_MESSAGE
     || typeof descriptors.signature_type.value !== "string"
     || descriptors.signature_type.value !== "None"
     || typeof descriptors.time_stamper_certificate_present.value !== "boolean"
@@ -157,7 +157,7 @@ export function matterDesktopAuthenticodePowerShell() {
     "$timestamp = $signature.TimeStamperCertificate",
     "[PSCustomObject]@{",
     "  status = [string]$signature.Status",
-    "  status_message = if ($signature.Status -eq 'Valid') { 'Signature verified.' } else { [string]$signature.StatusMessage }",
+    "  status_message = if ($signature.Status -eq 'Valid') { 'Signature verified.' } elseif ($signature.Status -eq 'NotSigned') { 'Authenticode signature absent.' } else { [string]$signature.StatusMessage }",
     "  signature_type = [string]$signature.SignatureType",
     "  time_stamper_certificate_present = ($null -ne $timestamp)",
     "  signer_subject = if ($signer) { [string]$signer.Subject } else { $null }",

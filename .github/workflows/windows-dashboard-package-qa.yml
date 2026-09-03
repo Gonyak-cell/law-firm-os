@@ -90,7 +90,7 @@ jobs:
         run: npm run matter-desktop:dashboard-package-qa
 
       - name: Upload synthetic-only Windows QA evidence
-        if: always()
+        if: success()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: windows-dashboard-package-qa-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
