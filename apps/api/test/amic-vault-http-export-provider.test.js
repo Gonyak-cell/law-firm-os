@@ -256,6 +256,37 @@ test("AMIC Vault HTTP export provider performs strict authorize, bounded downloa
   });
 });
 
+test("AMIC Vault HTTP export provider accepts only private no-store cache hardening directives", async () => {
+  const hardened = createAmicVaultHttpExportProvider({
+    origin: ORIGIN,
+    token: TOKEN,
+    runtimeProfile: "operational",
+    fetchFn: async () => downloadResponse({
+      "cache-control": "no-store, no-cache, max-age=0, must-revalidate, private",
+    }),
+  });
+  const downloaded = await hardened.downloadExactExport(downloadInput());
+  assert.deepEqual(downloaded.body, BYTES);
+
+  for (const cacheControl of [
+    "private",
+    "no-store, public",
+    "no-store, max-age=60",
+    "no-store, stale-while-revalidate=30",
+  ]) {
+    const provider = createAmicVaultHttpExportProvider({
+      origin: ORIGIN,
+      token: TOKEN,
+      runtimeProfile: "operational",
+      fetchFn: async () => downloadResponse({ "cache-control": cacheControl }),
+    });
+    await assert.rejects(
+      provider.downloadExactExport(downloadInput()),
+      (error) => error.safe_error_code === "VAULT_EXPORT_PROVIDER_RESPONSE_INVALID",
+    );
+  }
+});
+
 test("AMIC Vault HTTP export provider rejects redirects, malformed metadata, oversize bodies, and timeout without credential disclosure", async () => {
   const scenarios = [
     async () => new Response(null, { status: 302, headers: { location: "https://elsewhere.test" } }),
