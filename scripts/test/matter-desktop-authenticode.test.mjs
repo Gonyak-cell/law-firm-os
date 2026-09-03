@@ -189,6 +189,10 @@ test("Authenticode final gate binds public signer, timestamp, and EKU metadata",
 
 test("PowerShell probe emits only public certificate metadata", () => {
   const source = matterDesktopAuthenticodePowerShell();
+  assert.match(source, /\$ErrorActionPreference = 'Stop'/u);
+  assert.match(source, /Get-Item -LiteralPath \$env:MATTER_AUTHENTICODE_PATH -Force -ErrorAction Stop/u);
+  assert.match(source, /Get-AuthenticodeSignature -LiteralPath \$artifact\.FullName -ErrorAction Stop/u);
+  assert.match(source, /\$signature\.Status\.ToString\(\)/u);
   assert.match(
     source,
     /elseif \(\$signature\.Status -eq 'NotSigned'\) \{ 'Authenticode signature absent\.' \}/u,

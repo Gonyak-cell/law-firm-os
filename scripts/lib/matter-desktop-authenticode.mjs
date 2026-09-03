@@ -165,6 +165,7 @@ function validateExecutableParity(expectedExecutableSha256, actualExecutableSha2
 
 export function matterDesktopAuthenticodePowerShell() {
   return [
+    "$ErrorActionPreference = 'Stop'",
     "function Get-EkuOids($certificate) {",
     "  if ($null -eq $certificate) { return @() }",
     "  $extension = $certificate.Extensions | Where-Object { $_.Oid.Value -eq '2.5.29.37' } | Select-Object -First 1",
@@ -177,13 +178,17 @@ export function matterDesktopAuthenticodePowerShell() {
     "  $hasher = [System.Security.Cryptography.SHA256]::Create()",
     "  try { return ([BitConverter]::ToString($hasher.ComputeHash($certificate.RawData))).Replace('-', '') } finally { $hasher.Dispose() }",
     "}",
-    "$signature = Get-AuthenticodeSignature -LiteralPath $env:MATTER_AUTHENTICODE_PATH",
+    "if ([string]::IsNullOrWhiteSpace($env:MATTER_AUTHENTICODE_PATH)) { throw 'Authenticode path is required.' }",
+    "$artifact = Get-Item -LiteralPath $env:MATTER_AUTHENTICODE_PATH -Force -ErrorAction Stop",
+    "if ($artifact.PSIsContainer) { throw 'Authenticode path must be a file.' }",
+    "$signature = Get-AuthenticodeSignature -LiteralPath $artifact.FullName -ErrorAction Stop",
+    "if ($null -eq $signature -or $null -eq $signature.Status) { throw 'Authenticode status is unavailable.' }",
     "$signer = $signature.SignerCertificate",
     "$timestamp = $signature.TimeStamperCertificate",
     "[PSCustomObject]@{",
-    "  status = [string]$signature.Status",
+    "  status = $signature.Status.ToString()",
     "  status_message = if ($signature.Status -eq 'Valid') { 'Signature verified.' } elseif ($signature.Status -eq 'NotSigned') { 'Authenticode signature absent.' } else { [string]$signature.StatusMessage }",
-    "  signature_type = [string]$signature.SignatureType",
+    "  signature_type = if ($null -eq $signature.SignatureType) { $null } else { $signature.SignatureType.ToString() }",
     "  time_stamper_certificate_present = ($null -ne $timestamp)",
     "  signer_subject = if ($signer) { [string]$signer.Subject } else { $null }",
     "  signer_issuer = if ($signer) { [string]$signer.Issuer } else { $null }",
