@@ -27,6 +27,13 @@ const VAULT_SHA256 = /^[a-f0-9]{64}$/u;
 const VAULT_FILE_NAME = /^(?=.{1,240}$)[^"\\/\u0000-\u001f\u007f]+$/u;
 const VAULT_FILE_NAME_SURROGATE = /[\uD800-\uDFFF]/u;
 const VAULT_MIME_TYPE = /^[A-Za-z0-9!#$&^_.+-]+\/[A-Za-z0-9!#$&^_.+-]+$/u;
+const VAULT_PRIVATE_NO_STORE_DIRECTIVES = new Set([
+  "no-store",
+  "no-cache",
+  "max-age=0",
+  "must-revalidate",
+  "private",
+]);
 const moduleDir = dirname(fileURLToPath(import.meta.url));
 const FORBIDDEN_RESPONSE_FIELDS = new Set([
   "access_token",
@@ -252,6 +259,16 @@ function vaultExportError(code, message, status = 409) {
     safe_error_code: code,
     status,
   });
+}
+
+function privateNoStore(value) {
+  const directives = String(value ?? "")
+    .toLowerCase()
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+  return directives.includes("no-store")
+    && directives.every((item) => VAULT_PRIVATE_NO_STORE_DIRECTIVES.has(item));
 }
 
 function normalizeVaultExactVersion(value) {
@@ -950,8 +967,9 @@ export function createMatterVaultAwsRuntimeClient({ baseUrl, operatorToken, fetc
       });
       if (response.headers?.get?.("x-amic-vault-operation-id") !== operationId
           || response.headers?.get?.("content-length") !== String(exact.byte_size)
-          || response.headers?.get?.("cache-control") !== "private, no-store"
+          || !privateNoStore(response.headers?.get?.("cache-control"))
           || response.headers?.get?.("x-content-type-options") !== "nosniff"
+          || response.headers?.get?.("content-encoding") != null
           || !sameVaultExactVersion(responseExact, exact)
           || !response.body
           || typeof response.body[Symbol.asyncIterator] !== "function") {

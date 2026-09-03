@@ -1398,7 +1398,7 @@ test("desktop runtime preflights, downloads, verifies, and acknowledges one exac
         return binaryResponse(200, {
           "content-type": exactVersion.mime_type,
           "content-length": exactVersion.byte_size,
-          "cache-control": "private, no-store",
+          "cache-control": "no-store, no-cache, max-age=0, must-revalidate, private",
           "x-content-type-options": "nosniff",
           "x-amic-vault-operation-id": operationId,
           "x-amic-vault-document-id": exactVersion.document_id,
@@ -1517,7 +1517,7 @@ test("desktop runtime records a safe Outlook host failure without exposing local
   assert.equal(JSON.stringify(failed).includes("lawos_session_v1.secret"), false);
 });
 
-test("desktop runtime discards exact export bytes when the server header binding changes", async () => {
+test("desktop runtime discards exact export bytes when the server header binding or cache policy changes", async () => {
   const bytes = Buffer.from("tamper check\n");
   const operationId = "vaultop_eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee";
   const exactVersion = {
@@ -1557,6 +1557,42 @@ test("desktop runtime discards exact export bytes when the server header binding
   });
   await assert.rejects(
     () => client.downloadVaultExactVersion({
+      matterId: "matter-001",
+      exactVersion,
+      sessionToken: "lawos_session_v1.secret",
+    }),
+    (error) => error?.code === "VAULT_EXPORT_RESPONSE_MISMATCH",
+  );
+
+  let unsafeCacheCall = 0;
+  const unsafeCacheClient = createMatterVaultAwsRuntimeClient({
+    baseUrl: "http://127.0.0.1:4812",
+    fetchImpl: async () => {
+      unsafeCacheCall += 1;
+      if (unsafeCacheCall === 1) return jsonResponse(200, {
+        ok: true,
+        outcome: "export_authorized",
+        operation_kind: "export_exact_version",
+        operation_id: operationId,
+        attachment_name: "contract.pdf",
+        exact_version: exactVersion,
+      });
+      return binaryResponse(200, {
+        "content-type": exactVersion.mime_type,
+        "content-length": exactVersion.byte_size,
+        "cache-control": "private, no-store, max-age=60",
+        "x-content-type-options": "nosniff",
+        "x-amic-vault-operation-id": operationId,
+        "x-amic-vault-document-id": exactVersion.document_id,
+        "x-amic-vault-version-id": exactVersion.version_id,
+        "x-amic-vault-file-object-id": exactVersion.file_object_id,
+        "x-amic-vault-sha256": exactVersion.sha256,
+        "x-amic-vault-byte-size": exactVersion.byte_size,
+      }, [bytes]);
+    },
+  });
+  await assert.rejects(
+    () => unsafeCacheClient.downloadVaultExactVersion({
       matterId: "matter-001",
       exactVersion,
       sessionToken: "lawos_session_v1.secret",
