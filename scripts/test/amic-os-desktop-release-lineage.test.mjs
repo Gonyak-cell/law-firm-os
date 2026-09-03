@@ -24,7 +24,7 @@ function changedContract(mutate) {
   return value;
 }
 
-test("release-lineage source report binds the protected 0.1.29 baseline to selected version 0.1.31", async () => {
+test("release-lineage source report binds the protected 0.1.29 baseline to selected version 0.1.32", async () => {
   const result = await validateAmicOsDesktopReleaseLineage({ repoRoot });
   assert.deepEqual(result, {
     schema_version: "law-firm-os.amic-os-desktop-release-lineage-validation.v1",
@@ -34,7 +34,7 @@ test("release-lineage source report binds the protected 0.1.29 baseline to selec
     channel: "internal",
     user_visible_product: "AMIC OS",
     technical_executable_name: "matter",
-    current_version: "0.1.31",
+    current_version: "0.1.32",
     protected_version_floor: "0.1.29",
     version_comparison: 1,
     version_forward: true,
@@ -44,7 +44,7 @@ test("release-lineage source report binds the protected 0.1.29 baseline to selec
     developer_id_notarized_profile_count: 1,
     windows_unsigned_internal_canary_preserved: true,
     release_version_selected: true,
-    selected_release_version: "0.1.31",
+    selected_release_version: "0.1.32",
     candidate_artifact_built: false,
     candidate_artifact_signed: false,
     production_ready: false,
