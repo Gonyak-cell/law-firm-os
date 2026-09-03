@@ -27,6 +27,13 @@ const VAULT_SHA256 = /^[a-f0-9]{64}$/u;
 const VAULT_FILE_NAME = /^(?=.{1,240}$)[^"\\/\u0000-\u001f\u007f]+$/u;
 const VAULT_FILE_NAME_SURROGATE = /[\uD800-\uDFFF]/u;
 const VAULT_MIME_TYPE = /^[A-Za-z0-9!#$&^_.+-]+\/[A-Za-z0-9!#$&^_.+-]+$/u;
+const VAULT_PRIVATE_NO_STORE_DIRECTIVES = new Set([
+  "no-store",
+  "no-cache",
+  "max-age=0",
+  "must-revalidate",
+  "private",
+]);
 const moduleDir = dirname(fileURLToPath(import.meta.url));
 const FORBIDDEN_RESPONSE_FIELDS = new Set([
   "access_token",
@@ -252,6 +259,16 @@ function vaultExportError(code, message, status = 409) {
     safe_error_code: code,
     status,
   });
+}
+
+function privateNoStore(value) {
+  const directives = String(value ?? "")
+    .toLowerCase()
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+  return directives.includes("no-store")
+    && directives.every((item) => VAULT_PRIVATE_NO_STORE_DIRECTIVES.has(item));
 }
 
 function normalizeVaultExactVersion(value) {
@@ -918,6 +935,7 @@ export function createMatterVaultAwsRuntimeClient({ baseUrl, operatorToken, fetc
       response = await fetchImpl(new URL(DESKTOP_VAULT_EXPORT_DOWNLOAD_PATH.slice(1), `${baseUrl}/`), {
         method: "POST",
         headers: {
+          "accept-encoding": "identity",
           authorization: `Bearer ${signedSessionToken}`,
           "content-type": "application/json; charset=utf-8",
           "idempotency-key": operationId,
@@ -949,8 +967,9 @@ export function createMatterVaultAwsRuntimeClient({ baseUrl, operatorToken, fetc
       });
       if (response.headers?.get?.("x-amic-vault-operation-id") !== operationId
           || response.headers?.get?.("content-length") !== String(exact.byte_size)
-          || response.headers?.get?.("cache-control") !== "private, no-store"
+          || !privateNoStore(response.headers?.get?.("cache-control"))
           || response.headers?.get?.("x-content-type-options") !== "nosniff"
+          || response.headers?.get?.("content-encoding") != null
           || !sameVaultExactVersion(responseExact, exact)
           || !response.body
           || typeof response.body[Symbol.asyncIterator] !== "function") {
@@ -1000,6 +1019,7 @@ export function createMatterVaultAwsRuntimeClient({ baseUrl, operatorToken, fetc
     exactVersion,
     operationKind = "export_exact_version",
     completionStage,
+    safeReasonCode,
     installationRefSha256,
     composeTargetSha256,
     sessionToken,
@@ -1010,9 +1030,12 @@ export function createMatterVaultAwsRuntimeClient({ baseUrl, operatorToken, fetc
     }
     const exact = normalizeVaultExactVersion(exactVersion);
     const attachOutlook = operationKind === "attach_outlook";
-    const expectedStage = attachOutlook ? "attached" : "delivered";
+    const failed = attachOutlook && completionStage === "failed";
+    const expectedStage = failed ? "failed" : attachOutlook ? "attached" : "delivered";
     if ((!attachOutlook && operationKind !== "export_exact_version")
         || (completionStage != null && completionStage !== expectedStage)
+        || (failed && !VAULT_BINDING_ID.test(String(safeReasonCode ?? "")))
+        || (!failed && safeReasonCode != null)
         || (attachOutlook
           && (!VAULT_SHA256.test(installationRefSha256 ?? "")
             || !VAULT_SHA256.test(composeTargetSha256 ?? "")))) {
@@ -1023,6 +1046,10 @@ export function createMatterVaultAwsRuntimeClient({ baseUrl, operatorToken, fetc
       operation_kind: "attach_outlook",
       installation_ref_sha256: installationRefSha256,
       compose_target_sha256: composeTargetSha256,
+    });
+    if (failed) Object.assign(completionBody, {
+      completion_stage: "failed",
+      safe_reason_code: safeReasonCode,
     });
     const response = await requestJson(DESKTOP_VAULT_EXPORT_COMPLETE_PATH, {
       method: "POST",

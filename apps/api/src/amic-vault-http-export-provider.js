@@ -25,6 +25,13 @@ const SAFE_HEADER_VALUE = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,255}$/u;
 const SHA256 = /^[a-f0-9]{64}$/u;
 const MIME_TYPE = /^[A-Za-z0-9!#$&^_.+-]+\/[A-Za-z0-9!#$&^_.+-]+$/u;
 const LOOPBACK_HOSTS = new Set(["127.0.0.1", "[::1]", "localhost"]);
+const PRIVATE_NO_STORE_DIRECTIVES = new Set([
+  "no-store",
+  "no-cache",
+  "max-age=0",
+  "must-revalidate",
+  "private",
+]);
 
 function providerError(code, message, status = 503) {
   return new AmicVaultExportProviderError(code, message, status);
@@ -192,23 +199,21 @@ function exactContentDisposition(filename) {
   return `attachment; filename="${fallback}"; filename*=UTF-8''${encoded}`;
 }
 
-function safeNoStoreCacheControl(value) {
-  if (typeof value !== "string") return false;
-  const directives = value.split(",").map((entry) => entry.trim().toLowerCase());
-  if (!directives.includes("no-store")) return false;
-  return !directives.some((directive) => (
-    directive === "public"
-    || directive === "immutable"
-    || directive.startsWith("s-maxage=")
-    || (directive.startsWith("max-age=") && directive !== "max-age=0")
-  ));
+function privateNoStore(value) {
+  const directives = String(value ?? "")
+    .toLowerCase()
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+  return directives.includes("no-store")
+    && directives.every((item) => PRIVATE_NO_STORE_DIRECTIVES.has(item));
 }
 
 function exactDownloadMetadata(response, authorization) {
   const mimeType = String(response.headers.get("content-type") ?? "").toLowerCase();
   const sha256 = String(response.headers.get("x-amic-vault-sha256") ?? "");
   const byteSize = Number(response.headers.get("x-amic-vault-byte-size"));
-  if (!safeNoStoreCacheControl(response.headers.get("cache-control"))
+  if (!privateNoStore(response.headers.get("cache-control"))
       || response.headers.get("x-content-type-options") !== "nosniff"
       || response.headers.get("content-encoding") != null
       || !MIME_TYPE.test(mimeType)

@@ -48,20 +48,36 @@ function uploadHarness({
     order.push("dialog");
     return originalShowOpenDialog(options);
   };
-  const stream = { destroyed: false, destroy() { this.destroyed = true; } };
-  const openedFile = {
-    closed: false,
-    async stat() {
-      return openedStat;
-    },
-    createReadStream(options) {
-      assert.deepEqual(options, { autoClose: false, start: 0 });
-      return stream;
-    },
-    async close() {
-      this.closed = true;
-    }
+  const streams = [];
+  const openedFiles = [];
+  const createOpenedFile = () => {
+    const openedFile = {
+      closed: false,
+      async stat() {
+        if (this.closed) throw Object.assign(new Error("file closed"), { code: "EBADF" });
+        return openedStat;
+      },
+      createReadStream(options) {
+        assert.deepEqual(options, { autoClose: true, start: 0 });
+        const stream = {
+          destroyed: false,
+          destroy() {
+            this.destroyed = true;
+            openedFile.closed = true;
+          },
+        };
+        streams.push(stream);
+        return stream;
+      },
+      async close() {
+        this.closed = true;
+      }
+    };
+    openedFiles.push(openedFile);
+    return openedFile;
   };
+  const openedFile = createOpenedFile();
+  let openCount = 0;
   const controller = createFileBridgeController({
     dialog,
     permissionClient,
@@ -73,7 +89,8 @@ function uploadHarness({
     openImpl: async (filePath, flags) => {
       assert.equal(filePath, TEST_FILE_PATH);
       assert.equal(flags, "r");
-      return openedFile;
+      openCount += 1;
+      return openCount === 1 ? openedFile : createOpenedFile();
     },
     now,
     setTimeoutImpl: inactiveTimer,
@@ -85,9 +102,11 @@ function uploadHarness({
     controller,
     dialog,
     openedFile,
+    openedFiles,
     order,
     permissionChecks,
-    stream
+    get stream() { return streams[0]; },
+    streams,
   };
 }
 
@@ -172,10 +191,15 @@ test("cancel clears only the opaque handle and never deletes the user's file", a
 
 test("upload streams from a re-opened stable file and returns only an exact safe receipt", async () => {
   const uploads = [];
+  let unchangedAfterStreamClose = false;
   const harness = uploadHarness({
     uploadProvider: {
       async uploadSelectedFile(payload) {
         uploads.push(payload);
+        const verificationStream = await payload.openStream();
+        verificationStream.destroy();
+        await payload.assertUnchanged();
+        unchangedAfterStreamClose = true;
         return {
           state: "uploaded",
           requestId: "request-001",
@@ -199,7 +223,7 @@ test("upload streams from a re-opened stable file and returns only an exact safe
   assert.equal(uploads[0].stream, harness.stream);
   assert.equal(typeof uploads[0].openStream, "function");
   assert.equal(typeof uploads[0].assertUnchanged, "function");
-  await uploads[0].assertUnchanged();
+  assert.equal(unchangedAfterStreamClose, true);
   assert.equal(uploads[0].matterId, "matter_001");
   assert.equal(uploads[0].workspaceId, "workspace_001");
   assert.equal(uploads[0].operationId, "server-operation-001");
@@ -212,6 +236,7 @@ test("upload streams from a re-opened stable file and returns only an exact safe
   assert.equal(JSON.stringify(receipt).includes("must-not-return"), false);
   assert.equal(harness.stream.destroyed, true);
   assert.equal(harness.openedFile.closed, true);
+  assert.equal(harness.openedFiles.every((file) => file.closed), true);
   assert.equal(harness.controller.lifecycleSnapshotForTest().selectedHandleCount, 0);
   harness.controller.dispose();
 });

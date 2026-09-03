@@ -100,6 +100,32 @@ function authorizationInput(state, overrides = {}) {
   };
 }
 
+function createAppendOnlyDomainLedger() {
+  const idempotency = [];
+  const audit = [];
+  const copy = (value) => structuredClone(value);
+  const tx = {
+    list: async () => [],
+    listIdempotency: async () => copy(idempotency),
+    listAudit: async () => copy(audit),
+    addReferences: async () => {},
+    claimIdempotency: async (entry) => {
+      const existing = idempotency.find((candidate) => candidate.key === entry.key);
+      if (existing) return { replayed: true, record: copy(existing) };
+      idempotency.push(copy(entry));
+      return { replayed: false, record: copy(entry) };
+    },
+    appendAudit: async (event) => audit.push(copy(event)),
+    enqueueOutbox: async () => {},
+  };
+  return Object.freeze({
+    list: tx.list,
+    listIdempotency: tx.listIdempotency,
+    listAudit: tx.listAudit,
+    transaction: async (_scope, command) => command(tx),
+  });
+}
+
 test("exact export authorizes, verifies provider bytes, consumes once, and records no bytes or provider grant in receipts", async () => {
   const state = harness();
   const authorized = await authorizeAmicVaultExactExport(authorizationInput(state));
@@ -187,6 +213,49 @@ test("exact export authorizes, verifies provider bytes, consumes once, and recor
   assert.equal(serializedLedger.includes('"body"'), false);
   assert.equal(serializedPublic.includes("provider_export_ref"), false);
   assert.equal(serializedPublic.includes('"server_owned_bytes"'), false);
+});
+
+test("exact export persists immutable stage snapshots across PostgreSQL-style unit-of-work restarts", async () => {
+  const state = harness();
+  const ledger = createAppendOnlyDomainLedger();
+  const run = (command) => runRecordRepositoryDomainCommand({
+    ledger,
+    descriptor: DMS_AUXILIARY_DOMAIN_DESCRIPTOR,
+    tenant_id: TENANT,
+    create_repository: createDmsAuxiliaryRepository,
+    command,
+  });
+  const authorized = (await run((repository) => authorizeAmicVaultExactExport({
+    ...authorizationInput(state),
+    dmsRuntime: { repository },
+  }))).result;
+  const downloaded = (await run((repository) => downloadAuthorizedAmicVaultExactExport({
+    principal: { tenant_id: TENANT, user_id: ACTOR },
+    dmsRuntime: { repository },
+    vaultExportProvider: state.provider,
+    operationId: authorized.operation_id,
+    requestId: "request-export-postgres-download",
+    now: state.now,
+  }))).result;
+  assert.deepEqual(downloaded.server_owned_bytes, CONTENT);
+  const completed = (await run((repository) => completeAmicVaultExactExport({
+    principal: { tenant_id: TENANT, user_id: ACTOR },
+    dmsRuntime: { repository },
+    operationId: authorized.operation_id,
+    completionStage: "delivered",
+    expectedExactVersion: state.exactVersion,
+    requestId: "request-export-postgres-complete",
+    now: state.now,
+  }))).result;
+  assert.equal(completed.receipt.stage, "delivered");
+  const prefix = `amic-os-vault-export-state:${authorized.operation_id}`;
+  assert.deepEqual(
+    (await ledger.listIdempotency())
+      .map((entry) => entry.key)
+      .filter((key) => key.startsWith(prefix))
+      .sort(),
+    [prefix, `${prefix}:delivered`, `${prefix}:downloaded`].sort(),
+  );
 });
 
 test("authorization is replayable only before consumption and provider download is never replayed", async () => {
@@ -382,4 +451,66 @@ test("PostgreSQL DMS auxiliary ledger preserves exact export stages as immutable
     .map((entry) => decodeRecordDomainIdempotencyResponse(entry.response).response.receipts.at(-1).stage)
     .sort();
   assert.deepEqual(persistedStages, ["authorized", "delivered", "downloaded"]);
+});
+
+test("a downloaded Outlook export records one terminal failed receipt when the host cannot attach", async () => {
+  const state = harness();
+  const authorized = await authorizeAmicVaultExactExport(authorizationInput(state, {
+    operationKind: "attach_outlook",
+    installationRefSha256: INSTALLATION,
+    composeTargetSha256: COMPOSE,
+  }));
+  await downloadAuthorizedAmicVaultExactExport({
+    principal: { tenant_id: TENANT, user_id: ACTOR },
+    dmsRuntime: { repository: state.repository },
+    vaultExportProvider: state.provider,
+    operationId: authorized.operation_id,
+    requestId: "request-outlook-export-download-failed",
+    now: state.now,
+  });
+
+  const failed = completeAmicVaultExactExport({
+    principal: { tenant_id: TENANT, user_id: ACTOR },
+    dmsRuntime: { repository: state.repository },
+    operationId: authorized.operation_id,
+    completionStage: "failed",
+    safeReasonCode: "CLASSIC_OUTLOOK_HOST_UNAVAILABLE",
+    expectedExactVersion: state.exactVersion,
+    requestId: "request-outlook-export-failed",
+    now: state.now,
+  });
+  assert.equal(failed.outcome, "failed");
+  assert.equal(failed.receipt.stage, "failed");
+  assert.equal(failed.receipt.safe_reason_code, "CLASSIC_OUTLOOK_HOST_UNAVAILABLE");
+  assert.equal(failed.receipt.decision, "error");
+
+  const replay = completeAmicVaultExactExport({
+    principal: { tenant_id: TENANT, user_id: ACTOR },
+    dmsRuntime: { repository: state.repository },
+    operationId: authorized.operation_id,
+    completionStage: "failed",
+    safeReasonCode: "CLASSIC_OUTLOOK_HOST_UNAVAILABLE",
+    expectedExactVersion: state.exactVersion,
+    requestId: "request-outlook-export-failed-replay",
+    now: state.now,
+  });
+  assert.equal(replay.receipt.receipt_id, failed.receipt.receipt_id);
+  assert.throws(
+    () => completeAmicVaultExactExport({
+      principal: { tenant_id: TENANT, user_id: ACTOR },
+      dmsRuntime: { repository: state.repository },
+      operationId: authorized.operation_id,
+      completionStage: "attached",
+      expectedExactVersion: state.exactVersion,
+      requestId: "request-outlook-export-failed-changed",
+      now: state.now,
+    }),
+    (error) => error?.code === "LAWOS_VAULT_OPERATION_IDEMPOTENCY_CONFLICT",
+  );
+  assert.deepEqual(
+    state.repository.listAudit({ tenant_id: TENANT })
+      .filter((event) => event.object_id === authorized.operation_id)
+      .map((event) => event.after.stage),
+    ["requested", "authorized", "downloaded", "failed"],
+  );
 });

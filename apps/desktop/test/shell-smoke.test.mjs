@@ -320,6 +320,52 @@ test("desktop file bridge export adapters preserve exact version binding and kee
   });
 });
 
+test("desktop Vault document provider forwards only a safe Outlook failure completion", async () => {
+  const exactVersion = {
+    document_id: "document-001",
+    version_id: "version-007",
+    file_object_id: "file-object-007",
+    sha256: "c".repeat(64),
+    byte_size: 19,
+    mime_type: "application/pdf",
+  };
+  const coordinator = {
+    async downloadVaultExactVersion() { throw new Error("not used"); },
+    async completeVaultExport(request) {
+      assert.deepEqual(request, {
+        operationId: "vaultop_ffffffffffffffffffffffffffffffff",
+        exactVersion,
+        operationKind: "attach_outlook",
+        completionStage: "failed",
+        installationRefSha256: "4".repeat(64),
+        composeTargetSha256: "5".repeat(64),
+        safeReasonCode: "CLASSIC_OUTLOOK_HOST_UNAVAILABLE",
+      });
+      return {
+        http_status: 200,
+        ok: true,
+        outcome: "failed",
+        operation_id: request.operationId,
+        receipt: { stage: "failed", receipt_id: "receipt-export-failed-001" },
+      };
+    },
+  };
+  const provider = createDesktopVaultDocumentProvider(coordinator);
+  assert.deepEqual(await provider.completeDocumentSave({
+    operationId: "vaultop_ffffffffffffffffffffffffffffffff",
+    exactVersion,
+    operationKind: "attach_outlook",
+    completionStage: "failed",
+    safeReasonCode: "CLASSIC_OUTLOOK_HOST_UNAVAILABLE",
+    installationRefSha256: "4".repeat(64),
+    composeTargetSha256: "5".repeat(64),
+  }), {
+    state: "failed",
+    operationId: "vaultop_ffffffffffffffffffffffffffffffff",
+    receiptId: "receipt-export-failed-001",
+  });
+});
+
 test("desktop Vault upload provider returns only the exact server receipt projection", async () => {
   const provider = createDesktopVaultUploadProvider({
     async uploadVaultFile(request) {

@@ -24,7 +24,7 @@ function request(overrides = {}) {
   };
 }
 
-function harness({ allowed = true } = {}) {
+function harness({ allowed = true, hostError = null } = {}) {
   const order = [];
   const providerFetches = [];
   const providerCompletions = [];
@@ -80,6 +80,7 @@ function harness({ allowed = true } = {}) {
       async deliverClaim(input, attachment) {
         order.push("host");
         hostDeliveries.push({ input, attachment });
+        if (hostError) throw hostError;
         return {
           state: "attached",
           sha256: attachment.exactVersion.sha256,
@@ -159,5 +160,24 @@ test("Classic Outlook attach rejects renderer bytes and renderer-selected author
     (error) => error.code === "RENDERER_AUTHORITY_FIELD_FORBIDDEN",
   );
   assert.deepEqual(state.order, []);
+  state.controller.dispose();
+});
+
+test("Classic Outlook attach terminally records a safe failure when the host delivery fails", async () => {
+  const hostError = new FileBridgeError(
+    "CLASSIC_OUTLOOK_HOST_UNAVAILABLE",
+    "Classic Outlook is not running",
+  );
+  const state = harness({ hostError });
+  await assert.rejects(
+    () => state.controller.attachDocumentToClassicOutlook(request(), OWNER_A),
+    (error) => error === hostError,
+  );
+  assert.deepEqual(state.order, ["precheck", "claim", "provider", "host", "complete"]);
+  assert.equal(state.providerCompletions.length, 1);
+  assert.equal(state.providerCompletions[0].completionStage, "failed");
+  assert.equal(state.providerCompletions[0].safeReasonCode, "CLASSIC_OUTLOOK_HOST_UNAVAILABLE");
+  assert.equal(state.auditEvents.at(-1).eventName, "file_bridge.outlook-attach.failed");
+  assert.equal(state.auditEvents.at(-1).reason, "CLASSIC_OUTLOOK_HOST_UNAVAILABLE");
   state.controller.dispose();
 });
