@@ -517,8 +517,9 @@ export async function validateAmicOsVaultSingleInstallSource({
     "scripts/run-formal-macos-package-qa.mjs",
     "scripts/run-formal-windows-package-qa.mjs",
   ].map((filePath) => readFile(path.join(repoRoot, filePath), "utf8")));
-  if (!/await rm\(runtimeDir, \{ recursive: true, force: true \}\);\s*if \(formalRelease\) return \{ included: false, runtimeDir \};/u.test(desktopRuntimeSource)) {
-    fail("formal packaging must remove the complete local runtime tree");
+  if (!/if \(formalRelease && includeLocalRuntime\) \{\s*throw new Error\("formal release cannot include the desktop local API runtime"\);\s*\}/u.test(desktopRuntimeSource)
+      || !/await rm\(runtimeDir, \{ recursive: true, force: true \}\);\s*if \(!includeLocalRuntime\) return \{ included: false, runtimeDir \};/u.test(desktopRuntimeSource)) {
+    fail("formal or explicitly excluded packaging must remove the complete local runtime tree");
   }
   if (!/existsSync\(PACKAGED_LOCAL_RUNTIME\), false, "formal package must not bundle the local API runtime tree"/u.test(formalMacQaSource)) {
     fail("formal macOS QA must reject any packaged local runtime tree");
