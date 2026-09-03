@@ -500,6 +500,44 @@ test("Lambda HTTP proxy preserves exact Outlook Vault delivery bytes as API Gate
   assert.equal(response.headers["cache-control"], "private, max-age=60, immutable");
 });
 
+test("Lambda HTTP proxy preserves exact desktop Vault export bytes as Function URL base64", async () => {
+  const bytes = Buffer.from([0, 255, 1, 2, 128, 64, 10]);
+  let forwardedRequest = null;
+  const lambdaHandler = createLambdaHttpHandler({
+    runtimeCache: Object.freeze({
+      async get() { return { port: 32123 }; },
+    }),
+    fetchFn: async (url, options) => {
+      forwardedRequest = { url, options };
+      return new Response(bytes, {
+        status: 200,
+        headers: {
+          "content-type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          "content-length": String(bytes.byteLength),
+          "cache-control": "private, no-store",
+          "x-content-type-options": "nosniff",
+          "x-amic-vault-operation-id": "vaultop_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        },
+      });
+    },
+  });
+
+  const response = await lambdaHandler({
+    rawPath: "/api/vault/desktop/export-download",
+    requestContext: { http: { method: "POST" } },
+    body: JSON.stringify({ operation_id: "vaultop_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" }),
+  });
+  assert.equal(forwardedRequest.url, "http://127.0.0.1:32123/api/vault/desktop/export-download");
+  assert.equal(forwardedRequest.options.method, "POST");
+  assert.equal(response.statusCode, 200);
+  assert.equal(response.isBase64Encoded, true);
+  assert.deepEqual(Buffer.from(response.body, "base64"), bytes);
+  assert.equal(response.headers["content-length"], String(bytes.byteLength));
+  assert.equal(response.headers["cache-control"], "private, no-store");
+  assert.equal(response.headers["x-content-type-options"], "nosniff");
+  assert.equal(response.headers["x-amic-vault-operation-id"], "vaultop_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+});
+
 test("Lambda Outlook Vault delivery failure logs no opaque delivery token", async () => {
   const logs = [];
   const privateToken = "lawos_ovd_v1.PRIVATE_TOKEN_PART.ciphertext.auth-tag";

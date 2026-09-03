@@ -4762,8 +4762,10 @@ export function createLambdaHttpHandler({
       redirect: "manual",
     });
     const path = event.rawPath || event.path || "/";
-    const binaryVaultDelivery = method === "GET"
-      && path.startsWith(OUTLOOK_VAULT_ATTACHMENT_DELIVERY_PREFIX)
+    const binaryVaultDelivery = (
+      (method === "GET" && path.startsWith(OUTLOOK_VAULT_ATTACHMENT_DELIVERY_PREFIX))
+      || (method === "POST" && path === "/api/vault/desktop/export-download")
+    )
       && response.status >= 200
       && response.status < 300;
     const body = binaryVaultDelivery
