@@ -4,6 +4,8 @@ import test from "node:test";
 import {
   EXTERNAL_PILOT_UPDATE_CHANNEL,
   EXTERNAL_PILOT_UPDATE_SCHEMA,
+  INTERNAL_UNSIGNED_UPDATE_CHANNEL,
+  INTERNAL_UNSIGNED_UPDATE_SCHEMA,
   INTERNAL_UPDATE_KEY_ID,
   createUpdateController,
   signUpdateMetadata,
@@ -23,6 +25,32 @@ function internalMetadata(version, artifactBytes) {
     keyId: INTERNAL_UPDATE_KEY_ID,
     artifactSha256: digest(artifactBytes),
     artifactBytes: artifactBytes.length,
+  };
+}
+
+function internalUnsignedMetadata(version, artifactBytes, overrides = {}) {
+  return {
+    schemaVersion: INTERNAL_UNSIGNED_UPDATE_SCHEMA,
+    releaseId: "amic-os-internal-0.1.32",
+    version,
+    channel: INTERNAL_UNSIGNED_UPDATE_CHANNEL,
+    lawosTenantId: "amic-internal",
+    installationId: "JWS-GALAXYBOOK-amic-os",
+    appId: "com.amic.matter.desktop.internal",
+    keyId: INTERNAL_UPDATE_KEY_ID,
+    sourceSha: "a".repeat(40),
+    sourceTree: "b".repeat(40),
+    artifactFilename: `AMIC-OS-internal-${version}-win-x64.exe`,
+    artifactSha256: digest(artifactBytes),
+    artifactBytes: artifactBytes.length,
+    releaseManifestSha256: "c".repeat(64),
+    authenticodeStatus: "not_signed",
+    distribution: "private",
+    managedDeviceOnly: true,
+    publicReleaseAllowed: false,
+    generatedAt: "2026-09-03T10:00:00.000Z",
+    expiresAt: "2026-09-10T10:00:00.000Z",
+    ...overrides,
   };
 }
 
@@ -101,6 +129,78 @@ test("public and untrusted update channels fail closed", async () => {
     state: "denied",
     reason: "signature_check_failed",
   });
+});
+
+test("internal-unsigned updates require exact tenant, installation, app, source, and private distribution bindings", async () => {
+  const artifactBytes = Buffer.from("managed-internal-unsigned-update");
+  const metadata = internalUnsignedMetadata("0.1.32", artifactBytes);
+  const controller = createUpdateController({
+    currentVersion: "0.1.31",
+    channel: INTERNAL_UNSIGNED_UPDATE_CHANNEL,
+    lawosTenantId: metadata.lawosTenantId,
+    installationId: metadata.installationId,
+    appId: metadata.appId,
+    trustedPublicKeys,
+    now: () => Date.parse("2026-09-03T11:00:00.000Z"),
+  });
+
+  const applied = await controller.applyUpdate({
+    metadata,
+    signature: signUpdateMetadata(metadata, privateKey),
+    artifactBytes,
+  });
+
+  assert.equal(applied.state, "updated");
+  assert.equal(applied.version, "0.1.32");
+});
+
+test("internal-unsigned updates reject unmanaged, expired, revoked, public, or schema-drifted metadata", async () => {
+  const artifactBytes = Buffer.from("managed-internal-unsigned-update");
+  const metadata = internalUnsignedMetadata("0.1.32", artifactBytes);
+  const controller = createUpdateController({
+    currentVersion: "0.1.31",
+    channel: INTERNAL_UNSIGNED_UPDATE_CHANNEL,
+    lawosTenantId: metadata.lawosTenantId,
+    installationId: metadata.installationId,
+    appId: metadata.appId,
+    revokedReleaseIds: ["amic-os-internal-revoked"],
+    trustedPublicKeys,
+    now: () => Date.parse("2026-09-03T11:00:00.000Z"),
+  });
+  const apply = async (candidate) => controller.applyUpdate({
+    metadata: candidate,
+    signature: signUpdateMetadata(candidate, privateKey),
+    artifactBytes,
+  });
+
+  assert.deepEqual(await apply({ ...metadata, installationId: "unmanaged-device" }), {
+    state: "denied",
+    reason: "managed_installation_mismatch",
+  });
+  const expired = {
+    ...metadata,
+    generatedAt: "2026-08-01T10:00:00.000Z",
+    expiresAt: "2026-08-08T10:00:00.000Z",
+  };
+  assert.deepEqual(await apply(expired), {
+    state: "denied",
+    reason: "metadata_expired_or_not_active",
+  });
+  const revoked = { ...metadata, releaseId: "amic-os-internal-revoked" };
+  assert.deepEqual(await apply(revoked), {
+    state: "denied",
+    reason: "release_revoked",
+  });
+  const publicDistribution = { ...metadata, distribution: "public" };
+  assert.throws(
+    () => signUpdateMetadata(publicDistribution, privateKey),
+    /update metadata is invalid/,
+  );
+  const extraField = { ...metadata, apiKey: "must-never-be-here" };
+  assert.throws(
+    () => signUpdateMetadata(extraField, privateKey),
+    /update metadata is invalid/,
+  );
 });
 
 test("external pilot update is pinned to app, tenant namespaces, approval, and active metadata", async () => {

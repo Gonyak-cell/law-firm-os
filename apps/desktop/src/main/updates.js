@@ -7,12 +7,39 @@ import {
 } from "node:crypto";
 
 export const INTERNAL_UPDATE_KEY_ID = "matter-internal-update-key-v1";
+export const INTERNAL_UNSIGNED_UPDATE_CHANNEL = "internal-unsigned";
+export const INTERNAL_UNSIGNED_UPDATE_SCHEMA =
+  "law-firm-os.matter-desktop-internal-unsigned-update.v1";
 export const EXTERNAL_PILOT_UPDATE_CHANNEL = "external-pilot";
 export const EXTERNAL_PILOT_UPDATE_SCHEMA = "law-firm-os.matter-desktop-external-pilot-update.v2";
 
 const SHA256 = /^[0-9a-f]{64}$/u;
 const GIT_OBJECT = /^[0-9a-f]{40}$/u;
 const VERSION = /^\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?$/u;
+const IDENTIFIER = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,199}$/u;
+const ARTIFACT_FILENAME = /^[A-Za-z0-9][A-Za-z0-9._-]{0,199}$/u;
+const INTERNAL_UNSIGNED_FIELDS = [
+  "appId",
+  "artifactBytes",
+  "artifactFilename",
+  "artifactSha256",
+  "authenticodeStatus",
+  "channel",
+  "distribution",
+  "expiresAt",
+  "generatedAt",
+  "installationId",
+  "keyId",
+  "lawosTenantId",
+  "managedDeviceOnly",
+  "publicReleaseAllowed",
+  "releaseId",
+  "releaseManifestSha256",
+  "schemaVersion",
+  "sourceSha",
+  "sourceTree",
+  "version",
+];
 const EXTERNAL_PILOT_FIELDS = [
   "appId",
   "approvalExpiresAt",
@@ -61,14 +88,41 @@ function validUpdateMetadata(metadata) {
     && typeof metadata === "object"
     && !Array.isArray(metadata)
     && VERSION.test(metadata.version ?? "")
-    && ["internal", EXTERNAL_PILOT_UPDATE_CHANNEL].includes(metadata.channel)
+    && [
+      "internal",
+      INTERNAL_UNSIGNED_UPDATE_CHANNEL,
+      EXTERNAL_PILOT_UPDATE_CHANNEL,
+    ].includes(metadata.channel)
     && typeof metadata.keyId === "string"
     && metadata.keyId.length > 0
     && SHA256.test(metadata.artifactSha256 ?? "")
     && Number.isSafeInteger(metadata.artifactBytes)
     && metadata.artifactBytes > 0
   );
-  if (!baseValid || metadata.channel !== EXTERNAL_PILOT_UPDATE_CHANNEL) return baseValid;
+  if (!baseValid) return false;
+  if (metadata.channel === INTERNAL_UNSIGNED_UPDATE_CHANNEL) {
+    const generatedAt = Date.parse(metadata.generatedAt);
+    const expiresAt = Date.parse(metadata.expiresAt);
+    return Object.keys(metadata).sort().join("\0") === [...INTERNAL_UNSIGNED_FIELDS].sort().join("\0")
+      && metadata.schemaVersion === INTERNAL_UNSIGNED_UPDATE_SCHEMA
+      && IDENTIFIER.test(metadata.releaseId ?? "")
+      && IDENTIFIER.test(metadata.lawosTenantId ?? "")
+      && IDENTIFIER.test(metadata.installationId ?? "")
+      && metadata.appId === "com.amic.matter.desktop.internal"
+      && ARTIFACT_FILENAME.test(metadata.artifactFilename ?? "")
+      && GIT_OBJECT.test(metadata.sourceSha ?? "")
+      && GIT_OBJECT.test(metadata.sourceTree ?? "")
+      && SHA256.test(metadata.releaseManifestSha256 ?? "")
+      && metadata.authenticodeStatus === "not_signed"
+      && metadata.distribution === "private"
+      && metadata.managedDeviceOnly === true
+      && metadata.publicReleaseAllowed === false
+      && canonicalIso(metadata.generatedAt)
+      && canonicalIso(metadata.expiresAt)
+      && expiresAt > generatedAt
+      && expiresAt - generatedAt <= 31 * 24 * 60 * 60 * 1000;
+  }
+  if (metadata.channel !== EXTERNAL_PILOT_UPDATE_CHANNEL) return baseValid;
   return Object.keys(metadata).sort().join("\0") === [...EXTERNAL_PILOT_FIELDS].sort().join("\0")
     && metadata.schemaVersion === EXTERNAL_PILOT_UPDATE_SCHEMA
     && typeof metadata.pilotId === "string"
@@ -143,11 +197,21 @@ export function createUpdateController({
   appId = null,
   tenantConfigSha256 = null,
   approvalId = null,
+  installationId = null,
+  revokedReleaseIds = [],
   trustedPublicKeys = {},
   now = () => Date.now(),
 } = {}) {
-  if (!["internal", EXTERNAL_PILOT_UPDATE_CHANNEL].includes(channel)) {
+  if (!["internal", INTERNAL_UNSIGNED_UPDATE_CHANNEL, EXTERNAL_PILOT_UPDATE_CHANNEL].includes(channel)) {
     throw new TypeError("update controller channel is invalid");
+  }
+  if (channel === INTERNAL_UNSIGNED_UPDATE_CHANNEL
+    && (!IDENTIFIER.test(lawosTenantId ?? "")
+      || !IDENTIFIER.test(installationId ?? "")
+      || appId !== "com.amic.matter.desktop.internal")) {
+    throw new TypeError(
+      "internal-unsigned update controller requires tenant, installation, and internal app bindings",
+    );
   }
   if (channel === EXTERNAL_PILOT_UPDATE_CHANNEL
     && (!pilotId || !lawosTenantId || !entraTenantId || !appId || !approvalId
@@ -158,11 +222,30 @@ export function createUpdateController({
   let activeVersion = currentVersion;
   let previousVersion = null;
   const verifiedVersions = new Set([currentVersion]);
+  const revokedReleases = new Set(revokedReleaseIds);
 
   function denyReason(metadata, signature) {
     if (metadata?.channel === "public") return "public_channel_disabled";
     if (metadata?.channel !== channel) return "channel_mismatch";
     if (!validUpdateMetadata(metadata)) return "invalid_metadata";
+    if (channel === INTERNAL_UNSIGNED_UPDATE_CHANNEL
+      && metadata.appId !== appId) {
+      return "app_identity_mismatch";
+    }
+    if (channel === INTERNAL_UNSIGNED_UPDATE_CHANNEL
+      && (metadata.lawosTenantId !== lawosTenantId
+        || metadata.installationId !== installationId)) {
+      return "managed_installation_mismatch";
+    }
+    if (channel === INTERNAL_UNSIGNED_UPDATE_CHANNEL
+      && revokedReleases.has(metadata.releaseId)) {
+      return "release_revoked";
+    }
+    if (channel === INTERNAL_UNSIGNED_UPDATE_CHANNEL
+      && (Date.parse(metadata.generatedAt) > now()
+        || Date.parse(metadata.expiresAt) <= now())) {
+      return "metadata_expired_or_not_active";
+    }
     if (channel === EXTERNAL_PILOT_UPDATE_CHANNEL && metadata.appId !== appId) {
       return "app_identity_mismatch";
     }

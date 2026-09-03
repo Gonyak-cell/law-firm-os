@@ -21,6 +21,7 @@ import {
   desktopWindowIconPath,
   desktopUserDataPath,
   isFormalReleasePackage,
+  isInternalUnsignedReleasePackage,
   isMainEntryPoint,
   passwordResetDeepLinkIntent,
   packagedRendererUrl,
@@ -736,6 +737,14 @@ test("desktop userData can be isolated for packaged QA runs", () => {
 test("packaged desktop defaults to production auth and local API requires explicit non-formal opt-in", () => {
   assert.equal(isFormalReleasePackage({ resourcesPath: "/App/resources", existsSyncImpl: (path) => path.endsWith("matter-formal-release.json") }), true);
   assert.equal(isFormalReleasePackage({ resourcesPath: "/App/resources", existsSyncImpl: () => false }), false);
+  assert.equal(isInternalUnsignedReleasePackage({
+    resourcesPath: "/App/resources",
+    existsSyncImpl: (path) => path.endsWith("matter-internal-unsigned-release.json"),
+  }), true);
+  assert.equal(isInternalUnsignedReleasePackage({
+    resourcesPath: "/App/resources",
+    existsSyncImpl: () => false,
+  }), false);
   assert.equal(shouldStartDesktopLocalApi({}), true);
   assert.equal(shouldStartDesktopLocalApi({ MATTER_DESKTOP_LOCAL_API_ENABLED: "0" }), true);
   assert.equal(shouldStartDesktopLocalApi({ MATTER_DESKTOP_LOCAL_API_DISABLED: "1" }), false);
@@ -751,6 +760,13 @@ test("packaged desktop defaults to production auth and local API requires explic
   );
   assert.equal(shouldStartDesktopLocalApi({}, { formalRelease: true }), false);
   assert.equal(shouldStartDesktopLocalApi({ MATTER_DESKTOP_LOCAL_API_ENABLED: "1" }, { formalRelease: true, packaged: true }), false);
+  assert.equal(
+    shouldStartDesktopLocalApi(
+      { MATTER_DESKTOP_LOCAL_API_ENABLED: "1" },
+      { internalUnsignedRelease: true, packaged: true },
+    ),
+    false,
+  );
   assert.equal(
     shouldStartDesktopLocalApi(
       { MATTER_DESKTOP_LOCAL_API_ENABLED: "1", MATTER_DESKTOP_LOCAL_API_DISABLED: "1" },

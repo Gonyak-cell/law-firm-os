@@ -10,14 +10,23 @@ import { promisify } from "node:util";
 import { fileURLToPath } from "node:url";
 import {
   assertDesktopFormalBuildProvenance,
+  assertDesktopInternalUnsignedBuildProvenance,
   assertPathOutsideWorktree,
   createDesktopBuildManifest,
+  DESKTOP_INTERNAL_UNSIGNED_DISTRIBUTION_PROFILE,
+  DESKTOP_INTERNAL_UNSIGNED_MARKER_NAME,
   desktopReleaseChannelConfig,
   directoryDigest,
   readDesktopBuildSourceIdentity,
   writeDesktopBuildManifest,
 } from "./lib/matter-desktop-provenance.mjs";
-import { copyDesktopLocalApiRuntime } from "./lib/matter-desktop-runtime.mjs";
+import {
+  assertInternalUnsignedPackage,
+} from "./lib/matter-desktop-internal-unsigned.mjs";
+import {
+  copyDesktopLocalApiRuntime,
+  desktopLocalApiSourcePaths,
+} from "./lib/matter-desktop-runtime.mjs";
 
 const execFileAsync = promisify(execFile);
 const scriptDir = dirname(fileURLToPath(import.meta.url));
@@ -29,10 +38,25 @@ const distRoot = join(desktopRoot, "dist/win");
 const channelConfig = desktopReleaseChannelConfig(process.env.MATTER_DESKTOP_RELEASE_CHANNEL ?? "internal");
 const releaseChannel = channelConfig.channel;
 const formalRelease = channelConfig.formal;
+const distributionProfile = String(
+  process.env.MATTER_DESKTOP_DISTRIBUTION_PROFILE ?? "",
+).trim();
+const internalUnsignedDistribution =
+  distributionProfile === DESKTOP_INTERNAL_UNSIGNED_DISTRIBUTION_PROFILE;
+if (distributionProfile && !internalUnsignedDistribution) {
+  throw new Error("MATTER_DESKTOP_DISTRIBUTION_PROFILE is unsupported");
+}
 assertDesktopFormalBuildProvenance({
   releaseChannel,
   sourceIdentity,
   expectedSourceSha: process.env.MATTER_DESKTOP_EXPECTED_SOURCE_SHA,
+});
+assertDesktopInternalUnsignedBuildProvenance({
+  distributionProfile,
+  releaseChannel,
+  sourceIdentity,
+  expectedSourceSha: process.env.MATTER_DESKTOP_EXPECTED_SOURCE_SHA,
+  expectedSourceTree: process.env.MATTER_DESKTOP_EXPECTED_SOURCE_TREE,
 });
 const appId = channelConfig.appId;
 const artifactName = `${channelConfig.windowsArtifactPrefix}-${packageJson.version}`;
@@ -50,6 +74,18 @@ if (formalRelease) {
     throw new Error("formal builds require MATTER_DESKTOP_WINDOWS_BUILD_RECEIPT_PATH to preserve historical receipts");
   }
   assertPathOutsideWorktree({ repoRoot, candidate: receiptPath, label: "formal Windows build receipt" });
+}
+if (internalUnsignedDistribution) {
+  if (!process.env.MATTER_DESKTOP_WINDOWS_BUILD_RECEIPT_PATH) {
+    throw new Error(
+      "internal-unsigned builds require an explicit private Windows build receipt path",
+    );
+  }
+  assertPathOutsideWorktree({
+    repoRoot,
+    candidate: receiptPath,
+    label: "internal-unsigned Windows build receipt",
+  });
 }
 const iconPath = join(desktopRoot, "build/icon.ico");
 const formalReleaseMarkerName = "matter-formal-release.json";
@@ -105,6 +141,7 @@ await mkdir(dirname(receiptPath), { recursive: true });
 const packageOutRoot = await mkdtemp(join(tmpdir(), "matter-desktop-win-packager-"));
 let buildManifest;
 let buildManifestHash;
+let internalUnsignedPrivacyAudit = null;
 
 try {
   const [generatedAppRoot] = await packager({
@@ -126,13 +163,32 @@ try {
   await copyDesktopLocalApiRuntime({
     targetAppSourceDir: join(packageDir, "resources", "app"),
     repoRoot,
-    formalRelease
+    formalRelease,
+    includeLocalRuntime: !formalRelease && !internalUnsignedDistribution,
   });
   const markerPath = join(packageDir, "resources", formalReleaseMarkerName);
+  const internalUnsignedMarkerPath = join(
+    packageDir,
+    "resources",
+    DESKTOP_INTERNAL_UNSIGNED_MARKER_NAME,
+  );
   if (formalRelease) {
     await writeFile(markerPath, `${JSON.stringify({ channel: "formal", local_api_default: "disabled" }, null, 2)}\n`);
   } else {
     await rm(markerPath, { force: true });
+  }
+  if (internalUnsignedDistribution) {
+    await writeFile(
+      internalUnsignedMarkerPath,
+      `${JSON.stringify({
+        channel: "internal",
+        distribution_profile: DESKTOP_INTERNAL_UNSIGNED_DISTRIBUTION_PROFILE,
+        local_api_default: "disabled",
+        bundled_local_api: false,
+      }, null, 2)}\n`,
+    );
+  } else {
+    await rm(internalUnsignedMarkerPath, { force: true });
   }
   buildManifest = createDesktopBuildManifest({
     version: packageJson.version,
@@ -148,6 +204,12 @@ try {
     internalPath: join(packageDir, "resources", "matter-build-manifest.json"),
     externalPath: externalBuildManifestPath,
   }));
+  if (internalUnsignedDistribution) {
+    internalUnsignedPrivacyAudit = await assertInternalUnsignedPackage({
+      rootPath: packageDir,
+      privateSourcePaths: desktopLocalApiSourcePaths({ repoRoot }),
+    });
+  }
 } finally {
   await rm(packageOutRoot, { recursive: true, force: true });
 }
@@ -183,6 +245,13 @@ const artifact = {
   packageZip: `apps/desktop/dist/win/${artifactName}-win32-x64-unsigned.zip`,
   packageZipSha256: packageZipHash,
   files: ["src/**/*", "build/**/*", "package.json"],
+  distributionProfile: internalUnsignedDistribution
+    ? DESKTOP_INTERNAL_UNSIGNED_DISTRIBUTION_PROFILE
+    : formalRelease
+      ? "formal"
+      : "local-runtime",
+  bundledLocalApiRuntime: !formalRelease && !internalUnsignedDistribution,
+  internalUnsignedPrivacyAudit,
   publicRelease: false,
   ownerApproval: false,
   windowsAuthenticodeSigning: false
@@ -242,6 +311,9 @@ Built at: \`${buildManifest.built_at}\`
 - install smoke result: package_candidate_created
 - Windows native install smoke: ${nativeInstallSmoke}
 - formal release local API default disabled: ${formalRelease && existsSync(join(packageDir, "resources", formalReleaseMarkerName))}
+- internal unsigned distribution profile: ${internalUnsignedDistribution}
+- bundled local API runtime: ${!formalRelease && !internalUnsignedDistribution}
+- internal unsigned privacy gate: ${internalUnsignedPrivacyAudit?.valid === true ? "verified" : "not_applicable"}
 
 ## Non-Claims
 
@@ -287,6 +359,13 @@ console.log(
       windows_native_install_smoke: nativeInstallSmoke,
       windows_authenticode_signing: false,
       formal_release_local_api_default_disabled: formalRelease && existsSync(join(packageDir, "resources", formalReleaseMarkerName)),
+      distribution_profile: internalUnsignedDistribution
+        ? DESKTOP_INTERNAL_UNSIGNED_DISTRIBUTION_PROFILE
+        : formalRelease
+          ? "formal"
+          : "local-runtime",
+      bundled_local_api_runtime: !formalRelease && !internalUnsignedDistribution,
+      internal_unsigned_privacy_audit: internalUnsignedPrivacyAudit,
       public_release: false,
       owner_approval: false
     },

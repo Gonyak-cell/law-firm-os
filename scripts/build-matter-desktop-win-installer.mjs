@@ -10,19 +10,28 @@ import { promisify } from "node:util";
 import { fileURLToPath } from "node:url";
 import {
   assertDesktopFormalBuildProvenance,
+  assertDesktopInternalUnsignedBuildProvenance,
   assertPathOutsideWorktree,
   createDesktopBuildManifest,
+  DESKTOP_INTERNAL_UNSIGNED_DISTRIBUTION_PROFILE,
+  DESKTOP_INTERNAL_UNSIGNED_MARKER_NAME,
   desktopReleaseChannelConfig,
   directoryDigest,
   readDesktopBuildSourceIdentity,
 } from "./lib/matter-desktop-provenance.mjs";
 import {
+  assertInternalUnsignedPackage,
+  createInternalUnsignedBuilderEnvironment,
+} from "./lib/matter-desktop-internal-unsigned.mjs";
+import {
   injectMatterDesktopAuthenticodeConfiguration,
   matterDesktopAuthenticodePowerShell,
   resolveMatterDesktopAuthenticodeConfiguration,
+  runAfterUnsignedMatterDesktopTechnicalCandidateInspection,
   validateMatterDesktopAuthenticodeSignatures,
 } from "./lib/matter-desktop-authenticode.mjs";
 import {
+  desktopLocalApiSourcePaths,
   stageDesktopMainRuntimeDependencies,
   verifyDesktopMainRuntimeDependencies,
 } from "./lib/matter-desktop-runtime.mjs";
@@ -41,9 +50,28 @@ const builderConfigPath = join(desktopRoot, "electron-builder.yml");
 const channelConfig = desktopReleaseChannelConfig(process.env.MATTER_DESKTOP_RELEASE_CHANNEL ?? "internal");
 const releaseChannel = channelConfig.channel;
 const formalRelease = channelConfig.formal;
+const distributionProfile = String(
+  process.env.MATTER_DESKTOP_DISTRIBUTION_PROFILE ?? "",
+).trim();
+const internalUnsignedDistribution =
+  distributionProfile === DESKTOP_INTERNAL_UNSIGNED_DISTRIBUTION_PROFILE;
+if (distributionProfile && !internalUnsignedDistribution) {
+  throw new Error("MATTER_DESKTOP_DISTRIBUTION_PROFILE is unsupported");
+}
+if (internalUnsignedDistribution && process.platform !== "win32") {
+  throw new Error(
+    "internal-unsigned installer builds require a Windows host for native NotSigned verification",
+  );
+}
 const authenticodeConfiguration = resolveMatterDesktopAuthenticodeConfiguration({
   formalRelease,
 });
+if (internalUnsignedDistribution && authenticodeConfiguration) {
+  throw new Error("internal-unsigned distribution must remain Authenticode NotSigned");
+}
+const builderEnvironment = internalUnsignedDistribution
+  ? createInternalUnsignedBuilderEnvironment(process.env)
+  : process.env;
 const explicitBuilderExecutable = process.env.MATTER_DESKTOP_ELECTRON_BUILDER_EXECUTABLE?.trim();
 const explicitElectronDist = process.env.MATTER_DESKTOP_ELECTRON_DIST?.trim();
 const explicitSignTool = process.env.SIGNTOOL_PATH?.trim();
@@ -90,6 +118,13 @@ assertDesktopFormalBuildProvenance({
   sourceIdentity,
   expectedSourceSha: process.env.MATTER_DESKTOP_EXPECTED_SOURCE_SHA,
 });
+assertDesktopInternalUnsignedBuildProvenance({
+  distributionProfile,
+  releaseChannel,
+  sourceIdentity,
+  expectedSourceSha: process.env.MATTER_DESKTOP_EXPECTED_SOURCE_SHA,
+  expectedSourceTree: process.env.MATTER_DESKTOP_EXPECTED_SOURCE_TREE,
+});
 const appId = channelConfig.appId;
 const artifactName = `${channelConfig.windowsArtifactPrefix}-${packageJson.version}`;
 const installerPath = join(desktopRoot, "dist", `${artifactName}-win-x64.exe`);
@@ -103,6 +138,18 @@ if (formalRelease) {
     throw new Error("formal builds require MATTER_DESKTOP_WINDOWS_BUILD_RECEIPT_PATH to preserve historical receipts");
   }
   assertPathOutsideWorktree({ repoRoot, candidate: receiptPath, label: "formal Windows build receipt" });
+}
+if (internalUnsignedDistribution) {
+  if (!process.env.MATTER_DESKTOP_WINDOWS_BUILD_RECEIPT_PATH) {
+    throw new Error(
+      "internal-unsigned builds require an explicit private Windows build receipt path",
+    );
+  }
+  assertPathOutsideWorktree({
+    repoRoot,
+    candidate: receiptPath,
+    label: "internal-unsigned Windows build receipt",
+  });
 }
 const buildManifestName = "matter-build-manifest.json";
 const formalReleaseMarkerName = "matter-formal-release.json";
@@ -174,6 +221,7 @@ const stagingProjectRoot = join(stagingRoot, "desktop");
 const stagingInstallerPath = join(stagingProjectRoot, "dist", `${artifactName}-win-x64.exe`);
 const stagingBlockmapPath = `${stagingInstallerPath}.blockmap`;
 const stagingUnpackedPath = join(stagingProjectRoot, "dist", "win-unpacked");
+let internalUnsignedPrivacyAudit = null;
 
 try {
   await mkdir(stagingProjectRoot, { recursive: true });
@@ -193,6 +241,17 @@ try {
     await writeFile(
       join(provenanceRoot, formalReleaseMarkerName),
       `${JSON.stringify({ channel: "formal", local_api_default: "disabled" }, null, 2)}\n`,
+    );
+  }
+  if (internalUnsignedDistribution) {
+    await writeFile(
+      join(provenanceRoot, DESKTOP_INTERNAL_UNSIGNED_MARKER_NAME),
+      `${JSON.stringify({
+        channel: "internal",
+        distribution_profile: DESKTOP_INTERNAL_UNSIGNED_DISTRIBUTION_PROFILE,
+        local_api_default: "disabled",
+        bundled_local_api: false,
+      }, null, 2)}\n`,
     );
   }
   await writeFile(
@@ -219,6 +278,12 @@ try {
       ? [
           `  - from: .release-provenance/${formalReleaseMarkerName}`,
           `    to: ${formalReleaseMarkerName}`,
+        ]
+      : []),
+    ...(internalUnsignedDistribution
+      ? [
+          `  - from: .release-provenance/${DESKTOP_INTERNAL_UNSIGNED_MARKER_NAME}`,
+          `    to: ${DESKTOP_INTERNAL_UNSIGNED_MARKER_NAME}`,
         ]
       : []),
     "  - from: .release-provenance/classic-outlook",
@@ -258,7 +323,7 @@ try {
         : ["-y", "electron-builder@26.15.3", ...builderArgs],
     {
       cwd: stagingProjectRoot,
-      env: process.env,
+      env: builderEnvironment,
       maxBuffer: 1024 * 1024 * 20,
     },
   );
@@ -281,6 +346,17 @@ try {
     formalRelease,
     "Windows installer formal marker must match the release channel",
   );
+  assert.equal(
+    existsSync(join(packagedResources, DESKTOP_INTERNAL_UNSIGNED_MARKER_NAME)),
+    internalUnsignedDistribution,
+    "Windows installer internal-unsigned marker must match the distribution profile",
+  );
+  if (internalUnsignedDistribution) {
+    internalUnsignedPrivacyAudit = await assertInternalUnsignedPackage({
+      rootPath: stagingUnpackedPath,
+      privateSourcePaths: desktopLocalApiSourcePaths({ repoRoot }),
+    });
+  }
   const packagedClassicOutlookDll = await fileRecord(
     join(packagedResources, "classic-outlook", classicOutlookDllName),
   );
@@ -328,16 +404,33 @@ const authenticodeResult = authenticodeConfiguration
       await authenticodeRecord(join(unpackedPath, `${channelConfig.windowsExecutableName}.exe`)),
     ], { expectedCertificateSha1: authenticodeConfiguration.certificate_sha1 })
   : null;
+const internalUnsignedAuthenticodeInspection = internalUnsignedDistribution
+  ? await runAfterUnsignedMatterDesktopTechnicalCandidateInspection({
+      records: [
+        await authenticodeRecord(installerPath),
+        await authenticodeRecord(join(unpackedPath, `${channelConfig.windowsExecutableName}.exe`)),
+      ],
+      action: async () => "NotSigned",
+    })
+  : null;
 const packagedBuildManifestPath = join(unpackedPath, "resources", buildManifestName);
 const packagedFormalMarkerPath = join(unpackedPath, "resources", formalReleaseMarkerName);
+const packagedInternalUnsignedMarkerPath = join(
+  unpackedPath,
+  "resources",
+  DESKTOP_INTERNAL_UNSIGNED_MARKER_NAME,
+);
 const nativeInstallSmoke = `not_run_on_${process.platform}`;
 const relativeInstallerPath = "apps/desktop/dist/" + `${artifactName}-win-x64.exe`;
 const relativeBlockmapPath = `${relativeInstallerPath}.blockmap`;
 const priorReceipt = existsSync(receiptPath) ? await readFile(receiptPath, "utf8") : "";
 const receiptSection = `\n## Installer Package\n\n- Windows product name: \`${channelConfig.windowsProductName}\`\n- Windows artifact prefix: \`${channelConfig.windowsArtifactPrefix}\`\n- Windows executable name: \`${channelConfig.windowsExecutableName}.exe\`\n- Windows installer: \`${relativeInstallerPath}\`\n- Windows installer sha256: \`${installer.sha256}\`\n- Windows installer bytes: ${installer.bytes}\n- Windows installer blockmap: \`${relativeBlockmapPath}\`\n- Windows installer blockmap sha256: \`${blockmap.sha256}\`\n- Windows installer blockmap bytes: ${blockmap.bytes}\n- Windows installer packaging: nsis-x64\n- Windows renderer runtime assets: verified (${runtimeAssetPaths.length})\n- Windows installer build manifest: verified (${installerBuildManifest.source_sha})\n- Windows installer renderer sha256: \`${installerBuildManifest.renderer.sha256}\`\n- Windows Classic Outlook adapter: bundled\n- Windows Classic Outlook adapter sha256: \`${classicOutlookNativeDll.sha256}\`\n- Windows Classic Outlook registration: COM via HKLM RegAsm; activation via HKCU, 32-bit and 64-bit views\n- Windows installer formal marker: ${formalRelease ? "verified" : "not_applicable"}\n- Windows native install smoke: ${nativeInstallSmoke}\n- Windows Authenticode signing: ${Boolean(authenticodeResult)}\n- Windows Authenticode timestamp verified: ${authenticodeResult?.timestamp_verified === true}\n- Windows Authenticode signer certificate SHA-1: \`${authenticodeResult?.signer_certificate_sha1 ?? "not_applicable"}\`\n- Windows Authenticode signer subject: \`${authenticodeResult?.signer.subject ?? "not_applicable"}\`\n- Windows Authenticode signer code-signing EKU verified: ${authenticodeResult?.signer_code_signing_eku_verified === true}\n- Windows Authenticode timestamp EKU verified: ${authenticodeResult?.timestamp_eku_verified === true}\n`;
+const internalUnsignedReceiptSection = internalUnsignedDistribution
+  ? `- Windows installer internal-unsigned marker: verified\n- Windows installer internal-unsigned privacy gate: ${internalUnsignedPrivacyAudit?.valid === true ? "verified" : "failed"}\n- Windows installer and executable Authenticode status: ${internalUnsignedAuthenticodeInspection?.value ?? "not_verified"}\n`
+  : "";
 
 await mkdir(dirname(receiptPath), { recursive: true });
-await writeFile(receiptPath, `${priorReceipt.trimEnd()}${receiptSection}`);
+await writeFile(receiptPath, `${priorReceipt.trimEnd()}${receiptSection}${internalUnsignedReceiptSection}`);
 
 console.log(
   JSON.stringify(
@@ -364,8 +457,18 @@ console.log(
       installer_source_dirty: installerBuildManifest.source_dirty,
       installer_renderer_sha256: installerBuildManifest.renderer.sha256,
       installer_formal_marker: formalRelease && existsSync(packagedFormalMarkerPath),
+      installer_internal_unsigned_marker:
+        internalUnsignedDistribution && existsSync(packagedInternalUnsignedMarkerPath),
+      distribution_profile: internalUnsignedDistribution
+        ? DESKTOP_INTERNAL_UNSIGNED_DISTRIBUTION_PROFILE
+        : formalRelease
+          ? "formal"
+          : "package-only",
+      internal_unsigned_privacy_audit: internalUnsignedPrivacyAudit,
       windows_native_install_smoke: nativeInstallSmoke,
       windows_authenticode_signing: Boolean(authenticodeResult),
+      windows_authenticode_not_signed_verified:
+        internalUnsignedAuthenticodeInspection?.value === "NotSigned",
       windows_authenticode_timestamp_verified: authenticodeResult?.timestamp_verified === true,
       windows_authenticode_signature_verified:
         authenticodeResult?.signature_count === 2,
