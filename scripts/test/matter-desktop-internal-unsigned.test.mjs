@@ -203,6 +203,8 @@ test("public-repository Windows QA builds internal-unsigned but uploads syntheti
   assert.match(workflow, /MATTER_DESKTOP_DISTRIBUTION_PROFILE: internal-unsigned/u);
   assert.match(workflow, /MATTER_DESKTOP_RELEASE_CHANNEL: internal/u);
   assert.match(workflow, /CSC_IDENTITY_AUTO_DISCOVERY: "false"/u);
+  assert.match(workflow, /scripts\/validate-amic-os-vault-single-install-source\.mjs/u);
+  assert.match(workflow, /scripts\/validate-matter-desktop-file-bridge\.mjs/u);
   assert.match(
     workflow,
     /"MATTER_DESKTOP_EXPECTED_SOURCE_SHA=\$sourceSha" \| Out-File -FilePath \$env:GITHUB_ENV/u,
