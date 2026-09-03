@@ -8,6 +8,8 @@ import {
   OPERATION_NAMES,
   REFRESH_PROFILE_PROOF_CURRENT_KEY_ENV,
   REFRESH_PROFILE_PROOF_PREVIOUS_KEY_ENV,
+  VAULT_CONTRACT_VERSION,
+  VAULT_OPERATION,
   createHandler as createBrokerHandler,
   refreshProfileProofKeyringFromEnvironment,
 } from "./index.mjs";
@@ -81,6 +83,110 @@ test("exports only the fixed allowlisted operations", () => {
     "graph.messageSubscription.delete",
     "graph.messageDelta.list",
   ]);
+});
+
+test("Vault broker contract fixes the configured origin and forwards only an allowlisted provider path", async () => {
+  const calls = [];
+  const handler = createHandler({
+    vault_origin: "https://vault.example",
+    fetch_impl: async (url, init) => {
+      calls.push({
+        url,
+        method: init.method,
+        headers: init.headers,
+        body: Buffer.from(init.body).toString("utf8"),
+      });
+      return new Response(JSON.stringify({ authority_kind: "amic-vault-api" }), {
+        status: 201,
+        headers: { "content-type": "application/json" },
+      });
+    },
+  });
+  const body = JSON.stringify({ page: 1 });
+  const result = await handler({
+    contract_version: VAULT_CONTRACT_VERSION,
+    operation: VAULT_OPERATION,
+    request: {
+      pathname: "/v1/integrations/amic-os/vault/read/documents",
+      headers: {
+        accept: "application/json",
+        "accept-encoding": "identity",
+        "content-type": "application/json",
+        "x-amic-os-account-ledger-id": "user_amic_jwsuh",
+        "x-amic-os-vault-provider-token": "vault-provider-token-never-log-0123456789",
+      },
+      body_base64: Buffer.from(body, "utf8").toString("base64"),
+    },
+  });
+
+  assert.deepEqual(calls, [{
+    url: "https://vault.example/v1/integrations/amic-os/vault/read/documents",
+    method: "POST",
+    headers: {
+      accept: "application/json",
+      "accept-encoding": "identity",
+      "content-type": "application/json",
+      "x-amic-os-account-ledger-id": "user_amic_jwsuh",
+      "x-amic-os-vault-provider-token": "vault-provider-token-never-log-0123456789",
+    },
+    body,
+  }]);
+  assert.equal(result.contract_version, VAULT_CONTRACT_VERSION);
+  assert.equal(result.operation, VAULT_OPERATION);
+  assert.equal(result.ok, true);
+  assert.equal(result.result.status, 201);
+  assert.deepEqual(result.result.headers, { "content-type": "application/json" });
+  assert.deepEqual(
+    JSON.parse(Buffer.from(result.result.body_base64, "base64").toString("utf8")),
+    { authority_kind: "amic-vault-api" },
+  );
+});
+
+test("Vault broker contract blocks caller-selected origins, paths, headers, and missing origin configuration before egress", async () => {
+  let fetchCount = 0;
+  const baseRequest = {
+    pathname: "/v1/integrations/amic-os/vault/read/documents",
+    headers: {
+      accept: "application/json",
+      "accept-encoding": "identity",
+      "content-type": "application/json",
+      "x-amic-os-vault-provider-token": "vault-provider-token-never-log-0123456789",
+    },
+    body_base64: Buffer.from("{}", "utf8").toString("base64"),
+  };
+  const invoke = (handler, request) => handler({
+    contract_version: VAULT_CONTRACT_VERSION,
+    operation: VAULT_OPERATION,
+    request,
+  });
+  const configured = createHandler({
+    vault_origin: "https://vault.example",
+    fetch_impl: async () => {
+      fetchCount += 1;
+      throw new Error("unexpected egress");
+    },
+  });
+  for (const request of [
+    { ...baseRequest, origin: "https://attacker.example" },
+    { ...baseRequest, pathname: "/v1/arbitrary-proxy" },
+    { ...baseRequest, headers: { ...baseRequest.headers, authorization: "Bearer injected" } },
+  ]) {
+    const result = await invoke(configured, request);
+    assert.equal(result.ok, false);
+    assert.equal(result.error.code, "INVALID_REQUEST");
+  }
+  const unconfigured = createHandler({
+    vault_origin: "",
+    fetch_impl: async () => {
+      fetchCount += 1;
+      throw new Error("unexpected egress");
+    },
+  });
+  const result = await invoke(unconfigured, baseRequest);
+  assert.equal(result.ok, false);
+  assert.equal(result.status, 503);
+  assert.equal(result.error.code, "BROKER_CONFIG_UNAVAILABLE");
+  assert.equal(fetchCount, 0);
 });
 
 test("broker proof key environment contract requires one 32-byte base64url current key and permits one distinct previous key", () => {

@@ -49,6 +49,22 @@ Failure:
 The broker never returns a Microsoft error body. `error` can additionally
 contain only `retry_after_seconds` and `provider_request_id`.
 
+## AMIC Vault private-egress contract
+
+The same no-VPC production function also accepts the isolated contract
+`lawos.amic-vault-egress.v1` for `vault.http.request`. The Matter API enables
+this transport with `LAWOS_AMIC_VAULT_EGRESS_BROKER_ENABLED=true`; the broker
+constructs the origin from its own `LAWOS_AMIC_VAULT_PROVIDER_ORIGIN` setting.
+The caller supplies only one allowlisted AMIC OS provider pathname, the bounded
+provider headers, and a base64 body. It cannot supply an origin, query string,
+redirect target, or arbitrary header.
+
+The synchronous Lambda bridge accepts at most 3 MiB of request bytes and 4 MiB
+of response bytes. This covers the 2 MiB Outlook source-save boundary and the
+JSON-only 1 GiB staged-upload control plane; larger exact-export bodies remain
+fail-closed instead of being truncated. Provider credentials can cross only the
+private Lambda Invoke payload and are never logged or returned to clients.
+
 ## Fixed operations
 
 ### `oauth.jwks.get`

@@ -625,6 +625,44 @@ test("Lambda bootstrap resolves one exact Vault provider secret without exposing
   ]);
 });
 
+test("Lambda Vault providers share the private Lambda egress transport only when explicitly enabled", async () => {
+  const token = "vault-provider-token-that-is-longer-than-thirty-two-bytes";
+  const egressFetch = async () => {
+    throw new Error("provider transport must not run during bootstrap");
+  };
+  const calls = [];
+  const resolved = await resolveLambdaAmicVaultProviders({
+    env: {
+      AWS_REGION: "ap-northeast-2",
+      LAWOS_RUNTIME_PROFILE: "operational",
+      LAWOS_AMIC_VAULT_PROVIDER_TOKEN_SECRET_ID:
+        "/amic-vault/prod/api/provider-token",
+      LAWOS_AMIC_VAULT_UPLOAD_PROVIDER_ENABLED: "true",
+      LAWOS_AMIC_VAULT_UPLOAD_PROVIDER_ORIGIN: "https://vault.example.test",
+      LAWOS_AMIC_VAULT_EXPORT_PROVIDER_ENABLED: "true",
+      LAWOS_AMIC_VAULT_EXPORT_PROVIDER_ORIGIN: "https://vault.example.test",
+      LAWOS_AMIC_VAULT_EGRESS_BROKER_ENABLED: "true",
+    },
+    client: {
+      async send() {
+        return { SecretString: token };
+      },
+    },
+    fetchFn: async () => {
+      throw new Error("direct provider egress is forbidden");
+    },
+    createEgressBrokerFetchFn(options) {
+      calls.push(options);
+      return egressFetch;
+    },
+  });
+
+  assert.deepEqual(calls, [{ region: "ap-northeast-2" }]);
+  assert.equal(resolved.vaultUploadProvider.authority_kind, "amic-vault-api");
+  assert.equal(resolved.vaultExportProvider.authority_kind, "amic-vault-api");
+  assert.equal(JSON.stringify(resolved).includes(token), false);
+});
+
 test("Lambda password reset email delivery uses SESv2 simple content and never returns token material", async () => {
   const delivery = createLambdaPasswordResetEmailDelivery({
     env: {

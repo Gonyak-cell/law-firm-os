@@ -70,6 +70,8 @@ instead of falling back to caller headers or local files.
 | LAWOS_VAULT_BRIDGE_TOKEN_AUTO_FETCH | optional | Operator helper flag for bridge token retrieval. |
 | LAWOS_VAULT_BRIDGE_TOKEN_AWS_PROFILE | optional | AWS profile for bridge token retrieval. |
 | LAWOS_VAULT_BRIDGE_TOKEN_SSO_LOGIN_PROFILE | optional | AWS SSO profile for bridge token retrieval. |
+| LAWOS_AMIC_VAULT_EGRESS_BROKER_ENABLED | conditional | Routes Hosted Vault provider HTTP through the private Lambda interface endpoint when the API subnets have no public egress. |
+| LAWOS_AMIC_VAULT_PROVIDER_ORIGIN | broker | Exact HTTPS Hosted Vault origin constructed by the egress broker; callers cannot override it. |
 | LAWOS_API_PORT | tunable | API listener port. |
 | LAWOS_API_ALLOWED_ORIGINS | tunable | CORS allowlist. |
 | LAWOS_WEB_API_PROXY_TARGET | dev/proxy | Web dev proxy target. |

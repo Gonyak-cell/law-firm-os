@@ -9,6 +9,8 @@ import {
 } from "./graph-conversation-operations.mjs";
 
 export const CONTRACT_VERSION = "lawos.microsoft-egress.v1";
+export const VAULT_CONTRACT_VERSION = "lawos.amic-vault-egress.v1";
+export const VAULT_OPERATION = "vault.http.request";
 export const OPERATION_NAMES = Object.freeze([
   "oauth.jwks.get",
   "oauth.token.exchange",
@@ -72,7 +74,50 @@ const CALENDAR_SELECT = [
 ].join(",");
 const MAX_JSON_BYTES = 2 * 1024 * 1024;
 const MAX_RESULT_BYTES = 5 * 1024 * 1024;
+const MAX_VAULT_REQUEST_BYTES = 3 * 1024 * 1024;
+const MAX_VAULT_RESPONSE_BYTES = 4 * 1024 * 1024;
 export const MAX_MIME_BYTES = 3 * 1024 * 1024;
+const VAULT_PROVIDER_PATHS = new Set([
+  "/v1/integrations/amic-os/vault/capabilities/resolve",
+  "/v1/integrations/amic-os/vault/exports/authorize",
+  "/v1/integrations/amic-os/vault/exports/download",
+  "/v1/integrations/amic-os/vault/exports/readback",
+  "/v1/integrations/amic-os/vault/read/documents",
+  "/v1/integrations/amic-os/vault/read/search",
+  "/v1/integrations/amic-os/vault/uploads/commit",
+  "/v1/integrations/amic-os/vault/uploads/complete",
+  "/v1/integrations/amic-os/vault/uploads/preflight",
+  "/v1/integrations/amic-os/vault/uploads/prepare",
+  "/v1/integrations/amic-os/vault/uploads/readback",
+]);
+const VAULT_REQUEST_HEADER_NAMES = Object.freeze([
+  "accept",
+  "accept-encoding",
+  "content-type",
+  "x-amic-os-vault-provider-token",
+]);
+const VAULT_OPTIONAL_REQUEST_HEADER_NAMES = Object.freeze([
+  "x-amic-os-account-ledger-id",
+]);
+const VAULT_RESPONSE_HEADER_NAMES = Object.freeze([
+  "cache-control",
+  "content-disposition",
+  "content-length",
+  "content-type",
+  "retry-after",
+  "x-amic-vault-audit-event-id",
+  "x-amic-vault-authority-kind",
+  "x-amic-vault-authority-ref",
+  "x-amic-vault-byte-size",
+  "x-amic-vault-correlation-id",
+  "x-amic-vault-document-id",
+  "x-amic-vault-export-ref",
+  "x-amic-vault-file-object-id",
+  "x-amic-vault-provider-revision",
+  "x-amic-vault-sha256",
+  "x-amic-vault-version-id",
+  "x-content-type-options",
+]);
 const REFRESH_PROFILE_PROOF_CONTEXT =
   "lawos.microsoft-egress.refresh-profile.v1";
 export const REFRESH_PROFILE_PROOF_CURRENT_KEY_ENV =
@@ -122,6 +167,19 @@ function text(value, { min = 1, max = 4096, pattern = null } = {}) {
     invalid();
   }
   return value;
+}
+
+function boundedBase64(value, maximum) {
+  if (
+    typeof value !== "string"
+    || value.length > Math.ceil(maximum / 3) * 4 + 8
+    || !/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/u.test(value)
+  ) {
+    invalid();
+  }
+  const bytes = Buffer.from(value, "base64");
+  if (bytes.byteLength > maximum || bytes.toString("base64") !== value) invalid();
+  return bytes;
 }
 
 function uuid(value) {
@@ -385,6 +443,123 @@ function ensureResultSize(result) {
     throw new BrokerError("RESPONSE_TOO_LARGE", 502);
   }
   return result;
+}
+
+function configuredVaultOrigin(value) {
+  if (
+    typeof value !== "string"
+    || value.length < 1
+    || value.length > 2_048
+    || /[\u0000-\u001f\u007f]/u.test(value)
+  ) {
+    throw new BrokerError("BROKER_CONFIG_UNAVAILABLE", 503);
+  }
+  let origin;
+  try {
+    origin = new URL(value);
+  } catch {
+    throw new BrokerError("BROKER_CONFIG_UNAVAILABLE", 503);
+  }
+  if (
+    origin.protocol !== "https:"
+    || origin.username
+    || origin.password
+    || origin.pathname !== "/"
+    || origin.search
+    || origin.hash
+  ) {
+    throw new BrokerError("BROKER_CONFIG_UNAVAILABLE", 503);
+  }
+  return origin.origin;
+}
+
+function vaultRequestHeaders(value, pathname) {
+  exactObject(value, {
+    required: VAULT_REQUEST_HEADER_NAMES,
+    optional: VAULT_OPTIONAL_REQUEST_HEADER_NAMES,
+  });
+  const accept = text(value.accept, { max: 128 });
+  if (![
+    "application/json",
+    "application/json, application/octet-stream",
+  ].includes(accept) || value["accept-encoding"] !== "identity") {
+    invalid();
+  }
+  const contentType = text(value["content-type"], { max: 512 });
+  const multipart = /^multipart\/form-data;\s*boundary=[A-Za-z0-9'()+_,.\/:=?-]{1,200}$/u
+    .test(contentType);
+  if (
+    (pathname === "/v1/integrations/amic-os/vault/uploads/commit") !== multipart
+    || (!multipart && contentType !== "application/json")
+  ) {
+    invalid();
+  }
+  const headers = {
+    accept,
+    "accept-encoding": "identity",
+    "content-type": contentType,
+    "x-amic-os-vault-provider-token": text(
+      value["x-amic-os-vault-provider-token"],
+      { min: 16, max: 4_096, pattern: PRINTABLE_ASCII },
+    ),
+  };
+  if (Object.hasOwn(value, "x-amic-os-account-ledger-id")) {
+    headers["x-amic-os-account-ledger-id"] = text(
+      value["x-amic-os-account-ledger-id"],
+      { min: 3, max: 80, pattern: /^[a-z0-9][a-z0-9._-]+[a-z0-9]$/u },
+    );
+  }
+  return headers;
+}
+
+function vaultResponseHeaders(response) {
+  const headers = {};
+  for (const name of VAULT_RESPONSE_HEADER_NAMES) {
+    const value = response.headers?.get?.(name);
+    if (value === null || value === undefined) continue;
+    if (
+      typeof value !== "string"
+      || value.length > 4_096
+      || /[\r\n]/u.test(value)
+    ) {
+      throw new BrokerError("UPSTREAM_RESPONSE_INVALID", 502);
+    }
+    headers[name] = value;
+  }
+  return headers;
+}
+
+async function vaultHttpRequest(fetchImpl, request, vaultOrigin) {
+  exactObject(request, {
+    required: ["pathname", "headers", "body_base64"],
+  });
+  const pathname = text(request.pathname, { max: 256 });
+  if (!VAULT_PROVIDER_PATHS.has(pathname)) invalid();
+  const origin = configuredVaultOrigin(vaultOrigin);
+  const body = boundedBase64(request.body_base64, MAX_VAULT_REQUEST_BYTES);
+  const response = await fixedFetch(
+    fetchImpl,
+    `${origin}${pathname}`,
+    {
+      method: "POST",
+      headers: vaultRequestHeaders(request.headers, pathname),
+      body,
+    },
+    { origin, pathname },
+  );
+  if (
+    !Number.isInteger(response.status)
+    || response.status < 200
+    || response.status > 599
+  ) {
+    throw new BrokerError("UPSTREAM_RESPONSE_INVALID", 502);
+  }
+  const responseBody = await readBoundedBytes(response, MAX_VAULT_RESPONSE_BYTES);
+  return {
+    status: response.status,
+    headers: vaultResponseHeaders(response),
+    body_base64: responseBody.toString("base64"),
+  };
 }
 
 function optionalString(value, maximum = 4096) {
@@ -1151,6 +1326,7 @@ const OPERATIONS = Object.freeze({
 export function createHandler({
   fetch_impl = globalThis.fetch,
   graph_notification_url = process.env.LAWOS_GRAPH_NOTIFICATION_URL,
+  vault_origin = process.env.LAWOS_AMIC_VAULT_PROVIDER_ORIGIN,
   refresh_profile_proof_keyring,
   refresh_profile_proof_keyring_from_environment,
 } = {}) {
@@ -1185,6 +1361,8 @@ export function createHandler({
     ...createGraphConversationOperations({ graph_notification_url }),
   });
   return async function microsoftEgressBroker(event) {
+    const vaultContract = event?.contract_version === VAULT_CONTRACT_VERSION;
+    const responseContract = vaultContract ? VAULT_CONTRACT_VERSION : CONTRACT_VERSION;
     const operation =
       typeof event?.operation === "string" && event.operation.length <= 80
         ? event.operation
@@ -1193,6 +1371,23 @@ export function createHandler({
       exactObject(event, {
         required: ["contract_version", "operation", "request"],
       });
+      if (vaultContract) {
+        if (event.operation !== VAULT_OPERATION) {
+          throw new BrokerError("UNSUPPORTED_OPERATION", 400);
+        }
+        const result = await vaultHttpRequest(
+          fetch_impl,
+          event.request,
+          vault_origin,
+        );
+        return {
+          contract_version: VAULT_CONTRACT_VERSION,
+          operation: event.operation,
+          ok: true,
+          status: 200,
+          result,
+        };
+      }
       if (event.contract_version !== CONTRACT_VERSION) invalid();
       const execute = operations[event.operation];
       if (!execute) {
@@ -1215,7 +1410,7 @@ export function createHandler({
         ? error
         : new BrokerError("BROKER_INTERNAL_ERROR", 500);
       return {
-        contract_version: CONTRACT_VERSION,
+        contract_version: responseContract,
         operation,
         ok: false,
         status: safe.status,
