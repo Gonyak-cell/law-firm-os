@@ -70,35 +70,53 @@ function isPlainEmptyArray(value) {
     && Reflect.ownKeys(value).length === 1;
 }
 
-function isUnsignedAuthenticodeRecord(record) {
+function unsignedAuthenticodeRecordIssue(record) {
   if (record === null
     || typeof record !== "object"
     || types.isProxy(record)
     || Array.isArray(record)
-    || Object.getPrototypeOf(record) !== Object.prototype) return false;
+    || Object.getPrototypeOf(record) !== Object.prototype) return "record_shape";
   const keys = Reflect.ownKeys(record);
   if (keys.length !== UNSIGNED_AUTHENTICODE_FIELDS.size
-    || keys.some((key) => typeof key !== "string" || !UNSIGNED_AUTHENTICODE_FIELDS.has(key))) return false;
+    || keys.some((key) => typeof key !== "string" || !UNSIGNED_AUTHENTICODE_FIELDS.has(key))) {
+    const missing = [...UNSIGNED_AUTHENTICODE_FIELDS].filter((field) => !keys.includes(field));
+    const unexpected = keys.filter((key) => typeof key !== "string" || !UNSIGNED_AUTHENTICODE_FIELDS.has(key));
+    return `record_fields:missing=${missing.join(",") || "none"};unexpected=${unexpected.map(String).join(",") || "none"}`;
+  }
   const descriptors = Object.getOwnPropertyDescriptors(record);
   for (const field of UNSIGNED_AUTHENTICODE_FIELDS) {
     const descriptor = descriptors[field];
-    if (!descriptor || !Object.hasOwn(descriptor, "value") || descriptor.enumerable !== true) return false;
+    if (!descriptor || !Object.hasOwn(descriptor, "value") || descriptor.enumerable !== true) {
+      return `field_descriptor:${field}`;
+    }
   }
-  if (typeof descriptors.status.value !== "string"
-    || descriptors.status.value !== "NotSigned"
-    || typeof descriptors.status_message.value !== "string"
-    || descriptors.status_message.value !== NOT_SIGNED_STATUS_MESSAGE
-    || typeof descriptors.signature_type.value !== "string"
-    || descriptors.signature_type.value !== "None"
-    || typeof descriptors.time_stamper_certificate_present.value !== "boolean"
-    || descriptors.time_stamper_certificate_present.value !== false) return false;
+  if (typeof descriptors.status.value !== "string") return "status_type";
+  if (descriptors.status.value !== "NotSigned") return `status:${descriptors.status.value}`;
+  if (typeof descriptors.status_message.value !== "string") return "status_message_type";
+  if (descriptors.status_message.value !== NOT_SIGNED_STATUS_MESSAGE) return "status_message";
+  if (typeof descriptors.signature_type.value !== "string") return "signature_type_type";
+  if (descriptors.signature_type.value !== "None") {
+    return `signature_type:${descriptors.signature_type.value}`;
+  }
+  if (typeof descriptors.time_stamper_certificate_present.value !== "boolean") {
+    return "time_stamper_certificate_present_type";
+  }
+  if (descriptors.time_stamper_certificate_present.value !== false) {
+    return "time_stamper_certificate_present";
+  }
   for (const prefix of ["signer", "timestamp"]) {
     for (const field of CERTIFICATE_FIELDS) {
       const value = descriptors[`${prefix}_${field}`].value;
-      if (field === "eku_oids" ? !isPlainEmptyArray(value) : value !== null) return false;
+      if (field === "eku_oids" ? !isPlainEmptyArray(value) : value !== null) {
+        return `${prefix}_${field}`;
+      }
     }
   }
-  return true;
+  return null;
+}
+
+function isUnsignedAuthenticodeRecord(record) {
+  return unsignedAuthenticodeRecordIssue(record) === null;
 }
 
 function assertUnsignedAuthenticodeRecords(records) {
@@ -120,7 +138,14 @@ function assertUnsignedAuthenticodeRecords(records) {
     || descriptors[1].enumerable !== true
     || !isUnsignedAuthenticodeRecord(descriptors[0].value)
     || !isUnsignedAuthenticodeRecord(descriptors[1].value)) {
-    throw new Error("complete unsigned technical-candidate Authenticode records are required");
+    const issues = [0, 1].map((index) => (
+      descriptors[index] && Object.hasOwn(descriptors[index], "value")
+        ? unsignedAuthenticodeRecordIssue(descriptors[index].value)
+        : "missing_record"
+    ));
+    throw new Error(
+      `complete unsigned technical-candidate Authenticode records are required (${issues.join(";")})`,
+    );
   }
 }
 
