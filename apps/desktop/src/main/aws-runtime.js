@@ -918,6 +918,7 @@ export function createMatterVaultAwsRuntimeClient({ baseUrl, operatorToken, fetc
       response = await fetchImpl(new URL(DESKTOP_VAULT_EXPORT_DOWNLOAD_PATH.slice(1), `${baseUrl}/`), {
         method: "POST",
         headers: {
+          "accept-encoding": "identity",
           authorization: `Bearer ${signedSessionToken}`,
           "content-type": "application/json; charset=utf-8",
           "idempotency-key": operationId,

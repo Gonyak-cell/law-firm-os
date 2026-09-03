@@ -1392,6 +1392,7 @@ test("desktop runtime preflights, downloads, verifies, and acknowledges one exac
         });
       }
       if (path === "/api/vault/desktop/export-download") {
+        assert.equal(init.headers["accept-encoding"], "identity");
         assert.equal(init.headers.authorization, "Bearer lawos_session_v1.secret");
         assert.equal(init.headers["idempotency-key"], operationId);
         return binaryResponse(200, {
