@@ -3,8 +3,15 @@ import { createHash } from "node:crypto";
 import test from "node:test";
 
 import { uploadDocument } from "../../../packages/dms/src/document-service.js";
+import {
+  DMS_AUXILIARY_DOMAIN_DESCRIPTOR,
+  createDmsAuxiliaryRepository,
+} from "../../../packages/dms/src/central-ledger.js";
 import { createDmsRepository } from "../../../packages/dms/src/repository.js";
 import { createLocalStorageAdapter } from "../../../packages/dms/src/storage/local-storage-adapter.js";
+import {
+  runRecordRepositoryDomainCommand,
+} from "../../../packages/persistence/src/record-domain-adapter.js";
 import {
   authorizeAmicVaultExactExport,
   completeAmicVaultExactExport,
@@ -90,6 +97,32 @@ function authorizationInput(state, overrides = {}) {
   };
 }
 
+function createAppendOnlyDomainLedger() {
+  const idempotency = [];
+  const audit = [];
+  const copy = (value) => structuredClone(value);
+  const tx = {
+    list: async () => [],
+    listIdempotency: async () => copy(idempotency),
+    listAudit: async () => copy(audit),
+    addReferences: async () => {},
+    claimIdempotency: async (entry) => {
+      const existing = idempotency.find((candidate) => candidate.key === entry.key);
+      if (existing) return { replayed: true, record: copy(existing) };
+      idempotency.push(copy(entry));
+      return { replayed: false, record: copy(entry) };
+    },
+    appendAudit: async (event) => audit.push(copy(event)),
+    enqueueOutbox: async () => {},
+  };
+  return Object.freeze({
+    list: tx.list,
+    listIdempotency: tx.listIdempotency,
+    listAudit: tx.listAudit,
+    transaction: async (_scope, command) => command(tx),
+  });
+}
+
 test("exact export authorizes, verifies provider bytes, consumes once, and records no bytes or provider grant in receipts", async () => {
   const state = harness();
   const authorized = await authorizeAmicVaultExactExport(authorizationInput(state));
@@ -166,6 +199,49 @@ test("exact export authorizes, verifies provider bytes, consumes once, and recor
   assert.equal(serializedLedger.includes('"body"'), false);
   assert.equal(serializedPublic.includes("provider_export_ref"), false);
   assert.equal(serializedPublic.includes('"server_owned_bytes"'), false);
+});
+
+test("exact export persists immutable stage snapshots across PostgreSQL-style unit-of-work restarts", async () => {
+  const state = harness();
+  const ledger = createAppendOnlyDomainLedger();
+  const run = (command) => runRecordRepositoryDomainCommand({
+    ledger,
+    descriptor: DMS_AUXILIARY_DOMAIN_DESCRIPTOR,
+    tenant_id: TENANT,
+    create_repository: createDmsAuxiliaryRepository,
+    command,
+  });
+  const authorized = (await run((repository) => authorizeAmicVaultExactExport({
+    ...authorizationInput(state),
+    dmsRuntime: { repository },
+  }))).result;
+  const downloaded = (await run((repository) => downloadAuthorizedAmicVaultExactExport({
+    principal: { tenant_id: TENANT, user_id: ACTOR },
+    dmsRuntime: { repository },
+    vaultExportProvider: state.provider,
+    operationId: authorized.operation_id,
+    requestId: "request-export-postgres-download",
+    now: state.now,
+  }))).result;
+  assert.deepEqual(downloaded.server_owned_bytes, CONTENT);
+  const completed = (await run((repository) => completeAmicVaultExactExport({
+    principal: { tenant_id: TENANT, user_id: ACTOR },
+    dmsRuntime: { repository },
+    operationId: authorized.operation_id,
+    completionStage: "delivered",
+    expectedExactVersion: state.exactVersion,
+    requestId: "request-export-postgres-complete",
+    now: state.now,
+  }))).result;
+  assert.equal(completed.receipt.stage, "delivered");
+  const prefix = `amic-os-vault-export-state:${authorized.operation_id}`;
+  assert.deepEqual(
+    (await ledger.listIdempotency())
+      .map((entry) => entry.key)
+      .filter((key) => key.startsWith(prefix))
+      .sort(),
+    [prefix, `${prefix}:delivered`, `${prefix}:downloaded`].sort(),
+  );
 });
 
 test("authorization is replayable only before consumption and provider download is never replayed", async () => {
