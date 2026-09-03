@@ -13,6 +13,10 @@ on:
       - "package-lock.json"
       - "scripts/prepare-matter-desktop-web-renderer.mjs"
       - "scripts/build-matter-desktop-win-installer.mjs"
+      - "scripts/lib/matter-desktop-authenticode.mjs"
+      - "scripts/lib/matter-desktop-internal-unsigned.mjs"
+      - "scripts/lib/matter-desktop-provenance.mjs"
+      - "scripts/lib/matter-desktop-runtime.mjs"
       - "scripts/smoke-matter-desktop-dashboard-package.mjs"
 
 permissions:
@@ -29,43 +33,58 @@ jobs:
         run: git config --global core.autocrlf false
 
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Verify exact clean source and export tree identity
+        shell: pwsh
+        run: |
+          $sourceSha = (git rev-parse HEAD).Trim()
+          $sourceTree = (git rev-parse 'HEAD^{tree}').Trim()
+          if ($sourceSha -cne '${{ github.sha }}' -or $sourceSha -notmatch '\A[0-9a-f]{40}\z') {
+            throw 'exact source checkout failed'
+          }
+          if ($sourceTree -notmatch '\A[0-9a-f]{40}\z') { throw 'source tree identity is invalid' }
+          if (git status --porcelain) { throw 'source checkout is dirty' }
+          "MATTER_DESKTOP_EXPECTED_SOURCE_SHA=$sourceSha" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          "MATTER_DESKTOP_EXPECTED_SOURCE_TREE=$sourceTree" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: "22"
           cache: npm
+          cache-dependency-path: package-lock.json
 
       - name: Install
         run: npm ci
 
       - name: Prepare packaged renderer
+        env:
+          MATTER_DESKTOP_BUILD_RECEIPT: "0"
         run: npm --workspace apps/desktop run prepare:web-renderer
 
-      - name: Build Windows NSIS installer
+      - name: Build privacy-gated internal-unsigned Windows NSIS installer
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+          MATTER_DESKTOP_DISTRIBUTION_PROFILE: internal-unsigned
+          MATTER_DESKTOP_RELEASE_CHANNEL: internal
+          MATTER_DESKTOP_WINDOWS_BUILD_RECEIPT_PATH: ${{ runner.temp }}\amic-os-internal-unsigned-${{ github.run_id }}-${{ github.run_attempt }}\windows-build.md
         run: npm --workspace apps/desktop run build:win:installer
 
       - name: Run native packaged dashboard screen QA
+        env:
+          MATTER_DASHBOARD_PACKAGE_QA_ARTIFACT_DIR: ${{ runner.temp }}\amic-os-dashboard-package-qa-${{ github.run_id }}-${{ github.run_attempt }}
         run: npm run matter-desktop:dashboard-package-qa
 
-      - name: Upload Windows QA evidence
+      - name: Upload synthetic-only Windows QA evidence
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: windows-dashboard-package-qa
-          path: artifacts/manual-qa/dashboard-package/win32/
-          if-no-files-found: error
-
-      - name: Upload internal Windows installer evidence
-        if: success()
-        uses: actions/upload-artifact@v4
-        with:
-          name: windows-internal-installer-${{ github.sha }}
-          path: |
-            apps/desktop/dist/*-win-x64.exe
-            apps/desktop/dist/*-win-x64.exe.blockmap
-            apps/desktop/dist/win/*-win-build-manifest.json
-            apps/desktop/dist/win/*-win-installer-manifest.json
-            apps/desktop/dist/win/*-win-installer-manifest.json.sig
+          name: windows-dashboard-package-qa-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/amic-os-dashboard-package-qa-${{ github.run_id }}-${{ github.run_attempt }}/
+          include-hidden-files: false
           if-no-files-found: error

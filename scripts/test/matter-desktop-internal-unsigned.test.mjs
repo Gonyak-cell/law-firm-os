@@ -180,3 +180,40 @@ test("both Windows builders wire the internal-unsigned provenance and private-da
   assert.match(installerBuilder, /runAfterUnsignedMatterDesktopTechnicalCandidateInspection/u);
   assert.match(installerBuilder, /windows_authenticode_not_signed_verified/u);
 });
+
+test("public-repository Windows QA builds internal-unsigned but uploads synthetic evidence only", async () => {
+  const repoRoot = path.resolve(import.meta.dirname, "../..");
+  const workflow = await readFile(
+    path.join(repoRoot, ".github", "workflows", "windows-dashboard-package-qa.yml"),
+    "utf8",
+  );
+
+  assert.match(
+    workflow,
+    /actions\/checkout@11bd71901bbe5b1630ceea73d27597364c9af683/u,
+  );
+  assert.match(
+    workflow,
+    /actions\/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020/u,
+  );
+  assert.match(
+    workflow,
+    /actions\/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02/u,
+  );
+  assert.match(workflow, /MATTER_DESKTOP_DISTRIBUTION_PROFILE: internal-unsigned/u);
+  assert.match(workflow, /MATTER_DESKTOP_RELEASE_CHANNEL: internal/u);
+  assert.match(workflow, /CSC_IDENTITY_AUTO_DISCOVERY: "false"/u);
+  assert.match(
+    workflow,
+    /"MATTER_DESKTOP_EXPECTED_SOURCE_SHA=\$sourceSha" \| Out-File -FilePath \$env:GITHUB_ENV/u,
+  );
+  assert.match(
+    workflow,
+    /"MATTER_DESKTOP_EXPECTED_SOURCE_TREE=\$sourceTree" \| Out-File -FilePath \$env:GITHUB_ENV/u,
+  );
+  assert.match(workflow, /MATTER_DASHBOARD_PACKAGE_QA_ARTIFACT_DIR: \$\{\{ runner\.temp \}\}/u);
+  assert.match(workflow, /name: Upload synthetic-only Windows QA evidence/u);
+  assert.doesNotMatch(workflow, /Upload internal Windows installer evidence/u);
+  assert.doesNotMatch(workflow, /apps\/desktop\/dist\/.*win-x64\.exe/u);
+  assert.doesNotMatch(workflow, /apps\/desktop\/dist\/.*\.blockmap/u);
+});
