@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  createMatterDesktopAuthenticodePowerShellEnvironment,
   injectMatterDesktopAuthenticodeConfiguration,
   matterDesktopAuthenticodePowerShell,
   resolveMatterDesktopAuthenticodeConfiguration,
@@ -190,6 +191,7 @@ test("Authenticode final gate binds public signer, timestamp, and EKU metadata",
 test("PowerShell probe emits only public certificate metadata", () => {
   const source = matterDesktopAuthenticodePowerShell();
   assert.match(source, /\$ErrorActionPreference = 'Stop'/u);
+  assert.match(source, /Import-Module Microsoft\.PowerShell\.Security -ErrorAction Stop/u);
   assert.match(source, /Get-Item -LiteralPath \$env:MATTER_AUTHENTICODE_PATH -Force -ErrorAction Stop/u);
   assert.match(source, /Get-AuthenticodeSignature -LiteralPath \$artifact\.FullName -ErrorAction Stop/u);
   assert.match(source, /\$signature\.Status\.ToString\(\)/u);
@@ -208,6 +210,25 @@ test("PowerShell probe emits only public certificate metadata", () => {
     "timestamp_eku_oids",
   ]) assert.match(source, new RegExp(field, "u"));
   assert.doesNotMatch(source, /password|private.?key|pfx/iu);
+});
+
+test("Windows PowerShell probe drops a cross-edition module path before native inspection", () => {
+  const environment = createMatterDesktopAuthenticodePowerShellEnvironment({
+    env: {
+      Path: "C:\\Windows\\System32",
+      PSModulePath: "C:\\Program Files\\PowerShell\\Modules",
+      psmodulepath: "C:\\conflicting-module-path",
+    },
+    authenticodePath: "C:\\artifacts\\AMIC-OS-internal.exe",
+  });
+  assert.deepEqual(environment, {
+    Path: "C:\\Windows\\System32",
+    MATTER_AUTHENTICODE_PATH: "C:\\artifacts\\AMIC-OS-internal.exe",
+  });
+  assert.throws(
+    () => createMatterDesktopAuthenticodePowerShellEnvironment({ authenticodePath: "bad\npath" }),
+    /exact Authenticode artifact path/u,
+  );
 });
 
 test("an invalid installer signature blocks execution and a valid signature precedes it", async () => {

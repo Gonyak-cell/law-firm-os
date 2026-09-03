@@ -24,6 +24,7 @@ import {
   createInternalUnsignedBuilderEnvironment,
 } from "./lib/matter-desktop-internal-unsigned.mjs";
 import {
+  createMatterDesktopAuthenticodePowerShellEnvironment,
   injectMatterDesktopAuthenticodeConfiguration,
   matterDesktopAuthenticodePowerShell,
   resolveMatterDesktopAuthenticodeConfiguration,
@@ -194,7 +195,10 @@ async function authenticodeRecord(filePath) {
     "powershell.exe",
     ["-NoProfile", "-NonInteractive", "-Command", matterDesktopAuthenticodePowerShell()],
     {
-      env: { ...process.env, MATTER_AUTHENTICODE_PATH: filePath },
+      env: createMatterDesktopAuthenticodePowerShellEnvironment({
+        env: process.env,
+        authenticodePath: filePath,
+      }),
       maxBuffer: 1024 * 1024,
     },
   );

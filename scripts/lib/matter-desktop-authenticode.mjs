@@ -163,9 +163,27 @@ function validateExecutableParity(expectedExecutableSha256, actualExecutableSha2
   });
 }
 
+export function createMatterDesktopAuthenticodePowerShellEnvironment({
+  env = process.env,
+  authenticodePath,
+} = {}) {
+  if (typeof authenticodePath !== "string"
+    || authenticodePath.length === 0
+    || /[\0\r\n]/u.test(authenticodePath)) {
+    throw new TypeError("an exact Authenticode artifact path is required");
+  }
+  const environment = { ...env };
+  for (const name of Object.keys(environment)) {
+    if (name.toLowerCase() === "psmodulepath") delete environment[name];
+  }
+  environment.MATTER_AUTHENTICODE_PATH = authenticodePath;
+  return Object.freeze(environment);
+}
+
 export function matterDesktopAuthenticodePowerShell() {
   return [
     "$ErrorActionPreference = 'Stop'",
+    "Import-Module Microsoft.PowerShell.Security -ErrorAction Stop",
     "function Get-EkuOids($certificate) {",
     "  if ($null -eq $certificate) { return @() }",
     "  $extension = $certificate.Extensions | Where-Object { $_.Oid.Value -eq '2.5.29.37' } | Select-Object -First 1",
