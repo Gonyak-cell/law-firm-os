@@ -24,6 +24,10 @@ jobs:
     runs-on: windows-latest
     timeout-minutes: 30
     steps:
+      - name: Configure deterministic Git line endings
+        shell: pwsh
+        run: git config --global core.autocrlf false
+
       - name: Checkout
         uses: actions/checkout@v4
 
@@ -51,4 +55,17 @@ jobs:
         with:
           name: windows-dashboard-package-qa
           path: artifacts/manual-qa/dashboard-package/win32/
+          if-no-files-found: error
+
+      - name: Upload internal Windows installer evidence
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-internal-installer-${{ github.sha }}
+          path: |
+            apps/desktop/dist/*-win-x64.exe
+            apps/desktop/dist/*-win-x64.exe.blockmap
+            apps/desktop/dist/win/*-win-build-manifest.json
+            apps/desktop/dist/win/*-win-installer-manifest.json
+            apps/desktop/dist/win/*-win-installer-manifest.json.sig
           if-no-files-found: error

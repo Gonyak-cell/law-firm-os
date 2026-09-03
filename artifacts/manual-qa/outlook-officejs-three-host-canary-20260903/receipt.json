@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "receipt_id": "OUTLOOK-OFFICEJS-THREE-HOST-CANARY-20260903-062344Z",
+  "captured_at_utc": "2026-09-03T06:23:44Z",
+  "result": "PASS",
+  "scope": "Final user-visible Office.js host canary for the assigned production cohort",
+  "release_components": {
+    "desktop_candidate_branch": "codex/windows-fast-exit-lock-20260831",
+    "desktop_candidate_head_before_receipt": "753e003364a8eaf80c13f46ba03a937a809439f1",
+    "m365_product_id": "8f3cc90d-56dd-4c1c-b9c2-0a1100500101",
+    "m365_manifest_version": "1.3.0.1",
+    "taskpane_url": "https://d2mthcc8vp3cr2.cloudfront.net/addin/index.html",
+    "deployed_frontend_source_sha": "fbec0458f71828b0d32d7df50a0b07e918b17446",
+    "deployed_frontend_sha256": "a4255ae654631813e9f5158f856d0b9354655f58c83854de5ad8bfed355d5564",
+    "deployed_frontend_etag": "abd71e48d3b1f59d4d96e03f50837780",
+    "deployed_frontend_last_modified_utc": "2026-09-01T03:07:16Z"
+  },
+  "hosts": [
+    {
+      "host": "Outlook for Windows (new)",
+      "host_version": "1.2026.818.100",
+      "assigned_account": true,
+      "passive_item_changes": 3,
+      "passive_result": "No automatic AMIC OS task pane, login prompt, or processing after the persisted pane pin was disabled and the pane was closed.",
+      "explicit_action_result": "AMIC OS opened and reached the Matter-selection-ready state without invoking save.",
+      "result": "PASS",
+      "observations": [
+        "The first explicit invocation remained at the Office authentication check for more than 45 seconds.",
+        "After one normal Outlook host restart, the next explicit invocation reached the ready state without another credential prompt."
+      ]
+    },
+    {
+      "host": "Outlook on the web",
+      "host_version": "Production web host in Microsoft Edge",
+      "assigned_account": true,
+      "passive_item_changes": 3,
+      "passive_result": "No automatic AMIC OS task pane, login prompt, or processing.",
+      "explicit_action_result": "AMIC OS opened, completed the login check, and reached the Matter-selection-ready state without invoking save.",
+      "result": "PASS"
+    },
+    {
+      "host": "Outlook for Mac",
+      "host_version": "16.112.3 (16.112.26083020)",
+      "assigned_account": true,
+      "passive_item_changes": 3,
+      "passive_result": "No automatic AMIC OS task pane, login prompt, or processing.",
+      "explicit_action_result": "AMIC OS opened, completed the login check, and reached the Matter-selection-ready state without invoking save.",
+      "result": "PASS"
+    }
+  ],
+  "safety": {
+    "mail_sent": false,
+    "amic_os_save_invoked": false,
+    "vault_document_or_attachment_write_invoked": false,
+    "credentials_or_private_message_content_recorded": false,
+    "screenshots_persisted_in_receipt": false
+  },
+  "notes": [
+    "Persisted Outlook task-pane pin state is host UI state; it was normalized before passive selection testing.",
+    "The deployed Office.js frontend identity and the desktop candidate Git head are recorded separately so the receipt does not imply that they are the same commit."
+  ]
+}

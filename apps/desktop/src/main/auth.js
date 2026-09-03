@@ -789,6 +789,7 @@ export class MainProcessAuthCoordinator {
       exactVersion: input.exactVersion,
       operationKind: input.operationKind,
       completionStage: input.completionStage,
+      safeReasonCode: input.safeReasonCode,
       installationRefSha256: input.installationRefSha256,
       composeTargetSha256: input.composeTargetSha256,
       sessionToken,

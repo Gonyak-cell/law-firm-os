@@ -151,8 +151,17 @@ function normalizeCompleteBody(body) {
   const operationKind = body?.operation_kind === "attach_outlook"
     ? "attach_outlook"
     : "export_exact_version";
+  const failed = operationKind === "attach_outlook" && body?.completion_stage === "failed";
   exactObjectKeys(body, operationKind === "attach_outlook"
-    ? [
+    ? failed ? [
+        "operation_id",
+        "exact_version",
+        "operation_kind",
+        "installation_ref_sha256",
+        "compose_target_sha256",
+        "completion_stage",
+        "safe_reason_code",
+      ] : [
         "operation_id",
         "exact_version",
         "operation_kind",
@@ -180,6 +189,8 @@ function normalizeCompleteBody(body) {
     composeTargetSha256: operationKind === "attach_outlook"
       ? body.compose_target_sha256
       : null,
+    completionStage: failed ? "failed" : operationKind === "attach_outlook" ? "attached" : "delivered",
+    safeReasonCode: failed ? requiredId(body.safe_reason_code, "safe_reason_code") : null,
   });
 }
 
@@ -459,7 +470,8 @@ export async function handleDesktopVaultExportComplete({
       principal,
       dmsRuntime,
       operationId: input.operationId,
-      completionStage: inspected.operation_kind === "attach_outlook" ? "attached" : "delivered",
+      completionStage: input.completionStage,
+      safeReasonCode: input.safeReasonCode,
       expectedExactVersion: input.exactVersion,
       requestId,
       now,

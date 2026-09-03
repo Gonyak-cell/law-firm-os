@@ -12,7 +12,7 @@ const AUDITED_DESKTOP_SOURCE_ROOTS = [
   "apps/desktop/src/preload",
   "apps/desktop/src/shared"
 ];
-const AUDITED_DESKTOP_SOURCE_MANIFEST_SHA256 = "047533f19298cd430f0d0102709e454fd8e4ec9d504eac28e3aba31cb8f11df1";
+const AUDITED_DESKTOP_SOURCE_MANIFEST_SHA256 = "522b70726b98734a44cefe07c84ec4e2f629f0e303e3000ef1060ac275b2b6c1";
 
 function listFiles(dir) {
   const directoryStat = lstatSync(dir);

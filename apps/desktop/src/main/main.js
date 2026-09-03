@@ -803,7 +803,8 @@ export function createDesktopVaultDocumentProvider(coordinator) {
       const operationKind = request.operationKind === "attach_outlook"
         ? "attach_outlook"
         : "export_exact_version";
-      const expectedStage = operationKind === "attach_outlook" ? "attached" : "delivered";
+      const failed = operationKind === "attach_outlook" && request.completionStage === "failed";
+      const expectedStage = failed ? "failed" : operationKind === "attach_outlook" ? "attached" : "delivered";
       const completionRequest = {
         operationId: request.operationId,
         exactVersion: request.exactVersion,
@@ -814,6 +815,7 @@ export function createDesktopVaultDocumentProvider(coordinator) {
         installationRefSha256: request.installationRefSha256,
         composeTargetSha256: request.composeTargetSha256,
       });
+      if (failed) completionRequest.safeReasonCode = request.safeReasonCode;
       const response = await coordinator.completeVaultExport(completionRequest);
       if (response?.ok !== true
           || response?.http_status !== 200
