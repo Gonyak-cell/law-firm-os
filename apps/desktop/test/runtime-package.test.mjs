@@ -105,6 +105,21 @@ test("desktop runtime staging is identical by channel and excludes local data fr
     assert.equal(formal.included, false);
     assert.equal(existsSync(join(formalApp, "runtime")), false);
     assert.equal(existsSync(join(formalApp, "src/main/outlook-desktop-installation-proof.js")), true);
+
+    const internalDistributionApp = join(fixtureRoot, "internal-distribution-app");
+    await writeDesktopMainFixture(internalDistributionApp);
+    await writeFixture(join(internalDistributionApp, "runtime/stale-private-data.json"), "{}\n");
+    const internalDistribution = await copyDesktopLocalApiRuntime({
+      targetAppSourceDir: internalDistributionApp,
+      repoRoot: fixtureRoot,
+      includeLocalRuntime: false,
+    });
+    assert.equal(internalDistribution.included, false);
+    assert.equal(existsSync(join(internalDistributionApp, "runtime")), false);
+    assert.equal(
+      existsSync(join(internalDistributionApp, "src/main/outlook-desktop-installation-proof.js")),
+      true,
+    );
   } finally {
     await rm(fixtureRoot, { recursive: true, force: true });
   }

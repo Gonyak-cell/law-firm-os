@@ -21,6 +21,9 @@ export const DESKTOP_INSTALLED_TREE_DIGEST_ALGORITHM = "sha256(UTF-8 byte-sorted
 export const DESKTOP_INSTALLED_TREE_SBOM_SCHEMA = "law-firm-os.matter-desktop-installed-tree-sbom.v1";
 export const DESKTOP_INSTALLED_TREE_NATIVE_SNAPSHOT_SCHEMA = "law-firm-os.windows-installed-tree-native-snapshot.v1";
 export const DESKTOP_RELEASE_CHANNELS = Object.freeze(["dev", "internal", "candidate", "formal"]);
+export const DESKTOP_INTERNAL_UNSIGNED_DISTRIBUTION_PROFILE = "internal-unsigned";
+export const DESKTOP_INTERNAL_UNSIGNED_MARKER_NAME =
+  "matter-internal-unsigned-release.json";
 
 const DESKTOP_RELEASE_CHANNEL_CONFIG = Object.freeze({
   dev: Object.freeze({
@@ -505,6 +508,60 @@ export function assertDesktopFormalBuildProvenance({
     source_branch: sourceBranch || "DETACHED",
     ignored_evidence_dirty_paths: sourceIdentity.ignoredEvidenceDirtyPaths ?? [],
   };
+}
+
+export function assertDesktopInternalUnsignedBuildProvenance({
+  distributionProfile,
+  releaseChannel,
+  sourceIdentity,
+  expectedSourceSha,
+  expectedSourceTree,
+}) {
+  if (distributionProfile !== DESKTOP_INTERNAL_UNSIGNED_DISTRIBUTION_PROFILE) {
+    return { enforced: false, verdict: "NOT_APPLICABLE" };
+  }
+  assert.equal(
+    releaseChannel,
+    "internal",
+    "internal-unsigned distribution requires the internal release channel",
+  );
+  assert.ok(sourceIdentity && typeof sourceIdentity === "object", "sourceIdentity is required");
+  if (sourceIdentity.sourceDirty) {
+    throw new Error(
+      `internal-unsigned build blocked: Git worktree is dirty (${sourceIdentity.sourceDirtyPaths?.join(", ") || "unknown paths"})`,
+    );
+  }
+  if (typeof expectedSourceSha !== "string" || !GIT_OBJECT_PATTERN.test(expectedSourceSha)) {
+    throw new Error(
+      "MATTER_DESKTOP_EXPECTED_SOURCE_SHA must be a full 40-character Git SHA",
+    );
+  }
+  if (typeof expectedSourceTree !== "string" || !GIT_OBJECT_PATTERN.test(expectedSourceTree)) {
+    throw new Error(
+      "MATTER_DESKTOP_EXPECTED_SOURCE_TREE must be a full 40-character Git tree SHA",
+    );
+  }
+  if (sourceIdentity.sourceSha !== expectedSourceSha
+      || sourceIdentity.sourceTree !== expectedSourceTree) {
+    throw new Error(
+      "internal-unsigned build blocked: exact source SHA or tree does not match",
+    );
+  }
+  const sourceBranch = sourceIdentity.sourceBranch ?? "";
+  if (sourceBranch !== "" && sourceBranch !== "main") {
+    throw new Error(
+      `internal-unsigned build blocked: branch ${sourceBranch} is not main or detached`,
+    );
+  }
+  return Object.freeze({
+    enforced: true,
+    verdict: "PASS",
+    distribution_profile: DESKTOP_INTERNAL_UNSIGNED_DISTRIBUTION_PROFILE,
+    source_sha: sourceIdentity.sourceSha,
+    source_tree: sourceIdentity.sourceTree,
+    source_branch: sourceBranch || "DETACHED",
+    ignored_evidence_dirty_paths: sourceIdentity.ignoredEvidenceDirtyPaths ?? [],
+  });
 }
 
 export function validateDesktopBuildManifest(manifest) {

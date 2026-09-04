@@ -738,6 +738,7 @@ export const JSON_POSTGRES_PRODUCTION_OUTLOOK_RUNTIME_ENTRIES = Object.freeze([
   "packages/integrations-core/src/docusign-envelope-send.js",
   "packages/integrations-core/src/docusign-event-model.js",
   "packages/integrations-core/src/docusign-postgres-repository.js",
+  "packages/integrations-core/src/external-read-provider-registry.js",
   "packages/integrations-core/src/hrx-m365-doc-source.js",
   "packages/integrations-core/src/index.js",
   "packages/integrations-core/src/outlook-calendar-cache.js",

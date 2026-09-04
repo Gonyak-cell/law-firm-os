@@ -17,3 +17,4 @@ export * from "./docusign-envelope-events.js";
 export * from "./docusign-envelope-authority.js";
 export * from "./docusign-completion-authority.js";
 export * from "./docusign-postgres-repository.js";
+export * from "./external-read-provider-registry.js";

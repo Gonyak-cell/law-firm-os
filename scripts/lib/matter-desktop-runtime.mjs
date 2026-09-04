@@ -40,7 +40,14 @@ export async function stageDesktopMainRuntimeDependencies({ targetAppSourceDir, 
   await verifyDesktopMainRuntimeDependencies({ targetAppSourceDir, repoRoot });
 }
 
-function sourcePaths({ repoRoot, env, rosterSourcePath, contactSourcePath, photoSourcePath, registrationSeedSourcePath }) {
+export function desktopLocalApiSourcePaths({
+  repoRoot,
+  env = process.env,
+  rosterSourcePath,
+  contactSourcePath,
+  photoSourcePath,
+  registrationSeedSourcePath,
+}) {
   const configuredContact = String(contactSourcePath ?? env.LAWOS_HRX_MEMBER_CONTACT_SOURCE_PATH ?? "").trim();
   return {
     roster: resolve(repoRoot, rosterSourcePath ?? env.LAWOS_HRX_MEMBER_ROSTER_SOURCE_PATH ?? defaultRosterSource),
@@ -54,6 +61,7 @@ export async function copyDesktopLocalApiRuntime({
   targetAppSourceDir,
   repoRoot,
   formalRelease = false,
+  includeLocalRuntime = !formalRelease,
   env = process.env,
   rosterSourcePath,
   contactSourcePath,
@@ -61,12 +69,15 @@ export async function copyDesktopLocalApiRuntime({
   registrationSeedSourcePath
 }) {
   if (!targetAppSourceDir || !repoRoot) throw new Error("targetAppSourceDir and repoRoot are required");
+  if (formalRelease && includeLocalRuntime) {
+    throw new Error("formal release cannot include the desktop local API runtime");
+  }
   await stageDesktopMainRuntimeDependencies({ targetAppSourceDir, repoRoot });
   const runtimeDir = join(targetAppSourceDir, "runtime");
   await rm(runtimeDir, { recursive: true, force: true });
-  if (formalRelease) return { included: false, runtimeDir };
+  if (!includeLocalRuntime) return { included: false, runtimeDir };
 
-  const sources = sourcePaths({
+  const sources = desktopLocalApiSourcePaths({
     repoRoot,
     env,
     rosterSourcePath,

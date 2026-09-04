@@ -7,7 +7,7 @@ const CERTIFICATE_SERIAL = /^[0-9A-F]+$/u;
 const OID = /^\d+(?:\.\d+)+$/u;
 const CODE_SIGNING_EKU_OID = "1.3.6.1.5.5.7.3.3";
 const TIME_STAMPING_EKU_OID = "1.3.6.1.5.5.7.3.8";
-const NOT_SIGNED_STATUS_MESSAGE = /^The file (?:[A-Za-z]:\\|\\\\[^\\\r\n]+\\)[^\r\n]+ is not digitally signed\. You cannot run this script on the current system\. For more information about running scripts and setting execution policy, see about_Execution_Policies at https:\/\/go\.microsoft\.com\/fwlink\/\?LinkID=135170$/u;
+const NOT_SIGNED_STATUS_MESSAGE = "Authenticode signature absent.";
 const ALLOWED_TIMESTAMP_URLS = new Set([
   "https://timestamp.digicert.com",
   "https://timestamp.sectigo.com",
@@ -70,35 +70,53 @@ function isPlainEmptyArray(value) {
     && Reflect.ownKeys(value).length === 1;
 }
 
-function isUnsignedAuthenticodeRecord(record) {
+function unsignedAuthenticodeRecordIssue(record) {
   if (record === null
     || typeof record !== "object"
     || types.isProxy(record)
     || Array.isArray(record)
-    || Object.getPrototypeOf(record) !== Object.prototype) return false;
+    || Object.getPrototypeOf(record) !== Object.prototype) return "record_shape";
   const keys = Reflect.ownKeys(record);
   if (keys.length !== UNSIGNED_AUTHENTICODE_FIELDS.size
-    || keys.some((key) => typeof key !== "string" || !UNSIGNED_AUTHENTICODE_FIELDS.has(key))) return false;
+    || keys.some((key) => typeof key !== "string" || !UNSIGNED_AUTHENTICODE_FIELDS.has(key))) {
+    const missing = [...UNSIGNED_AUTHENTICODE_FIELDS].filter((field) => !keys.includes(field));
+    const unexpected = keys.filter((key) => typeof key !== "string" || !UNSIGNED_AUTHENTICODE_FIELDS.has(key));
+    return `record_fields:missing=${missing.join(",") || "none"};unexpected=${unexpected.map(String).join(",") || "none"}`;
+  }
   const descriptors = Object.getOwnPropertyDescriptors(record);
   for (const field of UNSIGNED_AUTHENTICODE_FIELDS) {
     const descriptor = descriptors[field];
-    if (!descriptor || !Object.hasOwn(descriptor, "value") || descriptor.enumerable !== true) return false;
+    if (!descriptor || !Object.hasOwn(descriptor, "value") || descriptor.enumerable !== true) {
+      return `field_descriptor:${field}`;
+    }
   }
-  if (typeof descriptors.status.value !== "string"
-    || descriptors.status.value !== "NotSigned"
-    || typeof descriptors.status_message.value !== "string"
-    || !NOT_SIGNED_STATUS_MESSAGE.test(descriptors.status_message.value)
-    || typeof descriptors.signature_type.value !== "string"
-    || descriptors.signature_type.value !== "None"
-    || typeof descriptors.time_stamper_certificate_present.value !== "boolean"
-    || descriptors.time_stamper_certificate_present.value !== false) return false;
+  if (typeof descriptors.status.value !== "string") return "status_type";
+  if (descriptors.status.value !== "NotSigned") return `status:${descriptors.status.value}`;
+  if (typeof descriptors.status_message.value !== "string") return "status_message_type";
+  if (descriptors.status_message.value !== NOT_SIGNED_STATUS_MESSAGE) return "status_message";
+  if (typeof descriptors.signature_type.value !== "string") return "signature_type_type";
+  if (descriptors.signature_type.value !== "None") {
+    return `signature_type:${descriptors.signature_type.value}`;
+  }
+  if (typeof descriptors.time_stamper_certificate_present.value !== "boolean") {
+    return "time_stamper_certificate_present_type";
+  }
+  if (descriptors.time_stamper_certificate_present.value !== false) {
+    return "time_stamper_certificate_present";
+  }
   for (const prefix of ["signer", "timestamp"]) {
     for (const field of CERTIFICATE_FIELDS) {
       const value = descriptors[`${prefix}_${field}`].value;
-      if (field === "eku_oids" ? !isPlainEmptyArray(value) : value !== null) return false;
+      if (field === "eku_oids" ? !isPlainEmptyArray(value) : value !== null) {
+        return `${prefix}_${field}`;
+      }
     }
   }
-  return true;
+  return null;
+}
+
+function isUnsignedAuthenticodeRecord(record) {
+  return unsignedAuthenticodeRecordIssue(record) === null;
 }
 
 function assertUnsignedAuthenticodeRecords(records) {
@@ -120,7 +138,14 @@ function assertUnsignedAuthenticodeRecords(records) {
     || descriptors[1].enumerable !== true
     || !isUnsignedAuthenticodeRecord(descriptors[0].value)
     || !isUnsignedAuthenticodeRecord(descriptors[1].value)) {
-    throw new Error("complete unsigned technical-candidate Authenticode records are required");
+    const issues = [0, 1].map((index) => (
+      descriptors[index] && Object.hasOwn(descriptors[index], "value")
+        ? unsignedAuthenticodeRecordIssue(descriptors[index].value)
+        : "missing_record"
+    ));
+    throw new Error(
+      `complete unsigned technical-candidate Authenticode records are required (${issues.join(";")})`,
+    );
   }
 }
 
@@ -138,8 +163,27 @@ function validateExecutableParity(expectedExecutableSha256, actualExecutableSha2
   });
 }
 
+export function createMatterDesktopAuthenticodePowerShellEnvironment({
+  env = process.env,
+  authenticodePath,
+} = {}) {
+  if (typeof authenticodePath !== "string"
+    || authenticodePath.length === 0
+    || /[\0\r\n]/u.test(authenticodePath)) {
+    throw new TypeError("an exact Authenticode artifact path is required");
+  }
+  const environment = { ...env };
+  for (const name of Object.keys(environment)) {
+    if (name.toLowerCase() === "psmodulepath") delete environment[name];
+  }
+  environment.MATTER_AUTHENTICODE_PATH = authenticodePath;
+  return Object.freeze(environment);
+}
+
 export function matterDesktopAuthenticodePowerShell() {
   return [
+    "$ErrorActionPreference = 'Stop'",
+    "Import-Module Microsoft.PowerShell.Security -ErrorAction Stop",
     "function Get-EkuOids($certificate) {",
     "  if ($null -eq $certificate) { return @() }",
     "  $extension = $certificate.Extensions | Where-Object { $_.Oid.Value -eq '2.5.29.37' } | Select-Object -First 1",
@@ -152,13 +196,17 @@ export function matterDesktopAuthenticodePowerShell() {
     "  $hasher = [System.Security.Cryptography.SHA256]::Create()",
     "  try { return ([BitConverter]::ToString($hasher.ComputeHash($certificate.RawData))).Replace('-', '') } finally { $hasher.Dispose() }",
     "}",
-    "$signature = Get-AuthenticodeSignature -LiteralPath $env:MATTER_AUTHENTICODE_PATH",
+    "if ([string]::IsNullOrWhiteSpace($env:MATTER_AUTHENTICODE_PATH)) { throw 'Authenticode path is required.' }",
+    "$artifact = Get-Item -LiteralPath $env:MATTER_AUTHENTICODE_PATH -Force -ErrorAction Stop",
+    "if ($artifact.PSIsContainer) { throw 'Authenticode path must be a file.' }",
+    "$signature = Get-AuthenticodeSignature -LiteralPath $artifact.FullName -ErrorAction Stop",
+    "if ($null -eq $signature -or $null -eq $signature.Status) { throw 'Authenticode status is unavailable.' }",
     "$signer = $signature.SignerCertificate",
     "$timestamp = $signature.TimeStamperCertificate",
     "[PSCustomObject]@{",
-    "  status = [string]$signature.Status",
-    "  status_message = if ($signature.Status -eq 'Valid') { 'Signature verified.' } else { [string]$signature.StatusMessage }",
-    "  signature_type = [string]$signature.SignatureType",
+    "  status = $signature.Status.ToString()",
+    "  status_message = if ($signature.Status -eq 'Valid') { 'Signature verified.' } elseif ($signature.Status -eq 'NotSigned') { 'Authenticode signature absent.' } else { [string]$signature.StatusMessage }",
+    "  signature_type = if ($null -eq $signature.SignatureType) { $null } else { $signature.SignatureType.ToString() }",
     "  time_stamper_certificate_present = ($null -ne $timestamp)",
     "  signer_subject = if ($signer) { [string]$signer.Subject } else { $null }",
     "  signer_issuer = if ($signer) { [string]$signer.Issuer } else { $null }",

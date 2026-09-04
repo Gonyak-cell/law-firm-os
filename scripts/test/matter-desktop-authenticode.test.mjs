@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  createMatterDesktopAuthenticodePowerShellEnvironment,
   injectMatterDesktopAuthenticodeConfiguration,
   matterDesktopAuthenticodePowerShell,
   resolveMatterDesktopAuthenticodeConfiguration,
@@ -44,7 +45,7 @@ function record(overrides = {}) {
 function unsignedRecord(overrides = {}) {
   return {
     status: "NotSigned",
-    status_message: "The file D:\\a\\law-firm-os\\law-firm-os\\apps\\desktop\\dist\\matter.exe is not digitally signed. You cannot run this script on the current system. For more information about running scripts and setting execution policy, see about_Execution_Policies at https://go.microsoft.com/fwlink/?LinkID=135170",
+    status_message: "Authenticode signature absent.",
     signature_type: "None",
     time_stamper_certificate_present: false,
     signer_subject: null,
@@ -189,6 +190,15 @@ test("Authenticode final gate binds public signer, timestamp, and EKU metadata",
 
 test("PowerShell probe emits only public certificate metadata", () => {
   const source = matterDesktopAuthenticodePowerShell();
+  assert.match(source, /\$ErrorActionPreference = 'Stop'/u);
+  assert.match(source, /Import-Module Microsoft\.PowerShell\.Security -ErrorAction Stop/u);
+  assert.match(source, /Get-Item -LiteralPath \$env:MATTER_AUTHENTICODE_PATH -Force -ErrorAction Stop/u);
+  assert.match(source, /Get-AuthenticodeSignature -LiteralPath \$artifact\.FullName -ErrorAction Stop/u);
+  assert.match(source, /\$signature\.Status\.ToString\(\)/u);
+  assert.match(
+    source,
+    /elseif \(\$signature\.Status -eq 'NotSigned'\) \{ 'Authenticode signature absent\.' \}/u,
+  );
   for (const field of [
     "signer_subject",
     "signer_thumbprint",
@@ -200,6 +210,25 @@ test("PowerShell probe emits only public certificate metadata", () => {
     "timestamp_eku_oids",
   ]) assert.match(source, new RegExp(field, "u"));
   assert.doesNotMatch(source, /password|private.?key|pfx/iu);
+});
+
+test("Windows PowerShell probe drops a cross-edition module path before native inspection", () => {
+  const environment = createMatterDesktopAuthenticodePowerShellEnvironment({
+    env: {
+      Path: "C:\\Windows\\System32",
+      PSModulePath: "C:\\Program Files\\PowerShell\\Modules",
+      psmodulepath: "C:\\conflicting-module-path",
+    },
+    authenticodePath: "C:\\artifacts\\AMIC-OS-internal.exe",
+  });
+  assert.deepEqual(environment, {
+    Path: "C:\\Windows\\System32",
+    MATTER_AUTHENTICODE_PATH: "C:\\artifacts\\AMIC-OS-internal.exe",
+  });
+  assert.throws(
+    () => createMatterDesktopAuthenticodePowerShellEnvironment({ authenticodePath: "bad\npath" }),
+    /exact Authenticode artifact path/u,
+  );
 });
 
 test("an invalid installer signature blocks execution and a valid signature precedes it", async () => {
@@ -296,7 +325,7 @@ test("an unsigned technical candidate rejects incomplete or inconsistent PowerSh
   await rejectsBeforeAction([
     unsignedRecord(),
     unsignedRecord({
-      status_message: "The file not-a-windows-path is not digitally signed. You cannot run this script on the current system. For more information about running scripts and setting execution policy, see about_Execution_Policies at https://go.microsoft.com/fwlink/?LinkID=135170",
+      status_message: "Authenticode signature absent. ",
     }),
   ]);
 

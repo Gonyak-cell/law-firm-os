@@ -28,6 +28,7 @@ import { createMainWindow } from "./window.js";
 
 const moduleDir = dirname(fileURLToPath(import.meta.url));
 const formalReleaseMarkerName = "matter-formal-release.json";
+const internalUnsignedReleaseMarkerName = "matter-internal-unsigned-release.json";
 
 export const desktopSkeletonStatus = Object.freeze({
   appName: "matter",
@@ -108,12 +109,21 @@ export function isFormalReleasePackage({
   return typeof resourcesPath === "string" && Boolean(resourcesPath) && existsSyncImpl(join(resourcesPath, formalReleaseMarkerName));
 }
 
+export function isInternalUnsignedReleasePackage({
+  resourcesPath = process.resourcesPath,
+  existsSyncImpl = existsSync,
+} = {}) {
+  return typeof resourcesPath === "string"
+    && Boolean(resourcesPath)
+    && existsSyncImpl(join(resourcesPath, internalUnsignedReleaseMarkerName));
+}
+
 export function shouldStartDesktopLocalApi(
   env = process.env,
-  { formalRelease = false, packaged = false } = {}
+  { formalRelease = false, internalUnsignedRelease = false, packaged = false } = {}
 ) {
   if (env.MATTER_DESKTOP_LOCAL_API_DISABLED === "1") return false;
-  if (formalRelease) return false;
+  if (formalRelease || internalUnsignedRelease) return false;
   if (packaged) return env.MATTER_DESKTOP_LOCAL_API_ENABLED === "1";
   return true;
 }
@@ -999,8 +1009,13 @@ export async function startElectronApp() {
   configureDesktopAppIcon(app);
   configureDesktopProtocol(app);
   const formalRelease = isFormalReleasePackage();
+  const internalUnsignedRelease = isInternalUnsignedReleasePackage();
   const packaged = app.isPackaged === true;
-  const localApi = shouldStartDesktopLocalApi(process.env, { formalRelease, packaged })
+  const localApi = shouldStartDesktopLocalApi(process.env, {
+    formalRelease,
+    internalUnsignedRelease,
+    packaged,
+  })
     ? await startDesktopLocalApiServer({ userDataPath, packaged })
     : null;
   if (localApi?.baseUrl) {

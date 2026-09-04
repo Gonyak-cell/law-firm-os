@@ -1,8 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  DESKTOP_INTERNAL_UNSIGNED_DISTRIBUTION_PROFILE,
   DESKTOP_RELEASE_CHANNELS,
   assertDesktopFormalBuildProvenance,
+  assertDesktopInternalUnsignedBuildProvenance,
   createDesktopBuildManifest,
   desktopReleaseChannelConfig,
 } from "../lib/matter-desktop-provenance.mjs";
@@ -140,4 +142,66 @@ test("PV-004 keeps the clean-SHA gate formal-only", () => {
     () => assertDesktopFormalBuildProvenance({ releaseChannel: "formal", sourceIdentity }),
     /formal build blocked: Git worktree is dirty/,
   );
+});
+
+test("internal-unsigned distribution requires exact clean main or detached source", () => {
+  const sourceIdentity = {
+    sourceSha: SOURCE_SHA,
+    sourceTree: SOURCE_TREE,
+    sourceDirty: false,
+    sourceBranch: "main",
+    sourceDirtyPaths: [],
+    ignoredEvidenceDirtyPaths: [],
+  };
+  assert.deepEqual(assertDesktopInternalUnsignedBuildProvenance({
+    distributionProfile: DESKTOP_INTERNAL_UNSIGNED_DISTRIBUTION_PROFILE,
+    releaseChannel: "internal",
+    sourceIdentity,
+    expectedSourceSha: SOURCE_SHA,
+    expectedSourceTree: SOURCE_TREE,
+  }), {
+    enforced: true,
+    verdict: "PASS",
+    distribution_profile: DESKTOP_INTERNAL_UNSIGNED_DISTRIBUTION_PROFILE,
+    source_sha: SOURCE_SHA,
+    source_tree: SOURCE_TREE,
+    source_branch: "main",
+    ignored_evidence_dirty_paths: [],
+  });
+  assert.throws(
+    () => assertDesktopInternalUnsignedBuildProvenance({
+      distributionProfile: DESKTOP_INTERNAL_UNSIGNED_DISTRIBUTION_PROFILE,
+      releaseChannel: "internal",
+      sourceIdentity: { ...sourceIdentity, sourceDirty: true, sourceDirtyPaths: ["private.json"] },
+      expectedSourceSha: SOURCE_SHA,
+      expectedSourceTree: SOURCE_TREE,
+    }),
+    /worktree is dirty/,
+  );
+  assert.throws(
+    () => assertDesktopInternalUnsignedBuildProvenance({
+      distributionProfile: DESKTOP_INTERNAL_UNSIGNED_DISTRIBUTION_PROFILE,
+      releaseChannel: "internal",
+      sourceIdentity: { ...sourceIdentity, sourceBranch: "codex/feature" },
+      expectedSourceSha: SOURCE_SHA,
+      expectedSourceTree: SOURCE_TREE,
+    }),
+    /not main or detached/,
+  );
+  for (const overrides of [
+    { releaseChannel: "candidate" },
+    { expectedSourceSha: "c".repeat(40) },
+    { expectedSourceTree: "d".repeat(40) },
+    { expectedSourceSha: "short" },
+    { expectedSourceTree: "short" },
+  ]) {
+    assert.throws(() => assertDesktopInternalUnsignedBuildProvenance({
+      distributionProfile: DESKTOP_INTERNAL_UNSIGNED_DISTRIBUTION_PROFILE,
+      releaseChannel: "internal",
+      sourceIdentity,
+      expectedSourceSha: SOURCE_SHA,
+      expectedSourceTree: SOURCE_TREE,
+      ...overrides,
+    }));
+  }
 });
