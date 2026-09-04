@@ -577,8 +577,8 @@ function validateProvenance({ provenance, release, sourceRecords, now }) {
 
 function validateGovernance(governance, bindings) {
   const publicAccess = governance?.publicAccess?.PublicAccessBlockConfiguration;
-  const encryption = governance?.encryption?.ServerSideEncryptionConfiguration?.Rules?.[0]
-    ?.ApplyServerSideEncryptionByDefault;
+  const encryptionRule = governance?.encryption?.ServerSideEncryptionConfiguration?.Rules?.[0];
+  const encryption = encryptionRule?.ApplyServerSideEncryptionByDefault;
   const logging = governance?.logging?.LoggingEnabled;
   assert.equal(governance?.identity?.Account, bindings.accountId, "AWS caller account differs");
   assert.equal(governance?.location?.LocationConstraint, bindings.region, "artifact bucket region differs");
@@ -596,6 +596,8 @@ function validateGovernance(governance, bindings) {
   );
   assert.equal(encryption?.SSEAlgorithm, "aws:kms", "artifact bucket is not SSE-KMS encrypted");
   assert.equal(encryption?.KMSMasterKeyID, bindings.kmsKeyArn, "artifact bucket KMS key differs");
+  assert.equal(encryptionRule?.BucketKeyEnabled ?? false, false,
+    "artifact bucket keys must be disabled for prefix-scoped CloudFront decrypt");
   assert.deepEqual(
     governance?.ownership?.OwnershipControls?.Rules,
     [{ ObjectOwnership: "BucketOwnerEnforced" }],

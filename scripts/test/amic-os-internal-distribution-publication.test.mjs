@@ -312,12 +312,14 @@ function rollbackTo({ current, targetMetadata, revocationRevision = 1 }) {
 class FakeAwsDistribution {
   constructor({
     publicAccess = true,
+    bucketKeyEnabled = false,
     failGetKind = null,
     rollbackTargetPresent = true,
     predecessorControlPresent = rollbackTargetPresent,
     raceControlKind = null,
   } = {}) {
     this.publicAccess = publicAccess;
+    this.bucketKeyEnabled = bucketKeyEnabled;
     this.failGetKind = failGetKind;
     this.objects = new Map();
     this.puts = [];
@@ -473,6 +475,7 @@ class FakeAwsDistribution {
       } },
       objectLock: { ObjectLockConfiguration: { ObjectLockEnabled: "Enabled" } },
       encryption: { ServerSideEncryptionConfiguration: { Rules: [{
+        BucketKeyEnabled: this.bucketKeyEnabled,
         ApplyServerSideEncryptionByDefault: {
           SSEAlgorithm: "aws:kms",
           KMSMasterKeyID: KMS_KEY_ARN,
@@ -1083,24 +1086,30 @@ test("conditional control commit refuses a competing channel writer", async () =
   }
 });
 
-test("publication refuses incomplete public-access governance and dirty source provenance before upload", async () => {
+test("publication refuses unsafe bucket governance and dirty source provenance before upload", async () => {
   const root = await mkdtemp(path.join(tmpdir(), "amic-os-publication-governance-"));
   try {
-    const publicAws = new FakeAwsDistribution({ publicAccess: false });
-    await assert.rejects(
-      executeAmicInternalDistributionPublication({
-        aws: publicAws,
-        bindings: bindings(),
-        release: release(),
-        artifactPaths: await fixtureArtifacts(root),
-        revocations: revocations(),
-        rollback: rollbackAuthorization(),
-        privateKey,
-        now: NOW,
-      }),
-      /public access block is incomplete/u,
-    );
-    assert.equal(publicAws.puts.length, 0);
+    const artifactPaths = await fixtureArtifacts(root);
+    for (const [options, expectedError] of [
+      [{ publicAccess: false }, /public access block is incomplete/u],
+      [{ bucketKeyEnabled: true }, /artifact bucket keys must be disabled/u],
+    ]) {
+      const unsafeAws = new FakeAwsDistribution(options);
+      await assert.rejects(
+        executeAmicInternalDistributionPublication({
+          aws: unsafeAws,
+          bindings: bindings(),
+          release: release(),
+          artifactPaths,
+          revocations: revocations(),
+          rollback: rollbackAuthorization(),
+          privateKey,
+          now: NOW,
+        }),
+        expectedError,
+      );
+      assert.equal(unsafeAws.puts.length, 0);
+    }
 
     const dirtyRoot = path.join(root, "dirty");
     await mkdir(dirtyRoot);
