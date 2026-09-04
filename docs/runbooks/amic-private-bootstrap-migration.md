@@ -76,14 +76,18 @@ state. Preserve the receipt and obtain separate approval for an exact-purpose
 CloudFormation change-set review. Do not treat absent provider parameters as
 equivalent to `false`, and do not continue to target discovery.
 
-The existing W15 bootstrap change-set path is the only prepared upgrade path
-for this state. It sends `EnableExternalReadProviders=false`, both disabled
-provider-pack placeholders, `EnableOutlookConversationWorker=false`, and both
-disabled Outlook secret placeholders explicitly. It rejects missing values,
+The existing W15 change-set paths are the prepared upgrade paths for this
+state. If `EnableProjectionWorker=false`, the inventory-bootstrap path may be
+used. If the worker is already enabled, the bootstrap path fails closed because
+it cannot safely restore an active projection binding; use a fresh signed W15
+relational-projection rebind and complete its worker re-enable gate instead.
+Both paths send `EnableExternalReadProviders=false`, both disabled provider-pack
+placeholders, `EnableOutlookConversationWorker=false`, and both disabled
+Outlook secret placeholders explicitly. They reject missing values,
 `UsePreviousValue`, any mismatch, and every provider or Outlook resource change
 while those controls are disabled. Post-execution verification requires the
 same parameters and `ExternalReadProvidersEnabled=false`. Creating or executing
-that change set is an AWS write and still requires separate operator approval;
+a change set is an AWS write and still requires separate operator approval;
 this read-only inspection does not authorize it.
 
 **If it reports an enabled provider, enabled Outlook worker, or ambiguous

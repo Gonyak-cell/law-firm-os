@@ -1511,6 +1511,12 @@ if (operation === "preflight"
     || current.EnableProductionTraffic !== "true") {
     throw new Error("W15 requires completed go-live with ENI bootstrap removed");
   }
+  if (w15BootstrapOperation
+    && current.EnableProjectionWorker !== "false") {
+    throw new Error(
+      "W15 inventory bootstrap cannot disable an active projection worker; use an exact W15 rebind",
+    );
+  }
   const parameters = {
     ...current,
     ArtifactBucket: packet.target.artifact_bucket_name,

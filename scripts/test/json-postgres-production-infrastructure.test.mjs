@@ -1981,6 +1981,10 @@ test("W15 inventory bootstrap closes the pre-schema audit cycle without direct s
   );
   assert.match(
     runner,
+    /w15BootstrapOperation[\s\S]{0,120}current\.EnableProjectionWorker !== "false"[\s\S]{0,180}cannot disable an active projection worker/u,
+  );
+  assert.match(
+    runner,
     /sourceIsAncestor: gitIsAncestor\(sourceSha, originMainSha\)/u,
   );
   assert.doesNotMatch(
