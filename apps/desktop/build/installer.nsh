@@ -30,6 +30,13 @@
   DeleteRegKey HKLM "Software\Classes\${AMIC_OUTLOOK_PROGID}"
 !macroend
 
+!macro amicUnregisterOwnedProtocolForCurrentUser
+  ReadRegStr $0 HKCU "Software\Classes\matter\shell\open\command" ""
+  ${If} $0 == '"$INSTDIR\matter.exe" "%1"'
+    DeleteRegKey HKCU "Software\Classes\matter"
+  ${EndIf}
+!macroend
+
 !macro amicRegisterManagedCom FRAMEWORK
   ExecWait '"$WINDIR\Microsoft.NET\${FRAMEWORK}\v4.0.30319\RegAsm.exe" "$INSTDIR\resources\classic-outlook\AMIC.OS.Vault.Outlook.dll" /codebase /silent' $0
   ${If} $0 != 0
@@ -85,11 +92,13 @@
   !insertmacro amicUnregisterOutlookAddinForCurrentUser
   !insertmacro amicRemoveLegacyUserComRegistration
   !insertmacro amicRemoveMachineComRegistration
+  !insertmacro amicUnregisterOwnedProtocolForCurrentUser
   ${If} ${RunningX64}
     SetRegView 64
     !insertmacro amicUnregisterOutlookAddinForCurrentUser
     !insertmacro amicRemoveLegacyUserComRegistration
     !insertmacro amicRemoveMachineComRegistration
+    !insertmacro amicUnregisterOwnedProtocolForCurrentUser
   ${EndIf}
   ${If} ${RunningX64}
     SetRegView 64
