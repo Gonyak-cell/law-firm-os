@@ -14,8 +14,14 @@ import {
   AMIC_INTERNAL_CHANNEL_DOCUMENT_SCHEMA,
   AMIC_INTERNAL_CHANNEL_ENVELOPE_SCHEMA,
   AMIC_INTERNAL_RELEASE_MANIFEST_SCHEMA,
+  AMIC_INTERNAL_MANAGED_BOOTSTRAP_BOUNDARIES,
+  AMIC_INTERNAL_MANAGED_BOOTSTRAP_ENVELOPE_SCHEMA,
+  AMIC_INTERNAL_MANAGED_BOOTSTRAP_MANIFEST_SCHEMA,
+  AMIC_INTERNAL_MANAGED_BOOTSTRAP_PREFIX,
   amicInternalBaselineScopeKey,
   amicInternalChannelScopeKey,
+  amicInternalManagedBootstrapScopeKey,
+  validateAmicInternalDistributionRelease,
   verifyAmicInternalRollbackTargetArtifact,
 } from "./amic-os-internal-distribution-publication.mjs";
 
@@ -23,6 +29,8 @@ export const AMIC_INTERNAL_READBACK_RECEIPT_SCHEMA =
   "law-firm-os.amic-internal-unsigned-independent-readback.v1";
 export const AMIC_INTERNAL_BASELINE_READBACK_RECEIPT_SCHEMA =
   "law-firm-os.amic-internal-unsigned-baseline-independent-readback.v1";
+export const AMIC_INTERNAL_MANAGED_BOOTSTRAP_READBACK_RECEIPT_SCHEMA =
+  "law-firm-os.amic-internal-unsigned-managed-bootstrap-independent-readback.v1";
 
 const SHA256 = /^[0-9a-f]{64}$/u;
 const VERSION_ID = /^[A-Za-z0-9][A-Za-z0-9._+=/-]{0,1023}$/u;
@@ -46,6 +54,7 @@ const OBJECT_MAX_BYTES = Object.freeze({
   channel_signature: 64,
   channel_pointer: 2 * 1024 * 1024,
   baseline_marker: 2 * 1024 * 1024,
+  managed_bootstrap_marker: 2 * 1024 * 1024,
 });
 const ARTIFACT_KINDS = Object.freeze(["build_manifest", "installer", "provenance", "sbom"]);
 const RELEASE_MANIFEST_FIELDS = Object.freeze([
@@ -129,6 +138,7 @@ function validateObjectRef(value, label, expectedKind = null) {
     `${label} byte count is invalid`,
   );
   assert.match(value.version_id, VERSION_ID, `${label} VersionId is invalid`);
+  assert.notEqual(value.version_id, "null", `${label} VersionId is not immutable`);
   assert.equal(typeof value.key, "string");
   assert.ok(value.key.startsWith("internal-unsigned/"), `${label} key escaped its prefix`);
   return value;
@@ -225,6 +235,135 @@ async function listExactControlHistory({ aws, bindings, key, label }) {
     `${label} history escaped its exact key`,
   );
   return Object.freeze({ versions, deleteMarkers });
+}
+
+export async function verifyAmicInternalManagedBootstrapReadback({
+  aws, bindings, bootstrapMarker, expectedRelease, trustedPublicKey,
+  expectedPublicKeySha256, cloudFrontDomain, now = Date.now(),
+} = {}) {
+  assert.ok(aws?.getObjectBody && aws?.listObjectVersions && aws?.probeAnonymousAccess,
+    "managed bootstrap independent readback adapter is incomplete");
+  validateBindings(bindings);
+  const release = validateAmicInternalDistributionRelease(expectedRelease, {
+    now, publicationMode: "managed-bootstrap",
+  });
+  const publicKey = validateTrustRoot(trustedPublicKey, expectedPublicKeySha256);
+  validateObjectRef(bootstrapMarker, "managed bootstrap marker", "managed_bootstrap_marker");
+  assert.ok(bootstrapMarker.key.startsWith(AMIC_INTERNAL_MANAGED_BOOTSTRAP_PREFIX));
+  assert.equal(bootstrapMarker.key, amicInternalManagedBootstrapScopeKey(release),
+    "managed bootstrap marker scope differs from the approved release");
+  const boundaryFields = Object.keys(AMIC_INTERNAL_MANAGED_BOOTSTRAP_BOUNDARIES);
+  const envelope = exactFields(parseCanonicalJson(await readExactObject({
+    aws, bindings, ref: bootstrapMarker, label: "managed bootstrap marker",
+  }), "managed bootstrap marker"), [
+    ...boundaryFields, "schema_version", "key_id", "document_base64", "signature_base64",
+    "document_object", "signature_object", "bootstrap_marker_written_after_all_object_readbacks",
+  ], "managed bootstrap marker");
+  assert.equal(envelope.schema_version, AMIC_INTERNAL_MANAGED_BOOTSTRAP_ENVELOPE_SCHEMA);
+  assert.equal(envelope.key_id, release.keyId);
+  assert.equal(envelope.bootstrap_marker_written_after_all_object_readbacks, true);
+  for (const field of boundaryFields) {
+    assert.equal(envelope[field], AMIC_INTERNAL_MANAGED_BOOTSTRAP_BOUNDARIES[field], field);
+  }
+  validateObjectRef(envelope.document_object, "bootstrap manifest", "release_manifest");
+  validateObjectRef(envelope.signature_object, "bootstrap manifest signature", "release_manifest_signature");
+  const manifestBytes = canonicalBase64(envelope.document_base64, "bootstrap manifest");
+  const signatureBytes = canonicalBase64(envelope.signature_base64, "bootstrap signature");
+  verifyDetached(manifestBytes, signatureBytes, publicKey, "bootstrap manifest");
+  assert.deepEqual(await readExactObject({
+    aws, bindings, ref: envelope.document_object, label: "bootstrap manifest",
+  }), manifestBytes);
+  assert.deepEqual(await readExactObject({
+    aws, bindings, ref: envelope.signature_object, label: "bootstrap manifest signature",
+  }), signatureBytes);
+  const manifest = exactFields(parseCanonicalJson(manifestBytes, "bootstrap manifest"), [
+    ...new Set([
+      ...RELEASE_MANIFEST_FIELDS.filter((field) => !["installation_id", "predecessor"].includes(field)),
+      ...boundaryFields, "key_id",
+    ]),
+  ], "bootstrap manifest");
+  assert.equal(manifest.schema_version, AMIC_INTERNAL_MANAGED_BOOTSTRAP_MANIFEST_SCHEMA);
+  for (const [field, value] of Object.entries({
+    ...AMIC_INTERNAL_MANAGED_BOOTSTRAP_BOUNDARIES,
+    release_id: release.releaseId,
+    release_sequence: release.releaseSequence,
+    version: release.version,
+    source_sha: release.sourceSha,
+    source_tree: release.sourceTree,
+    lawos_tenant_id: release.lawosTenantId,
+    app_id: release.appId,
+    key_id: release.keyId,
+    platform: release.platform,
+    architecture: release.architecture,
+    generated_at: release.generatedAt,
+    expires_at: release.expiresAt,
+    channel: INTERNAL_UNSIGNED_UPDATE_CHANNEL,
+    authenticode_status: "not_signed",
+    distribution: "private",
+    managed_device_only: true,
+    real_contact_seed_included: false,
+    real_photo_seed_included: false,
+    real_registration_seed_included: false,
+    credentials_included: false,
+  })) assert.equal(manifest[field], value, `bootstrap manifest binding differs: ${field}`);
+  assertCurrentWindow(manifest, now, "bootstrap manifest");
+  assert.deepEqual(Object.keys(manifest.artifacts).sort(), ARTIFACT_KINDS);
+  for (const kind of ARTIFACT_KINDS) validateObjectRef(manifest.artifacts[kind], kind, kind);
+  const refs = [bootstrapMarker, envelope.document_object, envelope.signature_object,
+    ...ARTIFACT_KINDS.map((kind) => manifest.artifacts[kind])];
+  assert.equal(new Set(refs.map(({ key, version_id: versionId }) => `${key}\0${versionId}`)).size, 7,
+    "bootstrap readback object references are not unique");
+  const history = await aws.listObjectVersions({
+    bucket: bindings.bucket, prefix: bootstrapMarker.key, expectedOwner: bindings.accountId,
+  });
+  assert.notEqual(history?.IsTruncated, true, "bootstrap history is incomplete");
+  assert.equal(history?.NextToken, undefined, "bootstrap history is incomplete");
+  assert.ok(history?.DeleteMarkers === undefined || Array.isArray(history.DeleteMarkers));
+  assert.equal((history?.DeleteMarkers ?? []).length, 0, "bootstrap marker has a delete marker");
+  assert.ok(Array.isArray(history?.Versions), "bootstrap history has no versions");
+  assert.equal(history.Versions.length, 1, "bootstrap marker must be its only immutable version");
+  assert.equal(history.Versions[0].Key, bootstrapMarker.key);
+  assert.equal(history.Versions[0].VersionId, bootstrapMarker.version_id);
+  assert.equal(history.Versions[0].IsLatest, true);
+  let sourceArtifactByteCount = 0;
+  for (const kind of ARTIFACT_KINDS) {
+    const bytes = await readExactObject({ aws, bindings, ref: manifest.artifacts[kind], label: kind });
+    sourceArtifactByteCount += bytes.byteLength;
+    assert.ok(Number.isSafeInteger(sourceArtifactByteCount));
+  }
+  for (const key of [bootstrapMarker.key, manifest.artifacts.installer.key]) {
+    const anonymous = await aws.probeAnonymousAccess({
+      bucket: bindings.bucket, region: bindings.region, cloudFrontDomain, key,
+    });
+    assert.ok([401, 403, 404].includes(anonymous?.s3_status), "anonymous S3 bootstrap access did not fail closed");
+    assert.ok([401, 403, 404].includes(anonymous?.cloudfront_status), "unsigned CloudFront bootstrap access did not fail closed");
+  }
+  const receipt = {
+    schema_version: AMIC_INTERNAL_MANAGED_BOOTSTRAP_READBACK_RECEIPT_SCHEMA,
+    state: "PASS",
+    ...AMIC_INTERNAL_MANAGED_BOOTSTRAP_BOUNDARIES,
+    release_id: release.releaseId,
+    release_sequence: release.releaseSequence,
+    version: release.version,
+    source_sha: release.sourceSha,
+    source_tree: release.sourceTree,
+    object_count: 7,
+    exact_version_read_count: 7,
+    public_key_sha256: expectedPublicKeySha256,
+    managed_bootstrap_marker_sha256: bootstrapMarker.sha256,
+    artifact_sha256: manifest.artifacts.installer.sha256,
+    artifact_bytes: manifest.artifacts.installer.bytes,
+    bootstrap_marker_only_version: true,
+    anonymous_s3_denied: true,
+    unsigned_cloudfront_denied: true,
+    authenticode_status: "not_signed",
+    private_distribution: true,
+    public_installer_available: false,
+    raw_object_locator_included: false,
+    raw_secret_included: false,
+    source_artifact_byte_count: sourceArtifactByteCount,
+  };
+  return Object.freeze({ ...receipt, receipt_sha256: sha256(canonicalBytes(receipt)) });
 }
 
 export async function verifyAmicInternalBaselineReadback({

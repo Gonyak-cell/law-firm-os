@@ -14,6 +14,7 @@ import { createAmicInternalDistributionAwsCliAdapter } from "./lib/amic-os-inter
 import {
   verifyAmicInternalBaselineReadback,
   verifyAmicInternalDistributionReadback,
+  verifyAmicInternalManagedBootstrapReadback,
 } from "./lib/amic-os-internal-distribution-readback.mjs";
 
 function option(name) {
@@ -60,8 +61,8 @@ if (!/^[A-Za-z0-9][A-Za-z0-9._:-]{0,199}$/u.test(approvalRef)) {
   throw new Error("--approval-ref is invalid");
 }
 const publicationMode = option("--publication-mode");
-if (!["baseline", "successor"].includes(publicationMode)) {
-  throw new Error("--publication-mode must be baseline or successor");
+if (!["baseline", "successor", "managed-bootstrap"].includes(publicationMode)) {
+  throw new Error("--publication-mode must be baseline, successor, or managed-bootstrap");
 }
 if (process.env.GITHUB_ACTIONS !== "true"
     || process.env.GITHUB_REPOSITORY !== "Gonyak-cell/law-firm-os"
@@ -94,9 +95,14 @@ const common = {
   expectedPublicKeySha256,
   cloudFrontDomain: option("--cloudfront-domain"),
 };
-const receipt = publicationMode === "baseline"
-  ? await verifyAmicInternalBaselineReadback({ ...common, baselineMarker: locator })
-  : await verifyAmicInternalDistributionReadback({ ...common, channelPointer: locator });
+const receipt = publicationMode === "managed-bootstrap"
+  ? await verifyAmicInternalManagedBootstrapReadback({
+    ...common, bootstrapMarker: locator,
+    expectedRelease: readJson(option("--release"), "approved managed bootstrap release"),
+  })
+  : publicationMode === "baseline"
+    ? await verifyAmicInternalBaselineReadback({ ...common, baselineMarker: locator })
+    : await verifyAmicInternalDistributionReadback({ ...common, channelPointer: locator });
 const result = Object.freeze({ ...receipt, approval_ref: approvalRef });
 writeFileSync(receiptPath, `${JSON.stringify(result, null, 2)}\n`, { flag: "wx", mode: 0o600 });
 chmodSync(receiptPath, 0o600);

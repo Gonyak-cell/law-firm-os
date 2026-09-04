@@ -45,6 +45,24 @@ export const AMIC_INTERNAL_METADATA_SIGNING_SECRET_SCHEMA =
   "law-firm-os.amic-internal-unsigned-metadata-signing-secret.v1";
 export const AMIC_INTERNAL_PROVENANCE_SCHEMA =
   "law-firm-os.amic-internal-unsigned-build-provenance.v1";
+export const AMIC_INTERNAL_MANAGED_BOOTSTRAP_MANIFEST_SCHEMA =
+  "law-firm-os.amic-internal-unsigned-managed-bootstrap-manifest.v1";
+export const AMIC_INTERNAL_MANAGED_BOOTSTRAP_ENVELOPE_SCHEMA =
+  "law-firm-os.amic-internal-unsigned-managed-bootstrap-envelope.v1";
+export const AMIC_INTERNAL_MANAGED_BOOTSTRAP_RECEIPT_SCHEMA =
+  "law-firm-os.amic-internal-unsigned-managed-bootstrap-publication-receipt.v1";
+export const AMIC_INTERNAL_MANAGED_BOOTSTRAP_PREFIX =
+  `${AMIC_INTERNAL_DISTRIBUTION_PREFIX}baseline/managed-bootstrap/`;
+export const AMIC_INTERNAL_MANAGED_BOOTSTRAP_BOUNDARIES = Object.freeze({
+  publication_mode: "managed-bootstrap",
+  delivery_mode: "authenticated-owner-mediated",
+  installation_registered: false,
+  update_authorization_published: false,
+  channel_pointer_published: false,
+  rollback_authorization_published: false,
+  runtime_discoverable: false,
+  public_release_allowed: false,
+});
 
 const SHA256 = /^[0-9a-f]{64}$/u;
 const GIT_OBJECT = /^[0-9a-f]{40}$/u;
@@ -101,6 +119,7 @@ const CONTENT_TYPES = Object.freeze({
   channel_signature: "application/octet-stream",
   channel_pointer: "application/json",
   baseline_marker: "application/json",
+  managed_bootstrap_marker: "application/json",
 });
 const PROVENANCE_FIELDS = Object.freeze([
   "app_id",
@@ -449,6 +468,40 @@ export function sanitizeAmicInternalBaselinePublicationReceipt(receipt) {
   });
 }
 
+export function sanitizeAmicInternalManagedBootstrapPublicationReceipt(receipt) {
+  assert.equal(receipt?.schema_version, AMIC_INTERNAL_MANAGED_BOOTSTRAP_RECEIPT_SCHEMA);
+  assert.equal(receipt?.state, "PASS");
+  assert.equal(receipt.object_count, 7);
+  assert.equal(receipt.exact_head_readback_complete, true);
+  assert.equal(receipt.exact_get_readback_complete, true);
+  for (const [field, value] of Object.entries(AMIC_INTERNAL_MANAGED_BOOTSTRAP_BOUNDARIES)) {
+    assert.equal(receipt[field], value, `bootstrap receipt boundary differs: ${field}`);
+  }
+  return Object.freeze({
+    schema_version: "law-firm-os.amic-internal-unsigned-managed-bootstrap-publication-public-receipt.v1",
+    state: "PASS",
+    ...AMIC_INTERNAL_MANAGED_BOOTSTRAP_BOUNDARIES,
+    release_id: receipt.release_id,
+    release_sequence: receipt.release_sequence,
+    version: receipt.version,
+    source_sha: receipt.source_sha,
+    source_tree: receipt.source_tree,
+    object_count: receipt.object_count,
+    managed_bootstrap_marker_sha256: receipt.managed_bootstrap_marker.sha256,
+    exact_head_readback_complete: receipt.exact_head_readback_complete,
+    exact_get_readback_complete: receipt.exact_get_readback_complete,
+    authenticode_status: receipt.authenticode_status,
+    private_distribution: true,
+    public_installer_uploaded: false,
+    github_release_installer_asset_allowed: false,
+    raw_bucket_included: false,
+    raw_object_key_included: false,
+    raw_version_id_included: false,
+    raw_secret_included: false,
+    private_receipt_sha256: receipt.receipt_sha256,
+  });
+}
+
 async function fileRecord(path, kind) {
   const stat = await lstat(path);
   assert.equal(stat.isSymbolicLink(), false, `${kind} cannot be a symbolic link`);
@@ -487,13 +540,16 @@ export function validateAmicInternalDistributionBindings(bindings, { now = Date.
   return validateBindings(bindings, now);
 }
 
-function validateRelease(release, now) {
-  exactObject(release, RELEASE_FIELDS, "release document");
-  exactObject(release.predecessor, RELEASE_PREDECESSOR_FIELDS, "release predecessor");
+function validateRelease(release, now, publicationMode = "successor") {
+  assert.ok(["baseline", "successor", "managed-bootstrap"].includes(publicationMode),
+    "publication mode is invalid");
+  const managedBootstrap = publicationMode === "managed-bootstrap";
+  exactObject(release, managedBootstrap
+    ? RELEASE_FIELDS.filter((field) => !["installationId", "predecessor"].includes(field))
+    : RELEASE_FIELDS, "release document");
   assert.match(release?.releaseId ?? "", IDENTIFIER, "release id is invalid");
   assert.match(release?.version ?? "", VERSION, "release version is invalid");
   assert.match(release?.lawosTenantId ?? "", IDENTIFIER, "tenant id is invalid");
-  assert.match(release?.installationId ?? "", IDENTIFIER, "installation id is invalid");
   assert.equal(release?.appId, "com.amic.matter.desktop.internal");
   assert.equal(release?.keyId, INTERNAL_UPDATE_KEY_ID);
   assert.match(release?.sourceSha ?? "", GIT_OBJECT, "source SHA is invalid");
@@ -501,10 +557,14 @@ function validateRelease(release, now) {
   assert.equal(release?.platform, "win32");
   assert.equal(release?.architecture, "x64");
   assert.ok(Number.isSafeInteger(release?.releaseSequence) && release.releaseSequence > 0);
-  assert.match(release?.predecessor?.releaseId ?? "", IDENTIFIER, "predecessor release id is invalid");
-  assert.match(release?.predecessor?.version ?? "", VERSION, "predecessor version is invalid");
-  assert.match(release?.predecessor?.sourceSha ?? "", GIT_OBJECT, "predecessor source SHA is invalid");
-  assert.match(release?.predecessor?.sourceTree ?? "", GIT_OBJECT, "predecessor source tree is invalid");
+  if (!managedBootstrap) {
+    assert.match(release?.installationId ?? "", IDENTIFIER, "installation id is invalid");
+    exactObject(release.predecessor, RELEASE_PREDECESSOR_FIELDS, "release predecessor");
+    assert.match(release.predecessor.releaseId ?? "", IDENTIFIER, "predecessor release id is invalid");
+    assert.match(release.predecessor.version ?? "", VERSION, "predecessor version is invalid");
+    assert.match(release.predecessor.sourceSha ?? "", GIT_OBJECT, "predecessor source SHA is invalid");
+    assert.match(release.predecessor.sourceTree ?? "", GIT_OBJECT, "predecessor source tree is invalid");
+  }
   assert.equal(new Date(release.generatedAt).toISOString(), release.generatedAt);
   assert.equal(new Date(release.expiresAt).toISOString(), release.expiresAt);
   assert.ok(Date.parse(release.generatedAt) <= now, "release metadata is not active yet");
@@ -513,12 +573,14 @@ function validateRelease(release, now) {
     <= 31 * 24 * 60 * 60 * 1000, "release metadata lifetime exceeds 31 days");
   return Object.freeze({
     ...release,
-    predecessor: Object.freeze({ ...release.predecessor }),
+    ...(managedBootstrap ? {} : { predecessor: Object.freeze({ ...release.predecessor }) }),
   });
 }
 
-export function validateAmicInternalDistributionRelease(release, { now = Date.now() } = {}) {
-  return validateRelease(release, now);
+export function validateAmicInternalDistributionRelease(release, {
+  now = Date.now(), publicationMode = "successor",
+} = {}) {
+  return validateRelease(release, now, publicationMode);
 }
 
 function sbomPropertyMap(sbom) {
@@ -1152,6 +1214,29 @@ export function amicInternalBaselineScopeKey(release) {
   return `${AMIC_INTERNAL_DISTRIBUTION_PREFIX}baseline/${tenant}/${installation}/win32/x64/established.json`;
 }
 
+export function amicInternalManagedBootstrapScopeKey(release) {
+  assert.match(release?.lawosTenantId ?? "", IDENTIFIER, "bootstrap tenant id is invalid");
+  assert.match(release?.releaseId ?? "", IDENTIFIER, "bootstrap release id is invalid");
+  const tenant = digestBytes(Buffer.from(release.lawosTenantId)).slice(0, 32);
+  const packageId = digestBytes(Buffer.from(release.releaseId)).slice(0, 32);
+  return `${AMIC_INTERNAL_MANAGED_BOOTSTRAP_PREFIX}${tenant}/${packageId}/win32/x64/prepared.json`;
+}
+
+async function assertManagedBootstrapIsUnpublished({ aws, bindings, release }) {
+  assert.equal(typeof aws?.listObjectVersions, "function", "bootstrap scope-list adapter is incomplete");
+  const key = amicInternalManagedBootstrapScopeKey(release);
+  const history = await aws.listObjectVersions({
+    bucket: bindings.bucket, prefix: key, expectedOwner: bindings.accountId,
+  });
+  assert.ok(history && typeof history === "object" && !Array.isArray(history), "bootstrap history is invalid");
+  assert.notEqual(history?.IsTruncated, true, "bootstrap history is incomplete");
+  assert.equal(history?.NextToken, undefined, "bootstrap history is incomplete");
+  for (const field of ["Versions", "DeleteMarkers"]) {
+    assert.ok(history?.[field] === undefined || Array.isArray(history[field]), "bootstrap history is invalid");
+    assert.equal((history?.[field] ?? []).length, 0, "bootstrap package already has immutable history");
+  }
+}
+
 async function assertBaselineScopeIsUninitialized({ aws, bindings, release }) {
   assert.equal(typeof aws?.listObjectVersions, "function", "baseline scope-list adapter is incomplete");
   const keys = [amicInternalChannelScopeKey(release), amicInternalBaselineScopeKey(release)];
@@ -1184,12 +1269,12 @@ export async function executeAmicInternalDistributionPublication({
 } = {}) {
   assert.ok(aws?.inspectGovernance && aws?.putObject && aws?.headObject && aws?.getObject,
     "AWS distribution adapter is incomplete");
-  assert.ok(["baseline", "successor"].includes(publicationMode), "publication mode is invalid");
+  assert.ok(["baseline", "successor", "managed-bootstrap"].includes(publicationMode), "publication mode is invalid");
   const safeBindings = validateBindings(bindings, now);
-  const safeRelease = validateRelease(release, now);
-  if (publicationMode === "baseline") {
-    assert.equal(revocations, undefined, "baseline publication cannot include revocations");
-    assert.equal(rollback, undefined, "baseline publication cannot include rollback authorization");
+  const safeRelease = validateRelease(release, now, publicationMode);
+  if (publicationMode !== "successor") {
+    assert.equal(revocations, undefined, `${publicationMode} publication cannot include revocations`);
+    assert.equal(rollback, undefined, `${publicationMode} publication cannot include rollback authorization`);
   } else {
     assertInternalUnsignedRevocationsDocument(revocations);
     assertInternalUnsignedRollbackDocument(rollback);
@@ -1229,7 +1314,9 @@ export async function executeAmicInternalDistributionPublication({
   });
   validateGovernance(governance, safeBindings);
   let predecessorControl = null;
-  if (publicationMode === "baseline") {
+  if (publicationMode === "managed-bootstrap") {
+    await assertManagedBootstrapIsUnpublished({ aws, bindings: safeBindings, release: safeRelease });
+  } else if (publicationMode === "baseline") {
     await assertBaselineScopeIsUninitialized({ aws, bindings: safeBindings, release: safeRelease });
   } else {
     predecessorControl = await verifySuccessorPredecessorControl({
@@ -1338,24 +1425,31 @@ export async function executeAmicInternalDistributionPublication({
     }
 
     const releaseManifest = {
-      schema_version: AMIC_INTERNAL_RELEASE_MANIFEST_SCHEMA,
+      schema_version: publicationMode === "managed-bootstrap"
+        ? AMIC_INTERNAL_MANAGED_BOOTSTRAP_MANIFEST_SCHEMA
+        : AMIC_INTERNAL_RELEASE_MANIFEST_SCHEMA,
       release_id: safeRelease.releaseId,
       release_sequence: safeRelease.releaseSequence,
       version: safeRelease.version,
       channel: INTERNAL_UNSIGNED_UPDATE_CHANNEL,
       lawos_tenant_id: safeRelease.lawosTenantId,
-      installation_id: safeRelease.installationId,
       app_id: safeRelease.appId,
       platform: safeRelease.platform,
       architecture: safeRelease.architecture,
       source_sha: safeRelease.sourceSha,
       source_tree: safeRelease.sourceTree,
-      predecessor: {
-        release_id: safeRelease.predecessor.releaseId,
-        version: safeRelease.predecessor.version,
-        source_sha: safeRelease.predecessor.sourceSha,
-        source_tree: safeRelease.predecessor.sourceTree,
-      },
+      ...(publicationMode === "managed-bootstrap" ? {
+        ...AMIC_INTERNAL_MANAGED_BOOTSTRAP_BOUNDARIES,
+        key_id: safeRelease.keyId,
+      } : {
+        installation_id: safeRelease.installationId,
+        predecessor: {
+          release_id: safeRelease.predecessor.releaseId,
+          version: safeRelease.predecessor.version,
+          source_sha: safeRelease.predecessor.sourceSha,
+          source_tree: safeRelease.predecessor.sourceTree,
+        },
+      }),
       generated_at: safeRelease.generatedAt,
       expires_at: safeRelease.expiresAt,
       artifacts: Object.fromEntries(Object.entries(uploaded).map(([kind, value]) => [
@@ -1375,9 +1469,9 @@ export async function executeAmicInternalDistributionPublication({
       releaseManifest,
       signingKey,
       "release_manifest",
-      "release-manifest.json",
+      publicationMode === "managed-bootstrap" ? "managed-bootstrap-manifest.json" : "release-manifest.json",
       "release_manifest_signature",
-      "release-manifest.sig",
+      publicationMode === "managed-bootstrap" ? "managed-bootstrap-manifest.sig" : "release-manifest.sig",
     );
     for (const [kind, source] of Object.entries(releaseSigned)) {
       const record = await materializeGeneratedRecord(generatedRoot, source);
@@ -1387,6 +1481,47 @@ export async function executeAmicInternalDistributionPublication({
         release: safeRelease,
         record,
       });
+    }
+
+    if (publicationMode === "managed-bootstrap") {
+      const envelope = {
+        schema_version: AMIC_INTERNAL_MANAGED_BOOTSTRAP_ENVELOPE_SCHEMA,
+        ...AMIC_INTERNAL_MANAGED_BOOTSTRAP_BOUNDARIES,
+        key_id: safeRelease.keyId,
+        document_base64: releaseSigned.document.body.toString("base64"),
+        signature_base64: releaseSigned.signature.body.toString("base64"),
+        document_object: safeObjectRef(uploaded.release_manifest),
+        signature_object: safeObjectRef(uploaded.release_manifest_signature),
+        bootstrap_marker_written_after_all_object_readbacks: true,
+      };
+      const record = await materializeGeneratedRecord(generatedRoot,
+        generatedRecord("managed_bootstrap_marker", "prepared.json", canonicalBytes(envelope)));
+      const marker = await uploadExact({
+        aws, bindings: safeBindings, release: safeRelease, record,
+        key: amicInternalManagedBootstrapScopeKey(safeRelease), ifNoneMatch: "*",
+      });
+      uploaded.managed_bootstrap_marker = marker;
+      const receipt = {
+        schema_version: AMIC_INTERNAL_MANAGED_BOOTSTRAP_RECEIPT_SCHEMA,
+        state: "PASS",
+        ...AMIC_INTERNAL_MANAGED_BOOTSTRAP_BOUNDARIES,
+        release_id: safeRelease.releaseId,
+        release_sequence: safeRelease.releaseSequence,
+        version: safeRelease.version,
+        source_sha: safeRelease.sourceSha,
+        source_tree: safeRelease.sourceTree,
+        managed_bootstrap_marker: safeObjectRef(marker),
+        object_count: Object.keys(uploaded).length,
+        objects: Object.fromEntries(Object.entries(uploaded).map(([kind, value]) => [kind, safeObjectRef(value)])),
+        exact_head_readback_complete: true,
+        exact_get_readback_complete: true,
+        authenticode_status: "not_signed",
+        private_distribution: true,
+        public_installer_uploaded: false,
+        github_release_installer_asset_allowed: false,
+        raw_secret_included: false,
+      };
+      return Object.freeze({ ...receipt, receipt_sha256: digestBytes(canonicalBytes(receipt)) });
     }
 
     const updateMetadata = {

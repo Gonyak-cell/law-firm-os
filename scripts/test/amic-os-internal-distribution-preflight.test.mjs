@@ -316,6 +316,38 @@ test("baseline preflight emits no revocation or rollback input", async () => {
   }
 });
 
+test("managed bootstrap preflight uses the full package privacy gate without fabricating an installation", async () => {
+  const value = await fixture();
+  try {
+    const target = release();
+    delete target.installationId;
+    delete target.predecessor;
+    const input = options(value, {
+      publicationMode: "managed-bootstrap", releaseBase64: base64(target),
+      revocationsBase64: undefined, rollbackBase64: undefined,
+    });
+    const result = await prepareAmicInternalUnsignedPublication(input);
+    assert.equal(result.state, "PASS");
+    assert.equal(result.publication_mode, "managed-bootstrap");
+    assert.equal(result.output_file_count, 6);
+    assert.equal(result.real_seed_included, false);
+    assert.equal(result.credentials_included, false);
+    assert.deepEqual(JSON.parse(await readFile(result.paths.release, "utf8")), target);
+    assert.equal(Object.hasOwn(result.paths, "rollback"), false);
+    assert.equal(Object.hasOwn(result.paths, "revocations"), false);
+    const unsafe = structuredClone(value.buildResult);
+    unsafe.internal_unsigned_privacy_audit.registration_seed_included = true;
+    await writeFile(value.buildResultPath, JSON.stringify(unsafe));
+    await assert.rejects(prepareAmicInternalUnsignedPublication({
+      ...input, outputDir: path.join(value.runner, "unsafe"),
+    }), /registration_seed_included differs/u);
+    await assert.rejects(prepareAmicInternalUnsignedPublication({
+      ...input, outputDir: path.join(value.runner, "invented-identity"),
+      releaseBase64: base64({ ...target, installationId: "invented-installation" }),
+    }), /release document schema differs/u);
+  } finally { await rm(value.root, { recursive: true, force: true }); }
+});
+
 test("publication preflight fails before output on a privacy or predecessor mismatch", async () => {
   const value = await fixture();
   try {
