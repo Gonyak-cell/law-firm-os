@@ -421,6 +421,7 @@ test("W15 update review permits only bounded projection additions and exact supp
       ProjectionWorkerInvokePermission: {},
       ProjectionWorkerLagAlarm: {},
       PasswordResetWorkerSchedule: {},
+      PasswordResetWorkerInvokePermission: {},
       Database: {},
     },
   };
@@ -486,6 +487,61 @@ test("W15 update review permits only bounded projection additions and exact supp
   assert.equal(reviewed.external_read_providers_enabled, false);
   assert.equal(reviewed.outlook_resources_enabled, false);
   assert.equal(reviewed.internal_update_broker_enabled, false);
+  const apiDependents = structuredClone(changeSet);
+  apiDependents.Changes.push(
+    {
+      ResourceChange: {
+        Action: "Modify",
+        LogicalResourceId: "PasswordResetWorkerSchedule",
+        ResourceType: "AWS::Events::Rule",
+        Replacement: "False",
+        Details: [{
+          ChangeSource: "ResourceAttribute",
+          Evaluation: "Dynamic",
+          CausingEntity: "ApiFunction.Arn",
+          Target: {
+            Attribute: "Properties",
+            Name: "Targets",
+            RequiresRecreation: "Never",
+          },
+        }],
+      },
+    },
+    {
+      ResourceChange: {
+        Action: "Modify",
+        LogicalResourceId: "PasswordResetWorkerInvokePermission",
+        ResourceType: "AWS::Lambda::Permission",
+        Replacement: "Conditional",
+        Details: [{
+          ChangeSource: "ResourceAttribute",
+          Evaluation: "Dynamic",
+          CausingEntity: "PasswordResetWorkerSchedule.Arn",
+          Target: {
+            Attribute: "Properties",
+            Name: "SourceArn",
+            RequiresRecreation: "Always",
+          },
+        }],
+      },
+    },
+  );
+  assert.equal(validateJsonPostgresW15ProductionChangeSet(apiDependents, {
+    template,
+    parametersSha256: "a".repeat(64),
+    templateSha256: "b".repeat(64),
+  }).modify_count, 3);
+  const unrelatedDependent = structuredClone(apiDependents);
+  unrelatedDependent.Changes.at(-2)
+    .ResourceChange.Details[0].CausingEntity = "AdminFunction.Arn";
+  assert.throws(
+    () => validateJsonPostgresW15ProductionChangeSet(unrelatedDependent, {
+      template,
+      parametersSha256: "a".repeat(64),
+      templateSha256: "b".repeat(64),
+    }),
+    /unapproved resource change/u,
+  );
   const binding = internalUpdateBinding();
   const activeBroker = structuredClone(changeSet);
   const activeBrokerParameters =
