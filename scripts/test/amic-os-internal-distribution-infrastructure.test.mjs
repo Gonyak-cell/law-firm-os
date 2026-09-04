@@ -86,6 +86,41 @@ test("internal-unsigned distribution stack is private, versioned, logged, OAC-on
   );
 });
 
+test("CloudFront prefix-scoped KMS decrypt uses object encryption context rather than a bucket key", () => {
+  const template = buildAmicInternalDistributionTemplate();
+  const resources = template.Resources;
+  const encryption = resources.ArtifactBucket.Properties.BucketEncryption
+    .ServerSideEncryptionConfiguration[0];
+  assert.equal(encryption.BucketKeyEnabled, false);
+  const grant = resources.ArtifactKey.Properties.KeyPolicy.Statement.find(
+    ({ Sid }) => Sid === "AllowCloudFrontOacForInternalUnsignedPrefix",
+  );
+  assert.equal(grant.Action, "kms:Decrypt");
+  assert.deepEqual(grant.Condition.StringLike["kms:EncryptionContext:aws:s3:arn"], {
+    "Fn::Sub": `arn:\${AWS::Partition}:s3:::\${ArtifactBucketName}/${AMIC_INTERNAL_DISTRIBUTION_PREFIX}*`,
+  });
+  encryption.BucketKeyEnabled = true;
+  assert.throws(() => validateAmicInternalDistributionTemplate(template), /template drifted/u);
+});
+
+test("publisher can describe only its artifact key directly while cryptographic use remains S3-only", () => {
+  const statements = buildAmicInternalDistributionTemplate().Resources.PublisherRole
+    .Properties.Policies[0].PolicyDocument.Statement;
+  const inspection = statements.filter(({ Action }) =>
+    (Array.isArray(Action) ? Action : [Action]).includes("kms:DescribeKey"));
+  assert.deepEqual(inspection, [{
+    Sid: "InspectInternalUnsignedArtifactKey",
+    Effect: "Allow",
+    Action: "kms:DescribeKey",
+    Resource: { "Fn::GetAtt": ["ArtifactKey", "Arn"] },
+  }]);
+  const crypto = statements.find(({ Sid }) => Sid === "EncryptAndReadbackInternalUnsignedArtifacts");
+  assert.deepEqual(crypto.Action, ["kms:Decrypt", "kms:GenerateDataKey"]);
+  assert.deepEqual(crypto.Condition.StringEquals["kms:ViaService"], {
+    "Fn::Sub": "s3.${AWS::Region}.${AWS::URLSuffix}",
+  });
+});
+
 test("runtime download broker is attached to one explicit API role with read-only exact-scope access", () => {
   const template = buildAmicInternalDistributionTemplate();
   const policy = template.Resources.RuntimeDownloadBrokerPolicy.Properties;

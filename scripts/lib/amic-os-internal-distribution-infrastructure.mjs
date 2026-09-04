@@ -369,7 +369,8 @@ export function buildAmicInternalDistributionTemplate() {
           BucketName: { Ref: "ArtifactBucketName" },
           BucketEncryption: {
             ServerSideEncryptionConfiguration: [{
-              BucketKeyEnabled: true,
+              // Bucket keys use a bucket ARN, outside the prefix-scoped CloudFront KMS grant.
+              BucketKeyEnabled: false,
               ServerSideEncryptionByDefault: {
                 KMSMasterKeyID: { "Fn::GetAtt": ["ArtifactKey", "Arn"] },
                 SSEAlgorithm: "aws:kms",
@@ -688,8 +689,14 @@ export function buildAmicInternalDistributionTemplate() {
             },
           },
           exactVersionReadStatement(),
+          {
+            Sid: "InspectInternalUnsignedArtifactKey",
+            Effect: "Allow",
+            Action: "kms:DescribeKey",
+            Resource: { "Fn::GetAtt": ["ArtifactKey", "Arn"] },
+          },
           artifactKmsStatement(
-            ["kms:Decrypt", "kms:DescribeKey", "kms:GenerateDataKey"],
+            ["kms:Decrypt", "kms:GenerateDataKey"],
             "EncryptAndReadbackInternalUnsignedArtifacts",
           ),
           {
