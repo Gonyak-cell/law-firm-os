@@ -44,7 +44,7 @@ The commands may return counts and hashes only. Names, email addresses,
 telephone numbers, employee IDs, tenant IDs, photo filenames, and photo bytes
 must not appear in the receipts.
 
-## 2. Authenticate and discover the exact production target
+## 2. Authenticate and prove fail-closed production readiness
 
 The human completes SSO or MFA, then verifies the final assumed role:
 
@@ -52,6 +52,33 @@ The human completes SSO or MFA, then verifies the final assumed role:
 aws sso login --profile amic-vault-staging-admin
 aws sts get-caller-identity --profile matter-cutover-operator --no-cli-pager
 ```
+
+From an exact clean source commit, create a new private output directory and
+run the fixed read-only inspection with the auditor role:
+
+```bash
+npm run amic:private-bootstrap:inspect-provider-readiness -- \
+  --output-dir /private/path/provider-readiness-YYYYMMDD-001
+```
+
+The command performs exactly three AWS reads: STS caller identity,
+`DescribeStacks`, and the original deployed CloudFormation template. It never
+creates or executes a change set, reads a secret value, or deploys anything.
+It compares resources, parameters, conditions, rules, outputs, and metadata
+against the exact local candidate and writes a 0600 receipt.
+
+**Expected result:** `READY_DISABLED` with `PASS`, an exact candidate-template
+match, and both the provider parameter and output explicitly `false`.
+
+**If it returns `UPGRADE_REVIEW_REQUIRED`:** exit code 2 is an expected closed
+state. Preserve the receipt and obtain separate approval for an exact-purpose
+CloudFormation change-set review. Do not treat absent provider parameters as
+equivalent to `false`, and do not continue to target discovery.
+
+**If it reports an enabled provider or ambiguous disabled binding:** stop and
+escalate. Do not run the migration or weaken the inspection.
+
+### Discover the exact production target
 
 Use a new output directory outside the worktree. The approved negative tenant
 must be a real isolation control that cannot resolve to the migration tenant.

@@ -8,9 +8,9 @@ export const JSON_POSTGRES_EXTERNAL_READ_PROVIDER_PACK_SECRET_NAME =
   "/lawos/production/external-read/provider-packs";
 export const JSON_POSTGRES_EXTERNAL_READ_CREDENTIAL_SECRET_PREFIX =
   "/lawos/production/external-read/credentials";
-const JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SECRET_NAME =
+export const JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SECRET_NAME =
   "/lawos/disabled/external-read/provider-packs";
-const JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SHA256 = "0".repeat(64);
+export const JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SHA256 = "0".repeat(64);
 export const JSON_POSTGRES_WINDOWS_SIGNED_ARTIFACT_PREFIX = "windows/signed/v1/";
 export const JSON_POSTGRES_WINDOWS_SIGNED_ARTIFACT_KEY_PATTERN =
   "windows/signed/v1/{source_sha}/{version}/{candidate_role}/{artifact_kind}/sha256/{artifact_sha256}/{filename}";

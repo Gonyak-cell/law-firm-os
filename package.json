@@ -288,6 +288,7 @@
     "amic:private-bootstrap:mapping-validate": "node scripts/inventory-amic-private-bootstrap.mjs --validate-mapping",
     "amic:private-bootstrap:dry-run": "node scripts/dry-run-amic-private-bootstrap-migration.mjs --mapping",
     "amic:private-bootstrap:discover-target": "node scripts/discover-amic-private-bootstrap-production-target.mjs",
+    "amic:private-bootstrap:inspect-provider-readiness": "node scripts/inspect-json-postgres-external-read-readiness.mjs",
     "amic:private-bootstrap:prepare": "node scripts/prepare-amic-private-bootstrap-execution.mjs",
     "amic:private-bootstrap:approval:seal": "node scripts/seal-json-postgres-execution-approval.mjs",
     "amic:private-bootstrap:execute": "node scripts/run-amic-private-bootstrap-migration.mjs",
