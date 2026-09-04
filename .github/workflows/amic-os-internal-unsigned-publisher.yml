@@ -120,7 +120,7 @@ jobs:
             throw 'exact source identity is invalid'
           }
           if (git status --porcelain) { throw 'source checkout is dirty' }
-          $retainUntil = [DateTimeOffset]::UtcNow.AddDays(366).ToString('yyyy-MM-ddTHH:mm:ss.fffZ')
+          $retainUntil = [DateTimeOffset]::UtcNow.AddDays(366).AddSeconds(1).ToString('yyyy-MM-ddTHH:mm:ss.000Z')
           $runRoot = Join-Path $env:RUNNER_TEMP "amic-os-internal-unsigned-$env:GITHUB_RUN_ID-$env:GITHUB_RUN_ATTEMPT"
           if (Test-Path -LiteralPath $runRoot) { throw 'run-owned output root already exists' }
           New-Item -ItemType Directory -Path $runRoot | Out-Null
