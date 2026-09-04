@@ -1,4 +1,4 @@
-import { createHash, randomUUID } from "node:crypto";
+import { createHash, randomUUID, scryptSync } from "node:crypto";
 import { EXTERNAL_READ_PROVIDER_SCHEMA_VERSION } from "./external-read-provider-registry.js";
 
 export const EXTERNAL_READ_ONBOARDING_SCHEMA_VERSION =
@@ -53,6 +53,20 @@ function timestamp(value, field) {
 
 function digest(value) {
   return createHash("sha256").update(String(value)).digest("hex");
+}
+
+function credentialFingerprint(value, input) {
+  const salt = createHash("sha256").update(JSON.stringify({
+    schema_version: EXTERNAL_READ_ONBOARDING_SCHEMA_VERSION,
+    purpose: "api-key-request-binding-v1",
+    tenant_id: input.tenant_id,
+    legal_entity_id: input.legal_entity_id,
+    provider_id: input.provider_id,
+    connection_id: input.connection_id ?? null,
+    actor_id: input.actor_id,
+    idempotency_key: input.idempotency_key,
+  })).digest();
+  return scryptSync(value, salt, 32).toString("hex");
 }
 
 function opaqueRef(value, field) {
@@ -158,7 +172,7 @@ function requestFingerprint(input, key) {
     legal_entity_id: input.legal_entity_id,
     provider_id: input.provider_id,
     actor_id: input.actor_id,
-    api_key_sha256: digest(key),
+    api_key_fingerprint: credentialFingerprint(key, input),
   }));
 }
 
@@ -610,7 +624,10 @@ export function createExternalReadProviderOnboardingService({
       const requestHash = lifecycleFingerprint(normalized, "rotate", {
         provider_id: record.provider_id,
         adapter_version: record.adapter_version,
-        api_key_sha256: digest(key),
+        api_key_fingerprint: credentialFingerprint(key, {
+          ...normalized,
+          provider_id: record.provider_id,
+        }),
       });
       const generation = `rotation-${digest(`${normalized.idempotency_key}\u001f${requestHash}`).slice(0, 32)}`;
       const candidateRef = opaqueRef(vault.referenceForConnection({

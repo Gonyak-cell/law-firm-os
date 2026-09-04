@@ -30,5 +30,6 @@ test("external read settings exposes one focused key-to-first-sync flow without 
   assert.match(surface, /checked=\{revokeConfirmed\}/);
   assert.match(surface, /setRotationKey\(""\)/);
   assert.match(surface, /fetchExternalReadLatestSync/);
+  assert.doesNotMatch(surface, /Math\.random/);
   assert.doesNotMatch(surface, /credential_ref|secret_ref|공급자 URL/);
 });

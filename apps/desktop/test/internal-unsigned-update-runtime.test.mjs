@@ -26,10 +26,29 @@ import {
 } from "../src/main/updates.js";
 
 const NOW = Date.parse("2026-09-04T05:00:00.000Z");
+const DOMAIN = "d111111abcdef8.cloudfront.net";
 const keys = generateKeyPairSync("ed25519");
 
 function digest(bytes) {
   return createHash("sha256").update(bytes).digest("hex");
+}
+
+function httpHostnames(value, result = []) {
+  if (typeof value === "string") {
+    try {
+      const parsed = new URL(value);
+      if (["http:", "https:"].includes(parsed.protocol)) result.push(parsed.hostname);
+    } catch {
+      // Non-URL response strings are expected here.
+    }
+    return result;
+  }
+  if (Array.isArray(value)) {
+    for (const item of value) httpHostnames(item, result);
+  } else if (value && typeof value === "object") {
+    for (const item of Object.values(value)) httpHostnames(item, result);
+  }
+  return result;
 }
 
 function trust() {
@@ -186,7 +205,7 @@ function brokerFixture(release, { rollbackTarget = null, rollbackOverrides = {} 
       rollbackTarget?.artifactBytes ?? Buffer.from("previous-installer"),
   };
   const downloads = Object.fromEntries(Object.entries(objects).map(([kind, bytes]) => [kind, {
-    url: `https://d111111abcdef8.cloudfront.net/internal-unsigned/${kind}?Expires=1788498600&Signature=signed-${kind}&Key-Pair-Id=K123`,
+    url: `https://${DOMAIN}/internal-unsigned/${kind}?Expires=1788498600&Signature=signed-${kind}&Key-Pair-Id=K123`,
     sha256: digest(bytes),
     bytes: bytes.byteLength,
     version_id: kind === "artifact"
@@ -333,7 +352,7 @@ test("runtime bootstraps a non-discoverable baseline from its signed successor p
   assert.equal(available.available_version, "0.1.33");
   assert.equal(available.signed_url_returned, false);
   assert.equal(available.local_path_returned, false);
-  assert.equal(JSON.stringify(available).includes("cloudfront.net"), false);
+  assert.equal(httpHostnames(available).includes(DOMAIN), false);
   assert.equal(authorizationCalls, 1);
   assert.equal(
     stateStore.snapshot().current.metadata_base64,

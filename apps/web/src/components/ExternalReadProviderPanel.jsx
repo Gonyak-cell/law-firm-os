@@ -29,11 +29,15 @@ const ERROR_COPY = Object.freeze({
 });
 
 function newIdempotencyKey() {
-  try {
-    return `external-read-ui:${globalThis.crypto.randomUUID()}`;
-  } catch {
-    return `external-read-ui:${Date.now()}:${Math.random().toString(36).slice(2)}`;
+  const cryptoApi = globalThis.crypto;
+  if (typeof cryptoApi?.randomUUID === "function") {
+    return `external-read-ui:${cryptoApi.randomUUID()}`;
   }
+  if (typeof cryptoApi?.getRandomValues !== "function") {
+    throw new Error("Secure randomness is unavailable");
+  }
+  const bytes = cryptoApi.getRandomValues(new Uint8Array(16));
+  return `external-read-ui:${Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("")}`;
 }
 
 function failureMessage(result) {

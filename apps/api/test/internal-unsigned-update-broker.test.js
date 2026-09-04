@@ -50,6 +50,24 @@ function sha256(bytes) {
   return createHash("sha256").update(bytes).digest("hex");
 }
 
+function httpHostnames(value, result = []) {
+  if (typeof value === "string") {
+    try {
+      const parsed = new URL(value);
+      if (["http:", "https:"].includes(parsed.protocol)) result.push(parsed.hostname);
+    } catch {
+      // Non-URL response strings are expected here.
+    }
+    return result;
+  }
+  if (Array.isArray(value)) {
+    for (const item of value) httpHostnames(item, result);
+  } else if (value && typeof value === "object") {
+    for (const item of Object.values(value)) httpHostnames(item, result);
+  }
+  return result;
+}
+
 function ref(kind, bytes, suffix = `${kind}.json`) {
   return Object.freeze({
     kind,
@@ -397,7 +415,7 @@ test("channel or object tampering fails closed without returning a signed URL", 
     assert.equal(result.status, 503);
     assert.equal(result.body.outcome, "blocked");
     assert.equal(result.body.signed_url_returned, false);
-    assert.equal(JSON.stringify(result.body).includes("cloudfront.net"), false);
+    assert.equal(httpHostnames(result.body).includes(DOMAIN), false);
   }
 });
 
