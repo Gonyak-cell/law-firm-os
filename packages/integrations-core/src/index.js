@@ -18,3 +18,6 @@ export * from "./docusign-envelope-authority.js";
 export * from "./docusign-completion-authority.js";
 export * from "./docusign-postgres-repository.js";
 export * from "./external-read-provider-registry.js";
+export * from "./external-read-provider-pack.js";
+export * from "./external-read-provider-onboarding.js";
+export * from "./external-read-onboarding-repository.js";

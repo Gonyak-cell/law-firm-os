@@ -33,6 +33,15 @@ export const FILE_BRIDGE_CHANNEL_ALLOWLIST = Object.freeze({
   attachDocumentToClassicOutlook: "fileBridge:attach-document-to-classic-outlook"
 });
 
+export const INTERNAL_UPDATE_CHANNEL_ALLOWLIST = Object.freeze({
+  status: "internalUpdate:status",
+  check: "internalUpdate:check",
+  stage: "internalUpdate:stage",
+  stageRollback: "internalUpdate:stage-rollback",
+  open: "internalUpdate:open",
+  discard: "internalUpdate:discard"
+});
+
 export const PRELOAD_EVENT_ALLOWLIST = Object.freeze({
   passwordResetDeepLink: "desktop:password-reset:confirm",
   outlookConnectionResult: "desktop:outlook-connection:result",
@@ -59,6 +68,12 @@ function invokeAllowed(command, payload) {
 function invokeFileBridge(command, payload) {
   const channel = FILE_BRIDGE_CHANNEL_ALLOWLIST[command];
   if (!channel) throw new Error(`Blocked preload file bridge command: ${command}`);
+  return ipcRenderer.invoke(channel, payload);
+}
+
+function invokeInternalUpdate(command, payload) {
+  const channel = INTERNAL_UPDATE_CHANNEL_ALLOWLIST[command];
+  if (!channel) throw new Error(`Blocked preload internal update command: ${command}`);
   return ipcRenderer.invoke(channel, payload);
 }
 
@@ -283,5 +298,19 @@ export const fileBridgeApi = Object.freeze({
   )
 });
 
+export const internalUpdateApi = Object.freeze({
+  status: () => invokeInternalUpdate("status"),
+  check: () => invokeInternalUpdate("check"),
+  stage: () => invokeInternalUpdate("stage", activeUserInteraction()),
+  stageRollback: () => invokeInternalUpdate("stageRollback", activeUserInteraction()),
+  open: (stageId) => invokeInternalUpdate("open", {
+    stageId,
+    confirmed: true,
+    ...activeUserInteraction()
+  }),
+  discard: () => invokeInternalUpdate("discard")
+});
+
 contextBridge.exposeInMainWorld("amicFileBridge", fileBridgeApi);
+contextBridge.exposeInMainWorld("amicInternalUpdate", internalUpdateApi);
 contextBridge.exposeInMainWorld("matterSession", sessionApi);

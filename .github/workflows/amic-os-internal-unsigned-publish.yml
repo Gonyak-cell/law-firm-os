@@ -1,0 +1,74 @@
+name: AMIC OS Internal Unsigned Publish
+
+on:
+  workflow_dispatch:
+    inputs:
+      approval_ref:
+        description: Approved internal release decision or ticket reference
+        required: true
+        type: string
+      publication_mode:
+        description: One-time non-discoverable baseline or normal rollback-ready successor
+        required: true
+        default: successor
+        type: choice
+        options:
+          - successor
+          - baseline
+      release_document_base64:
+        description: Non-secret, closed-schema Base64 JSON release and predecessor binding
+        required: true
+        type: string
+      revocations_document_base64:
+        description: Non-secret, closed-schema Base64 JSON current revocation document
+        required: false
+        type: string
+      rollback_document_base64:
+        description: Non-secret, closed-schema Base64 JSON one-time rollback authorization
+        required: false
+        type: string
+
+permissions: {}
+
+concurrency:
+  group: amic-os-internal-unsigned-publish
+  cancel-in-progress: false
+
+jobs:
+  publish-private-internal-unsigned:
+    name: Invoke exact private publisher workflow
+    if: >-
+      ${{
+        github.repository == 'Gonyak-cell/law-firm-os' &&
+        github.ref == 'refs/heads/main' &&
+        github.event_name == 'workflow_dispatch' &&
+        github.workflow_ref == 'Gonyak-cell/law-firm-os/.github/workflows/amic-os-internal-unsigned-publish.yml@refs/heads/main'
+      }}
+    permissions:
+      actions: read
+      contents: read
+      id-token: write
+    uses: ./.github/workflows/amic-os-internal-unsigned-publisher.yml
+    with:
+      approval_ref: ${{ inputs.approval_ref }}
+      publication_mode: ${{ inputs.publication_mode }}
+      release_document_base64: ${{ inputs.release_document_base64 }}
+      revocations_document_base64: ${{ inputs.revocations_document_base64 }}
+      rollback_document_base64: ${{ inputs.rollback_document_base64 }}
+
+  independent-readback:
+    name: Independently verify exact private publication
+    needs: publish-private-internal-unsigned
+    permissions:
+      actions: read
+      contents: read
+      id-token: write
+    uses: ./.github/workflows/amic-os-internal-unsigned-readback.yml
+    with:
+      approval_ref: ${{ inputs.approval_ref }}
+      publication_mode: ${{ needs.publish-private-internal-unsigned.outputs.publication_mode }}
+      source_sha: ${{ needs.publish-private-internal-unsigned.outputs.source_sha }}
+      source_tree: ${{ needs.publish-private-internal-unsigned.outputs.source_tree }}
+      retain_until: ${{ needs.publish-private-internal-unsigned.outputs.retain_until }}
+      readback_locator_base64: ${{ needs.publish-private-internal-unsigned.outputs.readback_locator_base64 }}
+      publication_receipt_sha256: ${{ needs.publish-private-internal-unsigned.outputs.publication_receipt_sha256 }}

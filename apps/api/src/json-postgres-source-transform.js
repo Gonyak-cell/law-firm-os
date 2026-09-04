@@ -90,7 +90,8 @@ const ROSTER_MAPPED_FIELDS = new Set([
   "user_id", "employee_id", "display_name", "legal_name", "work_email", "title",
   "employment_type", "status", "profile_status", "affiliation", "department",
   "organization_group", "org_unit_id", "country", "professional_profile",
-  "effective_from", "effective_to", "manager_employee_id",
+  "start_date", "mobile_phone", "effective_from", "effective_to",
+  "manager_employee_id", "legal_entity_id",
 ]);
 const DESCRIPTORS = new Map([
   ["master-data", MASTER_DATA_DOMAIN_DESCRIPTOR],
@@ -591,6 +592,11 @@ function rosterState(rosters, tenantId) {
     const employeeId = requiredRef(member.employee_id, "roster employee id");
     const userId = requiredRef(member.user_id, "roster user id");
     if (employeeIds.has(employeeId) || userIds.has(userId)) throw new TypeError("roster contains duplicate employee or user identity");
+    if (member.legal_entity_id != null) {
+      throw new TypeError(
+        "roster legal_entity_id must come from an approved legal-entity mapping",
+      );
+    }
     employeeIds.add(employeeId);
     userIds.add(userId);
     const sourceRef = "approved-identity-roster";
@@ -600,6 +606,7 @@ function rosterState(rosters, tenantId) {
       display_name: requiredText(member.display_name, "roster display name"),
       legal_name: member.legal_name ?? null,
       work_email: requiredText(member.work_email, "roster work email").toLowerCase(),
+      mobile_phone: member.mobile_phone ?? null,
       status: member.status === "inactive" ? "inactive" : "active",
       source_ref: sourceRef,
     });
@@ -611,8 +618,16 @@ function rosterState(rosters, tenantId) {
       status: member.profile_status === "terminated" ? "terminated" : "active",
       title: member.title ?? null,
       org_unit_id: member.org_unit_id ?? null,
+      legal_entity_id: null,
+      affiliation: member.affiliation ?? null,
+      department: member.department ?? null,
+      organization_group: member.organization_group ?? null,
+      country: member.country ?? null,
+      start_date: member.start_date ?? null,
       manager_employee_id: member.manager_employee_id ?? null,
-      effective_from: String(member.effective_from ?? "1970-01-01").slice(0, 10),
+      effective_from: String(
+        member.effective_from ?? member.start_date ?? "1970-01-01",
+      ).slice(0, 10),
       effective_to: member.effective_to ?? null,
       source_ref: sourceRef,
       professional_profile: JSON.stringify(member.professional_profile ?? {}),
@@ -1118,6 +1133,8 @@ function identityAccounts(
           organization_group: member.organization_group,
           org_unit_id: member.org_unit_id,
           country: member.country,
+          start_date: member.start_date,
+          mobile_phone: member.mobile_phone,
           professional_profile: member.professional_profile ?? {},
         }).filter(([, value]) => value !== undefined && value !== null)) : {}),
         source_attributes: {

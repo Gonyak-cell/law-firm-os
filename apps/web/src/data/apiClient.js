@@ -12,7 +12,7 @@ const PERMISSION_CONTEXT_HEADER = "x-lawos-permission-context";
 const VAULT_BRIDGE_TOKEN_HEADER = "x-lawos-vault-bridge-token";
 const runtimeTenant = (...parts) => parts.join("_");
 const TENANT_ID = runtimeTenant("tenant", "rp04", "synthetic");
-const VAULT_TENANT_ID = "tenant_amic_matter_vault";
+const VAULT_TENANT_ID = runtimeTenant("tenant", "vault", "synthetic");
 const MATTER_TENANT_ID = VAULT_TENANT_ID;
 const CRM_INTAKE_TENANT_ID = runtimeTenant("tenant", "cmp", "g6", "synthetic");
 const FINANCE_TENANT_ID = runtimeTenant("tenant", "cmp", "g7", "synthetic");
@@ -447,6 +447,33 @@ function sessionAuthorizedHeaders(headers = {}) {
   return requestHeaders;
 }
 
+function desktopBinaryResponse(response, status) {
+  const encoded = response?.binary_body_base64;
+  const contentType = response?.content_type;
+  const byteSize = Number(response?.byte_size);
+  if (typeof encoded !== "string"
+      || encoded.length > 7 * 1024 * 1024
+      || contentType !== "image/png"
+      || !Number.isSafeInteger(byteSize)
+      || byteSize < 8
+      || byteSize > 5 * 1024 * 1024) return null;
+  try {
+    const binary = globalThis.atob(encoded);
+    if (binary.length !== byteSize) return null;
+    const bytes = Uint8Array.from(binary, (character) => character.charCodeAt(0));
+    return new Response(bytes, {
+      status,
+      headers: {
+        "content-type": contentType,
+        "content-length": String(byteSize),
+        "cache-control": "private, no-store"
+      }
+    });
+  } catch {
+    return null;
+  }
+}
+
 async function apiFetch(input, init = {}) {
   const headers = sessionAuthorizedHeaders(init.headers);
   const bound = bindApiRequestToSignedSession(input, { ...init, headers });
@@ -459,6 +486,8 @@ async function apiFetch(input, init = {}) {
       body: bound.init.body ?? null
     });
     const status = Number(response?.http_status ?? response?.status ?? 0) || 500;
+    const binary = desktopBinaryResponse(response, status);
+    if (binary) return binary;
     const body = response?.body ?? response ?? {};
     return new Response(JSON.stringify(body), {
       status,
@@ -1338,6 +1367,36 @@ export function createClientGroup({
   });
 }
 
+function pngDataUrl(bytes) {
+  if (!(bytes instanceof Uint8Array)
+      || bytes.byteLength < 8
+      || bytes.byteLength > 5 * 1024 * 1024
+      || ![137, 80, 78, 71, 13, 10, 26, 10]
+        .every((byte, index) => bytes[index] === byte)) return null;
+  let binary = "";
+  for (let offset = 0; offset < bytes.byteLength; offset += 32 * 1024) {
+    binary += String.fromCharCode(...bytes.subarray(offset, offset + 32 * 1024));
+  }
+  return `data:image/png;base64,${globalThis.btoa(binary)}`;
+}
+
+async function hydrateAuthenticatedProfilePhoto(item, headers) {
+  if (!item || item.photo_url !== "/api/profile/me/photo") return item;
+  try {
+    const response = await apiFetch(item.photo_url, { headers });
+    const contentType = String(response.headers.get("content-type") ?? "")
+      .split(";", 1)[0]
+      .trim()
+      .toLowerCase();
+    if (!response.ok || contentType !== "image/png") throw new Error("profile photo unavailable");
+    const photoUrl = pngDataUrl(new Uint8Array(await response.arrayBuffer()));
+    if (!photoUrl) throw new Error("profile photo invalid");
+    return { ...item, photo_url: photoUrl, photo_included: true };
+  } catch {
+    return { ...item, photo_url: null, photo_included: false };
+  }
+}
+
 export async function fetchUserProfile({
   ctx = "allow",
   permissionRef = DEFAULT_PROFILE_PERMISSION_REF,
@@ -1349,12 +1408,15 @@ export async function fetchUserProfile({
     permission_ref: permissionRef,
     audit_hint_ref: auditHintRef
   });
+  const headers = {
+    [PERMISSION_CONTEXT_HEADER]: JSON.stringify(context)
+  };
 
   let response;
   let body;
   try {
     response = await apiFetch(`/api/profile/me?${params.toString()}`, {
-      headers: { [PERMISSION_CONTEXT_HEADER]: JSON.stringify(context) }
+      headers
     });
     body = await response.json();
   } catch {
@@ -1385,12 +1447,13 @@ export async function fetchUserProfile({
     };
   }
 
+  const item = await hydrateAuthenticatedProfilePhoto(body.item, headers);
   return {
     kind: body.item ? "data" : "empty",
     requestId: body.request_id,
     outcome: body.outcome,
     uiState: body.item ? body.ui_state : "empty",
-    item: body.item ?? null,
+    item: item ?? null,
     safeErrorCodes: body.safe_error_codes,
     auditHintRef: body.audit_hint_ref,
     countLeakPrevented: body.count_leak_prevented === true,
@@ -10530,4 +10593,248 @@ export async function fetchEnterpriseReadinessItems({
     productionReadyClaim: body.production_ready_claim === true,
     goLiveApproved: body.go_live_approved === true
   };
+}
+
+function externalReadFailure(status, body = {}) {
+  return {
+    kind: status === 401 || status === 403 ? "denied" : "error",
+    status,
+    safeErrorCodes: Array.isArray(body?.safe_error_codes) ? body.safe_error_codes : [],
+    requestId: typeof body?.request_id === "string" ? body.request_id : null,
+    connection: body?.connection ?? null
+  };
+}
+
+function externalReadResponseIsSafe(body) {
+  if (!body || typeof body !== "object" || Array.isArray(body)) return false;
+  if (body.credential_material_included !== false || body.production_ready_claim !== false) return false;
+  const pending = [body];
+  const seen = new Set();
+  let inspected = 0;
+  while (pending.length > 0) {
+    const value = pending.pop();
+    if (!value || typeof value !== "object" || seen.has(value)) continue;
+    seen.add(value);
+    inspected += 1;
+    if (inspected > 10_000) return false;
+    for (const [key, nested] of Object.entries(value)) {
+      if (/^(?:api_key|credential_ref|secret_ref)$/iu.test(key)) return false;
+      if (key === "credential_material_included" && nested !== false) return false;
+      if (key === "raw_provider_payload_included" && nested !== false) return false;
+      if (nested && typeof nested === "object") pending.push(nested);
+    }
+  }
+  return true;
+}
+
+async function externalReadJson(path, init = {}) {
+  let response;
+  let body;
+  try {
+    response = await apiFetch(path, {
+      ...init,
+      headers: {
+        ...(init.body ? { "content-type": "application/json" } : {}),
+        ...(init.headers ?? {})
+      }
+    });
+    body = await response.json();
+  } catch {
+    return externalReadFailure(0);
+  }
+  if (!externalReadResponseIsSafe(body)) return externalReadFailure(response.status);
+  if (!response.ok) return externalReadFailure(response.status, body);
+  return { kind: "data", status: response.status, body };
+}
+
+export async function fetchExternalReadProviders() {
+  const result = await externalReadJson("/api/external-read/providers");
+  if (result.kind !== "data") return result;
+  const { body } = result;
+  if (
+    body.outcome !== "ok"
+    || !Array.isArray(body.items)
+    || body.provider_count !== body.items.length
+    || body.provider_endpoint_included !== false
+    || typeof body.api_key_onboarding_available !== "boolean"
+  ) return externalReadFailure(result.status);
+  return {
+    ...result,
+    providers: body.items,
+    providerCount: body.provider_count,
+    onboardingAvailable: body.api_key_onboarding_available,
+    requestId: body.request_id
+  };
+}
+
+export async function fetchExternalReadLegalEntities() {
+  const result = await externalReadJson("/api/external-read/legal-entities");
+  if (result.kind !== "data") return result;
+  const { body } = result;
+  if (
+    body.outcome !== "ok"
+    || !Array.isArray(body.items)
+    || body.legal_entity_count !== body.items.length
+    || body.items.some((item) => (
+      !item
+      || typeof item !== "object"
+      || !/^[A-Za-z0-9][A-Za-z0-9._:-]{0,199}$/.test(item.legal_entity_id ?? "")
+    ))
+  ) return externalReadFailure(result.status);
+  return {
+    ...result,
+    legalEntities: body.items.map((item) => item.legal_entity_id),
+    legalEntityCount: body.legal_entity_count,
+    requestId: body.request_id
+  };
+}
+
+export async function connectExternalReadProvider({
+  legalEntityId,
+  providerId,
+  apiKey,
+  idempotencyKey
+} = {}) {
+  const result = await externalReadJson("/api/external-read/connections", {
+    method: "POST",
+    body: JSON.stringify({
+      legal_entity_id: legalEntityId,
+      provider_id: providerId,
+      api_key: apiKey,
+      idempotency_key: idempotencyKey
+    })
+  });
+  if (result.kind !== "data") return result;
+  const { body } = result;
+  const connection = body.connection;
+  if (
+    body.outcome !== "connected"
+    || body.raw_provider_payload_included !== false
+    || !connection
+    || connection.credential_material_included !== false
+    || connection.raw_provider_payload_included !== false
+    || connection.credential_configured !== true
+    || connection.state !== "ready"
+    || !connection.first_sync
+    || typeof connection.connection_id !== "string"
+  ) return externalReadFailure(result.status);
+  return { ...result, connection, requestId: body.request_id };
+}
+
+export async function fetchExternalReadConnection({ connectionId, legalEntityId } = {}) {
+  const params = new URLSearchParams({ legal_entity_id: legalEntityId ?? "" });
+  const result = await externalReadJson(
+    `/api/external-read/connections/${encodeURIComponent(connectionId ?? "")}?${params.toString()}`
+  );
+  if (result.kind !== "data") return result;
+  if (result.body.outcome !== "ok" || !result.body.connection) {
+    return externalReadFailure(result.status);
+  }
+  return { ...result, connection: result.body.connection, requestId: result.body.request_id };
+}
+
+export async function fetchExternalReadFirstSync({ connectionId, legalEntityId } = {}) {
+  const params = new URLSearchParams({ legal_entity_id: legalEntityId ?? "" });
+  const result = await externalReadJson(
+    `/api/external-read/connections/${encodeURIComponent(connectionId ?? "")}/first-sync?${params.toString()}`
+  );
+  if (result.kind !== "data") return result;
+  const snapshot = result.body.snapshot;
+  if (
+    result.body.outcome !== "ok"
+    || result.body.raw_provider_payload_included !== false
+    || !snapshot
+    || snapshot.credential_material_included !== false
+    || snapshot.raw_provider_payload_included !== false
+    || !Array.isArray(snapshot.items)
+    || snapshot.item_count !== snapshot.items.length
+  ) return externalReadFailure(result.status);
+  return { ...result, snapshot, requestId: result.body.request_id };
+}
+
+export async function fetchExternalReadLatestSync({ connectionId, legalEntityId } = {}) {
+  const params = new URLSearchParams({ legal_entity_id: legalEntityId ?? "" });
+  const result = await externalReadJson(
+    `/api/external-read/connections/${encodeURIComponent(connectionId ?? "")}/latest-sync?${params.toString()}`
+  );
+  if (result.kind !== "data") return result;
+  const snapshot = result.body.snapshot;
+  if (
+    result.body.outcome !== "ok"
+    || result.body.raw_provider_payload_included !== false
+    || !snapshot
+    || snapshot.credential_material_included !== false
+    || snapshot.raw_provider_payload_included !== false
+    || !Array.isArray(snapshot.items)
+    || snapshot.item_count !== snapshot.items.length
+  ) return externalReadFailure(result.status);
+  return { ...result, snapshot, requestId: result.body.request_id };
+}
+
+async function runExternalReadLifecycle({
+  action,
+  connectionId,
+  legalEntityId,
+  idempotencyKey,
+  apiKey,
+  reasonCode
+} = {}) {
+  if (!["sync", "rotate", "disable", "reconnect", "revoke", "repair"].includes(action)) {
+    return externalReadFailure(0);
+  }
+  const body = {
+    legal_entity_id: legalEntityId,
+    idempotency_key: idempotencyKey,
+    ...(action === "rotate" ? { api_key: apiKey } : {}),
+    ...(["disable", "revoke"].includes(action) && reasonCode ? { reason_code: reasonCode } : {})
+  };
+  const result = await externalReadJson(
+    `/api/external-read/connections/${encodeURIComponent(connectionId ?? "")}/${action}`,
+    { method: "POST", body: JSON.stringify(body) }
+  );
+  if (result.kind !== "data") return result;
+  const { connection, operation } = result.body;
+  if (
+    !connection
+    || !operation
+    || typeof connection.connection_id !== "string"
+    || connection.connection_id !== connectionId
+    || typeof connection.state !== "string"
+    || typeof operation.operation_id !== "string"
+    || operation.kind !== action
+    || operation.state !== "completed"
+    || operation.credential_material_included !== false
+    || operation.raw_provider_payload_included !== false
+  ) return externalReadFailure(result.status);
+  return {
+    ...result,
+    connection,
+    operation,
+    outcome: result.body.outcome,
+    requestId: result.body.request_id
+  };
+}
+
+export function syncExternalReadConnection(input = {}) {
+  return runExternalReadLifecycle({ ...input, action: "sync" });
+}
+
+export function rotateExternalReadConnection(input = {}) {
+  return runExternalReadLifecycle({ ...input, action: "rotate" });
+}
+
+export function disableExternalReadConnection(input = {}) {
+  return runExternalReadLifecycle({ ...input, action: "disable" });
+}
+
+export function reconnectExternalReadConnection(input = {}) {
+  return runExternalReadLifecycle({ ...input, action: "reconnect" });
+}
+
+export function revokeExternalReadConnection(input = {}) {
+  return runExternalReadLifecycle({ ...input, action: "revoke" });
+}
+
+export function repairExternalReadConnection(input = {}) {
+  return runExternalReadLifecycle({ ...input, action: "repair" });
 }

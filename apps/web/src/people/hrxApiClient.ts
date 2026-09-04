@@ -1,6 +1,6 @@
 import { isDesktopRendererLocation, readLawosApiSession } from "../data/apiClient.js";
 
-const HRX_ORG_REF = "tenant_amic_matter_vault";
+const HRX_ORG_REF = "tenant_hrx_synthetic";
 const LAWOS_SESSION_ENVELOPE_STORAGE_KEY = "lawos.session.envelope";
 const LAWOS_SESSION_ENVELOPE_SCHEMA_VERSION = "law-firm-os.desktop-web-session-envelope.v0.1";
 const HRX_PAYROLL_BOUNDARY_ACTIONS = ["hrx.payroll.preview", "hrx.payroll.export"];

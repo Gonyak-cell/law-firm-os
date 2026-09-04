@@ -25,8 +25,16 @@ test("Employee schema preserves Employee/User separation", () => {
     employee_id: "emp-001",
     display_name: "Ari Kim",
     status: "active",
+    mobile_phone: "+82-10-0000-0000",
+    photo_object_id: `employee-photo:${"a".repeat(64)}`,
+    photo_sha256: "b".repeat(64),
+    photo_byte_size: 120,
+    photo_content_type: "image/png",
+    photo_version_id: "version-synthetic",
   });
   assert.equal(employee.employee_id, "emp-001");
+  assert.equal(employee.mobile_phone, "+82-10-0000-0000");
+  assert.equal(employee.photo_byte_size, 120);
   assert.equal(employee.user_id, undefined);
 
   const validation = validateEmployee({
@@ -48,10 +56,19 @@ test("EmploymentProfile schema links to Employee only", () => {
     employment_type: "full_time",
     status: "active",
     title: "Counsel",
+    legal_entity_id: "company-synthetic",
+    affiliation: "Synthetic Firm",
+    department: "Legal",
+    organization_group: "Synthetic Firm",
+    country: "대한민국",
+    start_date: "2026-06-19",
     effective_from: "2026-06-19",
   });
   assert.equal(profile.employee_id, "emp-001");
   assert.equal(profile.employment_type, "full_time");
+  assert.equal(profile.legal_entity_id, "company-synthetic");
+  assert.equal(profile.department, "Legal");
+  assert.equal(profile.start_date, "2026-06-19");
 
   const validation = validateEmploymentProfile({
     tenant_id: "tenant-a",

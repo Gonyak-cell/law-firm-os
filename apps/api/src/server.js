@@ -15,6 +15,7 @@ import { types } from "node:util";
 const PROCESS_INSTANCE_FINGERPRINT = randomUUID().replaceAll("-", "");
 import { runHrxMigrations } from "../../../packages/hrx/src/migrations/index.js";
 import { PEOPLE_FEATURE_FLAG_NAMES } from "../../../packages/hrx/src/people-feature-flags.js";
+import { createHrxMemberPhotoStorage } from "../../../packages/hrx/src/member-photo-storage.js";
 import { createFileHrxStore } from "../../../packages/hrx/src/store/file-store.js";
 import { HRX_DURABLE_CORE_TABLES, HRX_DURABLE_WORKFLOW_TABLES } from "../../../packages/hrx/src/store/port.js";
 import { createMasterDataRepository } from "../../../packages/master-data/src/repository.js";
@@ -319,6 +320,28 @@ import {
   resolveStaffAuthAuthority,
 } from "./staff-auth-authority.js";
 import { assertTenantPinnedExternalRuntime } from "./external-tenant-provisioning.js";
+import {
+  EXTERNAL_READ_BOUNDED_CONTEXT,
+  createExternalReadRuntime,
+  createFailClosedExternalReadRuntime,
+  handleExternalReadApiRequest,
+} from "./external-read-runtime-context.js";
+import {
+  resolveExternalReadProviderPacksFromConfig,
+} from "./external-read-provider-pack-config.js";
+import {
+  LAWOS_EXTERNAL_READ_KMS_KEY_ARN_ENV,
+  LAWOS_EXTERNAL_READ_SECRET_PREFIX_ENV,
+  createAwsExternalReadCredentialVault,
+} from "./external-read-credential-vault.js";
+import { createRepositoryPortV2ExternalReadOnboardingRepository } from "../../../packages/integrations-core/src/external-read-onboarding-repository.js";
+import {
+  INTERNAL_UNSIGNED_UPDATE_AUTHORIZE_PATH,
+  INTERNAL_UNSIGNED_UPDATE_BOUNDED_CONTEXT,
+  createDisabledInternalUnsignedUpdateBroker,
+  handleInternalUnsignedUpdateBrokerApiRequest,
+  resolveInternalUnsignedUpdateBrokerFromEnv,
+} from "./internal-unsigned-update-broker.js";
 
 const HOST = "127.0.0.1";
 const DEFAULT_PORT = Number(process.env.LAWOS_API_PORT || 4180);
@@ -962,7 +985,10 @@ export const PROFILE_BOUNDED_CONTEXT = Object.freeze({
   bounded_context: "profile",
   contract_ref: "contracts/profile-read-contract.json",
   contract_schema_version: "law-firm-os.profile-read-contract.v0.1",
-  endpoints: Object.freeze(["GET /api/profile/me"]),
+  endpoints: Object.freeze([
+    "GET /api/profile/me",
+    "GET /api/profile/me/photo",
+  ]),
   data_source: "authenticated_hrx_member_projection",
   contact_policy: Object.freeze({
     visibility: "authenticated_internal",
@@ -998,6 +1024,8 @@ export const SERVICE_DESCRIPTOR = Object.freeze({
     UI_READINESS_BOUNDED_CONTEXT,
     HOME_DASHBOARD_BOUNDED_CONTEXT,
     ENTERPRISE_READINESS_BOUNDED_CONTEXT,
+    EXTERNAL_READ_BOUNDED_CONTEXT,
+    INTERNAL_UNSIGNED_UPDATE_BOUNDED_CONTEXT,
   ]),
   permission_gate: Object.freeze({
     contract_ref: "contracts/permission-kernel-contract.json",
@@ -1091,6 +1119,19 @@ function sendJson(req, res, status, body, extraHeaders = {}) {
     ...extraHeaders,
   });
   res.end(JSON.stringify(body));
+}
+
+function sendProfilePhotoBinary(req, res, result) {
+  res.writeHead(result.status, {
+    "content-type": "image/png",
+    "content-length": String(result.body.byteLength),
+    "content-disposition": "inline",
+    "cache-control": "private, no-store",
+    "content-security-policy": "default-src 'none'; sandbox",
+    "x-content-type-options": "nosniff",
+    ...corsHeadersForRequest(req),
+  });
+  res.end(result.body);
 }
 
 function attachmentContentDisposition(value) {
@@ -1573,8 +1614,9 @@ async function appendHrxDeniedRouteAudit({ runtime, context, route, policy, deci
   });
 }
 
-function handleProfileApiRequest({ pathname, method, query, context, requestId, runtime } = {}) {
-  if (pathname !== "/api/profile/me") {
+async function handleProfileApiRequest({ pathname, method, query, context, requestId, runtime } = {}) {
+  const profilePhotoRequest = pathname === "/api/profile/me/photo";
+  if (pathname !== "/api/profile/me" && !profilePhotoRequest) {
     return {
       status: 404,
       body: {
@@ -1650,8 +1692,16 @@ function handleProfileApiRequest({ pathname, method, query, context, requestId, 
   }
 
   const roleIds = Array.isArray(context?.principal?.role_ids) ? context.principal.role_ids : [];
-  const rosterMember = findHrxMemberRosterByUserId(actorRef);
-  const registeredAccount = findRegisteredAccountByUserId(actorRef);
+  const allowStaticRosterFallback = runtime?.allowStaticRosterFallback !== false;
+  const rosterMember = allowStaticRosterFallback
+    ? findHrxMemberRosterByUserId(actorRef)
+    : null;
+  const registeredAccount = allowStaticRosterFallback
+    ? findRegisteredAccountByUserId(actorRef)
+    : runtime?.identityUserDirectory?.listUsers({
+        tenant_id: tenantId,
+        user_id: actorRef,
+      })?.[0] ?? null;
   const linkedEmployee = resolveHrxEmployeeProfileByUserId(runtime, {
     tenant_id: tenantId,
     user_id: actorRef,
@@ -1661,11 +1711,81 @@ function handleProfileApiRequest({ pathname, method, query, context, requestId, 
     ...linkedEmployee,
     professional_profile: linkedEmployee?.professional_profile ?? rosterMember?.professional_profile ?? null,
   };
+  if (profilePhotoRequest) {
+    const photo = linkedEmployee && {
+      photo_object_id: linkedEmployee.photo_object_id,
+      photo_sha256: linkedEmployee.photo_sha256,
+      photo_byte_size: linkedEmployee.photo_byte_size,
+      photo_content_type: linkedEmployee.photo_content_type,
+      photo_version_id: linkedEmployee.photo_version_id,
+    };
+    const photoAvailable = runtime?.memberPhotoStorage
+      && linkedEmployee?.legal_entity_id
+      && photo?.photo_object_id
+      && photo?.photo_sha256
+      && photo?.photo_byte_size
+      && photo?.photo_content_type === "image/png"
+      && photo?.photo_version_id;
+    if (!photoAvailable) {
+      return {
+        status: 404,
+        body: {
+          request_id: requestId,
+          outcome: "blocked",
+          item: null,
+          safe_error_codes: ["PROFILE_PHOTO_NOT_FOUND"],
+          audit_hint_ref: auditHintRef,
+          ui_state: "error",
+          count_leak_prevented: true,
+          production_ready_claim: false,
+        },
+      };
+    }
+    try {
+      const readback = await runtime.memberPhotoStorage.readPhoto({
+        tenant_id: tenantId,
+        legal_entity_id: linkedEmployee.legal_entity_id,
+        employee_id: linkedEmployee.employee_id,
+        photo,
+      });
+      return {
+        status: 200,
+        body: readback.bytes,
+        content_type: readback.content_type,
+        byte_size: readback.byte_size,
+      };
+    } catch {
+      return {
+        status: 503,
+        body: {
+          request_id: requestId,
+          outcome: "blocked",
+          item: null,
+          safe_error_codes: ["PROFILE_PHOTO_UNAVAILABLE"],
+          audit_hint_ref: auditHintRef,
+          ui_state: "error",
+          count_leak_prevented: true,
+          production_ready_claim: false,
+        },
+      };
+    }
+  }
   const displayName = profileMember.display_name || registeredAccount?.display_name || "";
   const primaryRoleLabel = profileMember.title || registeredAccount?.source_title || roleIds[0] || "";
   const workEmail = profileMember.work_email || registeredAccount?.email || "";
-  const mobilePhone = rosterMember?.mobile_phone ?? profileMember.mobile_phone ?? "";
-  const photoUrl = memberPhotoDataUrlForEmployeeId(rosterMember?.employee_id ?? profileMember.employee_id);
+  const mobilePhone = profileMember.mobile_phone ?? rosterMember?.mobile_phone ?? "";
+  const serverPhotoAvailable = runtime?.memberPhotoStorage
+    && linkedEmployee?.legal_entity_id
+    && linkedEmployee?.photo_object_id
+    && linkedEmployee?.photo_sha256
+    && linkedEmployee?.photo_byte_size
+    && linkedEmployee?.photo_content_type === "image/png"
+    && linkedEmployee?.photo_version_id;
+  const photoUrl = allowStaticRosterFallback
+    ? memberPhotoDataUrlForEmployeeId(
+        rosterMember?.employee_id ?? profileMember.employee_id,
+      )
+    : serverPhotoAvailable ? "/api/profile/me/photo" : null;
   return {
     status: 200,
     body: {
@@ -1716,7 +1836,7 @@ function handleProfileApiRequest({ pathname, method, query, context, requestId, 
   };
 }
 
-async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, masterDataRuntime, matterRuntime, dmsRuntime, emailDmsRuntime, docusignRuntime = null, crmIntakeRuntime, financeRuntime, financeRuntimeUnavailable = null, analyticsRuntime, aiRuntime, portalRuntime, uiReadinessRuntime, homeDashboardRuntime, enterpriseReadinessRuntime, precedentSearchRuntime = null, m365GraphConfig = null, outlookConversationRuntime = null, outlookGraphSyncReadiness = null, outlookDesktopRuntime = null, sessionAuth, stepUpAuthority, outlookAttachmentReceiptAuthority, vaultUploadProvider = null, vaultExportProvider = null, outlookVaultDeliveryAuthority = null, outlookVaultDeliveryPublicOrigin = null, outlookVaultHostVerifier = null, payrollStatementProviderVerifier = null, payrollStatementProviderAudit = null, leaveProviderVerifier = null, runtimeProfile = LAWOS_RUNTIME_PROFILES.localDev, persistenceAuthority = LAWOS_PERSISTENCE_AUTHORITIES.fileCurrent, persistenceCapabilities = null, dataScope = null } = {}) {
+async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, masterDataRuntime, matterRuntime, dmsRuntime, emailDmsRuntime, docusignRuntime = null, crmIntakeRuntime, financeRuntime, financeRuntimeUnavailable = null, analyticsRuntime, aiRuntime, portalRuntime, uiReadinessRuntime, homeDashboardRuntime, enterpriseReadinessRuntime, externalReadRuntime, internalUnsignedUpdateBroker, precedentSearchRuntime = null, m365GraphConfig = null, outlookConversationRuntime = null, outlookGraphSyncReadiness = null, outlookDesktopRuntime = null, sessionAuth, stepUpAuthority, outlookAttachmentReceiptAuthority, vaultUploadProvider = null, vaultExportProvider = null, outlookVaultDeliveryAuthority = null, outlookVaultDeliveryPublicOrigin = null, outlookVaultHostVerifier = null, payrollStatementProviderVerifier = null, payrollStatementProviderAudit = null, leaveProviderVerifier = null, runtimeProfile = LAWOS_RUNTIME_PROFILES.localDev, persistenceAuthority = LAWOS_PERSISTENCE_AUTHORITIES.fileCurrent, persistenceCapabilities = null, dataScope = null } = {}) {
   const url = new URL(req.url || "/", `http://${HOST}`);
   const pathname = url.pathname.replace(/\/+$/, "") || "/";
   const query = queryToObject(url.searchParams);
@@ -1759,11 +1879,16 @@ async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, mast
     && isOutlookDesktopActivationApiPath(pathname);
   const isOutlookDesktopInstallationPath =
     isOutlookDesktopInstallationApiPath(pathname);
+  const isInternalUnsignedUpdatePath =
+    pathname === INTERNAL_UNSIGNED_UPDATE_AUTHORIZE_PATH;
   const isOutlookDesktopPath =
-    isOutlookDesktopActivationPath || isOutlookDesktopInstallationPath;
+    isOutlookDesktopActivationPath
+    || isOutlookDesktopInstallationPath
+    || isInternalUnsignedUpdatePath;
   const isUiReadinessPath = pathname.startsWith("/api/ui");
   const isHomeDashboardPath = pathname.startsWith("/home") || pathname.startsWith("/api/home");
   const isEnterpriseReadinessPath = pathname.startsWith("/api/enterprise");
+  const isExternalReadPath = pathname.startsWith("/api/external-read");
   const knownPath =
     pathname === "/api/health" ||
     pathname === "/health" ||
@@ -1790,7 +1915,8 @@ async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, mast
     isOutlookDesktopPath ||
     isUiReadinessPath ||
     isHomeDashboardPath ||
-    isEnterpriseReadinessPath;
+    isEnterpriseReadinessPath ||
+    isExternalReadPath;
 
   if (!knownPath) {
     sendJson(req, res, 404, { request_id: requestId, outcome: "blocked", safe_error_codes: ["MASTER_DATA_API_VALIDATION_ERROR"], error: "not_found" });
@@ -1800,7 +1926,7 @@ async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, mast
     sendJson(req, res, 405, { request_id: requestId, outcome: "blocked", safe_error_codes: ["MASTER_DATA_API_VALIDATION_ERROR"], error: "method_not_allowed" });
     return;
   }
-  if (!isAuthPath && !isHrxPath && !isProfilePath && !isMatterPath && !isVaultPath && !isCrmIntakePath && !isRecordActionsPath && !isImportDataMappingPath && !isAdminPermissionPath && !isDataCloudPath && !isReportsPath && !isFinancePath && !isAnalyticsPath && !isAiPath && !isPortalPath && !isOutlookPath && !isOutlookDesktopPath && !isUiReadinessPath && !isHomeDashboardPath && !isEnterpriseReadinessPath && !isClientGroupRegistrationPath && req.method !== "GET") {
+  if (!isAuthPath && !isHrxPath && !isProfilePath && !isMatterPath && !isVaultPath && !isCrmIntakePath && !isRecordActionsPath && !isImportDataMappingPath && !isAdminPermissionPath && !isDataCloudPath && !isReportsPath && !isFinancePath && !isAnalyticsPath && !isAiPath && !isPortalPath && !isOutlookPath && !isOutlookDesktopPath && !isUiReadinessPath && !isHomeDashboardPath && !isEnterpriseReadinessPath && !isExternalReadPath && !isClientGroupRegistrationPath && req.method !== "GET") {
     sendJson(req, res, 405, { request_id: requestId, outcome: "blocked", safe_error_codes: ["MASTER_DATA_API_VALIDATION_ERROR"], error: "method_not_allowed" });
     return;
   }
@@ -1827,6 +1953,21 @@ async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, mast
         : {}),
       runtime_instance_fingerprint: dataScope === "synthetic-only" ? PROCESS_INSTANCE_FINGERPRINT : undefined,
       docusign: docusignRuntime?.readiness?.() ?? { status: "blocked", production_ready_claim: false },
+      external_read: externalReadRuntime?.readiness ?? {
+        provider_count: 0,
+        api_key_onboarding_available: false,
+        state: "no_approved_providers",
+        production_ready_claim: false,
+      },
+      internal_unsigned_update: {
+        configured: internalUnsignedUpdateBroker?.configured === true,
+        operational: internalUnsignedUpdateBroker?.operational === true,
+        signed_session_required: true,
+        trusted_current_installation_required: true,
+        renderer_receives_signed_url: false,
+        public_release_allowed: false,
+        production_ready_claim: false,
+      },
       ...serviceDescriptorForAuthority({ persistenceAuthority, persistenceCapabilities, dataScope }),
     });
     return;
@@ -2068,6 +2209,68 @@ async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, mast
     };
   };
 
+  if (isInternalUnsignedUpdatePath) {
+    const installationDecision = await authorizeOutlookInstallationProtectedRoute({
+      method: req.method,
+      pathname,
+      principal: sessionContext.principal,
+      context: requestPermissionContext(),
+      runtime: outlookDesktopRuntime,
+    });
+    const denied = outlookInstallationProtectedRouteResponse(
+      installationDecision,
+      requestId,
+    );
+    if (denied) {
+      sendJson(req, res, denied.status, denied.body);
+      return;
+    }
+    const result = await handleInternalUnsignedUpdateBrokerApiRequest({
+      pathname,
+      method: req.method,
+      principal: sessionContext.principal,
+      installation: installationDecision.installation,
+      runtime: internalUnsignedUpdateBroker,
+      requestId,
+    });
+    sendJson(req, res, result.status, result.body);
+    return;
+  }
+
+  if (isExternalReadPath) {
+    let body = {};
+    if (hasJsonRequestBody(req.method)) {
+      try {
+        body = await readRequestBody(req, { maxBytes: 16 * 1024 });
+      } catch (error) {
+        sendJson(req, res, error?.status === 413 ? 413 : 400, {
+          request_id: requestId,
+          outcome: "blocked",
+          items: [],
+          safe_error_codes: [error?.status === 413
+            ? "EXTERNAL_READ_REQUEST_TOO_LARGE"
+            : "EXTERNAL_READ_REQUEST_INVALID"],
+          credential_material_included: false,
+          raw_provider_payload_included: false,
+          production_ready_claim: false,
+        });
+        return;
+      }
+    }
+    const result = await handleExternalReadApiRequest({
+      pathname,
+      method: req.method,
+      query,
+      body,
+      context: requestPermissionContext(),
+      requestId,
+      runtime: externalReadRuntime,
+      legalEntityDirectory: hrxRuntime?.repository ?? null,
+    });
+    sendJson(req, res, result.status, result.body);
+    return;
+  }
+
   if (isOutlookDesktopActivationPath) {
     let body = {};
     if (req.method === "POST") {
@@ -2231,8 +2434,12 @@ async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, mast
 
   if (isProfilePath) {
     const context = requestPermissionContext();
-    const result = handleProfileApiRequest({ pathname, method: req.method, query, context, requestId, runtime: hrxRuntime });
-    sendJson(req, res, result.status, result.body);
+    const result = await handleProfileApiRequest({ pathname, method: req.method, query, context, requestId, runtime: hrxRuntime });
+    if (result.status === 200 && Buffer.isBuffer(result.body)) {
+      sendProfilePhotoBinary(req, res, result);
+    } else {
+      sendJson(req, res, result.status, result.body);
+    }
     return;
   }
 
@@ -2858,6 +3065,8 @@ export function createApiServer({
     sourceCollectors: createHomeDashboardSourceCollectors({ hrxRuntime, matterRuntime, dmsRuntime, aiRuntime }),
   }),
   enterpriseReadinessRuntime = createDefaultEnterpriseReadinessRuntime(),
+  externalReadRuntime = createFailClosedExternalReadRuntime(),
+  internalUnsignedUpdateBroker = createDisabledInternalUnsignedUpdateBroker(),
   precedentSearchRuntime = null,
   m365GraphConfig = null,
   outlookGraphWebhook = emailDmsRuntime?.outlook_graph_webhook ?? null,
@@ -2939,6 +3148,8 @@ export function createApiServer({
           uiReadinessRuntime: requestRuntimes.uiReadinessRuntime ?? uiReadinessRuntime,
           homeDashboardRuntime: requestRuntimes.homeDashboardRuntime ?? homeDashboardRuntime,
           enterpriseReadinessRuntime: requestRuntimes.enterpriseReadinessRuntime ?? enterpriseReadinessRuntime,
+          externalReadRuntime: requestRuntimes.externalReadRuntime ?? externalReadRuntime,
+          internalUnsignedUpdateBroker,
           precedentSearchRuntime: requestRuntimes.precedentSearchRuntime ?? precedentSearchRuntime,
           m365GraphConfig,
           outlookConversationRuntime,
@@ -3209,6 +3420,16 @@ async function startApiServerImplementation({
   homeDashboardRuntime,
   enterpriseReadinessRuntime,
   enterpriseReadinessRepository,
+  externalReadRuntime,
+  externalReadProviderPacks,
+  externalReadCredentialVault,
+  externalReadSecretsClient,
+  externalReadFetch,
+  internalUnsignedUpdateBroker,
+  internalUnsignedUpdateS3Client,
+  internalUnsignedUpdateSecretsClient,
+  internalUnsignedUpdateSignedUrlFactory,
+  internalUnsignedUpdateNow,
   m365GraphConfig,
   outlookGraphWebhook,
   outlookConversationRuntimeFactory = createPostgresOutlookConversationRuntime,
@@ -3271,6 +3492,14 @@ async function startApiServerImplementation({
     : vaultCapabilityResolver;
   const resolvedPeopleFeatureFlags =
     peopleFeatureFlags ?? resolvePeopleFeatureFlagsFromEnv(resolvedPersistenceAuthorityEnv);
+  const resolvedInternalUnsignedUpdateBroker = internalUnsignedUpdateBroker
+    ?? resolveInternalUnsignedUpdateBrokerFromEnv({
+      env: resolvedPersistenceAuthorityEnv,
+      s3Client: internalUnsignedUpdateS3Client,
+      secretsClient: internalUnsignedUpdateSecretsClient,
+      signedUrlFactory: internalUnsignedUpdateSignedUrlFactory,
+      now: internalUnsignedUpdateNow,
+    });
   const resolvedStaffAuthAuthority = resolveStaffAuthAuthority(
     staffAuthAuthority ?? resolvedPersistenceAuthorityEnv.LAWOS_STAFF_AUTHORITY,
   );
@@ -3430,6 +3659,9 @@ async function startApiServerImplementation({
         storage: resolvedDmsStorage,
         authority: dmsConsumerReadAuthority,
       });
+      const memberPhotoStorage = createHrxMemberPhotoStorage({
+        storage: resolvedDmsStorage,
+      });
       const resolvedPayrollArtifactSecret = await resolvePayrollArtifactSecret({
         env: resolvedPersistenceAuthorityEnv,
         explicitSecret: payrollArtifactSecret,
@@ -3491,6 +3723,7 @@ async function startApiServerImplementation({
         precedentSearchPool: postgresPool,
         precedentAuthoritySecret: resolvedSessionSecret,
         identityRepository,
+        memberPhotoStorage,
         requireDmsConsumerReadAuthority: true,
         vaultOperationOwner: createVaultOperationOwner({
           repository: createPostgresRepositoryPortV2({ pool: postgresPool }),
@@ -3548,6 +3781,33 @@ async function startApiServerImplementation({
       const resolvedDocusignRuntime = docusignRuntime ?? createDocusignFailClosedRuntime({
         repository: createPostgresDocusignEnvelopeRepository({ pool: postgresPool }),
       });
+      const configuredExternalReadPacks = externalReadProviderPacks
+        ?? await resolveExternalReadProviderPacksFromConfig({
+          env: resolvedPersistenceAuthorityEnv,
+          client: externalReadSecretsClient,
+        });
+      const resolvedExternalReadRuntime = externalReadRuntime
+        ?? (configuredExternalReadPacks.length === 0
+          ? createFailClosedExternalReadRuntime()
+          : createExternalReadRuntime({
+              packs: configuredExternalReadPacks,
+              credentialVault: externalReadCredentialVault
+                ?? createAwsExternalReadCredentialVault({
+                  region: resolvedPersistenceAuthorityEnv.AWS_REGION
+                    ?? resolvedPersistenceAuthorityEnv.AWS_DEFAULT_REGION
+                    ?? "ap-northeast-2",
+                  secret_prefix:
+                    resolvedPersistenceAuthorityEnv[LAWOS_EXTERNAL_READ_SECRET_PREFIX_ENV],
+                  kms_key_id:
+                    resolvedPersistenceAuthorityEnv[LAWOS_EXTERNAL_READ_KMS_KEY_ARN_ENV],
+                  client: externalReadSecretsClient,
+                }),
+              repository: createRepositoryPortV2ExternalReadOnboardingRepository({
+                repository: createPostgresRepositoryPortV2({ pool: postgresPool }),
+              }),
+              fetchImpl: externalReadFetch,
+              operational: true,
+            }));
       const server = createApiServer({
         hrxRuntime: null,
         masterDataRuntime: null,
@@ -3563,6 +3823,8 @@ async function startApiServerImplementation({
         uiReadinessRuntime: null,
         homeDashboardRuntime: null,
         enterpriseReadinessRuntime: null,
+        externalReadRuntime: resolvedExternalReadRuntime,
+        internalUnsignedUpdateBroker: resolvedInternalUnsignedUpdateBroker,
         m365GraphConfig: operationalM365GraphConfig,
         outlookGraphWebhook: outlookGraphWebhook ?? outlookConversationRuntime?.webhook,
         outlookConversationRuntime,
@@ -3826,6 +4088,18 @@ async function startApiServerImplementation({
     objectAclResolver: resolvedSessionObjectAclResolver,
     vaultCapabilityResolver: resolvedVaultCapabilityResolver,
   });
+  const configuredExternalReadPacks = externalReadProviderPacks
+    ?? await resolveExternalReadProviderPacksFromConfig({
+      env: resolvedPersistenceAuthorityEnv,
+      client: externalReadSecretsClient,
+    });
+  if (!externalReadRuntime && configuredExternalReadPacks.length > 0) {
+    throw runtimePreflightError(
+      "external read provider packs require postgres-v2 operational authority",
+    );
+  }
+  const resolvedExternalReadRuntime = externalReadRuntime
+    ?? createFailClosedExternalReadRuntime();
   const server = createApiServer({
     hrxRuntime: runtime,
     masterDataRuntime: masterRuntime,
@@ -3842,6 +4116,8 @@ async function startApiServerImplementation({
     uiReadinessRuntime: uiReadinessRuntimeContext,
     homeDashboardRuntime: homeDashboardRuntimeContext,
     enterpriseReadinessRuntime: enterpriseReadinessRuntimeContext,
+    externalReadRuntime: resolvedExternalReadRuntime,
+    internalUnsignedUpdateBroker: resolvedInternalUnsignedUpdateBroker,
     m365GraphConfig,
     outlookGraphWebhook,
     outlookGraphSyncReadiness: null,

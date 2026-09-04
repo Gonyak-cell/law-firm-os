@@ -1,0 +1,60 @@
+{
+  "schema_version": "law-firm-os.amic-private-bootstrap-inventory.v1",
+  "observed_on": "2026-09-03",
+  "source_baseline": "22ebd5d0bc761c8bae56d345f2265840646b95b6",
+  "outcome": "PASS",
+  "tenant_ref": "d756ec91c50c1505f5846408aeff6508747ea6096af2a2df11d4c1080a2f7fc0",
+  "sources": {
+    "registration": {
+      "relative_path": "docs/reorganization/client-matter-os/matter-vault-r4/launch/matter-vault-user-registration-seed.json",
+      "schema_version": "law-firm-os.matter-vault-user-registration-seed.v0.1",
+      "account_count": 12,
+      "byte_size": 15128,
+      "sha256": "4737f0a60cd206e5bbd9a22ea8f6d749181c425c5a79bc9ac4d612f11cdd7473"
+    },
+    "roster": {
+      "relative_path": "docs/reorganization/client-matter-os/matter-vault-r4/launch/hrx-member-roster-source-of-truth.json",
+      "schema_version": "law-firm-os.hrx-member-roster-source-of-truth.v0.1",
+      "member_count": 10,
+      "byte_size": 16550,
+      "sha256": "e55d5ffcf270215aabc0a8fdcfad2b118ab0bdfeb43747d27c0aa3ac20ea504f"
+    },
+    "contacts": {
+      "configured": false,
+      "relative_path": null,
+      "schema_version": "law-firm-os.hrx-member-contact-source-of-truth.v0.1",
+      "contact_count": 0,
+      "byte_size": 0,
+      "sha256": null
+    },
+    "photos": {
+      "relative_path": "apps/api/src/hrx-member-photos",
+      "file_count": 5,
+      "total_byte_size": 1711086,
+      "aggregate_sha256": "371de4a1ec307d4f6cf0c682118c7149171f386a33dff1452be14dcc992f0ce5",
+      "roster_photo_match_count": 5,
+      "roster_photo_missing_count": 5,
+      "orphan_photo_count": 0,
+      "raw_filename_included": false,
+      "raw_bytes_included": false
+    }
+  },
+  "reconciliation": {
+    "account_roster_match_count": 10,
+    "account_only_count": 2,
+    "roster_only_count": 0,
+    "roster_photo_match_count": 5,
+    "roster_photo_missing_count": 5,
+    "orphan_photo_count": 0
+  },
+  "legal_entity": {
+    "assignment_count": 0,
+    "explicit_mapping_required_before_import": true
+  },
+  "inventory_sha256": "5179f5a4726f95686aad38c97cd692a269c1eaab3c243446e87ca60e82a03e5c",
+  "raw_identity_included": false,
+  "raw_contact_included": false,
+  "raw_photo_included": false,
+  "source_mutated": false,
+  "production_ready_claim": false
+}

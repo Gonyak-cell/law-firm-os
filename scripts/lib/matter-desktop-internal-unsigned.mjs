@@ -1,11 +1,17 @@
 import assert from "node:assert/strict";
-import { createHash } from "node:crypto";
+import { createHash, createPublicKey } from "node:crypto";
 import { createReadStream, existsSync } from "node:fs";
-import { lstat, readdir } from "node:fs/promises";
+import { lstat, readFile, readdir } from "node:fs/promises";
 import path from "node:path";
 import {
   DESKTOP_INTERNAL_UNSIGNED_MARKER_NAME,
 } from "./matter-desktop-provenance.mjs";
+
+export const INTERNAL_UNSIGNED_UPDATE_TRUST_FILENAME =
+  "matter-internal-update-trust.json";
+export const INTERNAL_UNSIGNED_UPDATE_TRUST_SCHEMA =
+  "law-firm-os.matter-desktop-internal-update-trust.v1";
+export const INTERNAL_UNSIGNED_UPDATE_KEY_ID = "matter-internal-update-key-v1";
 
 const FORBIDDEN_PACKAGE_PATHS = Object.freeze([
   Object.freeze({
@@ -62,6 +68,21 @@ const PRIVATE_SOURCE_KINDS = Object.freeze([
   "roster",
 ]);
 
+const PRIVATE_SOURCE_TEXT_FIELDS = Object.freeze({
+  contact: Object.freeze([
+    "display_name", "email", "employee_id", "legal_name", "mobile", "phone",
+    "telephone", "tenant_id", "user_id", "work_email",
+  ]),
+  registrationSeed: Object.freeze([
+    "display_name", "email", "english_name", "tenant_id", "user_id",
+  ]),
+  roster: Object.freeze([
+    "display_name", "employee_id", "legal_name", "manager_employee_id",
+    "tenant_id", "user_id", "work_email",
+  ]),
+});
+const MAX_PRIVATE_SOURCE_JSON_BYTES = 5 * 1024 * 1024;
+
 export function createInternalUnsignedBuilderEnvironment(env = process.env) {
   const configuredSigningFields = FORBIDDEN_SIGNING_ENVIRONMENT_FIELDS.filter(
     (name) => String(env[name] ?? "").trim() !== "",
@@ -79,6 +100,35 @@ export function createInternalUnsignedBuilderEnvironment(env = process.env) {
   return Object.freeze({
     ...env,
     CSC_IDENTITY_AUTO_DISCOVERY: "false",
+  });
+}
+
+export function createInternalUnsignedUpdateTrustManifest(env = process.env) {
+  const encoded = String(
+    env.MATTER_INTERNAL_UPDATE_PUBLIC_KEY_SPKI_BASE64 ?? "",
+  ).trim();
+  const der = Buffer.from(encoded, "base64");
+  assert.ok(
+    der.byteLength > 0 && der.byteLength <= 4096 && der.toString("base64") === encoded,
+    "internal-unsigned build requires a canonical Ed25519 public-key SPKI",
+  );
+  let publicKey;
+  try {
+    publicKey = createPublicKey({ key: der, format: "der", type: "spki" });
+  } catch {
+    assert.fail("internal-unsigned build requires a valid Ed25519 public-key SPKI");
+  }
+  assert.equal(
+    publicKey.asymmetricKeyType,
+    "ed25519",
+    "internal-unsigned update trust key must be Ed25519",
+  );
+  return Object.freeze({
+    schema_version: INTERNAL_UNSIGNED_UPDATE_TRUST_SCHEMA,
+    key_id: INTERNAL_UNSIGNED_UPDATE_KEY_ID,
+    public_key_spki_base64: encoded,
+    private_key_material_included: false,
+    public_release_allowed: false,
   });
 }
 
@@ -101,10 +151,17 @@ export function auditInternalUnsignedPackagePaths(filePaths = []) {
     }
   }
   const markerPath = `resources/${DESKTOP_INTERNAL_UNSIGNED_MARKER_NAME}`;
+  const trustPath = `resources/${INTERNAL_UNSIGNED_UPDATE_TRUST_FILENAME}`;
   if (!paths.includes(markerPath)) {
     findings.push(Object.freeze({
       code: "INTERNAL_UNSIGNED_MARKER_MISSING",
       path: markerPath,
+    }));
+  }
+  if (!paths.includes(trustPath)) {
+    findings.push(Object.freeze({
+      code: "INTERNAL_UPDATE_TRUST_MISSING",
+      path: trustPath,
     }));
   }
   const includes = (code) => findings.some((finding) => finding.code === code);
@@ -112,7 +169,10 @@ export function auditInternalUnsignedPackagePaths(filePaths = []) {
     valid: findings.length === 0,
     file_count: paths.length,
     finding_count: findings.length,
-    forbidden_path_count: findings.filter(({ code }) => code !== "INTERNAL_UNSIGNED_MARKER_MISSING").length,
+    forbidden_path_count: findings.filter(({ code }) => ![
+      "INTERNAL_UNSIGNED_MARKER_MISSING",
+      "INTERNAL_UPDATE_TRUST_MISSING",
+    ].includes(code)).length,
     findings: Object.freeze(findings),
     bundled_local_api: includes("LOCAL_API_RUNTIME_INCLUDED"),
     roster_included: includes("PRIVATE_ROSTER_INCLUDED"),
@@ -183,6 +243,91 @@ async function listAbsoluteRegularFiles(rootPath, label) {
   return files.sort();
 }
 
+function collectPrivateTextValues(value, fieldNames, values) {
+  if (Array.isArray(value)) {
+    for (const item of value) collectPrivateTextValues(item, fieldNames, values);
+    return;
+  }
+  if (!value || typeof value !== "object") return;
+  for (const [field, item] of Object.entries(value)) {
+    if (fieldNames.has(field) && typeof item === "string" && item.trim().length >= 4) {
+      values.add(item.trim());
+    }
+    collectPrivateTextValues(item, fieldNames, values);
+  }
+}
+
+async function privateSourceTextPatterns(privateSourcePaths) {
+  const patterns = new Map();
+  for (const [kind, fields] of Object.entries(PRIVATE_SOURCE_TEXT_FIELDS)) {
+    const sourcePath = privateSourcePaths[kind];
+    if (sourcePath == null || sourcePath === "") continue;
+    const absoluteSourcePath = path.resolve(String(sourcePath));
+    if (!existsSync(absoluteSourcePath)) continue;
+    const values = new Set();
+    let jsonFileCount = 0;
+    for (const filePath of await listAbsoluteRegularFiles(absoluteSourcePath, `${kind} private source`)) {
+      if (path.extname(filePath).toLowerCase() !== ".json") continue;
+      jsonFileCount += 1;
+      const fileStat = await lstat(filePath);
+      assert.ok(
+        fileStat.size > 0 && fileStat.size <= MAX_PRIVATE_SOURCE_JSON_BYTES,
+        `${kind} private source JSON exceeds the bounded value-scan size`,
+      );
+      let parsed;
+      try {
+        parsed = JSON.parse(await readFile(filePath, "utf8"));
+      } catch {
+        assert.fail(`${kind} private source must contain valid JSON`);
+      }
+      collectPrivateTextValues(parsed, new Set(fields), values);
+    }
+    assert.ok(jsonFileCount > 0, `${kind} private source requires a JSON value-scan input`);
+    assert.ok(values.size > 0, `${kind} private source exposes no protected values`);
+    for (const value of values) {
+      const kinds = patterns.get(value) ?? new Set();
+      kinds.add(kind);
+      patterns.set(value, kinds);
+    }
+  }
+  return patterns;
+}
+
+async function findPrivateSourceValueMatches(packageRoot, packagePaths, protectedValues) {
+  if (protectedValues.size === 0) return [];
+  const patterns = [...protectedValues.entries()].map(([value, kinds]) => Object.freeze({
+    bytes: Buffer.from(value, "utf8"),
+    kinds: Object.freeze([...kinds].sort()),
+  }));
+  const carryBytes = Math.max(...patterns.map(({ bytes }) => bytes.byteLength)) - 1;
+  const findings = [];
+  for (const relativePath of packagePaths) {
+    const matched = new Set();
+    let carry = Buffer.alloc(0);
+    for await (const rawChunk of createReadStream(path.join(packageRoot, ...relativePath.split("/")))) {
+      const chunk = Buffer.isBuffer(rawChunk) ? rawChunk : Buffer.from(rawChunk);
+      const window = carry.byteLength === 0 ? chunk : Buffer.concat([carry, chunk]);
+      for (let index = 0; index < patterns.length; index += 1) {
+        if (!matched.has(index) && window.indexOf(patterns[index].bytes) !== -1) matched.add(index);
+      }
+      carry = carryBytes > 0
+        ? Buffer.from(window.subarray(Math.max(0, window.byteLength - carryBytes)))
+        : Buffer.alloc(0);
+    }
+    if (matched.size > 0) {
+      findings.push(Object.freeze({
+        code: "PRIVATE_SOURCE_VALUE_INCLUDED",
+        path: relativePath,
+        protected_value_match_count: matched.size,
+        source_kinds: Object.freeze([
+          ...new Set([...matched].flatMap((index) => patterns[index].kinds)),
+        ].sort()),
+      }));
+    }
+  }
+  return findings;
+}
+
 export async function assertInternalUnsignedPackage({
   rootPath,
   privateSourcePaths = {},
@@ -231,11 +376,25 @@ export async function assertInternalUnsignedPackage({
     [],
     `internal-unsigned package contains renamed private source bytes: ${contentMatches.map(({ path: relativePath, source_kind: sourceKind }) => `${sourceKind}:${relativePath}`).join(", ")}`,
   );
+  const protectedValues = await privateSourceTextPatterns(privateSourcePaths);
+  const valueMatches = await findPrivateSourceValueMatches(
+    packageRoot,
+    packagePaths,
+    protectedValues,
+  );
+  assert.deepEqual(
+    valueMatches,
+    [],
+    `internal-unsigned package contains protected source values: ${valueMatches.map(({ path: relativePath, protected_value_match_count: count, source_kinds: kinds }) => `${kinds.join("+")}:${relativePath}:${count}`).join(", ")}`,
+  );
   return Object.freeze({
     ...pathAudit,
     private_source_file_count: privateSourceFileCount,
     private_source_digest_count: privateSourceDigests.size,
     private_source_content_match_count: 0,
     private_source_content_scan: "verified",
+    private_source_protected_value_count: protectedValues.size,
+    private_source_value_match_count: 0,
+    private_source_value_scan: "verified",
   });
 }

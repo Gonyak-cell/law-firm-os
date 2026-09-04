@@ -642,7 +642,7 @@ jobs:
           $lockedToolchainRoot = Join-Path $env:GITHUB_WORKSPACE '.github\toolchains\windows-authenticode-electron-builder'
           $lockPath = Join-Path $lockedToolchainRoot 'package-lock.json'
           $lockSha256 = (Get-FileHash -LiteralPath $lockPath -Algorithm SHA256).Hash.ToLowerInvariant()
-          if ($lockSha256 -cne 'd13063e65f5c6f07f78b7319fe562b68a0072fb264a7a207b5cef185350d72f6') {
+          if ($lockSha256 -cne 'c0fd9b17600af37217a47a2e2d377e202e9b36736e425decc72fe0bb203393be') {
             throw 'electron-builder dependency graph drifted from the reviewed lock'
           }
           Copy-Item -LiteralPath (Join-Path $lockedToolchainRoot 'package.json') -Destination $toolRoot

@@ -248,9 +248,10 @@ export const globalUtilityItems = [
       },
       {
         id: "settings-integrations",
-        label: "연동",
+        label: "외부 데이터 연결",
         source: "People",
-        icon: Settings,
+        icon: Database,
+        description: "승인된 금융 및 공시 공급자를 법인 단위로 확인하고 읽기 전용으로 연결합니다.",
         legacyRoutes: [legacy("people", "people-company-integrations")]
       },
       {

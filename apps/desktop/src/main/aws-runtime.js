@@ -7,6 +7,8 @@ import { fileURLToPath } from "node:url";
 const DEFAULT_ENV_FILE = ".env.matter-vault-r4.local";
 const DEFAULT_PRODUCTION_RUNTIME_BASE_URL = "https://d2mthcc8vp3cr2.cloudfront.net";
 const DEFAULT_RUNTIME_REQUEST_TIMEOUT_MS = 30_000;
+const PROFILE_PHOTO_PATH = "/api/profile/me/photo";
+const PROFILE_PHOTO_MAX_BYTES = 5 * 1024 * 1024;
 const DESKTOP_VAULT_UPLOAD_PREFLIGHT_PATH = "/api/vault/desktop/upload-preflight";
 const DESKTOP_VAULT_UPLOAD_TRANSFER_PATH = "/api/vault/desktop/upload-transfer";
 const DESKTOP_VAULT_UPLOAD_PATH = "/api/vault/desktop/upload";
@@ -21,6 +23,7 @@ const DESKTOP_VAULT_EXPORT_AUTHORIZE_PATH = "/api/vault/desktop/export-authorize
 const DESKTOP_VAULT_EXPORT_DOWNLOAD_PATH = "/api/vault/desktop/export-download";
 const DESKTOP_VAULT_EXPORT_COMPLETE_PATH = "/api/vault/desktop/export-complete";
 const DESKTOP_VAULT_EXPORT_MAX_BYTES = 25 * 1024 * 1024;
+const INTERNAL_UNSIGNED_UPDATE_AUTHORIZE_PATH = "/api/desktop/internal-updates/authorize";
 const VAULT_OPERATION_ID = /^vaultop_[a-f0-9]{32}$/u;
 const VAULT_BINDING_ID = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,255}$/u;
 const VAULT_SHA256 = /^[a-f0-9]{64}$/u;
@@ -214,12 +217,12 @@ export function publicRuntimeConfig(config = {}) {
   };
 }
 
-export function assertNoRuntimeSecretMaterial(value, operatorToken) {
-  const secret = String(operatorToken ?? "");
+export function assertNoRuntimeSecretMaterial(value, credential) {
+  const secret = String(credential ?? "");
   const visit = (candidate) => {
     if (candidate == null) return;
     if (typeof candidate === "string") {
-      if (secret && candidate.includes(secret)) throw new Error("Runtime response included operator token material");
+      if (secret && candidate.includes(secret)) throw new Error("Runtime response included credential material");
       return;
     }
     if (Array.isArray(candidate)) {
@@ -241,6 +244,25 @@ function jsonHeaders(operatorToken) {
   const headers = { "content-type": "application/json; charset=utf-8" };
   if (operatorToken) headers.authorization = `Bearer ${operatorToken}`;
   return headers;
+}
+
+function projectInternalUnsignedUpdateAuthorization(response) {
+  if (response?.http_status !== 200 || response?.outcome !== "authorized") return response;
+  return Object.freeze({
+    schema_version: response.schema_version,
+    outcome: response.outcome,
+    release_id: response.release_id,
+    release_sequence: response.release_sequence,
+    version: response.version,
+    expires_at: response.expires_at,
+    downloads: response.downloads,
+    authorization_receipt_sha256: response.authorization_receipt_sha256,
+    raw_s3_location_returned: response.raw_s3_location_returned,
+    aws_credentials_returned: response.aws_credentials_returned,
+    private_key_material_returned: response.private_key_material_returned,
+    public_release_allowed: response.public_release_allowed,
+    http_status: response.http_status,
+  });
 }
 
 function vaultUploadError(code, message, status = 409) {
@@ -379,6 +401,12 @@ function isDesktopFinanceWriteRoute(method, path) {
     "/api/finance/bank-classifications/auto",
     "/api/finance/bank-classifications/review",
   ].includes(path);
+}
+
+function isDesktopExternalReadWriteRoute(method, path) {
+  if (method !== "POST") return false;
+  return path === "/api/external-read/connections"
+    || /^\/api\/external-read\/connections\/[A-Za-z0-9._:%-]+\/(?:sync|rotate|disable|reconnect|revoke|repair)$/u.test(path);
 }
 
 function isDesktopHrxLeaveWriteRoute(method, path) {
@@ -544,11 +572,154 @@ export function createMatterVaultAwsRuntimeClient({ baseUrl, operatorToken, fetc
       clearTimeout(timeout);
     }
     if (!result.response) return result;
-    assertNoRuntimeSecretMaterial(result.parsed, operatorToken);
+    try {
+      assertNoRuntimeSecretMaterial(result.parsed, credential);
+    } catch (error) {
+      error.http_status = result.response.status;
+      throw error;
+    }
     return {
       ...result.parsed,
       http_status: result.response.status
     };
+  };
+
+  const requestProfilePhoto = async ({ authToken, headers: extraHeaders = {} } = {}) => {
+    const credential = typeof authToken === "string" ? authToken.trim() : "";
+    if (!credential) {
+      return {
+        http_status: 401,
+        body: {
+          ok: false,
+          reason: "desktop_runtime_session_required",
+          token_material_returned: false,
+        },
+        token_material_returned: false,
+      };
+    }
+    const controller = new AbortController();
+    const timeoutError = Object.assign(
+      new Error("Runtime request deadline exceeded"),
+      { name: "TimeoutError" },
+    );
+    const timeout = setTimeout(
+      () => controller.abort(timeoutError),
+      requestTimeoutMs,
+    );
+    try {
+      const response = await fetchImpl(
+        new URL(PROFILE_PHOTO_PATH.slice(1), `${baseUrl}/`),
+        {
+          method: "GET",
+          headers: { ...jsonHeaders(credential), ...extraHeaders },
+          signal: controller.signal,
+        },
+      );
+      if (!response?.ok) {
+        let body;
+        try {
+          body = JSON.parse(await response.text());
+        } catch {
+          body = {
+            ok: false,
+            reason: "runtime_response_not_json",
+            token_material_returned: false,
+          };
+        }
+        assertNoRuntimeSecretMaterial(body, credential);
+        return {
+          http_status: Number(response?.status ?? 0),
+          body,
+          token_material_returned: false,
+        };
+      }
+      const contentType = String(response.headers?.get?.("content-type") ?? "")
+        .split(";", 1)[0]
+        .trim()
+        .toLowerCase();
+      const declaredHeader = response.headers?.get?.("content-length");
+      const declaredSize = declaredHeader == null || declaredHeader === ""
+        ? null
+        : Number(declaredHeader);
+      if (response.status !== 200
+          || contentType !== "image/png"
+          || (declaredSize != null && (!Number.isFinite(declaredSize)
+            || !Number.isSafeInteger(declaredSize)))
+          || (Number.isFinite(declaredSize)
+            && (declaredSize < 8 || declaredSize > PROFILE_PHOTO_MAX_BYTES))
+          || !privateNoStore(response.headers?.get?.("cache-control"))
+          || response.headers?.get?.("x-content-type-options") !== "nosniff"
+          || response.headers?.get?.("content-encoding") != null
+          || !response.body
+          || typeof response.body[Symbol.asyncIterator] !== "function") {
+        return {
+          http_status: 502,
+          body: {
+            ok: false,
+            reason: "profile_photo_response_invalid",
+            token_material_returned: false,
+          },
+          token_material_returned: false,
+        };
+      }
+      const chunks = [];
+      let byteSize = 0;
+      for await (const value of response.body) {
+        const chunk = Buffer.isBuffer(value) ? value : Buffer.from(value);
+        byteSize += chunk.byteLength;
+        if (byteSize > PROFILE_PHOTO_MAX_BYTES
+            || (declaredSize != null && byteSize > declaredSize)) {
+          controller.abort();
+          return {
+            http_status: 502,
+            body: {
+              ok: false,
+              reason: "profile_photo_response_invalid",
+              token_material_returned: false,
+            },
+            token_material_returned: false,
+          };
+        }
+        chunks.push(chunk);
+      }
+      const bytes = Buffer.concat(chunks, byteSize);
+      if (bytes.byteLength < 8
+          || (declaredSize != null && bytes.byteLength !== declaredSize)
+          || !bytes.subarray(0, 8).equals(
+            Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]),
+          )) {
+        return {
+          http_status: 502,
+          body: {
+            ok: false,
+            reason: "profile_photo_response_invalid",
+            token_material_returned: false,
+          },
+          token_material_returned: false,
+        };
+      }
+      return {
+        http_status: response.status,
+        binary_body_base64: bytes.toString("base64"),
+        content_type: contentType,
+        byte_size: bytes.byteLength,
+        token_material_returned: false,
+      };
+    } catch (error) {
+      const timedOut = error?.name === "TimeoutError"
+        || controller.signal.reason?.name === "TimeoutError";
+      return {
+        http_status: 0,
+        body: {
+          ok: false,
+          reason: timedOut ? "runtime_request_timeout" : "runtime_request_failed",
+          token_material_returned: false,
+        },
+        token_material_returned: false,
+      };
+    } finally {
+      clearTimeout(timeout);
+    }
   };
 
   const precheckVaultUpload = async ({ matterId, workspaceId = null, folderId = null, sessionToken } = {}) => {
@@ -1105,7 +1276,8 @@ export function createMatterVaultAwsRuntimeClient({ baseUrl, operatorToken, fetc
         || normalizedPathname === DESKTOP_VAULT_EXPORT_PREFLIGHT_PATH
         || normalizedPathname === DESKTOP_VAULT_EXPORT_AUTHORIZE_PATH
         || normalizedPathname === DESKTOP_VAULT_EXPORT_DOWNLOAD_PATH
-        || normalizedPathname === DESKTOP_VAULT_EXPORT_COMPLETE_PATH) {
+        || normalizedPathname === DESKTOP_VAULT_EXPORT_COMPLETE_PATH
+        || normalizedPathname === INTERNAL_UNSIGNED_UPDATE_AUTHORIZE_PATH) {
       return {
         ok: false,
         reason: "desktop_main_only_route",
@@ -1139,8 +1311,21 @@ export function createMatterVaultAwsRuntimeClient({ baseUrl, operatorToken, fetc
       safeMethod,
       normalizedPathname,
     ) || allowedPeopleOutlookCompletion;
+    const allowedExternalReadWrite = isDesktopExternalReadWriteRoute(
+      safeMethod,
+      normalizedPathname,
+    );
+    if (allowedExternalReadWrite && safePath !== normalizedPathname) {
+      return {
+        ok: false,
+        reason: "desktop_runtime_read_bridge_path_blocked",
+        http_status: 403,
+        token_material_returned: false,
+      };
+    }
     const allowedWrite = isDesktopMatterWriteRoute(safeMethod, normalizedPathname) ||
       isDesktopFinanceWriteRoute(safeMethod, normalizedPathname) ||
+      allowedExternalReadWrite ||
       isDesktopHrxLeaveWriteRoute(safeMethod, normalizedPathname) ||
       isDesktopHrxPayrollWriteRoute(safeMethod, normalizedPathname) ||
       allowedPeopleOutlookWrite ||
@@ -1202,6 +1387,20 @@ export function createMatterVaultAwsRuntimeClient({ baseUrl, operatorToken, fetc
       if (["content-type", "x-lawos-permission-context", "x-lawos-hrx-step-up"].includes(lowerName)) {
         forwardedHeaders[name] = String(value);
       }
+    }
+    if (normalizedPathname === PROFILE_PHOTO_PATH) {
+      if (safeMethod !== "GET" || safePath !== PROFILE_PHOTO_PATH || body != null) {
+        return {
+          ok: false,
+          reason: "desktop_runtime_profile_photo_request_invalid",
+          http_status: 400,
+          token_material_returned: false,
+        };
+      }
+      return requestProfilePhoto({
+        authToken: signedSessionToken,
+        headers: forwardedHeaders,
+      });
     }
     const response = await requestJson(safePath, {
       method: safeMethod,
@@ -1282,11 +1481,22 @@ export function createMatterVaultAwsRuntimeClient({ baseUrl, operatorToken, fetc
           token_material_returned: false
         };
       }
-      const response = await requestJson("/api/auth/logout", {
-        method: "POST",
-        authToken: signedSessionToken,
-        authRequired: true
-      });
+      let response;
+      try {
+        response = await requestJson("/api/auth/logout", {
+          method: "POST",
+          authToken: signedSessionToken,
+          authRequired: true
+        });
+      } catch (error) {
+        return {
+          ok: false,
+          replayed: false,
+          reason: "server_session_revoke_failed",
+          http_status: Number(error?.http_status ?? 0),
+          token_material_returned: false
+        };
+      }
       return {
         ok: response.ok === true,
         replayed: response.replayed === true,
@@ -1336,6 +1546,22 @@ export function createMatterVaultAwsRuntimeClient({ baseUrl, operatorToken, fetc
     precheckVaultExport,
     downloadVaultExactVersion,
     completeVaultExport,
+    authorizeInternalUnsignedUpdate({ sessionToken } = {}) {
+      const signedSessionToken = typeof sessionToken === "string" ? sessionToken.trim() : "";
+      if (!signedSessionToken) {
+        return {
+          ok: false,
+          reason: "desktop_runtime_session_required",
+          http_status: 401,
+          token_material_returned: false,
+        };
+      }
+      return requestJson(INTERNAL_UNSIGNED_UPDATE_AUTHORIZE_PATH, {
+        method: "POST",
+        authToken: signedSessionToken,
+        authRequired: true,
+      }).then(projectInternalUnsignedUpdateAuthorization);
+    },
     api(input = {}) {
       return requestRuntimeApi(input);
     }
@@ -1378,6 +1604,7 @@ export function createDisabledMatterVaultRuntimeClient(error) {
     precheckVaultExport: unavailable,
     downloadVaultExactVersion: unavailable,
     completeVaultExport: unavailable,
+    authorizeInternalUnsignedUpdate: unavailable,
     api: unavailable
   });
 }

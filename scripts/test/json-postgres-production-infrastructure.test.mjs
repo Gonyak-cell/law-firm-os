@@ -2,6 +2,13 @@ import { readFileSync } from "node:fs";
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  JSON_POSTGRES_AMIC_INTERNAL_UPDATE_DISABLED_BUCKET,
+  JSON_POSTGRES_AMIC_INTERNAL_UPDATE_DISABLED_VALUE,
+  JSON_POSTGRES_EXTERNAL_READ_CREDENTIAL_SECRET_PREFIX,
+  JSON_POSTGRES_EXTERNAL_READ_PROVIDER_PACK_SECRET_NAME,
+  JSON_POSTGRES_OUTLOOK_DISABLED_CONFIG_SECRET_NAME,
+  JSON_POSTGRES_OUTLOOK_DISABLED_CREDENTIAL_SECRET_PREFIX,
+  JSON_POSTGRES_OUTLOOK_WORKER_RESOURCE_IDS,
   buildJsonPostgresProductionArtifactStoreTemplate,
   buildJsonPostgresProductionArtifactStoreWindowsHandoffBaselineTemplate,
   buildJsonPostgresProductionArtifactStoreWindowsHandoffV2Template,
@@ -25,6 +32,12 @@ test("production template derives the proven private topology without synthetic 
   assert.equal(result.multi_az_rds_count, 1);
   assert.equal(result.object_lock_bucket_count, 2);
   assert.equal(result.production_traffic_enabled_by_default, false);
+  assert.equal(result.external_read_providers_enabled_by_default, false);
+  assert.equal(
+    result.amic_internal_unsigned_update_broker_enabled_by_default,
+    false,
+  );
+  assert.equal(result.external_read_secret_policy_count, 1);
   assert.match(result.template_sha256, /^[0-9a-f]{64}$/u);
   assert.deepEqual(template.Parameters.RuntimeGeneration, {
     Type: "Number",
@@ -33,6 +46,78 @@ test("production template derives the proven private topology without synthetic 
   });
   assert.ok(template.Resources.ProductionKey);
   assert.ok(template.Resources.ProductionKeyAlias);
+  assert.equal(template.Parameters.EnableExternalReadProviders.Default, "false");
+  assert.equal(
+    template.Parameters.ExternalReadProviderPackSecretName.AllowedValues[1],
+    JSON_POSTGRES_EXTERNAL_READ_PROVIDER_PACK_SECRET_NAME,
+  );
+  assert.equal(
+    template.Conditions.ExternalReadProvidersEnabled["Fn::Equals"][0].Ref,
+    "EnableExternalReadProviders",
+  );
+  assert.equal(
+    template.Resources.ExternalReadSecretsPolicy.Condition,
+    "ExternalReadProvidersEnabled",
+  );
+  assert.deepEqual(
+    template.Resources.ExternalReadSecretsPolicy.Properties.Roles,
+    [{ Ref: "ApiExecutionRole" }],
+  );
+  assert.equal(
+    template.Resources.ApiFunction.Properties.Environment.Variables
+      .LAWOS_EXTERNAL_READ_SECRET_PREFIX["Fn::If"][1],
+    JSON_POSTGRES_EXTERNAL_READ_CREDENTIAL_SECRET_PREFIX,
+  );
+  assert.equal(
+    template.Resources.ApiFunction.Properties.Environment.Variables
+      .LAWOS_EXTERNAL_READ_KMS_KEY_ARN["Fn::If"][1]["Fn::GetAtt"][0],
+    "ProductionKey",
+  );
+  const externalPolicyStatements = template.Resources.ExternalReadSecretsPolicy
+    .Properties.PolicyDocument.Statement;
+  assert.deepEqual(
+    externalPolicyStatements.find(
+      ({ Sid }) => Sid === "UseTaggedExternalReadCredentialGenerations",
+    ).Action,
+    [
+      "secretsmanager:GetSecretValue",
+      "secretsmanager:PutSecretValue",
+    ],
+  );
+  assert.deepEqual(
+    externalPolicyStatements.find(
+      ({ Sid }) => Sid === "CreateTaggedExternalReadCredentialGenerations",
+    ).Condition.ArnEquals["secretsmanager:KmsKeyArn"],
+    { "Fn::GetAtt": ["ProductionKey", "Arn"] },
+  );
+  assert.deepEqual(
+    externalPolicyStatements.find(
+      ({ Sid }) => Sid === "TagExternalReadCredentialPurposeOnly",
+    ).Condition["ForAllValues:StringEquals"]["aws:TagKeys"],
+    ["lawos-purpose"],
+  );
+  assert.deepEqual(
+    externalPolicyStatements.find(
+      ({ Sid }) => Sid === "ScheduleTaggedExternalReadCredentialDeletion",
+    ).Condition,
+    {
+      StringEquals: {
+        "aws:ResourceTag/lawos-purpose": [
+          "external-read",
+          "external-read-tombstone",
+        ],
+      },
+      BoolIfExists: { "secretsmanager:ForceDeleteWithoutRecovery": "false" },
+      NumericGreaterThanEquals: { "secretsmanager:RecoveryWindowInDays": "7" },
+      NumericLessThanEquals: { "secretsmanager:RecoveryWindowInDays": "30" },
+    },
+  );
+  assert.equal(
+    externalPolicyStatements.find(
+      ({ Sid }) => Sid === "DenyExternalReadCredentialForceDelete",
+    ).Condition.Bool["secretsmanager:ForceDeleteWithoutRecovery"],
+    "true",
+  );
   assert.equal(template.Resources.StagingKey, undefined);
   assert.equal(template.Resources.StagingKeyAlias, undefined);
   assert.equal(
@@ -228,7 +313,7 @@ test("production template derives the proven private topology without synthetic 
   );
   assert.equal(
     template.Resources.PasswordResetWorkerSchedule.Properties.ScheduleExpression,
-    "rate(1 minute)",
+    "rate(5 minutes)",
   );
   assert.equal(
     template.Parameters.EnableOutlookConversationWorker.Default,
@@ -239,6 +324,14 @@ test("production template derives the proven private topology without synthetic 
     {
       "Fn::And": [
         { Condition: "ProductionTrafficEnabled" },
+        { Condition: "OutlookConversationWorkerProvisioned" },
+      ],
+    },
+  );
+  assert.deepEqual(
+    template.Conditions.OutlookConversationWorkerProvisioned,
+    {
+      "Fn::And": [
         { "Fn::Equals": [{ Ref: "EnableOutlookConversationWorker" }, "true"] },
         { Condition: "OutlookConversationWorkerConfigured" },
       ],
@@ -250,11 +343,11 @@ test("production template derives the proven private topology without synthetic 
       "Fn::And": [
         { "Fn::Not": [{ "Fn::Equals": [
           { Ref: "ClientOutlookM365ConfigSecretName" },
-          "/lawos/disabled/outlook/config",
+          JSON_POSTGRES_OUTLOOK_DISABLED_CONFIG_SECRET_NAME,
         ] }] },
         { "Fn::Not": [{ "Fn::Equals": [
           { Ref: "ClientOutlookCredentialSecretPrefix" },
-          "/lawos/disabled/outlook/credentials/",
+          JSON_POSTGRES_OUTLOOK_DISABLED_CREDENTIAL_SECRET_PREFIX,
         ] }] },
       ],
     },
@@ -264,6 +357,24 @@ test("production template derives the proven private topology without synthetic 
     {
       "Fn::If": ["OutlookConversationWorkerEnabled", "ENABLED", "DISABLED"],
     },
+  );
+  for (const logicalId of JSON_POSTGRES_OUTLOOK_WORKER_RESOURCE_IDS) {
+    assert.equal(
+      template.Resources[logicalId].Condition,
+      "OutlookConversationWorkerProvisioned",
+    );
+  }
+  assert.equal(
+    template.Resources.MicrosoftEgressBrokerLambdaEndpoint.Condition,
+    "OutlookConversationWorkerConfigured",
+  );
+  assert.equal(
+    template.Outputs.OutlookConversationWorkerFunctionName.Condition,
+    "OutlookConversationWorkerProvisioned",
+  );
+  assert.equal(
+    template.Outputs.OutlookConversationWorkerDeadLetterQueueArn.Condition,
+    "OutlookConversationWorkerProvisioned",
   );
   assert.deepEqual(
     JSON.parse(template.Resources.OutlookConversationWorkerSchedule.Properties.Targets[0].Input),
@@ -317,38 +428,69 @@ test("production template derives the proven private topology without synthetic 
     template.Resources.OutlookConversationWorkerDeadLetterAlarm.Properties.MetricName,
     "ApproximateNumberOfMessagesVisible",
   );
+  const configuredOutlookEnvironment = (value) => ({
+    "Fn::If": [
+      "OutlookConversationWorkerConfigured",
+      value,
+      { Ref: "AWS::NoValue" },
+    ],
+  });
   assert.deepEqual(
     template.Resources.ApiFunction.Properties.Environment.Variables
       .LAWOS_OUTLOOK_CONVERSATION_WORKER_SCHEDULE_ENABLED,
-    { "Fn::If": ["OutlookConversationWorkerEnabled", "true", "false"] },
+    configuredOutlookEnvironment({
+      "Fn::If": ["OutlookConversationWorkerEnabled", "true", "false"],
+    }),
+  );
+  assert.deepEqual(
+    template.Resources.ApiFunction.Properties.Environment.Variables
+      .LAWOS_CLIENT_OUTLOOK_M365_GRAPH_ENABLED,
+    configuredOutlookEnvironment({
+      "Fn::If": ["OutlookConversationWorkerEnabled", "true", "false"],
+    }),
   );
   assert.deepEqual(
     template.Resources.ApiFunction.Properties.Environment.Variables
       .LAWOS_CLIENT_OUTLOOK_PROVIDER_RUNTIME_ENABLED,
-    { "Fn::If": ["OutlookConversationWorkerEnabled", "true", "false"] },
+    configuredOutlookEnvironment({
+      "Fn::If": ["OutlookConversationWorkerEnabled", "true", "false"],
+    }),
   );
   assert.deepEqual(
     template.Resources.ApiFunction.Properties.Environment.Variables
       .LAWOS_CLIENT_OUTLOOK_M365_CONFIG_SECRET_ID,
-    { Ref: "ClientOutlookM365ConfigSecretName" },
+    configuredOutlookEnvironment({ Ref: "ClientOutlookM365ConfigSecretName" }),
   );
   assert.deepEqual(
     template.Resources.ApiFunction.Properties.Environment.Variables
       .LAWOS_GRAPH_NOTIFICATION_URL,
-    { "Fn::Sub": "${HttpApi.ApiEndpoint}/api/outlook/graph/notifications" },
+    configuredOutlookEnvironment({
+      "Fn::Sub": "${HttpApi.ApiEndpoint}/api/outlook/graph/notifications",
+    }),
+  );
+  assert.deepEqual(
+    template.Resources.ApiFunction.Properties.Environment.Variables
+      .LAWOS_CLIENT_OUTLOOK_INQUIRY_ENABLED,
+    configuredOutlookEnvironment("false"),
   );
   const apiStatements = template.Resources.ApiExecutionRole.Properties.Policies
     .flatMap((policy) => policy.PolicyDocument?.Statement ?? []);
+  const brokerInvoke = apiStatements.find((item) =>
+    item["Fn::If"]?.[1]?.Sid === "InvokeExactMicrosoftEgressBroker");
   assert.deepEqual(
-    apiStatements.find(({ Sid }) => Sid === "InvokeExactMicrosoftEgressBroker"),
-    {
-      Sid: "InvokeExactMicrosoftEgressBroker",
-      Effect: "Allow",
-      Action: "lambda:InvokeFunction",
-      Resource: {
-        "Fn::Sub": "arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:lawos-microsoft-egress-prod",
+    brokerInvoke["Fn::If"],
+    [
+      "OutlookConversationWorkerConfigured",
+      {
+        Sid: "InvokeExactMicrosoftEgressBroker",
+        Effect: "Allow",
+        Action: "lambda:InvokeFunction",
+        Resource: {
+          "Fn::Sub": "arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:lawos-microsoft-egress-prod",
+        },
       },
-    },
+      { Ref: "AWS::NoValue" },
+    ],
   );
   assert.equal(
     template.Resources.MicrosoftEgressBrokerLambdaEndpoint.Properties
@@ -432,6 +574,112 @@ test("production template derives the proven private topology without synthetic 
   );
 });
 
+test("production API binds the internal updater only through one complete disabled-default contract", () => {
+  const template = buildJsonPostgresProductionTemplate(reference);
+  const parameters = template.Parameters;
+  const environment = template.Resources.ApiFunction.Properties.Environment
+    .Variables;
+  const configured = (parameter) => ({
+    "Fn::If": [
+      "AmicInternalUnsignedUpdateBrokerEnabled",
+      { Ref: parameter },
+      "",
+    ],
+  });
+
+  assert.equal(parameters.EnableAmicInternalUnsignedUpdateBroker.Default, "false");
+  assert.equal(
+    parameters.AmicInternalUnsignedArtifactBucketName.Default,
+    JSON_POSTGRES_AMIC_INTERNAL_UPDATE_DISABLED_BUCKET,
+  );
+  for (const name of [
+    "AmicInternalUnsignedArtifactKmsKeyArn",
+    "AmicInternalUnsignedCloudFrontDomain",
+    "AmicInternalUnsignedCloudFrontKeyPairId",
+    "AmicInternalUnsignedCloudFrontPrivateKeySecretArn",
+    "AmicInternalUnsignedMetadataPublicKeySpkiBase64",
+  ]) {
+    assert.equal(
+      parameters[name].Default,
+      JSON_POSTGRES_AMIC_INTERNAL_UPDATE_DISABLED_VALUE,
+    );
+  }
+  assert.equal(
+    parameters.AmicInternalUnsignedCloudFrontPrivateKeySecretArn.NoEcho,
+    undefined,
+  );
+  assert.deepEqual(
+    template.Conditions.AmicInternalUnsignedUpdateBrokerEnabled,
+    {
+      "Fn::Equals": [
+        { Ref: "EnableAmicInternalUnsignedUpdateBroker" },
+        "true",
+      ],
+    },
+  );
+  assert.deepEqual(environment.LAWOS_AMIC_INTERNAL_UPDATE_ENABLED, {
+    "Fn::If": [
+      "AmicInternalUnsignedUpdateBrokerEnabled",
+      "true",
+      "false",
+    ],
+  });
+  assert.deepEqual(environment.LAWOS_AMIC_INTERNAL_UPDATE_AWS_ACCOUNT_ID, {
+    Ref: "AWS::AccountId",
+  });
+  for (const [name, parameter] of [
+    ["LAWOS_AMIC_INTERNAL_UPDATE_BUCKET", "AmicInternalUnsignedArtifactBucketName"],
+    ["LAWOS_AMIC_INTERNAL_UPDATE_KMS_KEY_ARN", "AmicInternalUnsignedArtifactKmsKeyArn"],
+    ["LAWOS_AMIC_INTERNAL_UPDATE_CLOUDFRONT_DOMAIN", "AmicInternalUnsignedCloudFrontDomain"],
+    ["LAWOS_AMIC_INTERNAL_UPDATE_CLOUDFRONT_KEY_PAIR_ID", "AmicInternalUnsignedCloudFrontKeyPairId"],
+    ["LAWOS_AMIC_INTERNAL_UPDATE_CLOUDFRONT_PRIVATE_KEY_SECRET_ARN", "AmicInternalUnsignedCloudFrontPrivateKeySecretArn"],
+    ["LAWOS_AMIC_INTERNAL_UPDATE_ED25519_PUBLIC_KEY_SPKI_BASE64", "AmicInternalUnsignedMetadataPublicKeySpkiBase64"],
+  ]) {
+    assert.deepEqual(environment[name], configured(parameter));
+  }
+  const signerSecret = template.Resources.SecretsManagerEndpoint.Properties
+    .PolicyDocument.Statement
+    .find((item) => item.Sid === "ApiReadsExactRuntimeSecrets")
+    .Resource.find((item) => item["Fn::If"]?.[0]
+      === "AmicInternalUnsignedUpdateBrokerEnabled");
+  assert.deepEqual(signerSecret, {
+    "Fn::If": [
+      "AmicInternalUnsignedUpdateBrokerEnabled",
+      { Ref: "AmicInternalUnsignedCloudFrontPrivateKeySecretArn" },
+      { Ref: "AWS::NoValue" },
+    ],
+  });
+  const s3Read = template.Resources.S3GatewayEndpoint.Properties.PolicyDocument
+    .Statement.find((item) => item["Fn::If"]?.[0]
+      === "AmicInternalUnsignedUpdateBrokerEnabled");
+  assert.deepEqual(s3Read, {
+    "Fn::If": [
+      "AmicInternalUnsignedUpdateBrokerEnabled",
+      {
+        Sid: "ApiReadsExactInternalUnsignedDistribution",
+        Effect: "Allow",
+        Principal: { AWS: { "Fn::GetAtt": ["ApiExecutionRole", "Arn"] } },
+        Action: ["s3:GetObject", "s3:GetObjectVersion"],
+        Resource: {
+          "Fn::Sub":
+            "arn:${AWS::Partition}:s3:::${AmicInternalUnsignedArtifactBucketName}/internal-unsigned/*",
+        },
+      },
+      { Ref: "AWS::NoValue" },
+    ],
+  });
+  assert.deepEqual(
+    template.Outputs.AmicInternalUnsignedUpdateBrokerEnabled.Value,
+    {
+      "Fn::If": [
+        "AmicInternalUnsignedUpdateBrokerEnabled",
+        "true",
+        "false",
+      ],
+    },
+  );
+});
+
 test("production template fails closed on public RDS, synthetic content, wildcard IAM and default traffic", () => {
   for (const mutate of [
     (value) => { value.Resources.Database.Properties.PubliclyAccessible = true; },
@@ -442,6 +690,68 @@ test("production template fails closed on public RDS, synthetic content, wildcar
       });
     },
     (value) => { value.Parameters.EnableProductionTraffic.Default = "true"; },
+    (value) => { value.Parameters.EnableExternalReadProviders.Default = "true"; },
+    (value) => {
+      value.Parameters.EnableAmicInternalUnsignedUpdateBroker.Default = "true";
+    },
+    (value) => {
+      value.Rules.AmicInternalUpdateBrokerConfigurationIsClosed.Assertions[0]
+        .AssertDescription = "weakened";
+    },
+    (value) => {
+      value.Resources.ApiFunction.Properties.Environment.Variables
+        .LAWOS_AMIC_INTERNAL_UPDATE_BUCKET["Fn::If"][0] =
+        "ProductionTrafficEnabled";
+    },
+    (value) => {
+      value.Resources.SecretsManagerEndpoint.Properties.PolicyDocument.Statement
+        .find((item) => item.Sid === "ApiReadsExactRuntimeSecrets")
+        .Resource = value.Resources.SecretsManagerEndpoint.Properties
+          .PolicyDocument.Statement
+          .find((item) => item.Sid === "ApiReadsExactRuntimeSecrets")
+          .Resource.filter((item) => item["Fn::If"]?.[0]
+            !== "AmicInternalUnsignedUpdateBrokerEnabled");
+    },
+    (value) => {
+      value.Resources.S3GatewayEndpoint.Properties.PolicyDocument.Statement
+        .find((item) => item["Fn::If"]?.[0]
+          === "AmicInternalUnsignedUpdateBrokerEnabled")
+        ["Fn::If"][1].Action.push("s3:ListBucket");
+    },
+    (value) => {
+      value.Rules.ExternalReadProviderConfigurationIsClosed.Assertions[0]
+        .AssertDescription = "weakened";
+    },
+    (value) => {
+      value.Resources.ExternalReadSecretsPolicy.Properties.PolicyDocument.Statement
+        .find((item) => item.Sid === "UseTaggedExternalReadCredentialGenerations")
+        .Resource = "*";
+    },
+    (value) => {
+      value.Resources.ExternalReadSecretsPolicy.Properties.PolicyDocument.Statement
+        .find((item) => item.Sid === "CreateTaggedExternalReadCredentialGenerations")
+        .Condition.ArnEquals["secretsmanager:KmsKeyArn"] = "*";
+    },
+    (value) => {
+      value.Resources.ExternalReadSecretsPolicy.Properties.PolicyDocument.Statement
+        .find((item) => item.Sid === "TagExternalReadCredentialPurposeOnly")
+        .Condition["ForAllValues:StringEquals"]["aws:TagKeys"].push("unsafe-tag");
+    },
+    (value) => {
+      value.Resources.ExternalReadSecretsPolicy.Properties.PolicyDocument.Statement
+        .find((item) => item.Sid === "ScheduleTaggedExternalReadCredentialDeletion")
+        .Condition.NumericGreaterThanEquals["secretsmanager:RecoveryWindowInDays"] = "0";
+    },
+    (value) => {
+      value.Resources.ExternalReadSecretsPolicy.Properties.PolicyDocument.Statement
+        .find((item) => item.Sid === "DenyExternalReadCredentialForceDelete")
+        .Condition.Bool["secretsmanager:ForceDeleteWithoutRecovery"] = "false";
+    },
+    (value) => {
+      value.Resources.SecretsManagerEndpoint.Properties.PolicyDocument.Statement
+        .find((item) => item["Fn::If"]?.[0] === "ExternalReadProvidersEnabled")
+        ["Fn::If"][1].Action.push("secretsmanager:RestoreSecret");
+    },
     (value) => {
       value.Resources.AdminExecutionRole.Properties.Policies[0].PolicyDocument.Statement
         .find((item) => item.Sid === "ReadExactBootstrapSecrets").Resource =
@@ -527,6 +837,43 @@ test("production template fails closed on public RDS, synthetic content, wildcar
     },
     (value) => {
       value.Resources.OutlookConversationWorkerFunction.Properties.Timeout = 5;
+    },
+    (value) => {
+      delete value.Resources.OutlookConversationWorkerFunction.Condition;
+    },
+    (value) => {
+      delete value.Resources.MicrosoftEgressBrokerLambdaEndpoint.Condition;
+    },
+    (value) => {
+      value.Outputs.OutlookConversationWorkerFunctionName.Condition =
+        "OutlookConversationWorkerEnabled";
+    },
+    (value) => {
+      value.Conditions.OutlookConversationWorkerProvisioned["Fn::And"].pop();
+    },
+    (value) => {
+      value.Resources.ApiFunction.Properties.Environment.Variables
+        .LAWOS_CLIENT_OUTLOOK_M365_GRAPH_ENABLED = {
+          "Fn::If": ["OutlookConversationWorkerEnabled", "true", "false"],
+        };
+    },
+    (value) => {
+      value.Resources.ApiExecutionRole.Properties.Policies[0]
+        .PolicyDocument.Statement
+        .find((item) => item["Fn::If"]?.[1]?.Sid
+          === "InvokeExactMicrosoftEgressBroker")["Fn::If"][0] =
+          "ProductionTrafficEnabled";
+    },
+    (value) => {
+      value.Resources.SecretsManagerEndpoint.Properties.PolicyDocument.Statement
+        .find((item) => item.Sid === "ApiReadsExactRuntimeSecrets")
+        .Resource.find((item) => item["Fn::If"]?.[0]
+          === "OutlookConversationWorkerConfigured")["Fn::If"][0] =
+          "ProductionTrafficEnabled";
+    },
+    (value) => {
+      value.Resources.PasswordResetWorkerSchedule.Properties.ScheduleExpression =
+        "rate(1 minute)";
     },
     (value) => {
       value.Resources.OutlookConversationWorkerSchedule.Properties.Targets[0]
@@ -1760,6 +2107,28 @@ test("W15 worker event validation uses the closed source packet", () => {
   );
 });
 
+test("production runner gates internal updater activation on live private infrastructure", () => {
+  const source = readFileSync(
+    "scripts/run-json-postgres-production-infrastructure.mjs",
+    "utf8",
+  );
+  for (const operation of [
+    "create-internal-update-broker-change-set",
+    "execute-internal-update-broker-change-set",
+    "verify-internal-update-broker",
+  ]) {
+    assert.match(source, new RegExp(`"${operation}"`, "u"));
+  }
+  assert.match(source, /assertInternalUpdateDistributionState\(binding\)/u);
+  assert.match(source, /assertInternalUpdateApiEnvironment\(binding\)/u);
+  assert.match(source, /"secretsmanager", "describe-secret"/u);
+  assert.doesNotMatch(source, /"secretsmanager", "get-secret-value"/u);
+  assert.match(
+    source,
+    /internalUpdateBinding: binding/u,
+  );
+});
+
 test("W15 inventory bootstrap closes the pre-schema audit cycle without direct secret access", () => {
   const runner = readFileSync(
     "scripts/run-json-postgres-production-infrastructure.mjs",
@@ -1767,6 +2136,14 @@ test("W15 inventory bootstrap closes the pre-schema audit cycle without direct s
   );
   assert.match(runner, /cloudFormationParameterJsonArgs\(parameters\)/u);
   assert.doesNotMatch(runner, /cloudFormationParameterArgs\(parameters\)/u);
+  assert.match(
+    runner,
+    /"w15-bootstrap-create-change-set"\)[\s\S]{0,3000}EnableExternalReadProviders: "false",[\s\S]{0,300}ExternalReadProviderPackSecretName:\s*JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SECRET_NAME,[\s\S]{0,300}ExternalReadProviderPackSha256:\s*JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SHA256/u,
+  );
+  assert.match(
+    runner,
+    /w15BootstrapOperation[\s\S]{0,120}current\.EnableProjectionWorker !== "false"[\s\S]{0,180}cannot disable an active projection worker/u,
+  );
   assert.match(
     runner,
     /sourceIsAncestor: gitIsAncestor\(sourceSha, originMainSha\)/u,

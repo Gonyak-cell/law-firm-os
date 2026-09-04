@@ -198,6 +198,10 @@ export const HRX_CORE_MIGRATIONS = Object.freeze([
     id: "048_hrx_recruiting_pipeline_receipts",
     filename: "048_hrx_recruiting_pipeline_receipts.sql",
   }),
+  Object.freeze({
+    id: "049_hrx_directory_authority",
+    filename: "049_hrx_directory_authority.sql",
+  }),
 ]);
 
 const UNSAFE_SQL_PATTERNS = Object.freeze([

@@ -167,6 +167,11 @@ function allowRule(id, input = {}) {
 function permissionRulesFromScopes(scopes = []) {
   const granted = new Set(scopes);
   const rules = [allowRule("profile-read", { action: "profile:read" })];
+  if (granted.has("tenant.admin")) {
+    rules.push(allowRule("external-read-admin", {
+      action_prefix: "external_read.",
+    }));
+  }
   if (granted.has("matter.read")) {
     rules.push(allowRule("matter-read", {
       action_prefixes: ["matter:", "matter.", "home:", "home.", "outlook:matter:"],

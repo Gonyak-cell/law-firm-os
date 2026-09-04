@@ -1,6 +1,7 @@
 export * from "./registry.js";
 export * from "./validators.js";
 export * from "./schema.js";
+export * from "./member-photo-storage.js";
 export * from "./repository.js";
 export * from "./repository-sql.js";
 export * from "./store/port.js";

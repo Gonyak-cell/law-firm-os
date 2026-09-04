@@ -12,7 +12,7 @@ const AUDITED_DESKTOP_SOURCE_ROOTS = [
   "apps/desktop/src/preload",
   "apps/desktop/src/shared"
 ];
-const AUDITED_DESKTOP_SOURCE_MANIFEST_SHA256 = "0f50913e68fa99fd0b598a8aeecdf23f62cff9dddf89021ee0ac359e7908acc2";
+const AUDITED_DESKTOP_SOURCE_MANIFEST_SHA256 = "88c328388444a99f4befc60b3efcff99438563dbc770687c5a9089f94d42f464";
 
 function listFiles(dir) {
   const directoryStat = lstatSync(dir);
@@ -79,7 +79,7 @@ assert.doesNotMatch(bridgePreload, /tenantId|actorId|idempotencyKey|filePath|abs
 assert.match(desktopMain, /registerFileBridgeIpcHandlers/);
 assert.match(desktopMain, /fileBridgeExposed: true/);
 assert.match(desktopMain, /createFileSystemTempPreviewStorage\(\{ basePath: app\.getPath\("temp"\) \}\)/);
-assert.match(desktopMain, /cacheStores: \[tempPreviewManager\]/);
+assert.match(desktopMain, /cacheStores: \[tempPreviewManager, internalUpdateRuntime\]/);
 assert.match(bridgeMain, /FILE_BRIDGE_HANDLE_TTL_MS = 5 \* 60 \* 1000/);
 assert.match(bridgeMain, /const selectedHandles = new Map\(\)/);
 assert.match(bridgeMain, /setExpiringEntry\(selectedHandles/);

@@ -7,6 +7,8 @@ import { PageHeader, Panel } from "./primitives.jsx";
 import { EmployeeList } from "../people/employees/EmployeeList.tsx";
 import { HRDocumentWorkspace } from "../people/documents/HRDocumentWorkspace.tsx";
 import { PermissionAdminPanel } from "../people/admin/PermissionAdminPanel.jsx";
+import { ExternalReadProviderPanel } from "./ExternalReadProviderPanel.jsx";
+import { InternalUnsignedUpdatePanel } from "./InternalUnsignedUpdatePanel.jsx";
 
 function sectionStateLabel(section, utility) {
   if (section.state === "audit_required") return "감사 필요";
@@ -111,6 +113,7 @@ export function GlobalUtilitySurface({ view, activeSection = "", setView }) {
   const [selectedEmployeeId, setSelectedEmployeeId] = useState(null);
   const liveEmploymentContracts = utility.id === "policies" && active.id === "policies-employment-contracts";
   const livePermissionAdmin = utility.id === "settings" && active.id === "settings-permissions";
+  const liveExternalReadProviders = utility.id === "settings" && active.id === "settings-integrations";
 
   function openSection(sectionId) {
     setView(utility.id, sectionId);
@@ -148,6 +151,11 @@ export function GlobalUtilitySurface({ view, activeSection = "", setView }) {
           ) : livePermissionAdmin ? (
             <div className="global-utility-live-detail settings-admin-live-detail" data-global-live-admin-permissions="settings-permissions">
               <PermissionAdminPanel key={activeId} />
+            </div>
+          ) : liveExternalReadProviders ? (
+            <div className="global-utility-live-detail settings-admin-live-detail" data-global-live-external-read="settings-integrations">
+              <ExternalReadProviderPanel key={activeId} />
+              <InternalUnsignedUpdatePanel />
             </div>
           ) : (
             <UtilityDetail section={active} utility={utility} />

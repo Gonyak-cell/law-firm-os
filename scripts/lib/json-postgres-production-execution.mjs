@@ -1,7 +1,16 @@
-import { createHash } from "node:crypto";
+import { createHash, createPublicKey } from "node:crypto";
 import {
   isVersionedCloudFormationS3TemplateUrl,
 } from "./cloudformation-template-transport.mjs";
+import {
+  JSON_POSTGRES_AMIC_INTERNAL_UPDATE_DISABLED_BUCKET,
+  JSON_POSTGRES_AMIC_INTERNAL_UPDATE_DISABLED_VALUE,
+  JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SECRET_NAME,
+  JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SHA256,
+  JSON_POSTGRES_OUTLOOK_DISABLED_CONFIG_SECRET_NAME,
+  JSON_POSTGRES_OUTLOOK_DISABLED_CREDENTIAL_SECRET_PREFIX,
+  JSON_POSTGRES_OUTLOOK_WORKER_RESOURCE_IDS,
+} from "./json-postgres-production-infrastructure.mjs";
 
 export const JSON_POSTGRES_PRODUCTION_ACCOUNT = "770880870480";
 export const JSON_POSTGRES_PRODUCTION_REGION = "ap-northeast-2";
@@ -10,15 +19,52 @@ export const JSON_POSTGRES_PRODUCTION_CUTOVER_PROFILE = "matter-cutover-operator
 export const JSON_POSTGRES_PRODUCTION_AUDIT_PROFILE = "matter-readonly-auditor";
 export const JSON_POSTGRES_PRODUCTION_ARTIFACT_STACK = "lawos-production-artifact-store";
 export const JSON_POSTGRES_PRODUCTION_STACK = "lawos-production";
+export const JSON_POSTGRES_AMIC_INTERNAL_UPDATE_BINDING_SCHEMA =
+  "law-firm-os.amic-internal-unsigned-runtime-binding.v1";
+export const JSON_POSTGRES_AMIC_INTERNAL_DISTRIBUTION_STACK =
+  "amic-os-internal-unsigned-distribution";
 export const JSON_POSTGRES_IMMUTABLE_PROGRAM_INPUT_LOCATOR_VERSION =
   "law-firm-os.immutable-program-input-locator.v1";
 export const JSON_POSTGRES_DISABLED_HRX_MAPPING_OBJECT_KEY =
   "disabled/hrx-projection-mapping.json";
 export const JSON_POSTGRES_DISABLED_HRX_VALIDATION_OBJECT_KEY =
   "disabled/hrx-projection-validation.json";
+export const JSON_POSTGRES_DISABLED_AMIC_INTERNAL_UPDATE_PARAMETERS =
+  Object.freeze({
+    EnableAmicInternalUnsignedUpdateBroker: "false",
+    AmicInternalUnsignedArtifactBucketName:
+      JSON_POSTGRES_AMIC_INTERNAL_UPDATE_DISABLED_BUCKET,
+    AmicInternalUnsignedArtifactKmsKeyArn:
+      JSON_POSTGRES_AMIC_INTERNAL_UPDATE_DISABLED_VALUE,
+    AmicInternalUnsignedCloudFrontDomain:
+      JSON_POSTGRES_AMIC_INTERNAL_UPDATE_DISABLED_VALUE,
+    AmicInternalUnsignedCloudFrontKeyPairId:
+      JSON_POSTGRES_AMIC_INTERNAL_UPDATE_DISABLED_VALUE,
+    AmicInternalUnsignedCloudFrontPrivateKeySecretArn:
+      JSON_POSTGRES_AMIC_INTERNAL_UPDATE_DISABLED_VALUE,
+    AmicInternalUnsignedMetadataPublicKeySpkiBase64:
+      JSON_POSTGRES_AMIC_INTERNAL_UPDATE_DISABLED_VALUE,
+  });
 
 const SHA1 = /^[a-f0-9]{40}$/u;
 const SHA256 = /^[a-f0-9]{64}$/u;
+const AMIC_INTERNAL_UPDATE_BINDING_FIELDS = Object.freeze([
+  "artifact_bucket_name",
+  "artifact_kms_key_arn",
+  "aws_account_id",
+  "aws_region",
+  "cloudfront_distribution_id",
+  "cloudfront_domain",
+  "cloudfront_key_group_id",
+  "cloudfront_key_pair_id",
+  "cloudfront_private_key_secret_arn",
+  "distribution_stack_id",
+  "distribution_stack_name",
+  "metadata_public_key_sha256",
+  "metadata_public_key_spki_base64",
+  "runtime_download_broker_policy_arn",
+  "schema_version",
+]);
 const SAFE_CONDITIONAL_REPLACEMENT = new Set([
   "HttpApiIntegration",
   "HttpApiInvokePermission",
@@ -28,17 +74,6 @@ const SAFE_CONDITIONAL_REPLACEMENT = new Set([
   "OutlookConversationWorkerSchedule",
 ]);
 export const JSON_POSTGRES_W15_ALLOWED_ADDED_RESOURCES = Object.freeze([
-  "MicrosoftEgressBrokerLambdaEndpoint",
-  "OutlookConversationWorkerDeadLetterAlarm",
-  "OutlookConversationWorkerDeadLetterQueue",
-  "OutlookConversationWorkerDeadLetterQueuePolicy",
-  "OutlookConversationWorkerDeliveryFailureAlarm",
-  "OutlookConversationWorkerErrorAlarm",
-  "OutlookConversationWorkerEventInvokeConfig",
-  "OutlookConversationWorkerFunction",
-  "OutlookConversationWorkerInvokePermission",
-  "OutlookConversationWorkerLogGroup",
-  "OutlookConversationWorkerSchedule",
   "ProjectionAuditorDatabaseSecret",
   "ProjectionAuditorExecutionRole",
   "ProjectionAuditorFunction",
@@ -63,19 +98,6 @@ export const JSON_POSTGRES_W15_ALLOWED_MODIFIED_RESOURCES = Object.freeze([
   "ApiExecutionRole",
   "ApiFunction",
   "HttpApiIntegration",
-  "MicrosoftEgressBrokerLambdaEndpoint",
-  "OutlookConversationWorkerDeadLetterAlarm",
-  "OutlookConversationWorkerDeadLetterQueue",
-  "OutlookConversationWorkerDeadLetterQueuePolicy",
-  "OutlookConversationWorkerDeliveryFailureAlarm",
-  "OutlookConversationWorkerErrorAlarm",
-  "OutlookConversationWorkerEventInvokeConfig",
-  "OutlookConversationWorkerFunction",
-  "OutlookConversationWorkerInvokePermission",
-  "OutlookConversationWorkerLogGroup",
-  "OutlookConversationWorkerSchedule",
-  "PasswordResetWorkerInvokePermission",
-  "PasswordResetWorkerSchedule",
   "ProductionKey",
   "ProjectionAuditorDatabaseSecret",
   "ProjectionAuditorExecutionRole",
@@ -112,6 +134,83 @@ function sha256(value) {
 
 function fail(message) {
   throw new Error(message);
+}
+
+export function validateJsonPostgresAmicInternalUpdateBinding(binding) {
+  if (!binding || typeof binding !== "object" || Array.isArray(binding)
+    || JSON.stringify(Object.keys(binding).sort())
+      !== JSON.stringify(AMIC_INTERNAL_UPDATE_BINDING_FIELDS)
+    || binding.schema_version
+      !== JSON_POSTGRES_AMIC_INTERNAL_UPDATE_BINDING_SCHEMA
+    || binding.aws_account_id !== JSON_POSTGRES_PRODUCTION_ACCOUNT
+    || binding.aws_region !== JSON_POSTGRES_PRODUCTION_REGION
+    || binding.distribution_stack_name
+      !== JSON_POSTGRES_AMIC_INTERNAL_DISTRIBUTION_STACK
+    || !new RegExp(
+      `^arn:aws:cloudformation:${JSON_POSTGRES_PRODUCTION_REGION}:`
+        + `${JSON_POSTGRES_PRODUCTION_ACCOUNT}:stack/`
+        + `${JSON_POSTGRES_AMIC_INTERNAL_DISTRIBUTION_STACK}/[0-9a-f-]{36}$`,
+      "u",
+    ).test(binding.distribution_stack_id ?? "")
+    || !/^[a-z0-9](?:[a-z0-9-]{1,61}[a-z0-9])$/u
+      .test(binding.artifact_bucket_name ?? "")
+    || !new RegExp(
+      `^arn:aws:kms:${JSON_POSTGRES_PRODUCTION_REGION}:`
+        + `${JSON_POSTGRES_PRODUCTION_ACCOUNT}:key/[0-9a-f-]{36}$`,
+      "u",
+    ).test(binding.artifact_kms_key_arn ?? "")
+    || !/^d[a-z0-9]{3,62}\.cloudfront\.net$/u
+      .test(binding.cloudfront_domain ?? "")
+    || !/^[A-Z0-9]{8,128}$/u.test(binding.cloudfront_distribution_id ?? "")
+    || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/u
+      .test(binding.cloudfront_key_group_id ?? "")
+    || !/^[A-Z0-9]{8,128}$/u.test(binding.cloudfront_key_pair_id ?? "")
+    || !new RegExp(
+      `^arn:aws:secretsmanager:${JSON_POSTGRES_PRODUCTION_REGION}:`
+        + `${JSON_POSTGRES_PRODUCTION_ACCOUNT}:secret:[A-Za-z0-9/_+=.@-]+$`,
+      "u",
+    ).test(binding.cloudfront_private_key_secret_arn ?? "")
+    || binding.runtime_download_broker_policy_arn
+      !== `arn:aws:iam::${JSON_POSTGRES_PRODUCTION_ACCOUNT}:policy/`
+        + "amic-os-internal-unsigned-download-broker"
+    || !SHA256.test(binding.metadata_public_key_sha256 ?? "")) {
+    fail("AMIC internal update runtime binding is invalid");
+  }
+  let publicKey;
+  try {
+    const der = Buffer.from(binding.metadata_public_key_spki_base64, "base64");
+    if (!der.byteLength
+      || der.toString("base64") !== binding.metadata_public_key_spki_base64
+      || createHash("sha256").update(der).digest("hex")
+        !== binding.metadata_public_key_sha256) {
+      fail("AMIC internal update metadata public key binding differs");
+    }
+    publicKey = createPublicKey({ key: der, format: "der", type: "spki" });
+  } catch {
+    fail("AMIC internal update metadata public key binding is invalid");
+  }
+  if (publicKey.asymmetricKeyType !== "ed25519") {
+    fail("AMIC internal update metadata public key must be Ed25519");
+  }
+  return Object.freeze({ ...binding });
+}
+
+export function buildJsonPostgresAmicInternalUpdateBrokerParameters(binding) {
+  if (binding == null) {
+    return JSON_POSTGRES_DISABLED_AMIC_INTERNAL_UPDATE_PARAMETERS;
+  }
+  const value = validateJsonPostgresAmicInternalUpdateBinding(binding);
+  return Object.freeze({
+    EnableAmicInternalUnsignedUpdateBroker: "true",
+    AmicInternalUnsignedArtifactBucketName: value.artifact_bucket_name,
+    AmicInternalUnsignedArtifactKmsKeyArn: value.artifact_kms_key_arn,
+    AmicInternalUnsignedCloudFrontDomain: value.cloudfront_domain,
+    AmicInternalUnsignedCloudFrontKeyPairId: value.cloudfront_key_pair_id,
+    AmicInternalUnsignedCloudFrontPrivateKeySecretArn:
+      value.cloudfront_private_key_secret_arn,
+    AmicInternalUnsignedMetadataPublicKeySpkiBase64:
+      value.metadata_public_key_spki_base64,
+  });
 }
 
 export function assertJsonPostgresProductionCaller(identity, {
@@ -207,6 +306,17 @@ export function buildJsonPostgresProductionStackParameters({
     DmsBucketName: packet.target.dms_bucket_name,
     PrimaryTenantId: primaryTenantId,
     EnableProductionTraffic: enableProductionTraffic ? "true" : "false",
+    EnableExternalReadProviders: "false",
+    ExternalReadProviderPackSecretName:
+      JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SECRET_NAME,
+    ExternalReadProviderPackSha256:
+      JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SHA256,
+    ...JSON_POSTGRES_DISABLED_AMIC_INTERNAL_UPDATE_PARAMETERS,
+    EnableOutlookConversationWorker: "false",
+    ClientOutlookM365ConfigSecretName:
+      JSON_POSTGRES_OUTLOOK_DISABLED_CONFIG_SECRET_NAME,
+    ClientOutlookCredentialSecretPrefix:
+      JSON_POSTGRES_OUTLOOK_DISABLED_CREDENTIAL_SECRET_PREFIX,
     EnableProjectionWorker: enableProjectionWorker ? "true" : "false",
     ProjectionWorkerEventJson: projectionWorkerEventJson,
     HrxProjectionMappingObjectKey: hrxProjectionMappingObjectKey,
@@ -230,6 +340,18 @@ function normalizedChanges(changeSet = {}) {
     };
   }).sort((left, right) =>
     left.logical_resource_id.localeCompare(right.logical_resource_id, "en"));
+}
+
+function exactChangeSetParameter(changeSet, key) {
+  const matches = (changeSet?.Parameters ?? []).filter(
+    (entry) => entry?.ParameterKey === key,
+  );
+  if (matches.length !== 1
+      || matches[0].UsePreviousValue === true
+      || typeof matches[0].ParameterValue !== "string") {
+    fail("W15 production change set safety parameters are ambiguous");
+  }
+  return matches[0].ParameterValue;
 }
 
 export function validateJsonPostgresProductionChangeSet(changeSet, {
@@ -293,6 +415,7 @@ export function validateJsonPostgresW15ProductionChangeSet(changeSet, {
   parametersSha256,
   templateSha256,
   templateUrl = null,
+  internalUpdateBinding = null,
 } = {}) {
   if (changeSet?.StackName !== JSON_POSTGRES_PRODUCTION_STACK
     || (changeSet?.ChangeSetType != null
@@ -305,13 +428,54 @@ export function validateJsonPostgresW15ProductionChangeSet(changeSet, {
       && !isVersionedCloudFormationS3TemplateUrl(templateUrl))) {
     fail("W15 production change set binding is invalid");
   }
+  if (exactChangeSetParameter(changeSet, "EnableExternalReadProviders")
+      !== "false"
+    || exactChangeSetParameter(
+      changeSet,
+      "ExternalReadProviderPackSecretName",
+    ) !== JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SECRET_NAME
+    || exactChangeSetParameter(
+      changeSet,
+      "ExternalReadProviderPackSha256",
+    ) !== JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SHA256) {
+    fail("W15 production change set must keep external providers disabled");
+  }
+  for (const [key, expected] of Object.entries(
+    buildJsonPostgresAmicInternalUpdateBrokerParameters(
+      internalUpdateBinding,
+    ),
+  )) {
+    if (exactChangeSetParameter(changeSet, key) !== expected) {
+      fail("W15 production change set must preserve the internal update broker binding");
+    }
+  }
+  if (exactChangeSetParameter(changeSet, "EnableOutlookConversationWorker")
+      !== "false"
+    || exactChangeSetParameter(
+      changeSet,
+      "ClientOutlookM365ConfigSecretName",
+    ) !== JSON_POSTGRES_OUTLOOK_DISABLED_CONFIG_SECRET_NAME
+    || exactChangeSetParameter(
+      changeSet,
+      "ClientOutlookCredentialSecretPrefix",
+    ) !== JSON_POSTGRES_OUTLOOK_DISABLED_CREDENTIAL_SECRET_PREFIX) {
+    fail("W15 production change set must keep Outlook resources disabled");
+  }
   const templateResources = new Set(Object.keys(template?.Resources ?? {}));
   const allowedAdds = new Set(JSON_POSTGRES_W15_ALLOWED_ADDED_RESOURCES);
   const allowedModifies =
     new Set(JSON_POSTGRES_W15_ALLOWED_MODIFIED_RESOURCES);
   const changes = normalizedChanges(changeSet);
   if (changes.length < 1) fail("W15 production change set is empty");
+  const disabledResourceIds = new Set([
+    "ExternalReadSecretsPolicy",
+    "MicrosoftEgressBrokerLambdaEndpoint",
+    ...JSON_POSTGRES_OUTLOOK_WORKER_RESOURCE_IDS,
+  ]);
   for (const change of changes) {
+    if (disabledResourceIds.has(change.logical_resource_id)) {
+      fail("W15 production change set contains a disabled provider resource change");
+    }
     if (!templateResources.has(change.logical_resource_id)
       || (change.action === "Add"
         && !allowedAdds.has(change.logical_resource_id))
@@ -333,6 +497,9 @@ export function validateJsonPostgresW15ProductionChangeSet(changeSet, {
     change_set_id: changeSet.ChangeSetId,
     template_sha256: templateSha256,
     parameters_sha256: parametersSha256,
+    external_read_providers_enabled: false,
+    outlook_resources_enabled: false,
+    internal_update_broker_enabled: internalUpdateBinding != null,
     ...(templateUrl === null ? {} : { template_url: templateUrl }),
     changes,
   };
@@ -342,6 +509,89 @@ export function validateJsonPostgresW15ProductionChangeSet(changeSet, {
     change_count: changes.length,
     add_count: changes.filter((change) => change.action === "Add").length,
     modify_count: changes.filter((change) => change.action === "Modify").length,
+    replacement_true_count: 0,
+    reviewed_change_set_sha256: sha256(reviewMaterial),
+  });
+}
+
+export function validateJsonPostgresAmicInternalUpdateBrokerChangeSet(
+  changeSet,
+  {
+    binding,
+    template,
+    parametersSha256,
+    templateSha256,
+    templateUrl = null,
+  } = {},
+) {
+  const exactBinding = validateJsonPostgresAmicInternalUpdateBinding(binding);
+  if (changeSet?.StackName !== JSON_POSTGRES_PRODUCTION_STACK
+    || (changeSet?.ChangeSetType != null
+      && changeSet.ChangeSetType !== "UPDATE")
+    || typeof changeSet?.ChangeSetId !== "string"
+    || changeSet.ChangeSetId.length === 0
+    || !SHA256.test(parametersSha256 ?? "")
+    || !SHA256.test(templateSha256 ?? "")
+    || (templateUrl !== null
+      && !isVersionedCloudFormationS3TemplateUrl(templateUrl))) {
+    fail("AMIC internal update broker change set binding is invalid");
+  }
+  for (const [key, expected] of Object.entries(
+    buildJsonPostgresAmicInternalUpdateBrokerParameters(exactBinding),
+  )) {
+    if (exactChangeSetParameter(changeSet, key) !== expected) {
+      fail("AMIC internal update broker change set parameters differ");
+    }
+  }
+  for (const [key, expected] of Object.entries({
+    EnableExternalReadProviders: "false",
+    ExternalReadProviderPackSecretName:
+      JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SECRET_NAME,
+    ExternalReadProviderPackSha256:
+      JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SHA256,
+    EnableOutlookConversationWorker: "false",
+    ClientOutlookM365ConfigSecretName:
+      JSON_POSTGRES_OUTLOOK_DISABLED_CONFIG_SECRET_NAME,
+    ClientOutlookCredentialSecretPrefix:
+      JSON_POSTGRES_OUTLOOK_DISABLED_CREDENTIAL_SECRET_PREFIX,
+  })) {
+    if (exactChangeSetParameter(changeSet, key) !== expected) {
+      fail("AMIC internal update broker change set altered a disabled provider");
+    }
+  }
+  const expectedChanges = [
+    "ApiFunction",
+    "S3GatewayEndpoint",
+    "SecretsManagerEndpoint",
+  ];
+  const templateResources = new Set(Object.keys(template?.Resources ?? {}));
+  const changes = normalizedChanges(changeSet);
+  if (JSON.stringify(changes.map(({ logical_resource_id }) =>
+    logical_resource_id)) !== JSON.stringify(expectedChanges)
+    || changes.some((change) =>
+      !templateResources.has(change.logical_resource_id)
+      || change.action !== "Modify"
+      || change.replacement !== "False")) {
+    fail("AMIC internal update broker change set exceeded its exact scope");
+  }
+  const reviewMaterial = {
+    purpose: "amic-internal-update-broker-activation",
+    stack_name: JSON_POSTGRES_PRODUCTION_STACK,
+    change_set_type: "UPDATE",
+    change_set_id: changeSet.ChangeSetId,
+    template_sha256: templateSha256,
+    parameters_sha256: parametersSha256,
+    internal_update_binding_sha256: sha256(exactBinding),
+    internal_update_broker_enabled: true,
+    external_read_providers_enabled: false,
+    outlook_resources_enabled: false,
+    ...(templateUrl === null ? {} : { template_url: templateUrl }),
+    changes,
+  };
+  return Object.freeze({
+    verdict: "PASS",
+    ...reviewMaterial,
+    change_count: changes.length,
     replacement_true_count: 0,
     reviewed_change_set_sha256: sha256(reviewMaterial),
   });
@@ -417,9 +667,13 @@ export function assertJsonPostgresProductionStack(stack, {
   trafficEnabled = false,
   eniBootstrapEnabled = false,
   projectionWorkerEnabled = false,
+  internalUpdateBrokerBinding = null,
 } = {}) {
   const parameters = Object.fromEntries(
     (stack?.Parameters ?? []).map((entry) => [entry.ParameterKey, entry.ParameterValue]),
+  );
+  const outputs = Object.fromEntries(
+    (stack?.Outputs ?? []).map((entry) => [entry.OutputKey, entry.OutputValue]),
   );
   for (const [key, expected] of Object.entries({
     SourceSha: packet.source_sha,
@@ -432,6 +686,19 @@ export function assertJsonPostgresProductionStack(stack, {
     DmsBucketName: packet.target.dms_bucket_name,
     EnableProductionTraffic: trafficEnabled ? "true" : "false",
     EnableLambdaEniBootstrap: eniBootstrapEnabled ? "true" : "false",
+    EnableExternalReadProviders: "false",
+    ExternalReadProviderPackSecretName:
+      JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SECRET_NAME,
+    ExternalReadProviderPackSha256:
+      JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SHA256,
+    ...buildJsonPostgresAmicInternalUpdateBrokerParameters(
+      internalUpdateBrokerBinding,
+    ),
+    EnableOutlookConversationWorker: "false",
+    ClientOutlookM365ConfigSecretName:
+      JSON_POSTGRES_OUTLOOK_DISABLED_CONFIG_SECRET_NAME,
+    ClientOutlookCredentialSecretPrefix:
+      JSON_POSTGRES_OUTLOOK_DISABLED_CREDENTIAL_SECRET_PREFIX,
     EnableProjectionWorker: projectionWorkerEnabled ? "true" : "false",
     ProjectionWorkerLagThresholdMs: "24",
     MonthlyCostCeilingKrw: "300000",
@@ -440,6 +707,13 @@ export function assertJsonPostgresProductionStack(stack, {
   }
   if (!/^(?:CREATE|UPDATE)_COMPLETE$/u.test(stack?.StackStatus ?? "")) {
     fail("production stack is not complete");
+  }
+  if (outputs.ExternalReadProvidersEnabled !== "false") {
+    fail("production stack external provider output drifted");
+  }
+  if (outputs.AmicInternalUnsignedUpdateBrokerEnabled
+      !== (internalUpdateBrokerBinding ? "true" : "false")) {
+    fail("production stack internal update broker output drifted");
   }
   const projectionRuntimeEnabled =
     parameters.EnableProjectionWorker === "true";
@@ -484,6 +758,8 @@ export function assertJsonPostgresProductionStack(stack, {
     verdict: "PASS",
     stack_status: stack.StackStatus,
     traffic_enabled: trafficEnabled,
+    external_read_providers_enabled: false,
+    internal_update_broker_enabled: internalUpdateBrokerBinding != null,
     temporary_eni_allow_expected: eniBootstrapEnabled ? 2 : 0,
   });
 }

@@ -4,6 +4,32 @@ export const JSON_POSTGRES_PRODUCTION_INFRASTRUCTURE_VERSION = "law-firm-os.json
 export const JSON_POSTGRES_PRODUCTION_ARTIFACT_STORE_VERSION = "law-firm-os.json-postgres-production-artifact-store.v4";
 export const JSON_POSTGRES_PRODUCTION_COST_CEILING_KRW = 300_000;
 export const JSON_POSTGRES_PRODUCTION_BUDGET_USD = 190;
+export const JSON_POSTGRES_EXTERNAL_READ_PROVIDER_PACK_SECRET_NAME =
+  "/lawos/production/external-read/provider-packs";
+export const JSON_POSTGRES_EXTERNAL_READ_CREDENTIAL_SECRET_PREFIX =
+  "/lawos/production/external-read/credentials";
+export const JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SECRET_NAME =
+  "/lawos/disabled/external-read/provider-packs";
+export const JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SHA256 = "0".repeat(64);
+export const JSON_POSTGRES_AMIC_INTERNAL_UPDATE_DISABLED_BUCKET =
+  "disabled-amic-internal-update";
+export const JSON_POSTGRES_AMIC_INTERNAL_UPDATE_DISABLED_VALUE = "disabled";
+export const JSON_POSTGRES_OUTLOOK_DISABLED_CONFIG_SECRET_NAME =
+  "/lawos/disabled/outlook/config";
+export const JSON_POSTGRES_OUTLOOK_DISABLED_CREDENTIAL_SECRET_PREFIX =
+  "/lawos/disabled/outlook/credentials/";
+export const JSON_POSTGRES_OUTLOOK_WORKER_RESOURCE_IDS = Object.freeze([
+  "OutlookConversationWorkerDeadLetterAlarm",
+  "OutlookConversationWorkerDeadLetterQueue",
+  "OutlookConversationWorkerDeadLetterQueuePolicy",
+  "OutlookConversationWorkerDeliveryFailureAlarm",
+  "OutlookConversationWorkerErrorAlarm",
+  "OutlookConversationWorkerEventInvokeConfig",
+  "OutlookConversationWorkerFunction",
+  "OutlookConversationWorkerInvokePermission",
+  "OutlookConversationWorkerLogGroup",
+  "OutlookConversationWorkerSchedule",
+]);
 export const JSON_POSTGRES_WINDOWS_SIGNED_ARTIFACT_PREFIX = "windows/signed/v1/";
 export const JSON_POSTGRES_WINDOWS_SIGNED_ARTIFACT_KEY_PATTERN =
   "windows/signed/v1/{source_sha}/{version}/{candidate_role}/{artifact_kind}/sha256/{artifact_sha256}/{filename}";
@@ -67,6 +93,96 @@ function fail(message) {
 
 function clone(value) {
   return JSON.parse(JSON.stringify(value));
+}
+
+function externalReadProviderConfigurationRule() {
+  return {
+    Assertions: [{
+      Assert: {
+        "Fn::Or": [
+          {
+            "Fn::And": [
+              { "Fn::Equals": [{ Ref: "EnableExternalReadProviders" }, "false"] },
+              { "Fn::Equals": [
+                { Ref: "ExternalReadProviderPackSecretName" },
+                JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SECRET_NAME,
+              ] },
+              { "Fn::Equals": [
+                { Ref: "ExternalReadProviderPackSha256" },
+                JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SHA256,
+              ] },
+            ],
+          },
+          {
+            "Fn::And": [
+              { "Fn::Equals": [{ Ref: "EnableExternalReadProviders" }, "true"] },
+              { "Fn::Equals": [
+                { Ref: "ExternalReadProviderPackSecretName" },
+                JSON_POSTGRES_EXTERNAL_READ_PROVIDER_PACK_SECRET_NAME,
+              ] },
+              { "Fn::Not": [{ "Fn::Equals": [
+                { Ref: "ExternalReadProviderPackSha256" },
+                JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SHA256,
+              ] }] },
+            ],
+          },
+        ],
+      },
+      AssertDescription:
+        "External read providers require the exact production pack secret and a non-placeholder SHA-256; disabled mode requires both placeholders",
+    }],
+  };
+}
+
+function amicInternalUpdateBrokerConfigurationRule() {
+  const disabled = JSON_POSTGRES_AMIC_INTERNAL_UPDATE_DISABLED_VALUE;
+  const parameters = [
+    "AmicInternalUnsignedArtifactKmsKeyArn",
+    "AmicInternalUnsignedCloudFrontDomain",
+    "AmicInternalUnsignedCloudFrontKeyPairId",
+    "AmicInternalUnsignedCloudFrontPrivateKeySecretArn",
+    "AmicInternalUnsignedMetadataPublicKeySpkiBase64",
+  ];
+  return {
+    Assertions: [{
+      Assert: {
+        "Fn::Or": [
+          {
+            "Fn::And": [
+              { "Fn::Equals": [
+                { Ref: "EnableAmicInternalUnsignedUpdateBroker" },
+                "false",
+              ] },
+              { "Fn::Equals": [
+                { Ref: "AmicInternalUnsignedArtifactBucketName" },
+                JSON_POSTGRES_AMIC_INTERNAL_UPDATE_DISABLED_BUCKET,
+              ] },
+              ...parameters.map((name) => ({
+                "Fn::Equals": [{ Ref: name }, disabled],
+              })),
+            ],
+          },
+          {
+            "Fn::And": [
+              { "Fn::Equals": [
+                { Ref: "EnableAmicInternalUnsignedUpdateBroker" },
+                "true",
+              ] },
+              { "Fn::Not": [{ "Fn::Equals": [
+                { Ref: "AmicInternalUnsignedArtifactBucketName" },
+                JSON_POSTGRES_AMIC_INTERNAL_UPDATE_DISABLED_BUCKET,
+              ] }] },
+              ...parameters.map((name) => ({
+                "Fn::Not": [{ "Fn::Equals": [{ Ref: name }, disabled] }],
+              })),
+            ],
+          },
+        ],
+      },
+      AssertDescription:
+        "AMIC internal update broker requires one complete distribution binding; disabled mode requires every placeholder",
+    }],
+  };
 }
 
 function replaceStrings(value) {
@@ -1444,15 +1560,83 @@ export function buildJsonPostgresProductionTemplate(stagingTemplate) {
   };
   template.Parameters.ClientOutlookM365ConfigSecretName = {
     Type: "String",
-    Default: "/lawos/disabled/outlook/config",
+    Default: JSON_POSTGRES_OUTLOOK_DISABLED_CONFIG_SECRET_NAME,
     AllowedPattern: "^/lawos/[A-Za-z0-9/_+=.@-]{1,240}$",
     Description: "Same-account Secrets Manager name for the Client Outlook provider configuration",
   };
   template.Parameters.ClientOutlookCredentialSecretPrefix = {
     Type: "String",
-    Default: "/lawos/disabled/outlook/credentials/",
+    Default: JSON_POSTGRES_OUTLOOK_DISABLED_CREDENTIAL_SECRET_PREFIX,
     AllowedPattern: "^/lawos/[A-Za-z0-9/_+=.@-]{1,230}/$",
     Description: "Same-account Secrets Manager name prefix for owner-bound delegated credentials",
+  };
+  template.Parameters.EnableExternalReadProviders = {
+    Type: "String",
+    Default: "false",
+    AllowedValues: ["true", "false"],
+    Description: "Fail-closed activation for reviewed external read provider packs",
+  };
+  template.Parameters.ExternalReadProviderPackSecretName = {
+    Type: "String",
+    Default: JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SECRET_NAME,
+    AllowedValues: [
+      JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SECRET_NAME,
+      JSON_POSTGRES_EXTERNAL_READ_PROVIDER_PACK_SECRET_NAME,
+    ],
+    Description: "Exact same-account Secrets Manager name containing reviewed provider-pack bytes",
+  };
+  template.Parameters.ExternalReadProviderPackSha256 = {
+    Type: "String",
+    Default: JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SHA256,
+    AllowedPattern: "^[0-9a-f]{64}$",
+    Description: "SHA-256 of the exact UTF-8 provider-pack secret bytes",
+  };
+  template.Parameters.EnableAmicInternalUnsignedUpdateBroker = {
+    Type: "String",
+    Default: "false",
+    AllowedValues: ["true", "false"],
+    Description:
+      "Fail-closed activation for the authenticated AMIC OS internal update download broker",
+  };
+  template.Parameters.AmicInternalUnsignedArtifactBucketName = {
+    Type: "String",
+    Default: JSON_POSTGRES_AMIC_INTERNAL_UPDATE_DISABLED_BUCKET,
+    AllowedPattern: "^[a-z0-9](?:[a-z0-9-]{1,61}[a-z0-9])$",
+    Description: "Exact private internal-unsigned distribution bucket",
+  };
+  template.Parameters.AmicInternalUnsignedArtifactKmsKeyArn = {
+    Type: "String",
+    Default: JSON_POSTGRES_AMIC_INTERNAL_UPDATE_DISABLED_VALUE,
+    AllowedPattern:
+      "^(?:disabled|arn:aws:kms:[a-z0-9-]+:[0-9]{12}:key/[0-9a-f-]{36})$",
+    Description: "Exact same-account KMS key ARN for internal-unsigned objects",
+  };
+  template.Parameters.AmicInternalUnsignedCloudFrontDomain = {
+    Type: "String",
+    Default: JSON_POSTGRES_AMIC_INTERNAL_UPDATE_DISABLED_VALUE,
+    AllowedPattern: "^(?:disabled|d[a-z0-9]{3,62}\\.cloudfront\\.net)$",
+    Description: "Exact private CloudFront distribution domain",
+  };
+  template.Parameters.AmicInternalUnsignedCloudFrontKeyPairId = {
+    Type: "String",
+    Default: JSON_POSTGRES_AMIC_INTERNAL_UPDATE_DISABLED_VALUE,
+    AllowedPattern: "^(?:disabled|[A-Z0-9]{8,128})$",
+    Description: "Exact CloudFront trusted public-key ID",
+  };
+  template.Parameters.AmicInternalUnsignedCloudFrontPrivateKeySecretArn = {
+    Type: "String",
+    Default: JSON_POSTGRES_AMIC_INTERNAL_UPDATE_DISABLED_VALUE,
+    AllowedPattern:
+      "^(?:disabled|arn:aws:secretsmanager:[a-z0-9-]+:[0-9]{12}:secret:[A-Za-z0-9/_+=.@-]+)$",
+    Description: "Exact same-account Secrets Manager ARN for the CloudFront signing key",
+  };
+  template.Parameters.AmicInternalUnsignedMetadataPublicKeySpkiBase64 = {
+    Type: "String",
+    Default: JSON_POSTGRES_AMIC_INTERNAL_UPDATE_DISABLED_VALUE,
+    MinLength: 8,
+    MaxLength: 256,
+    AllowedPattern: "^(?:disabled|[A-Za-z0-9+/]{56,254}={0,2})$",
+    Description: "Pinned Ed25519 metadata verification public key in DER SPKI base64",
   };
   template.Parameters.RuntimeGeneration = {
     Type: "Number",
@@ -1506,23 +1690,43 @@ export function buildJsonPostgresProductionTemplate(stagingTemplate) {
   template.Conditions.ProjectionWorkerEnabled = {
     "Fn::Equals": [{ Ref: "EnableProjectionWorker" }, "true"],
   };
+  template.Conditions.ExternalReadProvidersEnabled = {
+    "Fn::Equals": [{ Ref: "EnableExternalReadProviders" }, "true"],
+  };
+  template.Conditions.AmicInternalUnsignedUpdateBrokerEnabled = {
+    "Fn::Equals": [
+      { Ref: "EnableAmicInternalUnsignedUpdateBroker" },
+      "true",
+    ],
+  };
+  template.Rules = {
+    ExternalReadProviderConfigurationIsClosed:
+      externalReadProviderConfigurationRule(),
+    AmicInternalUpdateBrokerConfigurationIsClosed:
+      amicInternalUpdateBrokerConfigurationRule(),
+  };
   template.Conditions.OutlookConversationWorkerConfigured = {
     "Fn::And": [
       { "Fn::Not": [{ "Fn::Equals": [
         { Ref: "ClientOutlookM365ConfigSecretName" },
-        "/lawos/disabled/outlook/config",
+        JSON_POSTGRES_OUTLOOK_DISABLED_CONFIG_SECRET_NAME,
       ] }] },
       { "Fn::Not": [{ "Fn::Equals": [
         { Ref: "ClientOutlookCredentialSecretPrefix" },
-        "/lawos/disabled/outlook/credentials/",
+        JSON_POSTGRES_OUTLOOK_DISABLED_CREDENTIAL_SECRET_PREFIX,
       ] }] },
+    ],
+  };
+  template.Conditions.OutlookConversationWorkerProvisioned = {
+    "Fn::And": [
+      { "Fn::Equals": [{ Ref: "EnableOutlookConversationWorker" }, "true"] },
+      { Condition: "OutlookConversationWorkerConfigured" },
     ],
   };
   template.Conditions.OutlookConversationWorkerEnabled = {
     "Fn::And": [
       { Condition: "ProductionTrafficEnabled" },
-      { "Fn::Equals": [{ Ref: "EnableOutlookConversationWorker" }, "true"] },
-      { Condition: "OutlookConversationWorkerConfigured" },
+      { Condition: "OutlookConversationWorkerProvisioned" },
     ],
   };
   template.Mappings.Network.Cidrs = {
@@ -1556,12 +1760,39 @@ export function buildJsonPostgresProductionTemplate(stagingTemplate) {
   const outlookCredentialSecretArn = {
     "Fn::Sub": "arn:${AWS::Partition}:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${ClientOutlookCredentialSecretPrefix}*",
   };
+  const externalReadProviderPackSecretArn = {
+    "Fn::Sub":
+      "arn:${AWS::Partition}:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${ExternalReadProviderPackSecretName}-*",
+  };
+  const externalReadCredentialSecretArn = {
+    "Fn::Sub":
+      `arn:\${AWS::Partition}:secretsmanager:\${AWS::Region}:\${AWS::AccountId}:secret:${JSON_POSTGRES_EXTERNAL_READ_CREDENTIAL_SECRET_PREFIX}/*`,
+  };
   for (const item of resources.SecretsManagerEndpoint.Properties.PolicyDocument.Statement) {
     if (Array.isArray(item.Resource)) {
       item.Resource = item.Resource.filter((resource) => resource?.Ref !== "SyntheticManifestSecret");
       if (item.Sid === "ApiReadsExactRuntimeSecrets") {
-        item.Resource.push(clone(outlookConfigSecretArn));
-        item.Resource.push(clone(outlookCredentialSecretArn));
+        item.Resource.push({
+          "Fn::If": [
+            "OutlookConversationWorkerConfigured",
+            clone(outlookConfigSecretArn),
+            { Ref: "AWS::NoValue" },
+          ],
+        });
+        item.Resource.push({
+          "Fn::If": [
+            "OutlookConversationWorkerConfigured",
+            clone(outlookCredentialSecretArn),
+            { Ref: "AWS::NoValue" },
+          ],
+        });
+        item.Resource.push({
+          "Fn::If": [
+            "AmicInternalUnsignedUpdateBrokerEnabled",
+            { Ref: "AmicInternalUnsignedCloudFrontPrivateKeySecretArn" },
+            { Ref: "AWS::NoValue" },
+          ],
+        });
       }
       if (item.Sid === "AdminBootstrapsExactSecrets") {
         item.Resource.push({ Ref: "ProjectionDatabaseSecret" });
@@ -1572,6 +1803,8 @@ export function buildJsonPostgresProductionTemplate(stagingTemplate) {
   resources.MicrosoftEgressBrokerLambdaEndpoint = clone(
     resources.SecretsManagerEndpoint,
   );
+  resources.MicrosoftEgressBrokerLambdaEndpoint.Condition =
+    "OutlookConversationWorkerConfigured";
   resources.MicrosoftEgressBrokerLambdaEndpoint.Properties.ServiceName = {
     "Fn::Sub": "com.amazonaws.${AWS::Region}.lambda",
   };
@@ -1613,6 +1846,28 @@ export function buildJsonPostgresProductionTemplate(stagingTemplate) {
       { Ref: "TenantContextSecret" },
     ],
   });
+  resources.SecretsManagerEndpoint.Properties.PolicyDocument.Statement.push({
+    "Fn::If": [
+      "ExternalReadProvidersEnabled",
+      {
+        Sid: "ApiUsesExactExternalReadSecrets",
+        Effect: "Allow",
+        Principal: { AWS: { "Fn::GetAtt": ["ApiExecutionRole", "Arn"] } },
+        Action: [
+          "secretsmanager:CreateSecret",
+          "secretsmanager:DeleteSecret",
+          "secretsmanager:GetSecretValue",
+          "secretsmanager:PutSecretValue",
+          "secretsmanager:TagResource",
+        ],
+        Resource: [
+          clone(externalReadProviderPackSecretArn),
+          clone(externalReadCredentialSecretArn),
+        ],
+      },
+      { Ref: "AWS::NoValue" },
+    ],
+  });
   resources.HttpApiDefaultRoute.Metadata.LawOSPublicRouteException = {
     scope: "production-internal-password-entry",
     reason: "first-use password setup and login must be reachable only after the signed go-live traffic gate",
@@ -1648,15 +1903,33 @@ export function buildJsonPostgresProductionTemplate(stagingTemplate) {
 
   const apiRole = resources.ApiExecutionRole;
   statement(apiRole, "ReadExactRuntimeSecrets").Resource.push(
-    clone(outlookConfigSecretArn),
-    clone(outlookCredentialSecretArn),
+    {
+      "Fn::If": [
+        "OutlookConversationWorkerConfigured",
+        clone(outlookConfigSecretArn),
+        { Ref: "AWS::NoValue" },
+      ],
+    },
+    {
+      "Fn::If": [
+        "OutlookConversationWorkerConfigured",
+        clone(outlookCredentialSecretArn),
+        { Ref: "AWS::NoValue" },
+      ],
+    },
   );
   const apiLogWrite = statement(apiRole, "WriteExactApiLogGroup");
   apiLogWrite.Resource = [
     apiLogWrite.Resource,
     {
-      "Fn::Sub":
-        "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/lawos-production-outlook-conversation-worker:*",
+      "Fn::If": [
+        "OutlookConversationWorkerProvisioned",
+        {
+          "Fn::Sub":
+            "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/lawos-production-outlook-conversation-worker:*",
+        },
+        { Ref: "AWS::NoValue" },
+      ],
     },
   ];
   const apiNetworkDeny = statement(apiRole, "DenyFunctionCodeEc2Networking");
@@ -1665,27 +1938,45 @@ export function buildJsonPostgresProductionTemplate(stagingTemplate) {
   apiNetworkDeny.Condition.ArnEquals["lambda:SourceFunctionArn"] = [
     apiSourceFunction,
     {
-      "Fn::Sub":
-        "arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:lawos-production-outlook-conversation-worker",
+      "Fn::If": [
+        "OutlookConversationWorkerProvisioned",
+        {
+          "Fn::Sub":
+            "arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:lawos-production-outlook-conversation-worker",
+        },
+        { Ref: "AWS::NoValue" },
+      ],
     },
   ];
   apiRole.Properties.Policies.find((policy) => policy.PolicyDocument)
     .PolicyDocument.Statement.push({
-      Sid: "InvokeExactMicrosoftEgressBroker",
-      Effect: "Allow",
-      Action: "lambda:InvokeFunction",
-      Resource: {
-        "Fn::Sub": "arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:lawos-microsoft-egress-prod",
-      },
+      "Fn::If": [
+        "OutlookConversationWorkerConfigured",
+        {
+          Sid: "InvokeExactMicrosoftEgressBroker",
+          Effect: "Allow",
+          Action: "lambda:InvokeFunction",
+          Resource: {
+            "Fn::Sub": "arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:lawos-microsoft-egress-prod",
+          },
+        },
+        { Ref: "AWS::NoValue" },
+      ],
     });
   apiRole.Properties.Policies.find((policy) => policy.PolicyDocument)
     .PolicyDocument.Statement.push({
-      Sid: "SendOnlyOutlookConversationWorkerFailuresToExactDeadLetterQueue",
-      Effect: "Allow",
-      Action: "sqs:SendMessage",
-      Resource: {
-        "Fn::GetAtt": ["OutlookConversationWorkerDeadLetterQueue", "Arn"],
-      },
+      "Fn::If": [
+        "OutlookConversationWorkerProvisioned",
+        {
+          Sid: "SendOnlyOutlookConversationWorkerFailuresToExactDeadLetterQueue",
+          Effect: "Allow",
+          Action: "sqs:SendMessage",
+          Resource: {
+            "Fn::GetAtt": ["OutlookConversationWorkerDeadLetterQueue", "Arn"],
+          },
+        },
+        { Ref: "AWS::NoValue" },
+      ],
     });
   const apiEmail = statement(apiRole, "SendSyntheticPasswordSetupEmail");
   apiEmail.Sid = "SendIndividualRegisteredPasswordSetupEmail";
@@ -1713,6 +2004,116 @@ export function buildJsonPostgresProductionTemplate(stagingTemplate) {
       },
     ],
   });
+
+  resources.ExternalReadSecretsPolicy = {
+    Type: "AWS::IAM::Policy",
+    Condition: "ExternalReadProvidersEnabled",
+    Properties: {
+      PolicyName: "lawos-production-external-read-secrets",
+      Roles: [{ Ref: "ApiExecutionRole" }],
+      PolicyDocument: {
+        Version: "2012-10-17",
+        Statement: [
+          {
+            Sid: "ReadExactExternalReadProviderPack",
+            Effect: "Allow",
+            Action: "secretsmanager:GetSecretValue",
+            Resource: clone(externalReadProviderPackSecretArn),
+          },
+          {
+            Sid: "CreateTaggedExternalReadCredentialGenerations",
+            Effect: "Allow",
+            Action: "secretsmanager:CreateSecret",
+            Resource: clone(externalReadCredentialSecretArn),
+            Condition: {
+              ArnEquals: {
+                "secretsmanager:KmsKeyArn": {
+                  "Fn::GetAtt": ["ProductionKey", "Arn"],
+                },
+              },
+              StringEquals: {
+                "aws:RequestTag/lawos-purpose": [
+                  "external-read",
+                  "external-read-tombstone",
+                ],
+              },
+              "ForAllValues:StringEquals": {
+                "aws:TagKeys": ["lawos-purpose"],
+              },
+              Null: { "aws:RequestTag/lawos-purpose": "false" },
+            },
+          },
+          {
+            Sid: "TagExternalReadCredentialPurposeOnly",
+            Effect: "Allow",
+            Action: "secretsmanager:TagResource",
+            Resource: clone(externalReadCredentialSecretArn),
+            Condition: {
+              StringEquals: {
+                "aws:RequestTag/lawos-purpose": [
+                  "external-read",
+                  "external-read-tombstone",
+                ],
+              },
+              "ForAllValues:StringEquals": {
+                "aws:TagKeys": ["lawos-purpose"],
+              },
+              Null: { "aws:RequestTag/lawos-purpose": "false" },
+            },
+          },
+          {
+            Sid: "UseTaggedExternalReadCredentialGenerations",
+            Effect: "Allow",
+            Action: [
+              "secretsmanager:GetSecretValue",
+              "secretsmanager:PutSecretValue",
+            ],
+            Resource: clone(externalReadCredentialSecretArn),
+            Condition: {
+              StringEquals: {
+                "aws:ResourceTag/lawos-purpose": [
+                  "external-read",
+                  "external-read-tombstone",
+                ],
+              },
+            },
+          },
+          {
+            Sid: "ScheduleTaggedExternalReadCredentialDeletion",
+            Effect: "Allow",
+            Action: "secretsmanager:DeleteSecret",
+            Resource: clone(externalReadCredentialSecretArn),
+            Condition: {
+              StringEquals: {
+                "aws:ResourceTag/lawos-purpose": [
+                  "external-read",
+                  "external-read-tombstone",
+                ],
+              },
+              BoolIfExists: {
+                "secretsmanager:ForceDeleteWithoutRecovery": "false",
+              },
+              NumericGreaterThanEquals: {
+                "secretsmanager:RecoveryWindowInDays": "7",
+              },
+              NumericLessThanEquals: {
+                "secretsmanager:RecoveryWindowInDays": "30",
+              },
+            },
+          },
+          {
+            Sid: "DenyExternalReadCredentialForceDelete",
+            Effect: "Deny",
+            Action: "secretsmanager:DeleteSecret",
+            Resource: clone(externalReadCredentialSecretArn),
+            Condition: {
+              Bool: { "secretsmanager:ForceDeleteWithoutRecovery": "true" },
+            },
+          },
+        ],
+      },
+    },
+  };
 
   const adminRole = resources.AdminExecutionRole;
   const readSecrets = statement(adminRole, "ReadExactBootstrapSecrets");
@@ -2214,6 +2615,75 @@ export function buildJsonPostgresProductionTemplate(stagingTemplate) {
   apiEnvironment.LAWOS_PROGRAM_INPUT_KMS_KEY_ARN = {
     "Fn::GetAtt": ["ProductionKey", "Arn"],
   };
+  apiEnvironment.LAWOS_EXTERNAL_READ_PROVIDER_PACKS_SECRET_ID = {
+    "Fn::If": [
+      "ExternalReadProvidersEnabled",
+      { Ref: "ExternalReadProviderPackSecretName" },
+      "",
+    ],
+  };
+  apiEnvironment.LAWOS_EXTERNAL_READ_PROVIDER_PACKS_SHA256 = {
+    "Fn::If": [
+      "ExternalReadProvidersEnabled",
+      { Ref: "ExternalReadProviderPackSha256" },
+      "",
+    ],
+  };
+  apiEnvironment.LAWOS_EXTERNAL_READ_SECRET_PREFIX = {
+    "Fn::If": [
+      "ExternalReadProvidersEnabled",
+      JSON_POSTGRES_EXTERNAL_READ_CREDENTIAL_SECRET_PREFIX,
+      "",
+    ],
+  };
+  apiEnvironment.LAWOS_EXTERNAL_READ_KMS_KEY_ARN = {
+    "Fn::If": [
+      "ExternalReadProvidersEnabled",
+      { "Fn::GetAtt": ["ProductionKey", "Arn"] },
+      "",
+    ],
+  };
+  const configuredInternalUpdateEnvironment = (value) => ({
+    "Fn::If": [
+      "AmicInternalUnsignedUpdateBrokerEnabled",
+      value,
+      "",
+    ],
+  });
+  apiEnvironment.LAWOS_AMIC_INTERNAL_UPDATE_ENABLED = {
+    "Fn::If": [
+      "AmicInternalUnsignedUpdateBrokerEnabled",
+      "true",
+      "false",
+    ],
+  };
+  apiEnvironment.LAWOS_AMIC_INTERNAL_UPDATE_AWS_ACCOUNT_ID = {
+    Ref: "AWS::AccountId",
+  };
+  apiEnvironment.LAWOS_AMIC_INTERNAL_UPDATE_BUCKET =
+    configuredInternalUpdateEnvironment({
+      Ref: "AmicInternalUnsignedArtifactBucketName",
+    });
+  apiEnvironment.LAWOS_AMIC_INTERNAL_UPDATE_KMS_KEY_ARN =
+    configuredInternalUpdateEnvironment({
+      Ref: "AmicInternalUnsignedArtifactKmsKeyArn",
+    });
+  apiEnvironment.LAWOS_AMIC_INTERNAL_UPDATE_CLOUDFRONT_DOMAIN =
+    configuredInternalUpdateEnvironment({
+      Ref: "AmicInternalUnsignedCloudFrontDomain",
+    });
+  apiEnvironment.LAWOS_AMIC_INTERNAL_UPDATE_CLOUDFRONT_KEY_PAIR_ID =
+    configuredInternalUpdateEnvironment({
+      Ref: "AmicInternalUnsignedCloudFrontKeyPairId",
+    });
+  apiEnvironment.LAWOS_AMIC_INTERNAL_UPDATE_CLOUDFRONT_PRIVATE_KEY_SECRET_ARN =
+    configuredInternalUpdateEnvironment({
+      Ref: "AmicInternalUnsignedCloudFrontPrivateKeySecretArn",
+    });
+  apiEnvironment.LAWOS_AMIC_INTERNAL_UPDATE_ED25519_PUBLIC_KEY_SPKI_BASE64 =
+    configuredInternalUpdateEnvironment({
+      Ref: "AmicInternalUnsignedMetadataPublicKeySpkiBase64",
+    });
   resources.ProjectionWorkerDeadLetterAlarm = {
     Type: "AWS::CloudWatch::Alarm",
     Properties: {
@@ -2261,28 +2731,43 @@ export function buildJsonPostgresProductionTemplate(stagingTemplate) {
 
   const api = resources.ApiFunction;
   const apiEnv = api.Properties.Environment.Variables;
+  const configuredOutlookEnvironment = (value) => ({
+    "Fn::If": [
+      "OutlookConversationWorkerConfigured",
+      value,
+      { Ref: "AWS::NoValue" },
+    ],
+  });
   api.Properties.Description = "Exact-main LawOS production API with PostgreSQL-only authority";
   apiEnv.LAWOS_DATA_SCOPE = "approved-real-manifest";
   apiEnv.LAWOS_DMS_S3_DEFAULT_RETENTION_DAYS = "365";
   apiEnv.LAWOS_IDENTITY_TENANT_ID = { Ref: "PrimaryTenantId" };
-  apiEnv.LAWOS_GRAPH_NOTIFICATION_URL = {
+  apiEnv.LAWOS_GRAPH_NOTIFICATION_URL = configuredOutlookEnvironment({
     "Fn::Sub": "${HttpApi.ApiEndpoint}/api/outlook/graph/notifications",
-  };
-  apiEnv.LAWOS_CLIENT_OUTLOOK_M365_CONFIG_SECRET_ID = {
-    Ref: "ClientOutlookM365ConfigSecretName",
-  };
-  apiEnv.LAWOS_CLIENT_OUTLOOK_M365_GRAPH_ENABLED = {
-    "Fn::If": ["OutlookConversationWorkerEnabled", "true", "false"],
-  };
-  apiEnv.LAWOS_CLIENT_OUTLOOK_PROVIDER_RUNTIME_ENABLED = {
-    "Fn::If": ["OutlookConversationWorkerEnabled", "true", "false"],
-  };
-  apiEnv.LAWOS_CLIENT_OUTLOOK_INQUIRY_ENABLED = "false";
+  });
+  apiEnv.LAWOS_CLIENT_OUTLOOK_M365_CONFIG_SECRET_ID =
+    configuredOutlookEnvironment({
+      Ref: "ClientOutlookM365ConfigSecretName",
+    });
+  apiEnv.LAWOS_CLIENT_OUTLOOK_M365_GRAPH_ENABLED =
+    configuredOutlookEnvironment({
+      "Fn::If": ["OutlookConversationWorkerEnabled", "true", "false"],
+    });
+  apiEnv.LAWOS_CLIENT_OUTLOOK_PROVIDER_RUNTIME_ENABLED =
+    configuredOutlookEnvironment({
+      "Fn::If": ["OutlookConversationWorkerEnabled", "true", "false"],
+    });
+  apiEnv.LAWOS_CLIENT_OUTLOOK_INQUIRY_ENABLED =
+    configuredOutlookEnvironment("false");
+  apiEnv.LAWOS_OUTLOOK_CONVERSATION_WORKER_SCHEDULE_ENABLED =
+    configuredOutlookEnvironment({
+      "Fn::If": ["OutlookConversationWorkerEnabled", "true", "false"],
+    });
   apiEnv.LAWOS_AUTH_PASSWORD_RESET_TTL_MS = "900000";
   delete apiEnv.LAWOS_OWNER_INSTRUCTION_SHA256;
   delete apiEnv.LAWOS_SYNTHETIC_MANIFEST_SECRET_ID;
   resources.PasswordResetWorkerSchedule.Properties.Description = "Drains durable individual production password-reset jobs";
-  resources.PasswordResetWorkerSchedule.Properties.ScheduleExpression = "rate(1 minute)";
+  resources.PasswordResetWorkerSchedule.Properties.ScheduleExpression = "rate(5 minutes)";
   resources.PasswordResetWorkerSchedule.Properties.State = {
     "Fn::If": ["ProductionTrafficEnabled", "ENABLED", "DISABLED"],
   };
@@ -2441,6 +2926,9 @@ export function buildJsonPostgresProductionTemplate(stagingTemplate) {
       Tags: clone(outlookAlarmTags),
     },
   };
+  for (const logicalId of JSON_POSTGRES_OUTLOOK_WORKER_RESOURCE_IDS) {
+    resources[logicalId].Condition = "OutlookConversationWorkerProvisioned";
+  }
   resources.HttpApi.Properties.Description = "LawOS production API; disabled until signed go-live activation";
   resources.HttpApi.Properties.DisableExecuteApiEndpoint = {
     "Fn::If": ["ProductionTrafficEnabled", false, true],
@@ -2478,6 +2966,22 @@ export function buildJsonPostgresProductionTemplate(stagingTemplate) {
       { "Fn::Sub": "${DmsBucket.Arn}/approved-real-migration/*" },
     ],
   });
+  resources.S3GatewayEndpoint.Properties.PolicyDocument.Statement.push({
+    "Fn::If": [
+      "AmicInternalUnsignedUpdateBrokerEnabled",
+      {
+        Sid: "ApiReadsExactInternalUnsignedDistribution",
+        Effect: "Allow",
+        Principal: { AWS: { "Fn::GetAtt": ["ApiExecutionRole", "Arn"] } },
+        Action: ["s3:GetObject", "s3:GetObjectVersion"],
+        Resource: {
+          "Fn::Sub":
+            "arn:${AWS::Partition}:s3:::${AmicInternalUnsignedArtifactBucketName}/internal-unsigned/*",
+        },
+      },
+      { Ref: "AWS::NoValue" },
+    ],
+  });
 
   resources.ApiLogGroup.Properties.RetentionInDays = 365;
   resources.AdminLogGroup.Properties.RetentionInDays = 365;
@@ -2495,6 +2999,8 @@ export function buildJsonPostgresProductionTemplate(stagingTemplate) {
     dual_write: false,
     offline_capability: "rejected",
     production_traffic_default: false,
+    external_read_providers_default: false,
+    amic_internal_unsigned_update_broker_default: false,
   };
   template.Outputs.ProgramInputBucketName = { Value: { Ref: "ProgramInputBucket" } };
   template.Outputs.ProgramInputKmsKeyArn = { Value: { "Fn::GetAtt": ["ProductionKey", "Arn"] } };
@@ -2518,9 +3024,11 @@ export function buildJsonPostgresProductionTemplate(stagingTemplate) {
     },
   };
   template.Outputs.OutlookConversationWorkerFunctionName = {
+    Condition: "OutlookConversationWorkerProvisioned",
     Value: { Ref: "OutlookConversationWorkerFunction" },
   };
   template.Outputs.OutlookConversationWorkerDeadLetterQueueArn = {
+    Condition: "OutlookConversationWorkerProvisioned",
     Value: {
       "Fn::GetAtt": ["OutlookConversationWorkerDeadLetterQueue", "Arn"],
     },
@@ -2536,14 +3044,34 @@ export function buildJsonPostgresProductionTemplate(stagingTemplate) {
   template.Outputs.ProductionTrafficEnabled = {
     Value: { "Fn::If": ["ProductionTrafficEnabled", "true", "false"] },
   };
+  template.Outputs.ExternalReadProvidersEnabled = {
+    Value: { "Fn::If": ["ExternalReadProvidersEnabled", "true", "false"] },
+  };
+  template.Outputs.AmicInternalUnsignedUpdateBrokerEnabled = {
+    Value: {
+      "Fn::If": [
+        "AmicInternalUnsignedUpdateBrokerEnabled",
+        "true",
+        "false",
+      ],
+    },
+  };
   return template;
 }
 
-function policyStatements(role) {
+function rawPolicyStatements(role) {
   return (role?.Properties?.Policies ?? []).flatMap((policy) =>
     policy?.PolicyDocument?.Statement
     ?? policy?.["Fn::If"]?.[1]?.PolicyDocument?.Statement
     ?? []);
+}
+
+function policyStatements(role) {
+  return rawPolicyStatements(role).map((item) => item?.["Fn::If"]?.[1] ?? item);
+}
+
+function conditionalPolicyStatement(role, sid) {
+  return rawPolicyStatements(role).find((item) => item?.["Fn::If"]?.[1]?.Sid === sid);
 }
 
 export function validateJsonPostgresProductionTemplate(template) {
@@ -2559,11 +3087,46 @@ export function validateJsonPostgresProductionTemplate(template) {
     || template.Metadata?.json_fallback !== false
     || template.Metadata?.dual_write !== false
     || template.Metadata?.offline_capability !== "rejected"
-    || template.Metadata?.production_traffic_default !== false) {
+    || template.Metadata?.production_traffic_default !== false
+    || template.Metadata?.external_read_providers_default !== false
+    || template.Metadata?.amic_internal_unsigned_update_broker_default
+      !== false) {
     fail("production template authority metadata drifted");
   }
   if (template.Parameters?.EnableLambdaEniBootstrap?.Default !== "false"
     || template.Parameters?.EnableProductionTraffic?.Default !== "false"
+    || template.Parameters?.EnableExternalReadProviders?.Default !== "false"
+    || template.Parameters?.ExternalReadProviderPackSecretName?.Default
+      !== JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SECRET_NAME
+    || template.Parameters?.ExternalReadProviderPackSha256?.Default
+      !== JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SHA256
+    || template.Parameters?.EnableAmicInternalUnsignedUpdateBroker?.Default
+      !== "false"
+    || template.Parameters?.AmicInternalUnsignedArtifactBucketName?.Default
+      !== JSON_POSTGRES_AMIC_INTERNAL_UPDATE_DISABLED_BUCKET
+    || template.Parameters?.AmicInternalUnsignedArtifactKmsKeyArn?.Default
+      !== JSON_POSTGRES_AMIC_INTERNAL_UPDATE_DISABLED_VALUE
+    || template.Parameters?.AmicInternalUnsignedCloudFrontDomain?.Default
+      !== JSON_POSTGRES_AMIC_INTERNAL_UPDATE_DISABLED_VALUE
+    || template.Parameters?.AmicInternalUnsignedCloudFrontKeyPairId?.Default
+      !== JSON_POSTGRES_AMIC_INTERNAL_UPDATE_DISABLED_VALUE
+    || template.Parameters
+      ?.AmicInternalUnsignedCloudFrontPrivateKeySecretArn?.Default
+      !== JSON_POSTGRES_AMIC_INTERNAL_UPDATE_DISABLED_VALUE
+    || template.Parameters
+      ?.AmicInternalUnsignedCloudFrontPrivateKeySecretArn?.NoEcho != null
+    || template.Parameters
+      ?.AmicInternalUnsignedMetadataPublicKeySpkiBase64?.Default
+      !== JSON_POSTGRES_AMIC_INTERNAL_UPDATE_DISABLED_VALUE
+    || template.Conditions?.ExternalReadProvidersEnabled?.["Fn::Equals"]?.[0]?.Ref
+      !== "EnableExternalReadProviders"
+    || template.Conditions?.AmicInternalUnsignedUpdateBrokerEnabled
+      ?.["Fn::Equals"]?.[0]?.Ref
+      !== "EnableAmicInternalUnsignedUpdateBroker"
+    || stableJson(template.Rules?.ExternalReadProviderConfigurationIsClosed)
+      !== stableJson(externalReadProviderConfigurationRule())
+    || stableJson(template.Rules?.AmicInternalUpdateBrokerConfigurationIsClosed)
+      !== stableJson(amicInternalUpdateBrokerConfigurationRule())
     || template.Parameters?.RuntimeGeneration?.Type !== "Number"
     || template.Parameters?.RuntimeGeneration?.Default !== 1
     || template.Parameters?.RuntimeGeneration?.MinValue !== 1
@@ -2571,6 +3134,15 @@ export function validateJsonPostgresProductionTemplate(template) {
     fail("production safety parameters drifted");
   }
   const resources = template.Resources ?? {};
+  const apiEnvironment = resources.ApiFunction?.Properties?.Environment
+    ?.Variables ?? {};
+  const expectedInternalUpdateEnvironment = (parameter) => ({
+    "Fn::If": [
+      "AmicInternalUnsignedUpdateBrokerEnabled",
+      { Ref: parameter },
+      "",
+    ],
+  });
   const forbiddenNetwork = Object.values(resources).filter((resource) =>
     ["AWS::EC2::InternetGateway", "AWS::EC2::NatGateway", "AWS::EC2::EIP"].includes(resource.Type));
   if (forbiddenNetwork.length > 0) fail("production template creates public routing");
@@ -2636,6 +3208,21 @@ export function validateJsonPostgresProductionTemplate(template) {
     || resources.ApiFunction?.Properties?.Environment?.Variables?.LAWOS_PERSISTENCE_AUTHORITY !== "postgres-v2"
     || resources.ApiFunction?.Properties?.Environment?.Variables?.LAWOS_RUNTIME_PROFILE !== "operational"
     || resources.ApiFunction?.Properties?.Environment?.Variables
+      ?.LAWOS_EXTERNAL_READ_PROVIDER_PACKS_SECRET_ID?.["Fn::If"]?.[0]
+      !== "ExternalReadProvidersEnabled"
+    || resources.ApiFunction?.Properties?.Environment?.Variables
+      ?.LAWOS_EXTERNAL_READ_PROVIDER_PACKS_SECRET_ID?.["Fn::If"]?.[1]?.Ref
+      !== "ExternalReadProviderPackSecretName"
+    || resources.ApiFunction?.Properties?.Environment?.Variables
+      ?.LAWOS_EXTERNAL_READ_PROVIDER_PACKS_SHA256?.["Fn::If"]?.[1]?.Ref
+      !== "ExternalReadProviderPackSha256"
+    || resources.ApiFunction?.Properties?.Environment?.Variables
+      ?.LAWOS_EXTERNAL_READ_SECRET_PREFIX?.["Fn::If"]?.[1]
+      !== JSON_POSTGRES_EXTERNAL_READ_CREDENTIAL_SECRET_PREFIX
+    || resources.ApiFunction?.Properties?.Environment?.Variables
+      ?.LAWOS_EXTERNAL_READ_KMS_KEY_ARN?.["Fn::If"]?.[1]?.["Fn::GetAtt"]?.[0]
+      !== "ProductionKey"
+    || resources.ApiFunction?.Properties?.Environment?.Variables
       ?.LAWOS_HRX_RELATIONAL_PROJECTION_ENABLED?.["Fn::If"]?.[0]
       !== "ProjectionWorkerEnabled"
     || resources.ApiFunction?.Properties?.Environment?.Variables
@@ -2647,7 +3234,46 @@ export function validateJsonPostgresProductionTemplate(template) {
       ?.LAWOS_HRX_RELATIONAL_PROJECTION_VALIDATION_OBJECT_KEY != null
     || resources.ApiFunction?.Properties?.Environment?.Variables
       ?.LAWOS_EXECUTION_PACKET_SHA256?.Ref
-      !== "ExecutionPacketSha256") {
+      !== "ExecutionPacketSha256"
+    || stableJson(apiEnvironment.LAWOS_AMIC_INTERNAL_UPDATE_ENABLED)
+      !== stableJson({
+        "Fn::If": [
+          "AmicInternalUnsignedUpdateBrokerEnabled",
+          "true",
+          "false",
+        ],
+      })
+    || apiEnvironment.LAWOS_AMIC_INTERNAL_UPDATE_AWS_ACCOUNT_ID?.Ref
+      !== "AWS::AccountId"
+    || stableJson(apiEnvironment.LAWOS_AMIC_INTERNAL_UPDATE_BUCKET)
+      !== stableJson(expectedInternalUpdateEnvironment(
+        "AmicInternalUnsignedArtifactBucketName",
+      ))
+    || stableJson(apiEnvironment.LAWOS_AMIC_INTERNAL_UPDATE_KMS_KEY_ARN)
+      !== stableJson(expectedInternalUpdateEnvironment(
+        "AmicInternalUnsignedArtifactKmsKeyArn",
+      ))
+    || stableJson(apiEnvironment.LAWOS_AMIC_INTERNAL_UPDATE_CLOUDFRONT_DOMAIN)
+      !== stableJson(expectedInternalUpdateEnvironment(
+        "AmicInternalUnsignedCloudFrontDomain",
+      ))
+    || stableJson(
+      apiEnvironment.LAWOS_AMIC_INTERNAL_UPDATE_CLOUDFRONT_KEY_PAIR_ID,
+    ) !== stableJson(expectedInternalUpdateEnvironment(
+      "AmicInternalUnsignedCloudFrontKeyPairId",
+    ))
+    || stableJson(
+      apiEnvironment
+        .LAWOS_AMIC_INTERNAL_UPDATE_CLOUDFRONT_PRIVATE_KEY_SECRET_ARN,
+    ) !== stableJson(expectedInternalUpdateEnvironment(
+      "AmicInternalUnsignedCloudFrontPrivateKeySecretArn",
+    ))
+    || stableJson(
+      apiEnvironment
+        .LAWOS_AMIC_INTERNAL_UPDATE_ED25519_PUBLIC_KEY_SPKI_BASE64,
+    ) !== stableJson(expectedInternalUpdateEnvironment(
+      "AmicInternalUnsignedMetadataPublicKeySpkiBase64",
+    ))) {
     fail("production Lambda authority contract drifted");
   }
   const outputs = template.Outputs ?? {};
@@ -2664,8 +3290,20 @@ export function validateJsonPostgresProductionTemplate(template) {
       !== "ProjectionWorkerSchedule"
     || outputs.ProjectionWorkerDeadLetterQueueArn?.Value
       ?.["Fn::GetAtt"]?.[0] !== "ProjectionWorkerDeadLetterQueue"
+    || outputs.OutlookConversationWorkerFunctionName?.Condition
+      !== "OutlookConversationWorkerProvisioned"
+    || outputs.OutlookConversationWorkerFunctionName?.Value?.Ref
+      !== "OutlookConversationWorkerFunction"
+    || outputs.OutlookConversationWorkerDeadLetterQueueArn?.Condition
+      !== "OutlookConversationWorkerProvisioned"
+    || outputs.OutlookConversationWorkerDeadLetterQueueArn?.Value
+      ?.["Fn::GetAtt"]?.[0] !== "OutlookConversationWorkerDeadLetterQueue"
     || outputs.ApiFunctionName?.Value?.Ref !== "ApiFunction"
     || outputs.DmsBucketName?.Value?.Ref !== "DmsBucket"
+    || outputs.ExternalReadProvidersEnabled?.Value?.["Fn::If"]?.[0]
+      !== "ExternalReadProvidersEnabled"
+    || outputs.AmicInternalUnsignedUpdateBrokerEnabled?.Value
+      ?.["Fn::If"]?.[0] !== "AmicInternalUnsignedUpdateBrokerEnabled"
     || resources.AdminFunction?.Properties?.Environment?.Variables?.LAWOS_DATABASE_IDENTIFIER?.Ref !== "Database") {
     fail("production DR/runtime outputs drifted");
   }
@@ -2717,6 +3355,10 @@ export function validateJsonPostgresProductionTemplate(template) {
     "arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:lawos-microsoft-egress-prod";
   const brokerInvoke = policyStatements(resources.ApiExecutionRole)
     .find(({ Sid }) => Sid === "InvokeExactMicrosoftEgressBroker");
+  const conditionalBrokerInvoke = conditionalPolicyStatement(
+    resources.ApiExecutionRole,
+    "InvokeExactMicrosoftEgressBroker",
+  )?.["Fn::If"];
   const runtimeSecrets = policyStatements(resources.ApiExecutionRole)
     .find(({ Sid }) => Sid === "ReadExactRuntimeSecrets")?.Resource ?? [];
   const endpointRuntimeSecrets = resources.SecretsManagerEndpoint?.Properties
@@ -2727,18 +3369,41 @@ export function validateJsonPostgresProductionTemplate(template) {
     "arn:${AWS::Partition}:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${ClientOutlookM365ConfigSecretName}-*",
     "arn:${AWS::Partition}:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${ClientOutlookCredentialSecretPrefix}*",
   ];
+  const hasConditionalOutlookSecret = (items, arn) => items.some((resource) =>
+    resource?.["Fn::If"]?.[0] === "OutlookConversationWorkerConfigured"
+    && resource["Fn::If"]?.[1]?.["Fn::Sub"] === arn
+    && resource["Fn::If"]?.[2]?.Ref === "AWS::NoValue");
+  const apiLogResources = policyStatements(resources.ApiExecutionRole)
+    .find(({ Sid }) => Sid === "WriteExactApiLogGroup")?.Resource ?? [];
+  const apiNetworkSources = policyStatements(resources.ApiExecutionRole)
+    .find(({ Sid }) => Sid === "DenyFunctionCodeEc2Networking")
+    ?.Condition?.ArnEquals?.["lambda:SourceFunctionArn"] ?? [];
+  const conditionalOutlookWorkerArn = (items, arn) => items.some((item) =>
+    item?.["Fn::If"]?.[0] === "OutlookConversationWorkerProvisioned"
+    && item["Fn::If"]?.[1]?.["Fn::Sub"] === arn
+    && item["Fn::If"]?.[2]?.Ref === "AWS::NoValue");
   const brokerEndpoint = resources.MicrosoftEgressBrokerLambdaEndpoint
     ?.Properties;
   const brokerEndpointStatement = brokerEndpoint?.PolicyDocument
     ?.Statement?.[0];
   if (brokerInvoke?.Action !== "lambda:InvokeFunction"
     || brokerInvoke.Resource?.["Fn::Sub"] !== brokerArn
-    || !expectedOutlookSecretArns.every((arn) => runtimeSecrets.some(
-      (resource) => resource?.["Fn::Sub"] === arn,
-    ))
-    || !expectedOutlookSecretArns.every((arn) => endpointRuntimeSecrets.some(
-      (resource) => resource?.["Fn::Sub"] === arn,
-    ))
+    || conditionalBrokerInvoke?.[0] !== "OutlookConversationWorkerConfigured"
+    || conditionalBrokerInvoke?.[2]?.Ref !== "AWS::NoValue"
+    || !expectedOutlookSecretArns.every((arn) =>
+      hasConditionalOutlookSecret(runtimeSecrets, arn))
+    || !expectedOutlookSecretArns.every((arn) =>
+      hasConditionalOutlookSecret(endpointRuntimeSecrets, arn))
+    || !conditionalOutlookWorkerArn(
+      apiLogResources,
+      "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/lawos-production-outlook-conversation-worker:*",
+    )
+    || !conditionalOutlookWorkerArn(
+      apiNetworkSources,
+      "arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:lawos-production-outlook-conversation-worker",
+    )
+    || resources.MicrosoftEgressBrokerLambdaEndpoint?.Condition
+      !== "OutlookConversationWorkerConfigured"
     || brokerEndpoint?.ServiceName?.["Fn::Sub"]
       !== "com.amazonaws.${AWS::Region}.lambda"
     || brokerEndpoint?.VpcEndpointType !== "Interface"
@@ -2748,14 +3413,131 @@ export function validateJsonPostgresProductionTemplate(template) {
     || brokerEndpointStatement?.Resource?.["Fn::Sub"] !== brokerArn) {
     fail("production Outlook provider composition drifted");
   }
+  const externalPackArn =
+    "arn:${AWS::Partition}:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${ExternalReadProviderPackSecretName}-*";
+  const externalCredentialArn =
+    `arn:\${AWS::Partition}:secretsmanager:\${AWS::Region}:\${AWS::AccountId}:secret:${JSON_POSTGRES_EXTERNAL_READ_CREDENTIAL_SECRET_PREFIX}/*`;
+  const externalPolicy = resources.ExternalReadSecretsPolicy;
+  const externalStatements = externalPolicy?.Properties?.PolicyDocument?.Statement ?? [];
+  const externalPackRead = externalStatements.find(
+    ({ Sid }) => Sid === "ReadExactExternalReadProviderPack",
+  );
+  const externalCreate = externalStatements.find(
+    ({ Sid }) => Sid === "CreateTaggedExternalReadCredentialGenerations",
+  );
+  const externalTag = externalStatements.find(
+    ({ Sid }) => Sid === "TagExternalReadCredentialPurposeOnly",
+  );
+  const externalUse = externalStatements.find(
+    ({ Sid }) => Sid === "UseTaggedExternalReadCredentialGenerations",
+  );
+  const externalDelete = externalStatements.find(
+    ({ Sid }) => Sid === "ScheduleTaggedExternalReadCredentialDeletion",
+  );
+  const externalForceDeleteDeny = externalStatements.find(
+    ({ Sid }) => Sid === "DenyExternalReadCredentialForceDelete",
+  );
+  const externalEndpointConditional = resources.SecretsManagerEndpoint?.Properties
+    ?.PolicyDocument?.Statement?.find(
+      (item) => item?.["Fn::If"]?.[0] === "ExternalReadProvidersEnabled",
+    )?.["Fn::If"];
+  const externalEndpoint = externalEndpointConditional?.[1];
+  const externalActions = [
+    "secretsmanager:CreateSecret",
+    "secretsmanager:DeleteSecret",
+    "secretsmanager:GetSecretValue",
+    "secretsmanager:PutSecretValue",
+    "secretsmanager:TagResource",
+  ];
+  if (externalPolicy?.Type !== "AWS::IAM::Policy"
+    || externalPolicy.Condition !== "ExternalReadProvidersEnabled"
+    || externalPolicy.Properties?.PolicyName
+      !== "lawos-production-external-read-secrets"
+    || JSON.stringify(externalPolicy.Properties?.Roles)
+      !== JSON.stringify([{ Ref: "ApiExecutionRole" }])
+    || externalStatements.length !== 6
+    || externalPackRead?.Action !== "secretsmanager:GetSecretValue"
+    || externalPackRead?.Resource?.["Fn::Sub"] !== externalPackArn
+    || externalCreate?.Action !== "secretsmanager:CreateSecret"
+    || externalCreate?.Resource?.["Fn::Sub"] !== externalCredentialArn
+    || externalCreate?.Condition?.ArnEquals?.["secretsmanager:KmsKeyArn"]
+      ?.["Fn::GetAtt"]?.[0] !== "ProductionKey"
+    || JSON.stringify(externalCreate?.Condition?.StringEquals?.["aws:RequestTag/lawos-purpose"])
+      !== JSON.stringify(["external-read", "external-read-tombstone"])
+    || externalCreate?.Condition?.Null?.["aws:RequestTag/lawos-purpose"] !== "false"
+    || externalTag?.Action !== "secretsmanager:TagResource"
+    || externalTag?.Resource?.["Fn::Sub"] !== externalCredentialArn
+    || JSON.stringify(externalTag?.Condition?.StringEquals?.["aws:RequestTag/lawos-purpose"])
+      !== JSON.stringify(["external-read", "external-read-tombstone"])
+    || JSON.stringify(externalTag?.Condition?.["ForAllValues:StringEquals"]?.["aws:TagKeys"])
+      !== JSON.stringify(["lawos-purpose"])
+    || externalTag?.Condition?.Null?.["aws:RequestTag/lawos-purpose"] !== "false"
+    || JSON.stringify(externalUse?.Action) !== JSON.stringify([
+      "secretsmanager:GetSecretValue",
+      "secretsmanager:PutSecretValue",
+    ])
+    || externalUse?.Resource?.["Fn::Sub"] !== externalCredentialArn
+    || JSON.stringify(externalUse?.Condition?.StringEquals?.["aws:ResourceTag/lawos-purpose"])
+      !== JSON.stringify(["external-read", "external-read-tombstone"])
+    || externalDelete?.Action !== "secretsmanager:DeleteSecret"
+    || externalDelete?.Resource?.["Fn::Sub"] !== externalCredentialArn
+    || JSON.stringify(externalDelete?.Condition?.StringEquals?.["aws:ResourceTag/lawos-purpose"])
+      !== JSON.stringify(["external-read", "external-read-tombstone"])
+    || externalDelete?.Condition?.BoolIfExists
+      ?.["secretsmanager:ForceDeleteWithoutRecovery"]
+      !== "false"
+    || externalDelete?.Condition?.NumericGreaterThanEquals
+      ?.["secretsmanager:RecoveryWindowInDays"] !== "7"
+    || externalDelete?.Condition?.NumericLessThanEquals
+      ?.["secretsmanager:RecoveryWindowInDays"] !== "30"
+    || externalForceDeleteDeny?.Effect !== "Deny"
+    || externalForceDeleteDeny?.Action !== "secretsmanager:DeleteSecret"
+    || externalForceDeleteDeny?.Resource?.["Fn::Sub"] !== externalCredentialArn
+    || externalForceDeleteDeny?.Condition?.Bool
+      ?.["secretsmanager:ForceDeleteWithoutRecovery"] !== "true"
+    || externalEndpointConditional?.[0] !== "ExternalReadProvidersEnabled"
+    || externalEndpointConditional?.[2]?.Ref !== "AWS::NoValue"
+    || externalEndpoint?.Principal?.AWS?.["Fn::GetAtt"]?.[0] !== "ApiExecutionRole"
+    || JSON.stringify(externalEndpoint?.Action) !== JSON.stringify(externalActions)
+    || JSON.stringify(externalEndpoint?.Resource?.map((item) => item?.["Fn::Sub"]))
+      !== JSON.stringify([externalPackArn, externalCredentialArn])) {
+    fail("production external-read Secrets Manager authority drifted");
+  }
+  const internalSignerSecret = endpointRuntimeSecrets.find((resource) =>
+    resource?.["Fn::If"]?.[0]
+      === "AmicInternalUnsignedUpdateBrokerEnabled");
+  const internalSignerSecretConditional = internalSignerSecret?.["Fn::If"];
+  if (internalSignerSecretConditional?.[1]?.Ref
+      !== "AmicInternalUnsignedCloudFrontPrivateKeySecretArn"
+    || internalSignerSecretConditional?.[2]?.Ref !== "AWS::NoValue") {
+    fail("production internal-update signer endpoint authority drifted");
+  }
+  const outlookEnvironment = resources.ApiFunction?.Properties?.Environment
+    ?.Variables ?? {};
+  const configuredOutlookEnvironment = (name) =>
+    outlookEnvironment[name]?.["Fn::If"];
+  const configuredOutlookEnvironmentNames = [
+    "LAWOS_CLIENT_OUTLOOK_INQUIRY_ENABLED",
+    "LAWOS_CLIENT_OUTLOOK_M365_CONFIG_SECRET_ID",
+    "LAWOS_CLIENT_OUTLOOK_M365_GRAPH_ENABLED",
+    "LAWOS_CLIENT_OUTLOOK_PROVIDER_RUNTIME_ENABLED",
+    "LAWOS_GRAPH_NOTIFICATION_URL",
+    "LAWOS_OUTLOOK_CONVERSATION_WORKER_SCHEDULE_ENABLED",
+  ];
   if (resources.HttpApi.Properties.DisableExecuteApiEndpoint?.["Fn::If"]?.[2] !== true
-    || resources.PasswordResetWorkerSchedule.Properties.ScheduleExpression !== "rate(1 minute)"
+    || resources.PasswordResetWorkerSchedule.Properties.ScheduleExpression !== "rate(5 minutes)"
     || resources.PasswordResetWorkerSchedule.Properties.State?.["Fn::If"]?.[2] !== "DISABLED"
     || template.Parameters?.EnableOutlookConversationWorker?.Default !== "false"
     || JSON.stringify(template.Conditions?.OutlookConversationWorkerEnabled)
       !== JSON.stringify({
         "Fn::And": [
           { Condition: "ProductionTrafficEnabled" },
+          { Condition: "OutlookConversationWorkerProvisioned" },
+        ],
+      })
+    || JSON.stringify(template.Conditions?.OutlookConversationWorkerProvisioned)
+      !== JSON.stringify({
+        "Fn::And": [
           { "Fn::Equals": [{ Ref: "EnableOutlookConversationWorker" }, "true"] },
           { Condition: "OutlookConversationWorkerConfigured" },
         ],
@@ -2765,16 +3547,18 @@ export function validateJsonPostgresProductionTemplate(template) {
         "Fn::And": [
           { "Fn::Not": [{ "Fn::Equals": [
             { Ref: "ClientOutlookM365ConfigSecretName" },
-            "/lawos/disabled/outlook/config",
+            JSON_POSTGRES_OUTLOOK_DISABLED_CONFIG_SECRET_NAME,
           ] }] },
           { "Fn::Not": [{ "Fn::Equals": [
             { Ref: "ClientOutlookCredentialSecretPrefix" },
-            "/lawos/disabled/outlook/credentials/",
+            JSON_POSTGRES_OUTLOOK_DISABLED_CREDENTIAL_SECRET_PREFIX,
           ] }] },
         ],
       })
     || resources.OutlookConversationWorkerSchedule?.Properties?.ScheduleExpression
       !== "rate(1 minute)"
+    || JSON_POSTGRES_OUTLOOK_WORKER_RESOURCE_IDS.some((logicalId) =>
+      resources[logicalId]?.Condition !== "OutlookConversationWorkerProvisioned")
     || resources.OutlookConversationWorkerSchedule?.Properties?.State
       ?.["Fn::If"]?.[2] !== "DISABLED"
     || JSON.parse(resources.OutlookConversationWorkerSchedule?.Properties
@@ -2815,21 +3599,32 @@ export function validateJsonPostgresProductionTemplate(template) {
       ?.SqsManagedSseEnabled !== true
     || resources.OutlookConversationWorkerDeadLetterQueue?.Properties
       ?.MessageRetentionPeriod !== 1_209_600
-    || resources.ApiFunction?.Properties?.Environment?.Variables
-      ?.LAWOS_OUTLOOK_CONVERSATION_WORKER_SCHEDULE_ENABLED
-      ?.["Fn::If"]?.[2] !== "false"
-    || resources.ApiFunction?.Properties?.Environment?.Variables
-      ?.LAWOS_CLIENT_OUTLOOK_M365_GRAPH_ENABLED
-      ?.["Fn::If"]?.[0] !== "OutlookConversationWorkerEnabled"
-    || resources.ApiFunction?.Properties?.Environment?.Variables
-      ?.LAWOS_CLIENT_OUTLOOK_PROVIDER_RUNTIME_ENABLED
-      ?.["Fn::If"]?.[0] !== "OutlookConversationWorkerEnabled"
-    || resources.ApiFunction?.Properties?.Environment?.Variables
-      ?.LAWOS_CLIENT_OUTLOOK_M365_CONFIG_SECRET_ID?.Ref
-      !== "ClientOutlookM365ConfigSecretName"
-    || resources.ApiFunction?.Properties?.Environment?.Variables
-      ?.LAWOS_GRAPH_NOTIFICATION_URL?.["Fn::Sub"]
+    || configuredOutlookEnvironmentNames.some((name) =>
+      configuredOutlookEnvironment(name)?.[0]
+        !== "OutlookConversationWorkerConfigured"
+      || configuredOutlookEnvironment(name)?.[2]?.Ref !== "AWS::NoValue")
+    || configuredOutlookEnvironment(
+      "LAWOS_OUTLOOK_CONVERSATION_WORKER_SCHEDULE_ENABLED",
+    )?.[1]?.["Fn::If"]?.[0] !== "OutlookConversationWorkerEnabled"
+    || configuredOutlookEnvironment(
+      "LAWOS_OUTLOOK_CONVERSATION_WORKER_SCHEDULE_ENABLED",
+    )?.[1]?.["Fn::If"]?.[2] !== "false"
+    || configuredOutlookEnvironment(
+      "LAWOS_CLIENT_OUTLOOK_M365_GRAPH_ENABLED",
+    )?.[1]?.["Fn::If"]?.[0] !== "OutlookConversationWorkerEnabled"
+    || configuredOutlookEnvironment(
+      "LAWOS_CLIENT_OUTLOOK_PROVIDER_RUNTIME_ENABLED",
+    )?.[1]?.["Fn::If"]?.[0] !== "OutlookConversationWorkerEnabled"
+    || configuredOutlookEnvironment(
+      "LAWOS_CLIENT_OUTLOOK_M365_CONFIG_SECRET_ID",
+    )?.[1]?.Ref !== "ClientOutlookM365ConfigSecretName"
+    || configuredOutlookEnvironment(
+      "LAWOS_GRAPH_NOTIFICATION_URL",
+    )?.[1]?.["Fn::Sub"]
       !== "${HttpApi.ApiEndpoint}/api/outlook/graph/notifications"
+    || configuredOutlookEnvironment(
+      "LAWOS_CLIENT_OUTLOOK_INQUIRY_ENABLED",
+    )?.[1] !== "false"
     || template.Parameters?.EnableProjectionWorker?.Default !== "false"
     || template.Parameters?.ProjectionWorkerEventJson?.MaxLength !== 640
     || template.Parameters?.HrxProjectionMappingObjectKey?.Default
@@ -2887,6 +3682,10 @@ export function validateJsonPostgresProductionTemplate(template) {
   const outlookFailureWrite = policyStatements(resources.ApiExecutionRole)
     .find((item) => item.Sid
       === "SendOnlyOutlookConversationWorkerFailuresToExactDeadLetterQueue");
+  const conditionalOutlookFailureWrite = conditionalPolicyStatement(
+    resources.ApiExecutionRole,
+    "SendOnlyOutlookConversationWorkerFailuresToExactDeadLetterQueue",
+  )?.["Fn::If"];
   const outlookAlarms = [
     [resources.OutlookConversationWorkerErrorAlarm, "AWS/Lambda", "Errors",
       "FunctionName", "OutlookConversationWorkerFunction"],
@@ -2906,6 +3705,9 @@ export function validateJsonPostgresProductionTemplate(template) {
     || outlookFailureWrite?.Action !== "sqs:SendMessage"
     || outlookFailureWrite?.Resource?.["Fn::GetAtt"]?.[0]
       !== "OutlookConversationWorkerDeadLetterQueue"
+    || conditionalOutlookFailureWrite?.[0]
+      !== "OutlookConversationWorkerProvisioned"
+    || conditionalOutlookFailureWrite?.[2]?.Ref !== "AWS::NoValue"
     || resources.OutlookConversationWorkerDeadLetterAlarm?.Properties
       ?.Namespace !== "AWS/SQS"
     || resources.OutlookConversationWorkerDeadLetterAlarm?.Properties
@@ -3150,6 +3952,11 @@ export function validateJsonPostgresProductionTemplate(template) {
     { "Fn::GetAtt": ["DmsBucket", "Arn"] },
     { "Fn::Sub": "${DmsBucket.Arn}/approved-real-migration/*" },
   ];
+  const internalUpdateEndpoint = resources.S3GatewayEndpoint?.Properties
+    ?.PolicyDocument?.Statement?.find((item) =>
+      item?.["Fn::If"]?.[0]
+        === "AmicInternalUnsignedUpdateBrokerEnabled")?.["Fn::If"];
+  const internalUpdateRead = internalUpdateEndpoint?.[1];
   if (!productionInputEndpoint
     || productionInputEndpoint.Effect !== "Allow"
     || productionInputEndpoint.Principal !== "*"
@@ -3159,6 +3966,17 @@ export function validateJsonPostgresProductionTemplate(template) {
     || JSON.stringify(productionInputEndpoint.Resource)
       !== JSON.stringify(endpointResources)) {
     fail("production S3 endpoint program-input or migration-DMS authority drifted");
+  }
+  if (internalUpdateRead?.Sid !== "ApiReadsExactInternalUnsignedDistribution"
+    || internalUpdateRead?.Effect !== "Allow"
+    || internalUpdateRead?.Principal?.AWS?.["Fn::GetAtt"]?.[0]
+      !== "ApiExecutionRole"
+    || JSON.stringify(internalUpdateRead?.Action)
+      !== JSON.stringify(["s3:GetObject", "s3:GetObjectVersion"])
+    || internalUpdateRead?.Resource?.["Fn::Sub"]
+      !== "arn:${AWS::Partition}:s3:::${AmicInternalUnsignedArtifactBucketName}/internal-unsigned/*"
+    || internalUpdateEndpoint?.[2]?.Ref !== "AWS::NoValue") {
+    fail("production internal-update S3 endpoint authority drifted");
   }
   const digest = sha256(template);
   return Object.freeze({
@@ -3179,6 +3997,9 @@ export function validateJsonPostgresProductionTemplate(template) {
     projection_worker_function_count: 1,
     projection_worker_master_secret_read_count: 0,
     projection_worker_schedule_enabled_by_default: false,
+    external_read_secret_policy_count: 1,
+    external_read_providers_enabled_by_default: false,
+    amic_internal_unsigned_update_broker_enabled_by_default: false,
     production_traffic_enabled_by_default: false,
     monthly_cost_ceiling_krw: JSON_POSTGRES_PRODUCTION_COST_CEILING_KRW,
   });

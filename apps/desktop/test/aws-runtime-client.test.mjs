@@ -23,6 +23,7 @@ function binaryResponse(status, headers, chunks) {
   const normalized = new Map(Object.entries(headers).map(([key, value]) => [key.toLowerCase(), String(value)]));
   return {
     status,
+    ok: status >= 200 && status < 300,
     headers: { get(name) { return normalized.get(String(name).toLowerCase()) ?? null; } },
     body: Readable.from(chunks),
   };
@@ -472,6 +473,18 @@ test("runtime client still rejects secret-bearing response material", async () =
   });
 
   await assert.rejects(() => client.accounts(), /forbidden field/);
+
+  const signedSessionClient = createMatterVaultAwsRuntimeClient({
+    baseUrl: "https://example.execute-api.ap-northeast-2.amazonaws.com/staging",
+    fetchImpl: async () => jsonResponse(200, { debug: "lawos_session_v1.secret" }),
+  });
+  await assert.rejects(
+    () => signedSessionClient.api({
+      path: "/api/matters",
+      sessionToken: "lawos_session_v1.secret",
+    }),
+    /credential material/,
+  );
 });
 
 test("runtime client preserves 403 deny responses for general-account smoke checks", async () => {
@@ -531,6 +544,110 @@ test("runtime client proxies signed desktop read API calls without exposing sess
   assert.equal(response.body.items.length, 1);
 });
 
+test("runtime client streams one bounded authenticated profile photo through the desktop bridge", async () => {
+  const bytes = Buffer.concat([
+    Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]),
+    Buffer.from("synthetic-desktop-profile-photo"),
+  ]);
+  const calls = [];
+  const client = createMatterVaultAwsRuntimeClient({
+    baseUrl: "https://example.execute-api.ap-northeast-2.amazonaws.com/staging",
+    fetchImpl: async (url, init) => {
+      calls.push({ url: url.toString(), init });
+      return binaryResponse(200, {
+        "content-type": "image/png",
+        "content-length": bytes.byteLength,
+        "cache-control": "private, no-store",
+        "x-content-type-options": "nosniff",
+      }, [bytes.subarray(0, 9), bytes.subarray(9)]);
+    },
+  });
+
+  const response = await client.api({
+    path: "/api/profile/me/photo",
+    method: "GET",
+    headers: {
+      authorization: "Bearer renderer-token-must-not-pass",
+      "x-lawos-permission-context": "{\"principal\":{\"user_id\":\"user-001\"}}",
+    },
+    sessionToken: "lawos_session_v1.secret",
+  });
+
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].url, "https://example.execute-api.ap-northeast-2.amazonaws.com/staging/api/profile/me/photo");
+  assert.equal(calls[0].init.method, "GET");
+  assert.equal(calls[0].init.headers.authorization, "Bearer lawos_session_v1.secret");
+  assert.equal(calls[0].init.headers["x-lawos-permission-context"].includes("user-001"), true);
+  assert.equal(response.http_status, 200);
+  assert.equal(response.content_type, "image/png");
+  assert.equal(response.byte_size, bytes.byteLength);
+  assert.equal(Buffer.from(response.binary_body_base64, "base64").equals(bytes), true);
+  assert.equal(response.token_material_returned, false);
+  assert.equal(JSON.stringify(response).includes("lawos_session_v1.secret"), false);
+  assert.equal(JSON.stringify(response).includes("renderer-token-must-not-pass"), false);
+});
+
+test("runtime client rejects unbound or oversized profile photo responses", async () => {
+  const pngHeader = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
+  let mode = "unsafe-cache";
+  let fetchCount = 0;
+  const client = createMatterVaultAwsRuntimeClient({
+    baseUrl: "http://127.0.0.1:4812",
+    fetchImpl: async () => {
+      fetchCount += 1;
+      if (mode === "unsafe-cache") {
+        return binaryResponse(200, {
+          "content-type": "image/png",
+          "content-length": pngHeader.byteLength,
+          "cache-control": "public, max-age=3600",
+          "x-content-type-options": "nosniff",
+        }, [pngHeader]);
+      }
+      return binaryResponse(200, {
+        "content-type": "image/png",
+        "cache-control": "private, no-store",
+        "x-content-type-options": "nosniff",
+      }, [pngHeader, Buffer.alloc(5 * 1024 * 1024)]);
+    },
+  });
+
+  const unsafeCache = await client.api({
+    path: "/api/profile/me/photo",
+    sessionToken: "lawos_session_v1.secret",
+  });
+  assert.equal(unsafeCache.http_status, 502);
+  assert.equal(unsafeCache.body.reason, "profile_photo_response_invalid");
+
+  mode = "oversized";
+  const oversized = await client.api({
+    path: "/api/profile/me/photo",
+    sessionToken: "lawos_session_v1.secret",
+  });
+  assert.equal(oversized.http_status, 502);
+  assert.equal(oversized.body.reason, "profile_photo_response_invalid");
+
+  const query = await client.api({
+    path: "/api/profile/me/photo?employee_id=other",
+    sessionToken: "lawos_session_v1.secret",
+  });
+  const body = await client.api({
+    path: "/api/profile/me/photo",
+    body: "{}",
+    sessionToken: "lawos_session_v1.secret",
+  });
+  const write = await client.api({
+    path: "/api/profile/me/photo",
+    method: "POST",
+    body: "{}",
+    sessionToken: "lawos_session_v1.secret",
+  });
+  assert.deepEqual(
+    [query.http_status, body.http_status, write.http_status],
+    [400, 400, 405],
+  );
+  assert.equal(fetchCount, 2);
+});
+
 test("runtime client read API bridge blocks writes and auth routes", async () => {
   const client = createMatterVaultAwsRuntimeClient({
     baseUrl: "https://example.execute-api.ap-northeast-2.amazonaws.com/staging",
@@ -546,6 +663,65 @@ test("runtime client read API bridge blocks writes and auth routes", async () =>
   assert.equal(write.http_status, 405);
   assert.equal(auth.http_status, 403);
   assert.equal(outside.http_status, 403);
+});
+
+test("desktop runtime permits only the exact external-read onboarding and lifecycle writes", async () => {
+  const calls = [];
+  const client = createMatterVaultAwsRuntimeClient({
+    baseUrl: "http://127.0.0.1:4812",
+    fetchImpl: async (url, init) => {
+      calls.push({ path: new URL(url).pathname, init });
+      return jsonResponse(200, {
+        outcome: "completed",
+        credential_material_included: false,
+        raw_provider_payload_included: false,
+        production_ready_claim: false,
+      });
+    },
+  });
+  const connection = "external-connection%3Asynthetic-1";
+  const allowed = [
+    "/api/external-read/connections",
+    ...["sync", "rotate", "disable", "reconnect", "revoke", "repair"]
+      .map((suffix) => `/api/external-read/connections/${connection}/${suffix}`),
+  ];
+  for (const path of allowed) {
+    const response = await client.api({
+      path,
+      method: "POST",
+      body: JSON.stringify({
+        tenant_id: "tenant-synthetic",
+        legal_entity_id: "company-synthetic",
+        idempotency_key: `idempotency-${calls.length}`,
+      }),
+      sessionToken: "lawos_session_v1.secret",
+    });
+    assert.equal(response.http_status, 200, path);
+  }
+  const blocked = await Promise.all([
+    client.api({
+      path: `/api/external-read/connections/${connection}/delete`,
+      method: "POST",
+      body: "{}",
+      sessionToken: "lawos_session_v1.secret",
+    }),
+    client.api({
+      path: `/api/external-read/connections/${connection}/rotate/extra`,
+      method: "POST",
+      body: "{}",
+      sessionToken: "lawos_session_v1.secret",
+    }),
+    client.api({
+      path: `/api/external-read/connections/${connection}/rotate?force=1`,
+      method: "POST",
+      body: "{}",
+      sessionToken: "lawos_session_v1.secret",
+    }),
+  ]);
+  assert.equal(calls.length, allowed.length);
+  assert.deepEqual(blocked.map(({ http_status }) => http_status), [405, 405, 403]);
+  assert.equal(calls.every(({ init }) => init.headers.authorization === "Bearer lawos_session_v1.secret"), true);
+  assert.equal(JSON.stringify(calls).includes("lawos_session_v1.secret"), true);
 });
 
 test("desktop runtime permits only the exact People Outlook connection mutations", async () => {
@@ -1705,8 +1881,78 @@ test("runtime response guard rejects secret-bearing payloads", () => {
   );
   assert.throws(
     () => assertNoRuntimeSecretMaterial({ nested: { value: "runtime-secret" } }, "runtime-secret"),
-    /operator token material/
+    /credential material/
   );
+});
+
+test("internal update authorization is main-only and uses the signed desktop session", async () => {
+  const calls = [];
+  const responseBody = {
+    request_id: "request-internal-update-001",
+    schema_version: "law-firm-os.amic-internal-unsigned-download-authorization.v1",
+    outcome: "authorized",
+    release_id: "amic-os-internal-0.1.32",
+    release_sequence: 32,
+    version: "0.1.32",
+    expires_at: "2026-09-04T12:05:00.000Z",
+    downloads: {
+      artifact: {
+        url: "https://d111111abcdef8.cloudfront.net/internal-unsigned/example.exe?Expires=1&Signature=x&Key-Pair-Id=K1",
+        sha256: "a".repeat(64),
+        bytes: 123,
+        version_id: "version-001",
+      },
+    },
+    authorization_receipt_sha256: "b".repeat(64),
+    raw_s3_location_returned: false,
+    aws_credentials_returned: false,
+    private_key_material_returned: false,
+    public_release_allowed: false,
+    production_ready_claim: false,
+  };
+  const client = createMatterVaultAwsRuntimeClient({
+    baseUrl: "https://runtime.example.test",
+    fetchImpl: async (url, init) => {
+      calls.push({ url: String(url), init });
+      return jsonResponse(200, responseBody);
+    },
+  });
+
+  const authorized = await client.authorizeInternalUnsignedUpdate({
+    sessionToken: "lawos_session_v1.secret",
+  });
+  assert.equal(authorized.outcome, "authorized");
+  assert.deepEqual(Object.keys(authorized).sort(), [
+    "authorization_receipt_sha256",
+    "aws_credentials_returned",
+    "downloads",
+    "expires_at",
+    "http_status",
+    "outcome",
+    "private_key_material_returned",
+    "public_release_allowed",
+    "raw_s3_location_returned",
+    "release_id",
+    "release_sequence",
+    "schema_version",
+    "version",
+  ]);
+  assert.equal(Object.hasOwn(authorized, "request_id"), false);
+  assert.equal(Object.hasOwn(authorized, "production_ready_claim"), false);
+  assert.equal(calls.length, 1);
+  assert.equal(new URL(calls[0].url).pathname, "/api/desktop/internal-updates/authorize");
+  assert.equal(calls[0].init.method, "POST");
+  assert.equal(calls[0].init.headers.authorization, "Bearer lawos_session_v1.secret");
+  assert.equal(calls[0].init.body, undefined);
+
+  const blocked = await client.api({
+    path: "/api/desktop/internal-updates/authorize",
+    method: "POST",
+    sessionToken: "lawos_session_v1.secret",
+  });
+  assert.equal(blocked.http_status, 403);
+  assert.equal(blocked.reason, "desktop_main_only_route");
+  assert.equal(calls.length, 1);
 });
 
 test("disabled runtime client reports missing config without secret material", async () => {

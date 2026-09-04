@@ -338,6 +338,7 @@ function registeredEmploymentProfiles(tenantId) {
       title: member.title ?? account?.source_title ?? "구성원",
       org_unit_id: member.org_unit_id || account?.group_ids?.[0] || "group_matter_vault_users",
       manager_employee_id: member.manager_employee_id ?? null,
+      start_date: member.start_date ?? null,
       effective_from: member.start_date || "2026-06-22",
       source_ref: member.manager_employee_id
         ? `${member.source_ref}:manager:${member.employee_id}:${member.manager_employee_id}`
@@ -428,20 +429,54 @@ function departmentForDirectoryRow(employee, profile, member) {
   return orgUnitForProfile(profile)?.department ?? "미등록";
 }
 
-function employeeRosterReadFields(employee, profile) {
-  const member = memberRosterForEmployee(employee);
-  const publicProfile = findHrxPublicProfessionalProfileByEmployeeId(employee.employee_id);
+function parsedProfessionalProfile(value) {
+  if (value == null || typeof value === "object") return value ?? null;
+  if (typeof value !== "string") return null;
+  try {
+    const parsed = JSON.parse(value);
+    return parsed && typeof parsed === "object" && !Array.isArray(parsed)
+      ? parsed
+      : null;
+  } catch {
+    return null;
+  }
+}
+
+function employeeRosterReadFields(
+  employee,
+  profile,
+  { allowStaticRosterFallback = true } = {},
+) {
+  const member = allowStaticRosterFallback
+    ? memberRosterForEmployee(employee)
+    : null;
+  const publicProfile = allowStaticRosterFallback
+    ? findHrxPublicProfessionalProfileByEmployeeId(employee.employee_id)
+    : null;
   const orgUnit = orgUnitForProfile(profile);
   const department = departmentForDirectoryRow(employee, profile, member);
   return {
     title: profile?.title,
     employment_type: profile?.employment_type,
-    affiliation: member?.affiliation ?? orgUnit?.label ?? "AMIC Law",
-    department,
-    organization_group: member?.organization_group ?? orgUnit?.organization_group ?? department,
-    country: member?.country ?? "대한민국",
-    mobile_phone: member?.mobile_phone || null,
-    professional_profile: profile?.professional_profile ?? member?.professional_profile ?? publicProfile?.professional_profile ?? null,
+    legal_entity_id: profile?.legal_entity_id ?? null,
+    affiliation: profile?.affiliation
+      ?? member?.affiliation
+      ?? orgUnit?.label
+      ?? (allowStaticRosterFallback ? "AMIC Law" : null),
+    department: profile?.department ?? department,
+    organization_group: profile?.organization_group
+      ?? member?.organization_group
+      ?? orgUnit?.organization_group
+      ?? department,
+    country: profile?.country
+      ?? member?.country
+      ?? (allowStaticRosterFallback ? "대한민국" : null),
+    mobile_phone: employee?.mobile_phone ?? member?.mobile_phone ?? null,
+    start_date: profile?.start_date ?? null,
+    professional_profile: parsedProfessionalProfile(profile?.professional_profile)
+      ?? member?.professional_profile
+      ?? publicProfile?.professional_profile
+      ?? null,
     source_ref: profile?.professional_profile ? profile.source_ref : member?.source_ref ?? publicProfile?.source_ref ?? employee.source_ref,
     employment_profile_id: profile?.profile_id ?? null,
     org_unit_id: profile?.org_unit_id ?? member?.org_unit_id ?? null,
@@ -450,7 +485,11 @@ function employeeRosterReadFields(employee, profile) {
   };
 }
 
-function employeeDirectoryRows(repository, tenantId, { asOf = currentDateKey() } = {}) {
+function employeeDirectoryRows(
+  repository,
+  tenantId,
+  { asOf = currentDateKey(), allowStaticRosterFallback = true } = {},
+) {
   const profilesByEmployeeId = repository
     .listEmploymentProfiles({ tenant_id: tenantId })
     .reduce((groups, profile) => {
@@ -464,7 +503,9 @@ function employeeDirectoryRows(repository, tenantId, { asOf = currentDateKey() }
       return {
         ...employee,
         display_name: publicEmployeeDisplayName(employee),
-        ...employeeRosterReadFields(employee, profile),
+        ...employeeRosterReadFields(employee, profile, {
+          allowStaticRosterFallback,
+        }),
       };
     });
   const employeeById = new Map(rows.map((employee) => [employee.employee_id, employee]));
@@ -491,14 +532,17 @@ export function resolveHrxEmployeeProfileByUserId(context, { tenant_id: tenantId
   const employee = repository.getEmployee({ tenant_id: tenantId, employee_id: links[0].employee_id });
   if (!employee) return null;
   const employmentProfile = currentEmploymentProfile(repository, tenantId, employee.employee_id);
-  const rosterFields = employeeRosterReadFields(employee, employmentProfile);
-  const rosterMember = memberRosterForEmployee(employee);
+  const allowStaticRosterFallback =
+    context?.allowStaticRosterFallback !== false;
+  const rosterFields = employeeRosterReadFields(employee, employmentProfile, {
+    allowStaticRosterFallback,
+  });
   return Object.freeze({
     ...employee,
     display_name: publicEmployeeDisplayName(employee),
     ...rosterFields,
     title: rosterFields.title ?? employmentProfile?.title ?? "",
-    start_date: rosterMember?.start_date ?? "",
+    start_date: rosterFields.start_date ?? "",
     employment_profile: employmentProfile,
   });
 }
@@ -556,7 +600,10 @@ function organizationChangeEvents(audit, tenantId) {
 function buildHrxOrgChart(context, actorContext, { employeeIds = null, asOf = currentDateKey() } = {}) {
   const tenantId = actorContext.tenant_id;
   const allowedEmployeeIds = employeeIds ? new Set(employeeIds) : null;
-  const rows = employeeDirectoryRows(context.repository, tenantId, { asOf }).filter((employee) => employee.status === "active");
+  const rows = employeeDirectoryRows(context.repository, tenantId, {
+    asOf,
+    allowStaticRosterFallback: context.allowStaticRosterFallback,
+  }).filter((employee) => employee.status === "active");
   const visibleRows = allowedEmployeeIds ? rows.filter((employee) => allowedEmployeeIds.has(employee.employee_id)) : rows;
   const visibleByEmployeeId = new Map(visibleRows.map((employee) => [employee.employee_id, employee]));
   const directReportCounts = new Map();
@@ -1235,6 +1282,7 @@ function readPeopleDailyBrief({
   const rosterFields = employeeRosterReadFields(
     employee,
     currentEmploymentProfile(context.repository, actorContext.tenant_id, employeeId),
+    { allowStaticRosterFallback: context.allowStaticRosterFallback },
   );
   const member = {
     ...employee,
@@ -1344,7 +1392,9 @@ function readPeopleTeamOperations({
   }
   const asOf = peopleAsOf(context);
   const timezone = context.peopleTimezone;
-  const employees = employeeDirectoryRows(context.repository, actorContext.tenant_id)
+  const employees = employeeDirectoryRows(context.repository, actorContext.tenant_id, {
+    allowStaticRosterFallback: context.allowStaticRosterFallback,
+  })
     .filter((employee) => !["inactive", "terminated"].includes(employee.status));
   if (employees.length > PEOPLE_TEAM_OPERATIONS_MEMBER_LIMIT) {
     throw safeHrxRuntimeError(
@@ -4308,9 +4358,14 @@ export function createHrxRuntimeContext({
   outlookOauthPort = null,
   seedPayrollRuntime = false,
   seedRuntimeFixtures = true,
+  allowStaticRosterFallback = null,
+  identityUserDirectory = null,
+  memberPhotoStorage = null,
 } = {}) {
   const peopleRuntimeClock = runtimeClock ?? (() => new Date().toISOString());
   const resolvedPeopleFeatureFlags = resolvePeopleFeatureFlags(peopleFeatureFlags);
+  const resolvedAllowStaticRosterFallback = allowStaticRosterFallback
+    ?? seedRuntimeFixtures;
   const seedTenantIds = seedRuntimeFixtures ? HRX_DEFAULT_SEED_TENANT_IDS : [];
   const repository = providedRepository ?? (store ? createSqlHrxRepository({ store }) : createInMemoryHrxRepository({
     employees: seedTenantIds.flatMap(seedEmployees),
@@ -4382,7 +4437,11 @@ export function createHrxRuntimeContext({
   const leaveReportingService = store
     ? createLeaveReportingService({
         store,
-        employeeDirectory: ({ tenant_id }) => employeeDirectoryRows(repository, tenant_id),
+        employeeDirectory: ({ tenant_id }) => employeeDirectoryRows(
+          repository,
+          tenant_id,
+          { allowStaticRosterFallback: resolvedAllowStaticRosterFallback },
+        ),
       })
     : null;
   const resolvedLeaveIntegrationProviders = leaveIntegrationProviders
@@ -4405,7 +4464,11 @@ export function createHrxRuntimeContext({
     ? createLeavePromotionService({
         store,
         documents,
-        employeeDirectory: ({ tenant_id }) => employeeDirectoryRows(repository, tenant_id),
+        employeeDirectory: ({ tenant_id }) => employeeDirectoryRows(
+          repository,
+          tenant_id,
+          { allowStaticRosterFallback: resolvedAllowStaticRosterFallback },
+        ),
         clock: runtimeClock,
       })
     : null;
@@ -4594,6 +4657,9 @@ export function createHrxRuntimeContext({
     peopleFeatureFlags: resolvedPeopleFeatureFlags,
     peopleMetricsSink,
     peopleTimezone,
+    allowStaticRosterFallback: resolvedAllowStaticRosterFallback,
+    identityUserDirectory,
+    memberPhotoStorage,
     repository,
     documents,
     compensation,
@@ -4987,7 +5053,10 @@ export function handleHrxApiRequest({
       const guarded = employeeGuardResponse({ permissionContext, actorContext });
       if (guarded) return guarded;
       const asOf = requestedAsOfDate(query.as_of);
-      const rows = employeeDirectoryRows(context.repository, tenantId, { asOf });
+      const rows = employeeDirectoryRows(context.repository, tenantId, {
+        asOf,
+        allowStaticRosterFallback: context.allowStaticRosterFallback,
+      });
       if (actorHasElevatedHrxRead(actorContext)) return response(200, { outcome: "ok", employees: rows });
       const employeeIds = employeeIdsForActor(context.repository, tenantId, actorContext.actor_id);
       return response(200, {
@@ -5395,7 +5464,11 @@ export function handleHrxApiRequest({
         employeeId,
         requestedAsOfDate(query.as_of),
       );
-      const rosterReadFields = employeeRosterReadFields(employee, employmentProfile);
+      const rosterReadFields = employeeRosterReadFields(
+        employee,
+        employmentProfile,
+        { allowStaticRosterFallback: context.allowStaticRosterFallback },
+      );
       const manager = employmentProfile?.manager_employee_id
         ? context.repository.getEmployee({ tenant_id: tenantId, employee_id: employmentProfile.manager_employee_id })
         : null;

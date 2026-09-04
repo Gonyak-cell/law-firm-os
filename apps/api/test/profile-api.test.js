@@ -4,17 +4,24 @@ import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
+import { createLocalStorageAdapter } from "../../../packages/dms/src/storage/local-storage-adapter.js";
+import { createHrxMemberPhotoStorage } from "../../../packages/hrx/src/member-photo-storage.js";
 import { createInMemoryHrxRepository } from "../../../packages/hrx/src/repository.js";
 import {
+  findHrxMemberRosterByUserId,
   findHrxPublicProfessionalProfileByEmployeeId,
   memberPhotoDataUrlForEmployeeId,
 } from "../src/hrx-member-roster-registry.js";
-import { resolveHrxEmployeeProfileByUserId } from "../src/hrx-runtime-context.js";
+import { highestPrivilegeRegisteredAccount } from "../src/matter-vault-account-registry.js";
+import {
+  createHrxRuntimeContext,
+  resolveHrxEmployeeProfileByUserId,
+} from "../src/hrx-runtime-context.js";
 import { startApiServer } from "../src/server.js";
 import { apiSessionHeaders } from "./helpers/session.js";
 
-async function withServer(callback) {
-  const started = await startApiServer({ port: 0 });
+async function withServer(callback, options = {}) {
+  const started = await startApiServer({ port: 0, ...options });
   try {
     return await callback(`http://${started.host}:${started.port}`);
   } finally {
@@ -61,7 +68,10 @@ test("Profile API descriptor is exposed and keeps production claim false", async
     assert.equal(health.status, 200);
     const profileContext = health.body.bounded_contexts.find((context) => context.bounded_context === "profile");
     assert.ok(profileContext, "profile bounded context missing");
-    assert.deepEqual(profileContext.endpoints, ["GET /api/profile/me"]);
+    assert.deepEqual(profileContext.endpoints, [
+      "GET /api/profile/me",
+      "GET /api/profile/me/photo",
+    ]);
     assert.equal(profileContext.data_source, "authenticated_hrx_member_projection");
     assert.deepEqual(profileContext.contact_policy, {
       visibility: "authenticated_internal",
@@ -153,6 +163,7 @@ test("Profile resolver joins the signed account to its durable HRX employee", ()
       display_name: "서지원",
       legal_name: "서지원",
       work_email: "jwsuh@amic.kr",
+      mobile_phone: "+82-10-0000-0000",
       status: "active",
       source_ref: "durable-hrx-runtime",
     }],
@@ -164,6 +175,12 @@ test("Profile resolver joins the signed account to its durable HRX employee", ()
       status: "active",
       title: "대표변호사",
       org_unit_id: "org_legal",
+      legal_entity_id: "company-synthetic",
+      affiliation: "Server Firm",
+      department: "Server Legal",
+      organization_group: "Server Firm",
+      country: "대한민국",
+      start_date: "2026-06-22",
       manager_employee_id: null,
       effective_from: "2026-06-22",
       source_ref: "durable-hrx-runtime",
@@ -177,7 +194,10 @@ test("Profile resolver joins the signed account to its durable HRX employee", ()
       source_ref: "durable-hrx-runtime",
     }],
   });
-  const profile = resolveHrxEmployeeProfileByUserId({ repository }, {
+  const profile = resolveHrxEmployeeProfileByUserId({
+    repository,
+    allowStaticRosterFallback: false,
+  }, {
     tenant_id: tenantId,
     user_id: "user_amic_jwsuh",
   });
@@ -185,9 +205,127 @@ test("Profile resolver joins the signed account to its durable HRX employee", ()
   assert.equal(profile.display_name, "서지원");
   assert.equal(profile.work_email, "jwsuh@amic.kr");
   assert.equal(profile.title, "대표변호사");
-  assert.equal(profile.department, "Legal");
-  assert.equal(profile.affiliation, "AMIC Law");
-  assert.equal(profile.organization_group, "AMIC Law");
+  assert.equal(profile.mobile_phone, "+82-10-0000-0000");
+  assert.equal(profile.start_date, "2026-06-22");
+  assert.equal(profile.legal_entity_id, "company-synthetic");
+  assert.equal(profile.department, "Server Legal");
+  assert.equal(profile.affiliation, "Server Firm");
+  assert.equal(profile.organization_group, "Server Firm");
+});
+
+test("Profile API streams the signed-in employee photo from scoped versioned storage", async () => {
+  const account = highestPrivilegeRegisteredAccount();
+  assert.ok(account);
+  const member = findHrxMemberRosterByUserId(account.user_id);
+  assert.ok(member);
+  const tenantId = account.tenant_memberships?.[0]?.tenant_id;
+  assert.ok(tenantId);
+  const employeeId = member.employee_id;
+  const legalEntityId = "company-amic-law";
+  const png = Buffer.from(
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=",
+    "base64",
+  );
+  const base = createLocalStorageAdapter({
+    adapter_id: "profile-photo-versioned-test",
+  });
+  let providerReadCount = 0;
+  const versionedStorage = Object.freeze({
+    ...base,
+    provider: "synthetic-versioned",
+    finalizeObject(input) {
+      const receipt = base.finalizeObject(input);
+      return Object.freeze({
+        ...receipt,
+        version_id: `version-${receipt.sha256}`,
+      });
+    },
+    statObject(input) {
+      const receipt = base.statObject(input);
+      return receipt && Object.freeze({
+        ...receipt,
+        version_id: `version-${receipt.sha256}`,
+      });
+    },
+    async readObjectBounded(input) {
+      providerReadCount += 1;
+      return base.readObjectBounded(input);
+    },
+  });
+  const memberPhotoStorage = createHrxMemberPhotoStorage({
+    storage: versionedStorage,
+  });
+  const photo = await memberPhotoStorage.storePhoto({
+    tenant_id: tenantId,
+    legal_entity_id: legalEntityId,
+    employee_id: employeeId,
+    idempotency_key: "profile-photo-test-001",
+    bytes: png,
+  });
+  const repository = createInMemoryHrxRepository({
+    employees: [{
+      tenant_id: tenantId,
+      employee_id: employeeId,
+      display_name: "서지원",
+      legal_name: "서지원",
+      work_email: member.work_email,
+      status: "active",
+      source_ref: "postgres-private-bootstrap",
+      ...photo,
+    }],
+    employment_profiles: [{
+      tenant_id: tenantId,
+      profile_id: "profile_amic_jwsuh",
+      employee_id: employeeId,
+      employment_type: "full_time",
+      status: "active",
+      title: "대표변호사",
+      legal_entity_id: legalEntityId,
+      effective_from: "2026-06-22",
+      source_ref: "postgres-private-bootstrap",
+    }],
+    employee_user_links: [{
+      tenant_id: tenantId,
+      link_id: "link_amic_jwsuh",
+      employee_id: employeeId,
+      user_id: account.user_id,
+      purpose: "login_mapping",
+      source_ref: "postgres-private-bootstrap",
+    }],
+  });
+  const hrxRuntime = createHrxRuntimeContext({
+    repository,
+    seedRuntimeFixtures: false,
+    allowStaticRosterFallback: false,
+    memberPhotoStorage,
+  });
+  await withServer(async (baseUrl) => {
+    const headers = await apiSessionHeaders(baseUrl);
+    const profile = await json(baseUrl, profilePath(), { headers });
+    assert.equal(profile.status, 200);
+    assert.equal(profile.body.item.photo_url, "/api/profile/me/photo");
+    assert.equal(profile.body.item.photo_included, true);
+
+    const response = await fetch(`${baseUrl}/api/profile/me/photo`, { headers });
+    assert.equal(response.status, 200);
+    assert.equal(response.headers.get("content-type"), "image/png");
+    assert.equal(response.headers.get("cache-control"), "private, no-store");
+    assert.equal(response.headers.get("x-content-type-options"), "nosniff");
+    assert.equal(Buffer.from(await response.arrayBuffer()).equals(png), true);
+    assert.equal(providerReadCount, 1);
+
+    const wrongTenant = await json(
+      baseUrl,
+      "/api/profile/me/photo?tenant_id=tenant_other",
+      { headers },
+    );
+    assert.equal(wrongTenant.status, 403);
+    assert.equal(providerReadCount, 1);
+
+    const unauthenticated = await json(baseUrl, "/api/profile/me/photo");
+    assert.equal(unauthenticated.status, 401);
+    assert.equal(providerReadCount, 1);
+  }, { hrxRuntime });
 });
 
 test("Packaged public professional profile catalog exposes only the employee join and public profile", () => {

@@ -27,6 +27,10 @@ import {
   validateCloudFormationChangeSetTemplate,
 } from "./lib/cloudformation-template-transport.mjs";
 import {
+  JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SECRET_NAME,
+  JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SHA256,
+  JSON_POSTGRES_OUTLOOK_DISABLED_CONFIG_SECRET_NAME,
+  JSON_POSTGRES_OUTLOOK_DISABLED_CREDENTIAL_SECRET_PREFIX,
   JSON_POSTGRES_PRODUCTION_ENI_ACTIONS,
   buildJsonPostgresProductionArtifactStoreWindowsHandoffBaselineTemplate,
   buildJsonPostgresProductionArtifactStoreWindowsHandoffV2Template,
@@ -40,9 +44,11 @@ import {
 } from "./lib/json-postgres-production-infrastructure.mjs";
 import {
   JSON_POSTGRES_PRODUCTION_ACCOUNT,
+  JSON_POSTGRES_AMIC_INTERNAL_DISTRIBUTION_STACK,
   JSON_POSTGRES_PRODUCTION_ARTIFACT_STACK,
   JSON_POSTGRES_PRODUCTION_CUTOVER_PROFILE,
   JSON_POSTGRES_PRODUCTION_DEPLOY_PROFILE,
+  JSON_POSTGRES_DISABLED_AMIC_INTERNAL_UPDATE_PARAMETERS,
   JSON_POSTGRES_DISABLED_HRX_MAPPING_OBJECT_KEY,
   JSON_POSTGRES_DISABLED_HRX_VALIDATION_OBJECT_KEY,
   JSON_POSTGRES_PRODUCTION_REGION,
@@ -51,12 +57,15 @@ import {
   assertJsonPostgresArtifactStoreBinding,
   assertJsonPostgresProductionCaller,
   assertJsonPostgresProductionStack,
+  buildJsonPostgresAmicInternalUpdateBrokerParameters,
   buildJsonPostgresArtifactStoreParameters,
   buildJsonPostgresProductionStackParameters,
   createJsonPostgresProductionWorkerEventLocator,
   jsonPostgresProductionCombinedTemplateSha256,
   jsonPostgresProductionInfrastructureResultSha256,
   jsonPostgresProductionParametersSha256,
+  validateJsonPostgresAmicInternalUpdateBinding,
+  validateJsonPostgresAmicInternalUpdateBrokerChangeSet,
   validateJsonPostgresProductionChangeSet,
   validateJsonPostgresW15ProductionChangeSet,
   validateJsonPostgresW15WorkerObservability,
@@ -113,6 +122,9 @@ const OPERATIONS = new Set([
   "w15-execute-worker-enable-change-set",
   "w15-create-worker-disable-change-set",
   "w15-execute-worker-disable-change-set",
+  "create-internal-update-broker-change-set",
+  "execute-internal-update-broker-change-set",
+  "verify-internal-update-broker",
 ]);
 const INPUT_VERSION = "law-firm-os.json-postgres-production-infrastructure-input.v1";
 const SHA256 = /^[a-f0-9]{64}$/u;
@@ -207,6 +219,189 @@ function currentStack(name) {
     ?.Stacks?.[0] ?? null;
 }
 
+function requiredInternalUpdateBinding() {
+  return validateJsonPostgresAmicInternalUpdateBinding(
+    readPrivateProgramJson(
+      requiredOption("--internal-update-binding"),
+      "AMIC internal update runtime binding",
+    ),
+  );
+}
+
+function resolveCurrentInternalUpdateBinding(parameters) {
+  if (parameters.EnableAmicInternalUnsignedUpdateBroker === "false") {
+    if (Object.entries(JSON_POSTGRES_DISABLED_AMIC_INTERNAL_UPDATE_PARAMETERS)
+      .some(([key, value]) => parameters[key] !== value)) {
+      throw new Error("disabled AMIC internal update broker parameters drifted");
+    }
+    return null;
+  }
+  if (parameters.EnableAmicInternalUnsignedUpdateBroker !== "true") {
+    throw new Error("AMIC internal update broker activation state is invalid");
+  }
+  const binding = requiredInternalUpdateBinding();
+  const expected = buildJsonPostgresAmicInternalUpdateBrokerParameters(binding);
+  if (Object.entries(expected).some(([key, value]) =>
+    parameters[key] !== value)) {
+    throw new Error("active AMIC internal update broker parameters drifted");
+  }
+  assertInternalUpdateDistributionState(binding);
+  return binding;
+}
+
+function assertInternalUpdateDistributionState(binding) {
+  const stack = currentStack(JSON_POSTGRES_AMIC_INTERNAL_DISTRIBUTION_STACK);
+  const parameters = parameterMap(stack);
+  const outputs = outputMap(stack);
+  if (!stack
+    || !/^(?:CREATE|UPDATE)_COMPLETE$/u.test(stack.StackStatus ?? "")
+    || stack.StackId !== binding.distribution_stack_id
+    || parameters.EnableDistribution !== "true"
+    || parameters.RuntimeDownloadBrokerRoleName
+      !== "lawos-production-api-role"
+    || parameters.GitHubOidcProviderArn
+      !== `arn:aws:iam::${JSON_POSTGRES_PRODUCTION_ACCOUNT}:oidc-provider/`
+        + "token.actions.githubusercontent.com"
+    || outputs.ArtifactBucketName !== binding.artifact_bucket_name
+    || outputs.ArtifactKeyArn !== binding.artifact_kms_key_arn
+    || outputs.CloudFrontDistributionId
+      !== binding.cloudfront_distribution_id
+    || outputs.CloudFrontDomainName !== binding.cloudfront_domain
+    || outputs.CloudFrontKeyGroupId !== binding.cloudfront_key_group_id
+    || outputs.CloudFrontPublicKeyId !== binding.cloudfront_key_pair_id
+    || outputs.RuntimeDownloadBrokerPolicyArn
+      !== binding.runtime_download_broker_policy_arn) {
+    throw new Error("AMIC internal distribution stack binding drifted");
+  }
+  const attached = awsJson([
+    "iam", "list-attached-role-policies",
+    "--role-name", "lawos-production-api-role",
+  ], { region: false }).AttachedPolicies ?? [];
+  if (!attached.some(({ PolicyArn }) =>
+    PolicyArn === binding.runtime_download_broker_policy_arn)) {
+    throw new Error("AMIC internal download broker policy is not attached");
+  }
+  const policy = awsJson([
+    "iam", "get-policy",
+    "--policy-arn", binding.runtime_download_broker_policy_arn,
+  ], { region: false }).Policy;
+  const document = awsJson([
+    "iam", "get-policy-version",
+    "--policy-arn", binding.runtime_download_broker_policy_arn,
+    "--version-id", policy?.DefaultVersionId ?? "missing",
+  ], { region: false }).PolicyVersion?.Document;
+  const statements = document?.Statement ?? [];
+  const objectRead = statements.find(({ Sid }) =>
+    Sid === "ReadOnlyInternalUnsignedObjects");
+  const signerRead = statements.find(({ Sid }) =>
+    Sid === "ReadOnlyCloudFrontViewerSigningSecret");
+  if (JSON.stringify(objectRead?.Action)
+      !== JSON.stringify(["s3:GetObject", "s3:GetObjectVersion"])
+    || objectRead?.Resource
+      !== `arn:aws:s3:::${binding.artifact_bucket_name}/internal-unsigned/*`
+    || JSON.stringify(signerRead?.Action)
+      !== JSON.stringify([
+        "secretsmanager:DescribeSecret",
+        "secretsmanager:GetSecretValue",
+      ])
+    || signerRead?.Resource
+      !== binding.cloudfront_private_key_secret_arn) {
+    throw new Error("AMIC internal download broker live policy drifted");
+  }
+  const distribution = awsJson([
+    "cloudfront", "get-distribution",
+    "--id", binding.cloudfront_distribution_id,
+  ], { region: false }).Distribution;
+  if (distribution?.Status !== "Deployed"
+    || distribution.DomainName !== binding.cloudfront_domain
+    || distribution.DistributionConfig?.Enabled !== true) {
+    throw new Error("AMIC internal CloudFront distribution is not deployed");
+  }
+  const publicAccess = awsJson([
+    "s3api", "get-public-access-block",
+    "--bucket", binding.artifact_bucket_name,
+    "--expected-bucket-owner", JSON_POSTGRES_PRODUCTION_ACCOUNT,
+  ]).PublicAccessBlockConfiguration ?? {};
+  const versioning = awsJson([
+    "s3api", "get-bucket-versioning",
+    "--bucket", binding.artifact_bucket_name,
+    "--expected-bucket-owner", JSON_POSTGRES_PRODUCTION_ACCOUNT,
+  ]);
+  const objectLock = awsJson([
+    "s3api", "get-object-lock-configuration",
+    "--bucket", binding.artifact_bucket_name,
+    "--expected-bucket-owner", JSON_POSTGRES_PRODUCTION_ACCOUNT,
+  ]).ObjectLockConfiguration;
+  const encryption = awsJson([
+    "s3api", "get-bucket-encryption",
+    "--bucket", binding.artifact_bucket_name,
+    "--expected-bucket-owner", JSON_POSTGRES_PRODUCTION_ACCOUNT,
+  ]).ServerSideEncryptionConfiguration?.Rules?.[0]
+    ?.ApplyServerSideEncryptionByDefault;
+  if (Object.keys(publicAccess).length !== 4
+    || !Object.values(publicAccess).every(Boolean)
+    || versioning.Status !== "Enabled"
+    || objectLock?.ObjectLockEnabled !== "Enabled"
+    || objectLock?.Rule?.DefaultRetention?.Mode !== "COMPLIANCE"
+    || encryption?.SSEAlgorithm !== "aws:kms"
+    || encryption?.KMSMasterKeyID !== binding.artifact_kms_key_arn) {
+    throw new Error("AMIC internal artifact bucket governance drifted");
+  }
+  const signer = awsJson([
+    "secretsmanager", "describe-secret",
+    "--secret-id", binding.cloudfront_private_key_secret_arn,
+  ]);
+  if (signer.ARN !== binding.cloudfront_private_key_secret_arn
+    || signer.DeletedDate != null
+    || !signer.KmsKeyId) {
+    throw new Error("AMIC internal CloudFront signer secret drifted");
+  }
+  return Object.freeze({
+    stack_status: stack.StackStatus,
+    stack_id_sha256: sha256ProgramBytes(Buffer.from(stack.StackId)),
+    bucket_governance_verified: true,
+    cloudfront_deployed: true,
+    broker_policy_attached: true,
+    signer_secret_described_without_value_read: true,
+  });
+}
+
+function assertInternalUpdateApiEnvironment(binding) {
+  const configuration = awsJson([
+    "lambda", "get-function-configuration",
+    "--function-name", "lawos-production-api",
+  ]);
+  const environment = configuration.Environment?.Variables ?? {};
+  const expected = {
+    LAWOS_AMIC_INTERNAL_UPDATE_ENABLED: "true",
+    LAWOS_AMIC_INTERNAL_UPDATE_AWS_ACCOUNT_ID:
+      JSON_POSTGRES_PRODUCTION_ACCOUNT,
+    LAWOS_AMIC_INTERNAL_UPDATE_BUCKET: binding.artifact_bucket_name,
+    LAWOS_AMIC_INTERNAL_UPDATE_KMS_KEY_ARN: binding.artifact_kms_key_arn,
+    LAWOS_AMIC_INTERNAL_UPDATE_CLOUDFRONT_DOMAIN:
+      binding.cloudfront_domain,
+    LAWOS_AMIC_INTERNAL_UPDATE_CLOUDFRONT_KEY_PAIR_ID:
+      binding.cloudfront_key_pair_id,
+    LAWOS_AMIC_INTERNAL_UPDATE_CLOUDFRONT_PRIVATE_KEY_SECRET_ARN:
+      binding.cloudfront_private_key_secret_arn,
+    LAWOS_AMIC_INTERNAL_UPDATE_ED25519_PUBLIC_KEY_SPKI_BASE64:
+      binding.metadata_public_key_spki_base64,
+  };
+  if (configuration.State !== "Active"
+    || configuration.LastUpdateStatus !== "Successful"
+    || Object.entries(expected).some(([key, value]) =>
+      environment[key] !== value)) {
+    throw new Error("AMIC internal update API runtime binding drifted");
+  }
+  return Object.freeze({
+    lambda_state: configuration.State,
+    lambda_last_update_status: configuration.LastUpdateStatus,
+    environment_binding_count: Object.keys(expected).length,
+    metadata_public_key_sha256:
+      binding.metadata_public_key_sha256,
+  });
+}
+
 function assertChangeSetTemplate(changeSetId, expectedSha256) {
   return validateCloudFormationChangeSetTemplate({
     response: awsJson([
@@ -231,6 +426,8 @@ function createChangeSet({
   label,
   templateUrl = null,
   w15 = false,
+  w15InternalUpdateBinding = null,
+  internalUpdateBinding = null,
 }) {
   const templateByteSize = readFileSync(templatePath).byteLength;
   let resolvedTemplateUrl = templateUrl;
@@ -276,19 +473,30 @@ function createChangeSet({
     templateSha256,
     templateUrl: resolvedTemplateUrl,
   };
-  return w15
-    ? validateJsonPostgresW15ProductionChangeSet(
+  return internalUpdateBinding
+    ? validateJsonPostgresAmicInternalUpdateBrokerChangeSet(
       described,
-      validationInput,
+      { ...validationInput, binding: internalUpdateBinding },
     )
-    : validateJsonPostgresProductionChangeSet(described, {
-      stackName,
-      changeSetType: type,
-      ...validationInput,
-    });
+    : w15
+      ? validateJsonPostgresW15ProductionChangeSet(
+      described,
+      {
+        ...validationInput,
+        internalUpdateBinding: w15InternalUpdateBinding,
+      },
+      )
+      : validateJsonPostgresProductionChangeSet(described, {
+        stackName,
+        changeSetType: type,
+        ...validationInput,
+      });
 }
 
-function executeReviewedChangeSet(review) {
+function executeReviewedChangeSet(review, {
+  internalUpdateBinding = null,
+  w15InternalUpdateBinding = null,
+} = {}) {
   const current = awsJson([
     "cloudformation", "describe-change-set",
     "--change-set-name", review.change_set_id,
@@ -306,10 +514,18 @@ function executeReviewedChangeSet(review) {
     templateSha256: review.template_sha256,
     templateUrl: review.template_url ?? null,
   };
-  const validated = review.purpose === "w15-relational-projection-rebind"
+  const validated = review.purpose === "amic-internal-update-broker-activation"
+    ? validateJsonPostgresAmicInternalUpdateBrokerChangeSet(current, {
+      ...validationInput,
+      binding: internalUpdateBinding,
+    })
+    : review.purpose === "w15-relational-projection-rebind"
     || review.purpose === "w15-incremental-worker-enable"
     || review.purpose === "w15-incremental-worker-disable"
-    ? validateJsonPostgresW15ProductionChangeSet(current, validationInput)
+    ? validateJsonPostgresW15ProductionChangeSet(current, {
+      ...validationInput,
+      internalUpdateBinding: w15InternalUpdateBinding,
+    })
     : validateJsonPostgresProductionChangeSet(current, {
       stackName: review.stack_name,
       changeSetType: review.change_set_type,
@@ -1103,11 +1319,6 @@ const W15_WORKER_TOGGLE_CHANGE_IDS = new Set([
   "ApiExecutionRole",
   "ApiFunction",
   "HttpApiIntegration",
-  "OutlookConversationWorkerFunction",
-  "OutlookConversationWorkerInvokePermission",
-  "OutlookConversationWorkerSchedule",
-  "PasswordResetWorkerInvokePermission",
-  "PasswordResetWorkerSchedule",
   "ProjectionWorkerSchedule",
   "ProjectionWorkerInvokePermission",
   "ProjectionWorkerDeadLetterQueuePolicy",
@@ -1512,6 +1723,12 @@ if (operation === "preflight"
     || current.EnableProductionTraffic !== "true") {
     throw new Error("W15 requires completed go-live with ENI bootstrap removed");
   }
+  if (w15BootstrapOperation
+    && current.EnableProjectionWorker !== "false") {
+    throw new Error(
+      "W15 inventory bootstrap cannot disable an active projection worker; use an exact W15 rebind",
+    );
+  }
   const parameters = {
     ...current,
     ArtifactBucket: packet.target.artifact_bucket_name,
@@ -1528,6 +1745,17 @@ if (operation === "preflight"
     ExpirationDate: input.expiration_date,
     ExecutionPacketSha256: packet.packet_sha256,
     EnableLambdaEniBootstrap: "true",
+    EnableExternalReadProviders: "false",
+    ExternalReadProviderPackSecretName:
+      JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SECRET_NAME,
+    ExternalReadProviderPackSha256:
+      JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SHA256,
+    ...JSON_POSTGRES_DISABLED_AMIC_INTERNAL_UPDATE_PARAMETERS,
+    EnableOutlookConversationWorker: "false",
+    ClientOutlookM365ConfigSecretName:
+      JSON_POSTGRES_OUTLOOK_DISABLED_CONFIG_SECRET_NAME,
+    ClientOutlookCredentialSecretPrefix:
+      JSON_POSTGRES_OUTLOOK_DISABLED_CREDENTIAL_SECRET_PREFIX,
     EnableProjectionWorker: "false",
     ProjectionWorkerEventJson: "{}",
     HrxProjectionMappingObjectKey:
@@ -1987,6 +2215,8 @@ if (operation === "preflight"
   if (!stack) throw new Error("production stack does not exist");
   const current = parameterMap(stack);
   const outputs = outputMap(stack);
+  const internalUpdateBinding =
+    resolveCurrentInternalUpdateBinding(current);
   assertJsonPostgresProductionStack(stack, {
     packet,
     artifactVersion: current.ArtifactVersion,
@@ -1994,6 +2224,7 @@ if (operation === "preflight"
     trafficEnabled: true,
     eniBootstrapEnabled: false,
     projectionWorkerEnabled: false,
+    internalUpdateBrokerBinding: internalUpdateBinding,
   });
   validateEniAuthorityRemoved({ includeProjection: true });
   const resolvedProgramInputKey = awsJson([
@@ -2052,6 +2283,16 @@ if (operation === "preflight"
   }
   const parameters = {
     ...current,
+    EnableExternalReadProviders: "false",
+    ExternalReadProviderPackSecretName:
+      JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SECRET_NAME,
+    ExternalReadProviderPackSha256:
+      JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SHA256,
+    EnableOutlookConversationWorker: "false",
+    ClientOutlookM365ConfigSecretName:
+      JSON_POSTGRES_OUTLOOK_DISABLED_CONFIG_SECRET_NAME,
+    ClientOutlookCredentialSecretPrefix:
+      JSON_POSTGRES_OUTLOOK_DISABLED_CREDENTIAL_SECRET_PREFIX,
     EnableProjectionWorker: "true",
     ProjectionWorkerEventJson: serializedWorkerEventLocator,
     HrxProjectionMappingObjectKey: mappingLocator.key,
@@ -2066,6 +2307,7 @@ if (operation === "preflight"
     parameters,
     label: "w15-worker-enable",
     w15: true,
+    w15InternalUpdateBinding: internalUpdateBinding,
   });
   assertReviewedChangeSubset(
     review,
@@ -2094,6 +2336,11 @@ if (operation === "preflight"
     hrx_projection_validation_object_key: validationLocator.key,
     production_traffic_enabled: true,
     projection_worker_enabled: false,
+    internal_update_broker_enabled: internalUpdateBinding != null,
+    ...(internalUpdateBinding ? {
+      internal_update_binding_sha256:
+        jsonPostgresProductionParametersSha256(internalUpdateBinding),
+    } : {}),
     aws_mutation_count: 1 + storedWorkerEvent.mutation_count,
     production_write_count: 0,
   };
@@ -2144,7 +2391,19 @@ if (operation === "preflight"
     W15_WORKER_TOGGLE_CHANGE_IDS,
     "W15 worker enable",
   );
-  const updated = executeReviewedChangeSet(review);
+  const current = parameterMap(currentStack(JSON_POSTGRES_PRODUCTION_STACK));
+  const internalUpdateBinding =
+    resolveCurrentInternalUpdateBinding(current);
+  if (review.internal_update_broker_enabled
+      !== (internalUpdateBinding != null)
+    || (internalUpdateBinding
+      && review.internal_update_binding_sha256
+        !== jsonPostgresProductionParametersSha256(internalUpdateBinding))) {
+    throw new Error("reviewed W15 worker update broker binding drifted");
+  }
+  const updated = executeReviewedChangeSet(review, {
+    w15InternalUpdateBinding: internalUpdateBinding,
+  });
   assertJsonPostgresProductionStack(updated, {
     packet,
     artifactVersion: review.artifact_version,
@@ -2152,6 +2411,7 @@ if (operation === "preflight"
     trafficEnabled: true,
     eniBootstrapEnabled: false,
     projectionWorkerEnabled: true,
+    internalUpdateBrokerBinding: internalUpdateBinding,
   });
   validateEniAuthorityRemoved({ includeProjection: true });
   const rule = awsJson([
@@ -2169,6 +2429,7 @@ if (operation === "preflight"
     backfill_wave_5_receipt_sha256: backfill.canonical_sha256,
     production_traffic_enabled: true,
     projection_worker_enabled: true,
+    internal_update_broker_enabled: internalUpdateBinding != null,
     temporary_eni_allow_count: 0,
     aws_mutation_count: 1,
     production_write_count: 0,
@@ -2177,6 +2438,8 @@ if (operation === "preflight"
   const stack = currentStack(JSON_POSTGRES_PRODUCTION_STACK);
   if (!stack) throw new Error("production stack does not exist");
   const current = parameterMap(stack);
+  const internalUpdateBinding =
+    resolveCurrentInternalUpdateBinding(current);
   assertJsonPostgresProductionStack(stack, {
     packet,
     artifactVersion: current.ArtifactVersion,
@@ -2184,10 +2447,21 @@ if (operation === "preflight"
     trafficEnabled: true,
     eniBootstrapEnabled: false,
     projectionWorkerEnabled: true,
+    internalUpdateBrokerBinding: internalUpdateBinding,
   });
   validateEniAuthorityRemoved({ includeProjection: true });
   const parameters = {
     ...current,
+    EnableExternalReadProviders: "false",
+    ExternalReadProviderPackSecretName:
+      JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SECRET_NAME,
+    ExternalReadProviderPackSha256:
+      JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SHA256,
+    EnableOutlookConversationWorker: "false",
+    ClientOutlookM365ConfigSecretName:
+      JSON_POSTGRES_OUTLOOK_DISABLED_CONFIG_SECRET_NAME,
+    ClientOutlookCredentialSecretPrefix:
+      JSON_POSTGRES_OUTLOOK_DISABLED_CREDENTIAL_SECRET_PREFIX,
     EnableProjectionWorker: "false",
     ProjectionWorkerEventJson: "{}",
     HrxProjectionMappingObjectKey:
@@ -2204,6 +2478,7 @@ if (operation === "preflight"
     parameters,
     label: "w15-worker-disable",
     w15: true,
+    w15InternalUpdateBinding: internalUpdateBinding,
   });
   assertReviewedChangeSubset(
     review,
@@ -2221,6 +2496,11 @@ if (operation === "preflight"
     artifact_version: current.ArtifactVersion,
     production_traffic_enabled: true,
     projection_worker_enabled: true,
+    internal_update_broker_enabled: internalUpdateBinding != null,
+    ...(internalUpdateBinding ? {
+      internal_update_binding_sha256:
+        jsonPostgresProductionParametersSha256(internalUpdateBinding),
+    } : {}),
     aws_mutation_count: 1,
     production_write_count: 0,
   };
@@ -2242,7 +2522,19 @@ if (operation === "preflight"
     W15_WORKER_TOGGLE_CHANGE_IDS,
     "W15 worker disable",
   );
-  const updated = executeReviewedChangeSet(review);
+  const current = parameterMap(currentStack(JSON_POSTGRES_PRODUCTION_STACK));
+  const internalUpdateBinding =
+    resolveCurrentInternalUpdateBinding(current);
+  if (review.internal_update_broker_enabled
+      !== (internalUpdateBinding != null)
+    || (internalUpdateBinding
+      && review.internal_update_binding_sha256
+        !== jsonPostgresProductionParametersSha256(internalUpdateBinding))) {
+    throw new Error("reviewed W15 worker rollback broker binding drifted");
+  }
+  const updated = executeReviewedChangeSet(review, {
+    w15InternalUpdateBinding: internalUpdateBinding,
+  });
   assertJsonPostgresProductionStack(updated, {
     packet,
     artifactVersion: review.artifact_version,
@@ -2250,6 +2542,7 @@ if (operation === "preflight"
     trafficEnabled: true,
     eniBootstrapEnabled: false,
     projectionWorkerEnabled: false,
+    internalUpdateBrokerBinding: internalUpdateBinding,
   });
   validateEniAuthorityRemoved({ includeProjection: true });
   const rule = awsJson([
@@ -2266,8 +2559,133 @@ if (operation === "preflight"
     stack_status: updated.StackStatus,
     production_traffic_enabled: true,
     projection_worker_enabled: false,
+    internal_update_broker_enabled: internalUpdateBinding != null,
     temporary_eni_allow_count: 0,
     aws_mutation_count: 1,
+    production_write_count: 0,
+  };
+} else if (operation === "create-internal-update-broker-change-set") {
+  const binding = requiredInternalUpdateBinding();
+  const stack = currentStack(JSON_POSTGRES_PRODUCTION_STACK);
+  if (!stack) throw new Error("production stack does not exist");
+  const current = parameterMap(stack);
+  const projectionWorkerEnabled = current.EnableProjectionWorker === "true";
+  assertJsonPostgresProductionStack(stack, {
+    packet,
+    artifactVersion: current.ArtifactVersion,
+    trustRegistrySha256: registrySha256,
+    trafficEnabled: true,
+    eniBootstrapEnabled: false,
+    projectionWorkerEnabled,
+  });
+  validateEniAuthorityRemoved({ includeProjection: true });
+  const distribution = assertInternalUpdateDistributionState(binding);
+  const parameters = {
+    ...current,
+    ...buildJsonPostgresAmicInternalUpdateBrokerParameters(binding),
+  };
+  const review = createChangeSet({
+    stackName: JSON_POSTGRES_PRODUCTION_STACK,
+    type: "UPDATE",
+    templatePath: productionTemplatePath,
+    template: productionTemplate,
+    templateSha256: productionValidation.template_sha256,
+    parameters,
+    label: "amic-internal-update-broker",
+    internalUpdateBinding: binding,
+  });
+  result = {
+    schema_version:
+      "law-firm-os.json-postgres-production-reviewed-change-set.v1",
+    operation,
+    outcome: "PASS",
+    caller,
+    ...review,
+    artifact_version: current.ArtifactVersion,
+    production_traffic_enabled: true,
+    projection_worker_enabled: projectionWorkerEnabled,
+    distribution,
+    aws_mutation_count: 1,
+    production_write_count: 0,
+  };
+} else if (operation === "execute-internal-update-broker-change-set") {
+  const binding = requiredInternalUpdateBinding();
+  const review = readPrivateProgramJson(
+    requiredOption("--reviewed-change-set"),
+    "reviewed AMIC internal update broker change set",
+  );
+  if (review?.schema_version
+      !== "law-firm-os.json-postgres-production-reviewed-change-set.v1"
+    || review.purpose !== "amic-internal-update-broker-activation"
+    || review.outcome !== "PASS"
+    || review.stack_name !== JSON_POSTGRES_PRODUCTION_STACK
+    || review.internal_update_binding_sha256
+      !== jsonPostgresProductionParametersSha256(binding)
+    || review.production_traffic_enabled !== true
+    || typeof review.projection_worker_enabled !== "boolean") {
+    throw new Error("reviewed AMIC internal update broker change set is invalid");
+  }
+  const distribution = assertInternalUpdateDistributionState(binding);
+  const updated = executeReviewedChangeSet(review, {
+    internalUpdateBinding: binding,
+  });
+  assertJsonPostgresProductionStack(updated, {
+    packet,
+    artifactVersion: review.artifact_version,
+    trustRegistrySha256: registrySha256,
+    trafficEnabled: true,
+    eniBootstrapEnabled: false,
+    projectionWorkerEnabled: review.projection_worker_enabled,
+    internalUpdateBrokerBinding: binding,
+  });
+  validateEniAuthorityRemoved({ includeProjection: true });
+  const runtime = assertInternalUpdateApiEnvironment(binding);
+  result = {
+    operation,
+    outcome: "PASS",
+    caller,
+    stack_status: updated.StackStatus,
+    internal_update_binding_sha256:
+      jsonPostgresProductionParametersSha256(binding),
+    distribution,
+    runtime,
+    production_traffic_enabled: true,
+    internal_update_broker_enabled: true,
+    projection_worker_enabled: review.projection_worker_enabled,
+    temporary_eni_allow_count: 0,
+    aws_mutation_count: 1,
+    production_write_count: 0,
+  };
+} else if (operation === "verify-internal-update-broker") {
+  const binding = requiredInternalUpdateBinding();
+  const stack = currentStack(JSON_POSTGRES_PRODUCTION_STACK);
+  if (!stack) throw new Error("production stack does not exist");
+  const current = parameterMap(stack);
+  const projectionWorkerEnabled = current.EnableProjectionWorker === "true";
+  assertJsonPostgresProductionStack(stack, {
+    packet,
+    artifactVersion: current.ArtifactVersion,
+    trustRegistrySha256: registrySha256,
+    trafficEnabled: true,
+    eniBootstrapEnabled: false,
+    projectionWorkerEnabled,
+    internalUpdateBrokerBinding: binding,
+  });
+  const eni = validateEniAuthorityRemoved({ includeProjection: true });
+  result = {
+    operation,
+    outcome: "PASS",
+    caller,
+    stack_status: stack.StackStatus,
+    internal_update_binding_sha256:
+      jsonPostgresProductionParametersSha256(binding),
+    distribution: assertInternalUpdateDistributionState(binding),
+    runtime: assertInternalUpdateApiEnvironment(binding),
+    ...eni,
+    production_traffic_enabled: true,
+    internal_update_broker_enabled: true,
+    projection_worker_enabled: projectionWorkerEnabled,
+    aws_mutation_count: 0,
     production_write_count: 0,
   };
 } else if (operation === "create-production-change-set") {

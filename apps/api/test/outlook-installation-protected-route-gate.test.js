@@ -83,13 +83,14 @@ const EXPECTED = Object.freeze([
   ["GET", "/api/desktop/installations/:installation_id", D],
   ["POST", "/api/desktop/installations/:installation_id/heartbeat", D],
   ["POST", "/api/desktop/installations/:installation_id/retire", D],
+  ["POST", "/api/desktop/internal-updates/authorize", O],
 ]);
 
 function samplePath(template, suffix = "sample") {
   return template.replace(/:[a-z_]+/gu, suffix);
 }
 
-test("the Outlook installation policy is one complete non-overlapping 54-route matrix", () => {
+test("the Outlook installation policy is one complete non-overlapping 55-route matrix", () => {
   assert.deepEqual(
     OUTLOOK_INSTALLATION_ROUTE_POLICIES.map(({ method, template, classification }) => (
       [method, template, classification]
@@ -97,7 +98,7 @@ test("the Outlook installation policy is one complete non-overlapping 54-route m
     EXPECTED,
   );
   assert.deepEqual(auditOutlookInstallationRoutePolicies(), {
-    policy_count: 54,
+    policy_count: 55,
     duplicate_id_count: 0,
     duplicate_route_count: 0,
     ambiguous_sample_count: 0,
@@ -441,7 +442,7 @@ test("HTTP dispatch blocks domain work before install authority and still rechec
         ok: true,
         principal: PRINCIPAL,
         context: permissionContext(),
-        token_payload: { surface: "outlook_addin" },
+        token_payload: { surface: "desktop" },
       };
     },
   };
@@ -504,14 +505,14 @@ test("active authority then revoke denies every protected read and write before 
         ok: true,
         principal: PRINCIPAL,
         context: context(),
-        token_payload: { surface: "outlook_addin" },
+        token_payload: { surface: "desktop" },
       };
     },
   };
   const protectedRequests = EXPECTED
     .filter(([, , classification]) => [R, O].includes(classification))
     .map(([method, template]) => [method, samplePath(template, "guard")]);
-  assert.equal(protectedRequests.length, 37);
+  assert.equal(protectedRequests.length, 38);
 
   const ready = await authorizeOutlookInstallationProtectedRoute({
     method: "POST",

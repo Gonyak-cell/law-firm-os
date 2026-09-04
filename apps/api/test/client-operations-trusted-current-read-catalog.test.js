@@ -31,7 +31,7 @@ test("combined migration 307 binds a separate read-only trusted-current authorit
   );
   assert.equal(
     clientSchema.CLIENT_OPERATIONS_MIGRATION_CATALOG.migration_count,
-    78,
+    79,
   );
   assert.equal(
     clientSchema.CLIENT_OPERATIONS_SCHEMA_MANIFEST

@@ -1,20 +1,33 @@
+import { createHash, generateKeyPairSync } from "node:crypto";
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SECRET_NAME,
+  JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SHA256,
+  JSON_POSTGRES_OUTLOOK_DISABLED_CONFIG_SECRET_NAME,
+  JSON_POSTGRES_OUTLOOK_DISABLED_CREDENTIAL_SECRET_PREFIX,
+} from "../lib/json-postgres-production-infrastructure.mjs";
+import {
   JSON_POSTGRES_PRODUCTION_ACCOUNT,
+  JSON_POSTGRES_AMIC_INTERNAL_DISTRIBUTION_STACK,
+  JSON_POSTGRES_AMIC_INTERNAL_UPDATE_BINDING_SCHEMA,
   JSON_POSTGRES_PRODUCTION_ARTIFACT_STACK,
   JSON_POSTGRES_PRODUCTION_STACK,
+  JSON_POSTGRES_DISABLED_AMIC_INTERNAL_UPDATE_PARAMETERS,
   JSON_POSTGRES_DISABLED_HRX_MAPPING_OBJECT_KEY,
   JSON_POSTGRES_DISABLED_HRX_VALIDATION_OBJECT_KEY,
   assertJsonPostgresArtifactBucketState,
   assertJsonPostgresArtifactStoreBinding,
   assertJsonPostgresProductionCaller,
   assertJsonPostgresProductionStack,
+  buildJsonPostgresAmicInternalUpdateBrokerParameters,
   buildJsonPostgresArtifactStoreParameters,
   buildJsonPostgresProductionStackParameters,
   createJsonPostgresProductionWorkerEventLocator,
   jsonPostgresProductionCombinedTemplateSha256,
   jsonPostgresProductionParametersSha256,
+  validateJsonPostgresAmicInternalUpdateBinding,
+  validateJsonPostgresAmicInternalUpdateBrokerChangeSet,
   validateJsonPostgresProductionChangeSet,
   validateJsonPostgresW15ProductionChangeSet,
   validateJsonPostgresW15WorkerObservability,
@@ -37,6 +50,67 @@ function packet() {
       dms_bucket_name: "lawos-prod-dms-770880870480",
       approved_tenant_ids: ["tenant-approved"],
     },
+  };
+}
+
+function disabledExternalReadParameters() {
+  return [
+    { ParameterKey: "EnableExternalReadProviders", ParameterValue: "false" },
+    {
+      ParameterKey: "ExternalReadProviderPackSecretName",
+      ParameterValue: JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SECRET_NAME,
+    },
+    {
+      ParameterKey: "ExternalReadProviderPackSha256",
+      ParameterValue: JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SHA256,
+    },
+    { ParameterKey: "EnableOutlookConversationWorker", ParameterValue: "false" },
+    {
+      ParameterKey: "ClientOutlookM365ConfigSecretName",
+      ParameterValue: JSON_POSTGRES_OUTLOOK_DISABLED_CONFIG_SECRET_NAME,
+    },
+    {
+      ParameterKey: "ClientOutlookCredentialSecretPrefix",
+      ParameterValue: JSON_POSTGRES_OUTLOOK_DISABLED_CREDENTIAL_SECRET_PREFIX,
+    },
+    ...Object.entries(JSON_POSTGRES_DISABLED_AMIC_INTERNAL_UPDATE_PARAMETERS)
+      .map(([ParameterKey, ParameterValue]) => ({
+        ParameterKey,
+        ParameterValue,
+      })),
+  ];
+}
+
+function internalUpdateBinding() {
+  const { publicKey } = generateKeyPairSync("ed25519");
+  const der = publicKey.export({ format: "der", type: "spki" });
+  return {
+    schema_version: JSON_POSTGRES_AMIC_INTERNAL_UPDATE_BINDING_SCHEMA,
+    aws_account_id: JSON_POSTGRES_PRODUCTION_ACCOUNT,
+    aws_region: "ap-northeast-2",
+    distribution_stack_name:
+      JSON_POSTGRES_AMIC_INTERNAL_DISTRIBUTION_STACK,
+    distribution_stack_id:
+      "arn:aws:cloudformation:ap-northeast-2:770880870480:stack/"
+      + "amic-os-internal-unsigned-distribution/"
+      + "12345678-1234-1234-1234-123456789abc",
+    artifact_bucket_name: "lawos-prod-amic-internal-770880870480",
+    artifact_kms_key_arn:
+      "arn:aws:kms:ap-northeast-2:770880870480:key/"
+      + "12345678-1234-1234-1234-123456789abc",
+    cloudfront_distribution_id: "E123456789ABC",
+    cloudfront_domain: "d123456789abc.cloudfront.net",
+    cloudfront_key_group_id: "e9fcd3cf-f3f4-4b61-bd85-9ba9e091b309",
+    cloudfront_key_pair_id: "K123456789ABC",
+    cloudfront_private_key_secret_arn:
+      "arn:aws:secretsmanager:ap-northeast-2:770880870480:"
+      + "secret:/lawos/production/amic-os/internal-unsigned/cloudfront-signer-AbCd12",
+    metadata_public_key_spki_base64: der.toString("base64"),
+    metadata_public_key_sha256:
+      createHash("sha256").update(der).digest("hex"),
+    runtime_download_broker_policy_arn:
+      "arn:aws:iam::770880870480:policy/"
+      + "amic-os-internal-unsigned-download-broker",
   };
 }
 
@@ -90,7 +164,30 @@ test("production stack parameters preserve exact packet, tenant, traffic and ENI
   });
   assert.equal(parameters.EnableProductionTraffic, "false");
   assert.equal(parameters.EnableLambdaEniBootstrap, "true");
+  assert.equal(parameters.EnableExternalReadProviders, "false");
+  assert.equal(
+    parameters.ExternalReadProviderPackSecretName,
+    JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SECRET_NAME,
+  );
+  assert.equal(
+    parameters.ExternalReadProviderPackSha256,
+    JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SHA256,
+  );
+  assert.equal(parameters.EnableOutlookConversationWorker, "false");
+  assert.equal(
+    parameters.ClientOutlookM365ConfigSecretName,
+    JSON_POSTGRES_OUTLOOK_DISABLED_CONFIG_SECRET_NAME,
+  );
+  assert.equal(
+    parameters.ClientOutlookCredentialSecretPrefix,
+    JSON_POSTGRES_OUTLOOK_DISABLED_CREDENTIAL_SECRET_PREFIX,
+  );
   assert.equal(parameters.EnableProjectionWorker, "false");
+  for (const [key, expected] of Object.entries(
+    JSON_POSTGRES_DISABLED_AMIC_INTERNAL_UPDATE_PARAMETERS,
+  )) {
+    assert.equal(parameters[key], expected);
+  }
   assert.equal(parameters.ProjectionWorkerEventJson, "{}");
   assert.equal(
     parameters.HrxProjectionMappingObjectKey,
@@ -145,6 +242,90 @@ test("W15 worker event uses a compact exact immutable program-input locator", ()
       /worker event locator/u,
     );
   }
+});
+
+test("internal update binding validates exact public infrastructure and change scope", () => {
+  const binding = internalUpdateBinding();
+  assert.equal(
+    validateJsonPostgresAmicInternalUpdateBinding(binding)
+      .distribution_stack_name,
+    JSON_POSTGRES_AMIC_INTERNAL_DISTRIBUTION_STACK,
+  );
+  const brokerParameters =
+    buildJsonPostgresAmicInternalUpdateBrokerParameters(binding);
+  assert.equal(brokerParameters.EnableAmicInternalUnsignedUpdateBroker, "true");
+  assert.equal(
+    brokerParameters.AmicInternalUnsignedArtifactBucketName,
+    binding.artifact_bucket_name,
+  );
+  const changedKey = structuredClone(binding);
+  changedKey.metadata_public_key_sha256 = "0".repeat(64);
+  assert.throws(
+    () => validateJsonPostgresAmicInternalUpdateBinding(changedKey),
+    /public key binding/u,
+  );
+
+  const parameters = disabledExternalReadParameters().map((entry) => {
+    const enabled = brokerParameters[entry.ParameterKey];
+    return enabled === undefined
+      ? entry
+      : { ...entry, ParameterValue: enabled };
+  });
+  const template = {
+    Resources: {
+      ApiFunction: {},
+      S3GatewayEndpoint: {},
+      SecretsManagerEndpoint: {},
+      Database: {},
+    },
+  };
+  const changeSet = {
+    StackName: JSON_POSTGRES_PRODUCTION_STACK,
+    ChangeSetType: "UPDATE",
+    ChangeSetId: "internal-update-broker-change-set",
+    Parameters: parameters,
+    Changes: [
+      ["ApiFunction", "AWS::Lambda::Function"],
+      ["S3GatewayEndpoint", "AWS::EC2::VPCEndpoint"],
+      ["SecretsManagerEndpoint", "AWS::EC2::VPCEndpoint"],
+    ].map(([LogicalResourceId, ResourceType]) => ({
+      ResourceChange: {
+        Action: "Modify",
+        LogicalResourceId,
+        ResourceType,
+        Replacement: "False",
+      },
+    })),
+  };
+  const reviewed = validateJsonPostgresAmicInternalUpdateBrokerChangeSet(
+    changeSet,
+    {
+      binding,
+      template,
+      parametersSha256: "a".repeat(64),
+      templateSha256: "b".repeat(64),
+    },
+  );
+  assert.equal(reviewed.change_count, 3);
+  assert.equal(reviewed.internal_update_broker_enabled, true);
+  const broad = structuredClone(changeSet);
+  broad.Changes.push({
+    ResourceChange: {
+      Action: "Modify",
+      LogicalResourceId: "Database",
+      ResourceType: "AWS::RDS::DBInstance",
+      Replacement: "False",
+    },
+  });
+  assert.throws(
+    () => validateJsonPostgresAmicInternalUpdateBrokerChangeSet(broad, {
+      binding,
+      template,
+      parametersSha256: "a".repeat(64),
+      templateSha256: "b".repeat(64),
+    }),
+    /exceeded its exact scope/u,
+  );
 });
 
 test("production change-set review rejects removals and unsafe replacements", () => {
@@ -239,6 +420,7 @@ test("W15 update review permits only bounded projection additions and exact supp
       ProjectionWorkerSchedule: {},
       ProjectionWorkerInvokePermission: {},
       ProjectionWorkerLagAlarm: {},
+      PasswordResetWorkerSchedule: {},
       Database: {},
     },
   };
@@ -246,6 +428,7 @@ test("W15 update review permits only bounded projection additions and exact supp
     StackName: JSON_POSTGRES_PRODUCTION_STACK,
     ChangeSetType: "UPDATE",
     ChangeSetId: "w15-change-set-1",
+    Parameters: disabledExternalReadParameters(),
     Changes: [
       {
         ResourceChange: {
@@ -300,6 +483,24 @@ test("W15 update review permits only bounded projection additions and exact supp
   });
   assert.equal(reviewed.add_count, 11);
   assert.equal(reviewed.modify_count, 1);
+  assert.equal(reviewed.external_read_providers_enabled, false);
+  assert.equal(reviewed.outlook_resources_enabled, false);
+  assert.equal(reviewed.internal_update_broker_enabled, false);
+  const binding = internalUpdateBinding();
+  const activeBroker = structuredClone(changeSet);
+  const activeBrokerParameters =
+    buildJsonPostgresAmicInternalUpdateBrokerParameters(binding);
+  for (const entry of activeBroker.Parameters) {
+    if (activeBrokerParameters[entry.ParameterKey] !== undefined) {
+      entry.ParameterValue = activeBrokerParameters[entry.ParameterKey];
+    }
+  }
+  assert.equal(validateJsonPostgresW15ProductionChangeSet(activeBroker, {
+    template,
+    parametersSha256: "a".repeat(64),
+    templateSha256: "b".repeat(64),
+    internalUpdateBinding: binding,
+  }).internal_update_broker_enabled, true);
   const database = structuredClone(changeSet);
   database.Changes.push({
     ResourceChange: {
@@ -316,6 +517,70 @@ test("W15 update review permits only bounded projection additions and exact supp
       templateSha256: "b".repeat(64),
     }),
     /unapproved resource change/u,
+  );
+  const passwordSchedule = structuredClone(changeSet);
+  passwordSchedule.Changes.push({
+    ResourceChange: {
+      Action: "Modify",
+      LogicalResourceId: "PasswordResetWorkerSchedule",
+      ResourceType: "AWS::Events::Rule",
+      Replacement: "False",
+    },
+  });
+  assert.throws(
+    () => validateJsonPostgresW15ProductionChangeSet(passwordSchedule, {
+      template,
+      parametersSha256: "a".repeat(64),
+      templateSha256: "b".repeat(64),
+    }),
+    /unapproved resource change/u,
+  );
+  const enabled = structuredClone(changeSet);
+  enabled.Parameters.find((entry) =>
+    entry.ParameterKey === "EnableExternalReadProviders").ParameterValue =
+      "true";
+  assert.throws(
+    () => validateJsonPostgresW15ProductionChangeSet(enabled, {
+      template,
+      parametersSha256: "a".repeat(64),
+      templateSha256: "b".repeat(64),
+    }),
+    /must keep external providers disabled/u,
+  );
+  const absent = structuredClone(changeSet);
+  absent.Parameters = [];
+  assert.throws(
+    () => validateJsonPostgresW15ProductionChangeSet(absent, {
+      template,
+      parametersSha256: "a".repeat(64),
+      templateSha256: "b".repeat(64),
+    }),
+    /safety parameters are ambiguous/u,
+  );
+  const inherited = structuredClone(changeSet);
+  const inheritedFlag = inherited.Parameters.find((entry) =>
+    entry.ParameterKey === "EnableExternalReadProviders");
+  delete inheritedFlag.ParameterValue;
+  inheritedFlag.UsePreviousValue = true;
+  assert.throws(
+    () => validateJsonPostgresW15ProductionChangeSet(inherited, {
+      template,
+      parametersSha256: "a".repeat(64),
+      templateSha256: "b".repeat(64),
+    }),
+    /safety parameters are ambiguous/u,
+  );
+  const outlookEnabled = structuredClone(changeSet);
+  outlookEnabled.Parameters.find((entry) =>
+    entry.ParameterKey === "EnableOutlookConversationWorker").ParameterValue =
+      "true";
+  assert.throws(
+    () => validateJsonPostgresW15ProductionChangeSet(outlookEnabled, {
+      template,
+      parametersSha256: "a".repeat(64),
+      templateSha256: "b".repeat(64),
+    }),
+    /must keep Outlook resources disabled/u,
   );
   const replacement = structuredClone(changeSet);
   replacement.Changes[1].ResourceChange.Replacement = "True";
@@ -540,6 +805,17 @@ test("artifact bucket and production stack observations are exact and fail close
       DmsBucketName: value.target.dms_bucket_name,
       EnableProductionTraffic: "false",
       EnableLambdaEniBootstrap: "false",
+      EnableExternalReadProviders: "false",
+      ExternalReadProviderPackSecretName:
+        JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SECRET_NAME,
+      ExternalReadProviderPackSha256:
+        JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SHA256,
+      ...JSON_POSTGRES_DISABLED_AMIC_INTERNAL_UPDATE_PARAMETERS,
+      EnableOutlookConversationWorker: "false",
+      ClientOutlookM365ConfigSecretName:
+        JSON_POSTGRES_OUTLOOK_DISABLED_CONFIG_SECRET_NAME,
+      ClientOutlookCredentialSecretPrefix:
+        JSON_POSTGRES_OUTLOOK_DISABLED_CREDENTIAL_SECRET_PREFIX,
       EnableProjectionWorker: "false",
       ProjectionWorkerEventJson: "{}",
       HrxProjectionMappingObjectKey:
@@ -549,12 +825,50 @@ test("artifact bucket and production stack observations are exact and fail close
       ProjectionWorkerLagThresholdMs: "24",
       MonthlyCostCeilingKrw: "300000",
     }).map(([ParameterKey, ParameterValue]) => ({ ParameterKey, ParameterValue })),
+    Outputs: [
+      {
+        OutputKey: "ExternalReadProvidersEnabled",
+        OutputValue: "false",
+      },
+      {
+        OutputKey: "AmicInternalUnsignedUpdateBrokerEnabled",
+        OutputValue: "false",
+      },
+    ],
   };
   assert.equal(assertJsonPostgresProductionStack(stack, {
     packet: value,
     artifactVersion: "v1",
     trustRegistrySha256: "e".repeat(64),
   }).temporary_eni_allow_expected, 0);
+  const providerEnabledStack = structuredClone(stack);
+  providerEnabledStack.Outputs[0].OutputValue = "true";
+  assert.throws(
+    () => assertJsonPostgresProductionStack(providerEnabledStack, {
+      packet: value,
+      artifactVersion: "v1",
+      trustRegistrySha256: "e".repeat(64),
+    }),
+    /external provider output drifted/u,
+  );
+  const binding = internalUpdateBinding();
+  const brokerEnabledStack = structuredClone(stack);
+  const enabledBrokerParameters =
+    buildJsonPostgresAmicInternalUpdateBrokerParameters(binding);
+  for (const entry of brokerEnabledStack.Parameters) {
+    if (enabledBrokerParameters[entry.ParameterKey] !== undefined) {
+      entry.ParameterValue = enabledBrokerParameters[entry.ParameterKey];
+    }
+  }
+  brokerEnabledStack.Outputs.find((entry) =>
+    entry.OutputKey === "AmicInternalUnsignedUpdateBrokerEnabled")
+    .OutputValue = "true";
+  assert.equal(assertJsonPostgresProductionStack(brokerEnabledStack, {
+    packet: value,
+    artifactVersion: "v1",
+    trustRegistrySha256: "e".repeat(64),
+    internalUpdateBrokerBinding: binding,
+  }).internal_update_broker_enabled, true);
   const trafficStack = structuredClone(stack);
   trafficStack.Parameters.find((entry) =>
     entry.ParameterKey === "EnableProductionTraffic").ParameterValue = "true";

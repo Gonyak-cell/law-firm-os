@@ -16,6 +16,15 @@ import {
   createClassicOutlookBridgeController,
 } from "./broker/classicOutlookBridge.js";
 import { startDesktopLocalApiServer, stopDesktopLocalApiServer } from "./local-api.js";
+import {
+  INTERNAL_UNSIGNED_UPDATE_STATE_FILENAME,
+  createDisabledInternalUnsignedUpdateRuntime,
+  createEncryptedFileInternalUnsignedUpdateStateStore,
+  createInternalUnsignedUpdateRuntime,
+  loadInternalUnsignedUpdatePackageConfiguration,
+  registerInternalUnsignedUpdateIpcHandlers,
+} from "./internal-unsigned-update-runtime.js";
+import { createFileSystemInternalUnsignedUpdateStaging } from "./internal-unsigned-update-staging.js";
 import { assertApprovedRendererUrl, installNavigationGuards, isApprovedRendererUrl } from "./origin-policy.js";
 import {
   createOutlookInstallationIdentityStore,
@@ -38,7 +47,7 @@ export const desktopSkeletonStatus = Object.freeze({
   sandbox: true,
   fileBridgeExposed: true,
   authTokenStorageExposed: false,
-  updateChannelExposed: false
+  updateChannelExposed: true
 });
 
 export function describeDesktopSkeleton() {
@@ -663,6 +672,7 @@ export async function startDesktopShell({
   ipcMain,
   coordinator,
   fileBridgeController,
+  internalUpdateRuntime,
   openExternal,
   writeClipboard,
   onSessionAvailable,
@@ -698,10 +708,24 @@ export async function startDesktopShell({
       isTrustedSender
     })
     : null;
+  const internalUpdateIpc = ipcMain && internalUpdateRuntime
+    ? registerInternalUnsignedUpdateIpcHandlers({
+      ipcMain,
+      runtime: internalUpdateRuntime,
+      isTrustedSender,
+    })
+    : null;
   installNavigationGuards(window, originOptions);
   await window.loadURL(target);
   const initialDeepLink = sendPasswordResetDeepLink(window, initialDeepLinkUrl);
-  return { window, target, sessionIpc, fileBridgeIpc, initialDeepLink };
+  return {
+    window,
+    target,
+    sessionIpc,
+    fileBridgeIpc,
+    internalUpdateIpc,
+    initialDeepLink,
+  };
 }
 
 export function createDesktopFileBridgePermissionClient(coordinator) {
@@ -996,6 +1020,9 @@ export async function startElectronApp() {
   let tempPreviewManager = null;
   let desktopShell = null;
   let outlookLifecycle = null;
+  let internalUpdateRuntime = createDisabledInternalUnsignedUpdateRuntime(
+    "INTERNAL_UPDATE_PACKAGE_NOT_ACTIVE",
+  );
   const classicOutlookBridge = createClassicOutlookBridgeController();
   const instanceCoordinator = createDesktopInstanceCoordinator({
     app,
@@ -1024,6 +1051,8 @@ export async function startElectronApp() {
   }
   app.on("before-quit", () => {
     desktopShell?.fileBridgeIpc?.dispose?.();
+    desktopShell?.internalUpdateIpc?.dispose?.();
+    internalUpdateRuntime.clearSync?.();
     fileBridgeController?.dispose?.();
     classicOutlookBridge.dispose();
     if (!fileBridgeController) tempPreviewManager?.dispose?.();
@@ -1042,6 +1071,38 @@ export async function startElectronApp() {
     safeStorage,
     formalRelease
   });
+  if (packaged && internalUnsignedRelease) {
+    try {
+      const updatePackage = loadInternalUnsignedUpdatePackageConfiguration({
+        resourcesPath: process.resourcesPath,
+        appVersion: app.getVersion?.(),
+      });
+      internalUpdateRuntime = createInternalUnsignedUpdateRuntime({
+        ...updatePackage,
+        authorize: async () => runtimeClient.authorizeInternalUnsignedUpdate({
+          sessionToken: await secureStore.get("session_token"),
+        }),
+        stateStore: createEncryptedFileInternalUnsignedUpdateStateStore({
+          filePath: join(userDataPath, INTERNAL_UNSIGNED_UPDATE_STATE_FILENAME),
+          safeStorage,
+        }),
+        staging: createFileSystemInternalUnsignedUpdateStaging({
+          basePath: app.getPath("temp"),
+          openInstaller: (nativePath) => electronShell.openPath(nativePath),
+        }),
+        fetchImpl: typeof net.fetch === "function"
+          ? (url, options) => net.fetch(url, options)
+          : globalThis.fetch,
+      });
+      await internalUpdateRuntime.initialize();
+    } catch (error) {
+      internalUpdateRuntime = createDisabledInternalUnsignedUpdateRuntime(
+        /^[A-Z0-9_]{1,96}$/u.test(String(error?.code ?? ""))
+          ? error.code
+          : "INTERNAL_UPDATE_INITIALIZATION_FAILED",
+      );
+    }
+  }
   const outlookIdentityStore = createOutlookInstallationIdentityStore({
     filePath: join(userDataPath, "outlook-installation-identity.json"),
     safeStorage,
@@ -1063,7 +1124,7 @@ export async function startElectronApp() {
   coordinator = new MainProcessAuthCoordinator({
     runtimeClient,
     secureStore,
-    cacheStores: [tempPreviewManager],
+    cacheStores: [tempPreviewManager, internalUpdateRuntime],
     outlookLifecycle,
   });
   await coordinator.restoreSession();
@@ -1080,6 +1141,7 @@ export async function startElectronApp() {
     ipcMain,
     coordinator,
     fileBridgeController,
+    internalUpdateRuntime,
     openExternal: (url) => electronShell.openExternal(url),
     writeClipboard: (url) => electronClipboard.writeText(url),
     onSessionAvailable: () => instanceCoordinator.retryPendingAuthCallbacks(),
