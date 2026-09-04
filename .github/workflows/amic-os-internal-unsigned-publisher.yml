@@ -48,6 +48,7 @@ jobs:
     environment:
       name: amic-os-internal-unsigned-publish
     permissions:
+      actions: read
       contents: read
       id-token: write
     outputs:
@@ -76,6 +77,11 @@ jobs:
           node-version: "22"
           cache: npm
           cache-dependency-path: package-lock.json
+
+      - name: Verify protected publisher environment before dependencies and OIDC
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node scripts/verify-amic-os-internal-github-environment.mjs --environment amic-os-internal-unsigned-publish
 
       - name: Verify exact source and protected environment bindings before dependencies
         id: source

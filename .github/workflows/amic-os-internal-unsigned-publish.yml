@@ -45,6 +45,7 @@ jobs:
         github.workflow_ref == 'Gonyak-cell/law-firm-os/.github/workflows/amic-os-internal-unsigned-publish.yml@refs/heads/main'
       }}
     permissions:
+      actions: read
       contents: read
       id-token: write
     uses: ./.github/workflows/amic-os-internal-unsigned-publisher.yml
@@ -59,6 +60,7 @@ jobs:
     name: Independently verify exact private publication
     needs: publish-private-internal-unsigned
     permissions:
+      actions: read
       contents: read
       id-token: write
     uses: ./.github/workflows/amic-os-internal-unsigned-readback.yml

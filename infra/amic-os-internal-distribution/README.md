@@ -28,6 +28,14 @@ job, not to one step. The protected-environment reviewer must therefore approve
 the exact source SHA and every script/dependency executed in that job; the later
 credential-configuration step is ordering, not step-scoped OIDC isolation.
 
+Each reusable job also uses its short-lived repository `GITHUB_TOKEN` with only
+`actions: read` to fetch its own environment definition before dependencies or
+AWS credential configuration. The guard requires at least one reviewer,
+prevents self-review and administrator bypass, permits protected branches only,
+and returns neither reviewer identities nor the token. A missing environment or
+an automatically created environment without those rules therefore cannot
+reach either AWS role.
+
 `workflow_dispatch` inputs are event data, not a secret store. Release,
 predecessor, revocation, rollback, and distribution-binding documents use
 bounded exact-field schemas and reject added fields before producing output.
