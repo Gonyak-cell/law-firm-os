@@ -263,7 +263,11 @@ test("rejects a split machine-readable redirect export", async (t) => {
 });
 
 test("rejects a non-exact production manifest before emitting a handoff", async () => {
-  const mutated = Buffer.from(manifestBytes.toString("utf8").replace("<Version>1.1.0.0</Version>", "<Version>1.1.0.1</Version>"));
+  const mutated = Buffer.from(manifestBytes.toString("utf8").replace(
+    /<Version>[^<]+<\/Version>/u,
+    "<Version>0.0.0.0</Version>",
+  ));
+  assert.notDeepEqual(mutated, manifestBytes);
   await assert.rejects(
     () => generateExternalM365OnboardingBundle({ input: input(), manifestBytes: mutated, repoRoot }),
     /exact production manifest/u,

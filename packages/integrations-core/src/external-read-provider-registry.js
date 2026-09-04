@@ -19,7 +19,7 @@ export const EXTERNAL_READ_CONSENT_STATES = Object.freeze([
 
 const PROVIDER_ID = /^[a-z][a-z0-9._-]{1,63}$/u;
 const CAPABILITY_ID = /^[a-z][a-z0-9._-]{1,127}\.read$/u;
-const OPAQUE_PROVIDER_REF = /^[A-Za-z][A-Za-z0-9_-]*:[^\s@]{1,511}$/u;
+const OPAQUE_PROVIDER_REF = /^[A-Za-z][A-Za-z0-9_-]*:[^\s@]{1,4095}$/u;
 const CREDENTIAL_MATERIAL =
   /(?:bearer|password|client[_-]?secret|access[_-]?token|refresh[_-]?token)/iu;
 
@@ -141,6 +141,28 @@ function normalizeProviderResult(result, context) {
       502,
     );
   }
+  let metrics = null;
+  if (result.metrics != null) {
+    const fields = [
+      "page_count",
+      "request_count",
+      "retry_count",
+      "response_byte_count",
+      "duplicate_item_count",
+    ];
+    if (!result.metrics
+      || typeof result.metrics !== "object"
+      || Array.isArray(result.metrics)
+      || Object.keys(result.metrics).sort().join("\u001f") !== [...fields].sort().join("\u001f")
+      || fields.some((field) => !Number.isSafeInteger(result.metrics[field]) || result.metrics[field] < 0)) {
+      throw guardedError(
+        "External provider response metrics are invalid",
+        "EXTERNAL_READ_PROVIDER_RESPONSE_INVALID",
+        502,
+      );
+    }
+    metrics = Object.freeze(Object.fromEntries(fields.map((field) => [field, result.metrics[field]])));
+  }
   return Object.freeze({
     schema_version: EXTERNAL_READ_PROVIDER_SCHEMA_VERSION,
     ...context,
@@ -155,6 +177,7 @@ function normalizeProviderResult(result, context) {
       "provider_receipt_ref",
     ),
     observed_at: isoTimestamp(result.observed_at, "observed_at"),
+    metrics,
   });
 }
 

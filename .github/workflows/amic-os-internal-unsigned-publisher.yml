@@ -1,0 +1,262 @@
+name: AMIC OS Internal Unsigned Publisher Job
+
+on:
+  workflow_call:
+    inputs:
+      approval_ref:
+        required: true
+        type: string
+      publication_mode:
+        required: true
+        type: string
+      release_document_base64:
+        required: true
+        type: string
+      revocations_document_base64:
+        required: false
+        type: string
+      rollback_document_base64:
+        required: false
+        type: string
+    outputs:
+      source_sha:
+        value: ${{ jobs.publish-private-internal-unsigned.outputs.source_sha }}
+      source_tree:
+        value: ${{ jobs.publish-private-internal-unsigned.outputs.source_tree }}
+      retain_until:
+        value: ${{ jobs.publish-private-internal-unsigned.outputs.retain_until }}
+      publication_mode:
+        value: ${{ jobs.publish-private-internal-unsigned.outputs.publication_mode }}
+      readback_locator_base64:
+        value: ${{ jobs.publish-private-internal-unsigned.outputs.readback_locator_base64 }}
+      publication_receipt_sha256:
+        value: ${{ jobs.publish-private-internal-unsigned.outputs.publication_receipt_sha256 }}
+
+permissions: {}
+jobs:
+  publish-private-internal-unsigned:
+    name: Build and publish private NotSigned installer
+    if: >-
+      ${{
+        github.repository == 'Gonyak-cell/law-firm-os' &&
+        github.ref == 'refs/heads/main' &&
+        github.event_name == 'workflow_dispatch' &&
+        github.workflow_ref == 'Gonyak-cell/law-firm-os/.github/workflows/amic-os-internal-unsigned-publish.yml@refs/heads/main'
+      }}
+    runs-on: windows-latest
+    timeout-minutes: 45
+    environment:
+      name: amic-os-internal-unsigned-publish
+    permissions:
+      contents: read
+      id-token: write
+    outputs:
+      source_sha: ${{ steps.source.outputs.source_sha }}
+      source_tree: ${{ steps.source.outputs.source_tree }}
+      retain_until: ${{ steps.source.outputs.retain_until }}
+      publication_mode: ${{ inputs.publication_mode }}
+      readback_locator_base64: ${{ steps.publish.outputs.readback_locator_base64 }}
+      publication_receipt_sha256: ${{ steps.publish.outputs.publication_receipt_sha256 }}
+    steps:
+      - name: Configure deterministic Git line endings
+        shell: pwsh
+        run: git config --global core.autocrlf false
+
+      - name: Checkout exact protected main source
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+          persist-credentials: false
+          clean: true
+
+      - name: Setup pinned Node 22
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Verify exact source and protected environment bindings before dependencies
+        id: source
+        shell: pwsh
+        env:
+          APPROVAL_REF: ${{ inputs.approval_ref }}
+          PUBLICATION_MODE: ${{ inputs.publication_mode }}
+          PUBLISHER_ROLE_ARN: ${{ vars.AMIC_INTERNAL_PUBLISHER_ROLE_ARN }}
+          ARTIFACT_BUCKET: ${{ vars.AMIC_INTERNAL_ARTIFACT_BUCKET }}
+          ACCESS_LOG_BUCKET: ${{ vars.AMIC_INTERNAL_ACCESS_LOG_BUCKET }}
+          ARTIFACT_KMS_KEY_ARN: ${{ vars.AMIC_INTERNAL_ARTIFACT_KMS_KEY_ARN }}
+          METADATA_SIGNING_SECRET_ARN: ${{ vars.AMIC_INTERNAL_METADATA_SIGNING_SECRET_ARN }}
+          METADATA_PUBLIC_KEY_SPKI_B64: ${{ vars.AMIC_INTERNAL_METADATA_PUBLIC_KEY_SPKI_B64 }}
+          METADATA_PUBLIC_KEY_SHA256: ${{ vars.AMIC_INTERNAL_METADATA_PUBLIC_KEY_SHA256 }}
+          CLOUDFRONT_DOMAIN: ${{ vars.AMIC_INTERNAL_CLOUDFRONT_DOMAIN }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if ($env:APPROVAL_REF -notmatch '\A[A-Za-z0-9][A-Za-z0-9._:-]{0,199}\z') { throw 'approval_ref is invalid' }
+          if ($env:PUBLICATION_MODE -notin @('baseline', 'successor')) { throw 'publication_mode is invalid' }
+          if ($env:PUBLISHER_ROLE_ARN -notmatch '\Aarn:aws:iam::770880870480:role/[A-Za-z0-9+=,.@_/-]+\z') { throw 'publisher role ARN is invalid' }
+          if ($env:ARTIFACT_BUCKET -notmatch '\A[a-z0-9](?:[a-z0-9-]{1,61}[a-z0-9])\z') { throw 'artifact bucket is invalid' }
+          if ($env:ACCESS_LOG_BUCKET -notmatch '\A[a-z0-9](?:[a-z0-9-]{1,61}[a-z0-9])\z') { throw 'access-log bucket is invalid' }
+          if ($env:ARTIFACT_KMS_KEY_ARN -notmatch '\Aarn:aws:kms:ap-northeast-2:770880870480:key/[0-9a-f-]{36}\z') { throw 'artifact KMS key ARN is invalid' }
+          if ($env:METADATA_SIGNING_SECRET_ARN -notmatch '\Aarn:aws:secretsmanager:ap-northeast-2:770880870480:secret:[A-Za-z0-9/_+=.@-]+\z') { throw 'metadata signing secret ARN is invalid' }
+          if ($env:METADATA_PUBLIC_KEY_SHA256 -notmatch '\A[0-9a-f]{64}\z') { throw 'metadata public key fingerprint is invalid' }
+          if ($env:CLOUDFRONT_DOMAIN -notmatch '\Ad[a-z0-9]{3,62}\.cloudfront\.net\z') { throw 'CloudFront domain is invalid' }
+          try { $publicKey = [Convert]::FromBase64String($env:METADATA_PUBLIC_KEY_SPKI_B64) } catch { throw 'metadata public key is not base64' }
+          $publicKeySha = [Convert]::ToHexString([Security.Cryptography.SHA256]::HashData($publicKey)).ToLowerInvariant()
+          if ($publicKeySha -cne $env:METADATA_PUBLIC_KEY_SHA256) { throw 'metadata public key fingerprint differs' }
+          if ($env:GITHUB_REPOSITORY -cne 'Gonyak-cell/law-firm-os' -or $env:GITHUB_REF -cne 'refs/heads/main' -or $env:RUNNER_ENVIRONMENT -cne 'github-hosted') {
+            throw 'protected exact-main runner binding differs'
+          }
+          $sourceSha = (git rev-parse HEAD).Trim()
+          $sourceTree = (git rev-parse 'HEAD^{tree}').Trim()
+          if ($sourceSha -cne $env:GITHUB_SHA -or $sourceSha -notmatch '\A[0-9a-f]{40}\z' -or $sourceTree -notmatch '\A[0-9a-f]{40}\z') {
+            throw 'exact source identity is invalid'
+          }
+          if (git status --porcelain) { throw 'source checkout is dirty' }
+          $retainUntil = [DateTimeOffset]::UtcNow.AddDays(366).ToString('yyyy-MM-ddTHH:mm:ss.fffZ')
+          $runRoot = Join-Path $env:RUNNER_TEMP "amic-os-internal-unsigned-$env:GITHUB_RUN_ID-$env:GITHUB_RUN_ATTEMPT"
+          if (Test-Path -LiteralPath $runRoot) { throw 'run-owned output root already exists' }
+          New-Item -ItemType Directory -Path $runRoot | Out-Null
+          "MATTER_DESKTOP_EXPECTED_SOURCE_SHA=$sourceSha" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          "MATTER_DESKTOP_EXPECTED_SOURCE_TREE=$sourceTree" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          "AMIC_INTERNAL_RUN_ROOT=$runRoot" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          "AMIC_INTERNAL_RETAIN_UNTIL=$retainUntil" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          "source_sha=$sourceSha" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "source_tree=$sourceTree" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "retain_until=$retainUntil" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+
+      - name: Install exact locked dependencies
+        run: npm ci
+
+      - name: Prepare packaged renderer
+        env:
+          MATTER_DESKTOP_BUILD_RECEIPT: "0"
+        run: npm --workspace apps/desktop run prepare:web-renderer
+
+      - name: Build privacy-gated internal-unsigned Windows NSIS installer
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+          MATTER_DESKTOP_DISTRIBUTION_PROFILE: internal-unsigned
+          MATTER_DESKTOP_RELEASE_CHANNEL: internal
+          MATTER_INTERNAL_UPDATE_PUBLIC_KEY_SPKI_BASE64: ${{ vars.AMIC_INTERNAL_METADATA_PUBLIC_KEY_SPKI_B64 }}
+          MATTER_DESKTOP_WINDOWS_BUILD_RECEIPT_PATH: ${{ runner.temp }}\amic-os-internal-unsigned-${{ github.run_id }}-${{ github.run_attempt }}\windows-build.md
+          MATTER_DESKTOP_WINDOWS_BUILD_RESULT_PATH: ${{ runner.temp }}\amic-os-internal-unsigned-${{ github.run_id }}-${{ github.run_attempt }}\windows-build-result.json
+        run: npm --workspace apps/desktop run build:win:installer
+
+      - name: Generate dependency SBOM outside the source worktree
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $target = Join-Path $env:AMIC_INTERNAL_RUN_ROOT 'raw-sbom.cdx.json'
+          $lines = & npm.cmd sbom --all --sbom-format cyclonedx
+          if ($LASTEXITCODE -ne 0) { throw 'npm CycloneDX SBOM generation failed' }
+          [IO.File]::WriteAllText($target, (($lines -join "`n") + "`n"), [Text.UTF8Encoding]::new($false))
+
+      - name: Validate package, no-seed boundary, lineage, SBOM, and rollback before AWS credential configuration
+        shell: pwsh
+        env:
+          PUBLICATION_MODE: ${{ inputs.publication_mode }}
+          AMIC_INTERNAL_RELEASE_DOCUMENT_B64: ${{ inputs.release_document_base64 }}
+          AMIC_INTERNAL_REVOCATIONS_DOCUMENT_B64: ${{ inputs.revocations_document_base64 }}
+          AMIC_INTERNAL_ROLLBACK_DOCUMENT_B64: ${{ inputs.rollback_document_base64 }}
+          AMIC_INTERNAL_AWS_ACCOUNT_ID: "770880870480"
+          AMIC_INTERNAL_AWS_REGION: ap-northeast-2
+          AMIC_INTERNAL_ARTIFACT_BUCKET: ${{ vars.AMIC_INTERNAL_ARTIFACT_BUCKET }}
+          AMIC_INTERNAL_ACCESS_LOG_BUCKET: ${{ vars.AMIC_INTERNAL_ACCESS_LOG_BUCKET }}
+          AMIC_INTERNAL_ARTIFACT_KMS_KEY_ARN: ${{ vars.AMIC_INTERNAL_ARTIFACT_KMS_KEY_ARN }}
+          AMIC_INTERNAL_WORKFLOW_REF: Gonyak-cell/law-firm-os/.github/workflows/amic-os-internal-unsigned-publish.yml@refs/heads/main
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $prepared = Join-Path $env:AMIC_INTERNAL_RUN_ROOT 'prepared'
+          $output = & node scripts/prepare-amic-os-internal-unsigned-publication.mjs `
+            --publication-mode $env:PUBLICATION_MODE `
+            --output-dir $prepared `
+            --build-result (Join-Path $env:AMIC_INTERNAL_RUN_ROOT 'windows-build-result.json') `
+            --raw-sbom (Join-Path $env:AMIC_INTERNAL_RUN_ROOT 'raw-sbom.cdx.json')
+          if ($LASTEXITCODE -ne 0) { throw 'internal-unsigned publication preflight failed' }
+          $result = ($output -join "`n") | ConvertFrom-Json -AsHashtable
+          if ($result.state -cne 'PASS' -or $result.publication_mode -cne $env:PUBLICATION_MODE -or $result.source_sha -cne $env:GITHUB_SHA -or $result.authenticode_status -cne 'not_signed' -or $result.real_seed_included -ne $false) {
+            throw 'internal-unsigned publication preflight receipt is invalid'
+          }
+
+      - name: Configure exact private publisher role credentials after local validation
+        uses: aws-actions/configure-aws-credentials@61815dcd50bd041e203e49132bacad1fd04d2708
+        with:
+          role-to-assume: ${{ vars.AMIC_INTERNAL_PUBLISHER_ROLE_ARN }}
+          aws-region: ap-northeast-2
+          role-session-name: amic-os-internal-publish-${{ github.run_id }}-${{ github.run_attempt }}
+          role-duration-seconds: 1800
+          allowed-account-ids: "770880870480"
+          mask-aws-account-id: true
+          output-credentials: false
+          unset-current-credentials: true
+
+      - name: Publish exact private baseline or rollback-ready successor versions
+        id: publish
+        shell: pwsh
+        env:
+          APPROVAL_REF: ${{ inputs.approval_ref }}
+          PUBLICATION_MODE: ${{ inputs.publication_mode }}
+          METADATA_SIGNING_SECRET_ARN: ${{ vars.AMIC_INTERNAL_METADATA_SIGNING_SECRET_ARN }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $prepared = Join-Path $env:AMIC_INTERNAL_RUN_ROOT 'prepared'
+          $privateReceipt = Join-Path $env:AMIC_INTERNAL_RUN_ROOT 'private-publication-receipt.json'
+          $publicReceipt = Join-Path $env:AMIC_INTERNAL_RUN_ROOT 'public-publication-receipt.json'
+          $release = Get-Content -Raw (Join-Path $prepared 'release.json') | ConvertFrom-Json
+          $publishArgs = @(
+            'scripts/publish-amic-os-internal-unsigned.mjs', '--execute',
+            '--publication-mode', $env:PUBLICATION_MODE,
+            '--approval-ref', $env:APPROVAL_REF,
+            '--bindings', (Join-Path $prepared 'bindings.json'),
+            '--release', (Join-Path $prepared 'release.json'),
+            '--installer', (Join-Path $PWD "apps/desktop/dist/AMIC-OS-internal-$($release.version)-win-x64.exe"),
+            '--build-manifest', (Join-Path $prepared 'matter-build-manifest.json'),
+            '--sbom', (Join-Path $prepared 'sbom.cdx.json'),
+            '--provenance', (Join-Path $prepared 'provenance.json'),
+            '--metadata-signing-secret-arn', $env:METADATA_SIGNING_SECRET_ARN,
+            '--private-receipt', $privateReceipt,
+            '--public-receipt', $publicReceipt
+          )
+          if ($env:PUBLICATION_MODE -ceq 'successor') {
+            $publishArgs += @(
+              '--revocations', (Join-Path $prepared 'revocations.json'),
+              '--rollback', (Join-Path $prepared 'rollback.json')
+            )
+          }
+          $output = & node @publishArgs
+          if ($LASTEXITCODE -ne 0) { throw 'internal-unsigned publication failed' }
+          $result = ($output -join "`n") | ConvertFrom-Json -AsHashtable
+          if ($result.state -cne 'PASS' -or $result.publication_mode -cne $env:PUBLICATION_MODE -or $result.source_sha -cne $env:GITHUB_SHA -or $result.raw_object_key_included -ne $false -or $result.raw_secret_included -ne $false) {
+            throw 'public publication receipt is invalid'
+          }
+          $private = Get-Content -Raw -LiteralPath $privateReceipt | ConvertFrom-Json -AsHashtable
+          if ($private.state -cne 'PASS' -or $private.receipt_sha256 -cne $result.private_receipt_sha256) {
+            throw 'private publication receipt differs from public receipt binding'
+          }
+          $locator = if ($env:PUBLICATION_MODE -ceq 'baseline') { $private.baseline_marker } else { $private.channel_pointer }
+          $locatorJson = $locator | ConvertTo-Json -Compress
+          $locatorBase64 = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($locatorJson))
+          "readback_locator_base64=$locatorBase64" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "publication_receipt_sha256=$($result.private_receipt_sha256)" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+
+      - name: Upload sanitized publication receipt only
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: amic-os-internal-unsigned-publication-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ env.AMIC_INTERNAL_RUN_ROOT }}/public-publication-receipt.json
+          if-no-files-found: error
+          include-hidden-files: false
+          retention-days: 90
+
+      - name: Remove run-owned private staging
+        if: always()
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Continue'
+          if ($env:AMIC_INTERNAL_RUN_ROOT -and (Test-Path -LiteralPath $env:AMIC_INTERNAL_RUN_ROOT)) {
+            Remove-Item -LiteralPath $env:AMIC_INTERNAL_RUN_ROOT -Recurse -Force
+          }
+          $dist = Join-Path $PWD 'apps/desktop/dist'
+          if (Test-Path -LiteralPath $dist) { Remove-Item -LiteralPath $dist -Recurse -Force }

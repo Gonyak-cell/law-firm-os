@@ -23,6 +23,11 @@ import {
   validateJsonPostgresSourceReadPacket,
 } from "../packages/persistence/src/postgres/source-read-contract.js";
 import {
+  AMIC_PRIVATE_BOOTSTRAP_EXECUTION_PACKET_VERSION,
+  createAmicPrivateBootstrapApprovalDataScope,
+  validateAmicPrivateBootstrapExecutionPacket,
+} from "./lib/amic-private-bootstrap-execution.mjs";
+import {
   createPrivateProgramOutputDirectory,
   readPrivateProgramBytes,
   readPrivateProgramJson,
@@ -61,6 +66,8 @@ const sourceRead =
 const w15Bootstrap =
   packet.schema_version
     === JSON_POSTGRES_W15_INVENTORY_BOOTSTRAP_PACKET_VERSION;
+const amicPrivateBootstrap =
+  packet.schema_version === AMIC_PRIVATE_BOOTSTRAP_EXECUTION_PACKET_VERSION;
 const validated = sourceRead
   ? validateJsonPostgresSourceReadPacket(packet, {
       sourceSha,
@@ -71,10 +78,15 @@ const validated = sourceRead
         sourceSha,
         sourceTree,
       })
-    : validateJsonPostgresExecutionPacket(packet, {
-        sourceSha,
-        sourceTree,
-      });
+    : amicPrivateBootstrap
+      ? validateAmicPrivateBootstrapExecutionPacket(packet, {
+          sourceSha,
+          sourceTree,
+        })
+      : validateJsonPostgresExecutionPacket(packet, {
+          sourceSha,
+          sourceTree,
+        });
 const signedAt = new Date(option("--signed-at")).toISOString();
 const expiresAt = new Date(option("--expires-at")).toISOString();
 if (Date.parse(expiresAt) <= Date.parse(signedAt)) {
@@ -127,12 +139,20 @@ const dataScope = sourceRead
         `baseline:${packet.bindings.baseline_sha256}`,
         `predecessors:${packet.bindings.predecessor_verification_sha256}`,
       ]
-    : [
-      "approved-real-manifest",
-      `authority-manifest:${packet.bindings.authority_manifest_sha256}`,
-      `inventory:${packet.bindings.inventory_content_sha256}`,
-      `inventory-delta-policy:${packet.bindings.inventory_delta_policy_sha256}`,
-    ];
+    : amicPrivateBootstrap
+      ? createAmicPrivateBootstrapApprovalDataScope(packet)
+      : [
+          "approved-real-manifest",
+          `authority-manifest:${packet.bindings.authority_manifest_sha256}`,
+          `inventory:${packet.bindings.inventory_content_sha256}`,
+          `inventory-delta-policy:${packet.bindings.inventory_delta_policy_sha256}`,
+        ];
+const contactScope = amicPrivateBootstrap ? [] : packet.contact_scope;
+const approvalPhase = sourceRead
+  ? "source-read"
+  : amicPrivateBootstrap
+    ? "amic-private-bootstrap"
+    : packet.phase;
 const receipt = {
   schema_version: "law-firm-os.runtime-safety.approval.v1",
   approval_id: option("--approval-id"),
@@ -147,7 +167,7 @@ const receipt = {
   signed_at: signedAt,
   expires_at: expiresAt,
   data_scope: dataScope,
-  contact_scope: packet.contact_scope,
+  contact_scope: contactScope,
 };
 const signature = sign(
   null,
@@ -181,7 +201,7 @@ const verified = validateRuntimeSafetyApprovalPayload({
   expectedSourceSha: sourceSha,
   expectedSourceTree: sourceTree,
   allowedDataScope: dataScope,
-  allowedContactScope: packet.contact_scope,
+  allowedContactScope: contactScope,
   now: Date.parse(signedAt),
 });
 const summary = writePrivateProgramJson(
@@ -192,7 +212,7 @@ const summary = writePrivateProgramJson(
     approval_id: receipt.approval_id,
     source_sha: sourceSha,
     source_tree: sourceTree,
-    phase: sourceRead ? "source-read" : packet.phase,
+    phase: approvalPhase,
     packet_sha256: validated.packet_sha256,
     approval_receipt_sha256: verified.receipt_sha256,
     approval_receipt_file_sha256: receiptOutput.sha256,
@@ -208,7 +228,7 @@ const summary = writePrivateProgramJson(
 process.stdout.write(`${JSON.stringify({
   verdict: "PASS",
   approval_id: receipt.approval_id,
-  phase: sourceRead ? "source-read" : packet.phase,
+  phase: approvalPhase,
   source_sha: sourceSha,
   source_tree: sourceTree,
   packet_sha256: validated.packet_sha256,

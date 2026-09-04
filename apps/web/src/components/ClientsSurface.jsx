@@ -1584,7 +1584,7 @@ function ClientConsultationPanel({
           {model.consultations.map((consultation) => {
             const isSelected = consultation.consultationId === model.selectedConsultationId;
             return <div className={isSelected ? "client-consultation-row selected" : "client-consultation-row"} role="listitem" key={consultation.consultationId}>
-              <button type="button" className="client-consultation-row-button" data-client-consultation-row="true" aria-pressed={isSelected} aria-label={`${consultation.displayName} 상담 선택`} onClick={() => onSelectConsultation(consultation.consultationId)}>
+              <button type="button" className="client-consultation-row-button" data-client-consultation-row="true" data-client-consultation-id={consultation.consultationId} aria-pressed={isSelected} aria-label={`${consultation.displayName} 상담 선택`} onClick={() => onSelectConsultation(consultation.consultationId)}>
                 <span className="client-consultation-row-heading"><strong>{consultation.displayName}</strong><span>{consultation.subject}</span></span>
                 <span className="client-consultation-row-meta"><b>{consultation.statusLabel}</b><span>{consultation.localDate} · {consultation.timezone}</span></span>
               </button>
@@ -4499,6 +4499,15 @@ export function ClientsSurface({
   }, [clientConsultationModel.selectedConsultationId]);
 
   useEffect(() => {
+    if (activeRequestedConsultationId || !consultationTriggerRef.current) return;
+    const triggerId = consultationTriggerRef.current;
+    consultationTriggerRef.current = null;
+    const trigger = Array.from(document.querySelectorAll('[data-client-consultation-row="true"]'))
+      .find((element) => element.dataset.clientConsultationId === triggerId);
+    if (trigger) trigger.focus();
+  }, [activeRequestedConsultationId]);
+
+  useEffect(() => {
     invalidateConsultationActions();
   }, [activeCommandInquiryId, activeRequestedConsultationId, activeRequestedConsultationQuery, currentSection, liveCtx, refreshToken, requestedClientTab]);
 
@@ -4519,8 +4528,7 @@ export function ClientsSurface({
     const consultation = clientConsultationModel.consultations.find((item) => item.consultationId === normalizedId);
     if (!consultation) return;
     invalidateConsultationActions();
-    const activeElement = document.activeElement;
-    consultationTriggerRef.current = activeElement && typeof activeElement.focus === "function" ? activeElement : null;
+    consultationTriggerRef.current = normalizedId;
     const inquiryId = consultation.inquiryId && clientInquiryModel.inquiries.some((item) => item.inquiryId === consultation.inquiryId)
       ? consultation.inquiryId
       : "";
@@ -4539,11 +4547,6 @@ export function ClientsSurface({
       consultationQuery: clientConsultationModel.searchQuery,
       inquiryId: activeCommandInquiryId,
       tab: clientConsultationModel.activeStatusTab
-    });
-    const trigger = consultationTriggerRef.current;
-    consultationTriggerRef.current = null;
-    window.requestAnimationFrame(() => {
-      if (trigger && document.contains(trigger)) trigger.focus();
     });
   }
 

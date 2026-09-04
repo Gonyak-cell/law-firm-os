@@ -591,6 +591,7 @@ test("prepares and verifies an exact-byte named macOS pilot bundle", async (t) =
     rootDir: input.outputDir,
     inputPath: "synthetic-readiness-input.json",
     testOnlyTrustRoot: input.testOnlyTrustRoot,
+    testOnlyNow: NOW,
   });
   const macGate = readiness.gates.find((gate) => gate.gate_id === "macos_distribution");
   assert.equal(

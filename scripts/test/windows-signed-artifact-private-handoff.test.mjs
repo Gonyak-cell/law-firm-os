@@ -12,6 +12,7 @@ import {
   mkdtempSync,
   readFileSync,
   rmSync,
+  symlinkSync,
   writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
@@ -404,6 +405,7 @@ test("private handoff rejects near-boundary retention, hard links, and bridge pa
   const input = fixture();
   const stage = path.join(input.root, "stage");
   const hardLink = path.join(input.root, "hard-linked-installer.exe");
+  const parentLink = path.join(input.root, "linked-source");
   const failedBridge = path.join(input.root, "failed-bridge");
   const key = wrappingKey();
   try {
@@ -417,6 +419,21 @@ test("private handoff rejects near-boundary retention, hard links, and bridge pa
     }), /hard-linked/u);
     assert.equal(existsSync(stage), false);
     rmSync(hardLink, { force: true });
+    if (process.platform !== "win32") {
+      symlinkSync(path.dirname(input.paths.installer), parentLink, "dir");
+      assert.throws(() => stageWindowsSignedArtifactHandoff({
+        paths: {
+          ...input.paths,
+          installer: path.join(parentLink, path.basename(input.paths.installer)),
+        },
+        stagingDir: stage,
+        sourceSha: SOURCE_SHA,
+        sourceTree: SOURCE_TREE,
+        candidateRole: ROLE,
+      }), /traverse a link/u);
+      assert.equal(existsSync(stage), false);
+      rmSync(parentLink, { force: true });
+    }
     assert.throws(() => createWindowsSignedArtifactEncryptedBridge({
       paths: input.paths,
       outputDir: failedBridge,

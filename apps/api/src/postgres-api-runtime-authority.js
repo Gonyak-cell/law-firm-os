@@ -130,8 +130,10 @@ function createIdentityUserDirectorySnapshot(users = []) {
       tenant_id: user.tenant_id,
       user_id: user.user_id,
       display_name: user.display_name ?? null,
+      english_name: user.english_name ?? null,
       email: user.email ?? null,
       source_title: user.source_title ?? null,
+      profile: user.profile ?? Object.freeze({}),
       status,
       login_allowed: status === "active"
         && (!user.credential_status || ["active", "must_change"].includes(user.credential_status))
@@ -373,6 +375,7 @@ function createRequestRuntimes({
   repositories,
   hrxStore,
   identityUserDirectory,
+  memberPhotoStorage,
   dmsStorage,
   payrollArtifactStorage,
   inquiryEvidenceStorage,
@@ -420,6 +423,8 @@ function createRequestRuntimes({
       : null;
   const hrxRuntime = createHrxRuntimeContext({
     store: hrxStore,
+    identityUserDirectory,
+    memberPhotoStorage,
     payrollArtifactStorage,
     payrollArtifactSecret,
     compensationKeyMaterial: payrollArtifactSecret,
@@ -457,6 +462,7 @@ function createRequestRuntimes({
     allowInMemoryOutlookTokenVault: false,
     seedPayrollRuntime: false,
     seedRuntimeFixtures: false,
+    allowStaticRosterFallback: false,
   });
   const masterDataRuntime = createMasterDataRuntimeContext({ repository: repositories.masterDataRepository });
   const dmsRuntime = Object.freeze({
@@ -588,6 +594,7 @@ export function createPostgresApiRuntimeAuthority({
   precedentSearchPool = null,
   precedentAuthoritySecret = null,
   identityRepository = null,
+  memberPhotoStorage = null,
   requireDmsConsumerReadAuthority = false,
   vaultOperationOwner = null,
 } = {}) {
@@ -601,6 +608,11 @@ export function createPostgresApiRuntimeAuthority({
   }
   if (!dmsStorage || typeof dmsStorage.stageObject !== "function") {
     throw new TypeError("DMS provider storage is required for PostgreSQL API authority");
+  }
+  if (memberPhotoStorage != null
+      && (typeof memberPhotoStorage.storePhoto !== "function"
+        || typeof memberPhotoStorage.readPhoto !== "function")) {
+    throw new TypeError("HRX member photo storage contract is invalid");
   }
   const consumerReadContract = dmsStorage?.validateConsumerReadAuthority?.();
   if ((requireDmsConsumerReadAuthority === true || dmsStorage?.provider === "s3")
@@ -763,6 +775,7 @@ export function createPostgresApiRuntimeAuthority({
               ...(identityRepository?.listDirectoryUsers
                 ? { identityUserDirectory: createIdentityUserDirectorySnapshot(identityUsers) }
                 : {}),
+              memberPhotoStorage,
               dmsStorage,
               payrollArtifactStorage,
               inquiryEvidenceStorage,

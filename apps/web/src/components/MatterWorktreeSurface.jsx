@@ -58,7 +58,10 @@ function matterSearchText(matter) {
 function mutationPayload(reason, extra = {}) {
   const session = readLawosSessionEnvelope();
   const actorId = session?.actor_ref ?? "matter_client_operator";
-  const tenantId = session?.tenant_refs?.matter ?? session?.tenant_refs?.default ?? "tenant_amic_matter_vault";
+  const tenantId =
+    session?.tenant_refs?.matter
+    ?? session?.tenant_refs?.default
+    ?? "tenant_matter_synthetic";
   const nonce = globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(16).slice(2)}`;
   return {
     tenant_id: tenantId,

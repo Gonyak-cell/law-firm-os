@@ -245,7 +245,7 @@ function inspectProductionTrustRegistry({ testOnlyPolicy, findings }) {
   }
 }
 
-function inspectReceiptTrust({ rootDir, receiptRef, gate, expected, findings, trustRegistry, context }) {
+function inspectReceiptTrust({ rootDir, receiptRef, gate, expected, findings, trustRegistry, context, now }) {
   if (!trustRegistry) return null;
   try {
     return verifyDetachedReceipt({
@@ -263,6 +263,7 @@ function inspectReceiptTrust({ rootDir, receiptRef, gate, expected, findings, tr
       expectedRole: gate.required_role,
       expectedOperation: gate.required_operation,
       expectedBindingSha256: expectedBindingSha256(expected),
+      now,
     });
   } catch (error) {
     addFinding(findings, "P0", error.code ?? "RECEIPT_TRUST_INVALID", error.message, { ...context, ...(error.details ?? {}) });
@@ -343,7 +344,7 @@ function checkCommonReceipt({ receipt, contractGate, expected, findings, context
   return valid;
 }
 
-function inspectReceipt({ rootDir, receiptRef, gateId, gate, expected, findings, trustRegistry }) {
+function inspectReceipt({ rootDir, receiptRef, gateId, gate, expected, findings, trustRegistry, now }) {
   const context = { gate_id: gateId, evidence_class: gate.evidence_class };
   if (!receiptRef) {
     addFinding(findings, gate.evidence_class === "human_legal" ? "P1" : "P1", "REQUIRED_EXTERNAL_RECEIPT_MISSING", "Required external receipt is not available; no claim is inferred from local files.", context);
@@ -353,7 +354,7 @@ function inspectReceipt({ rootDir, receiptRef, gateId, gate, expected, findings,
   if (!parsed.value || typeof parsed.value !== "object" || Array.isArray(parsed.value)) {
     return { state: "invalid", receipt: null, bytes: parsed.bytes, path: parsed.path, sha256: parsed.sha256 ?? null, expected_sha256: parsed.expected_sha256 ?? null };
   }
-  const trustVerification = inspectReceiptTrust({ rootDir, receiptRef, gate, expected, findings, trustRegistry, context });
+  const trustVerification = inspectReceiptTrust({ rootDir, receiptRef, gate, expected, findings, trustRegistry, context, now });
   const receipt = trustVerification?.receipt ?? parsed.value;
   const commonValid = checkCommonReceipt({ receipt, contractGate: gate, expected, findings, context });
   const valid = commonValid && Boolean(trustVerification);
@@ -439,10 +440,10 @@ function checkInternalProvisioningReceipt({ rootDir, adapter, expected, findings
   return valid;
 }
 
-function inspectTenantGate({ rootDir, input, gate, expected, findings, gateId, trustRegistry }) {
+function inspectTenantGate({ rootDir, input, gate, expected, findings, gateId, trustRegistry, now }) {
   const provisioningRef = getPathValue(input, gate.input_paths.provisioning);
   const runtimeRef = getPathValue(input, gate.input_paths.runtime_binding);
-  const provisioning = inspectReceipt({ rootDir, receiptRef: provisioningRef, gate: { ...gate, receipt_type: gate.provisioning_receipt_type, required_fields: gate.required_provisioning_fields, required_source: gate.provisioning_receipt_source, tenant_binding_fields: gate.provisioning_tenant_binding_fields, required_role: gate.required_provisioning_role, required_operation: gate.required_provisioning_operation }, gateId: `${gateId}.provisioning`, expected, findings, trustRegistry });
+  const provisioning = inspectReceipt({ rootDir, receiptRef: provisioningRef, gate: { ...gate, receipt_type: gate.provisioning_receipt_type, required_fields: gate.required_provisioning_fields, required_source: gate.provisioning_receipt_source, tenant_binding_fields: gate.provisioning_tenant_binding_fields, required_role: gate.required_provisioning_role, required_operation: gate.required_provisioning_operation }, gateId: `${gateId}.provisioning`, expected, findings, trustRegistry, now });
   if (provisioning.receipt) {
     let valid = provisioning.state === "verified";
     const provisioningBody = provisioning.receipt.provisioning;
@@ -465,7 +466,7 @@ function inspectTenantGate({ rootDir, input, gate, expected, findings, gateId, t
   } else if (!runtime?.value || typeof runtime.value !== "object" || Array.isArray(runtime.value)) {
     runtimeResult = { state: "invalid", receipt: null, bytes: runtime?.bytes ?? null, path: runtime?.path ?? null, sha256: runtime?.sha256 ?? null, expected_sha256: runtime?.expected_sha256 ?? null };
   } else {
-    const trustVerification = inspectReceiptTrust({ rootDir, receiptRef: runtimeRef, gate: { ...gate, required_role: gate.required_runtime_roles, required_operation: gate.required_runtime_operation }, expected, findings, trustRegistry, context: { gate_id: gateId, slot: "runtime_binding" } });
+    const trustVerification = inspectReceiptTrust({ rootDir, receiptRef: runtimeRef, gate: { ...gate, required_role: gate.required_runtime_roles, required_operation: gate.required_runtime_operation }, expected, findings, trustRegistry, context: { gate_id: gateId, slot: "runtime_binding" }, now });
     const runtimeReceipt = trustVerification?.receipt ?? runtime.value;
     let valid = runtime.state === "verified_bytes";
     valid = Boolean(trustVerification) && valid;
@@ -2241,9 +2242,15 @@ function readJsonFile(rootDir, candidate, label, findings) {
   }
 }
 
-export function validateExternalReleaseReadiness({ rootDir = process.cwd(), inputPath = DEFAULT_INPUT_PATH, contractPath = DEFAULT_CONTRACT_PATH, testOnlyTrustRoot = null } = {}) {
+export function validateExternalReleaseReadiness({ rootDir = process.cwd(), inputPath = DEFAULT_INPUT_PATH, contractPath = DEFAULT_CONTRACT_PATH, testOnlyTrustRoot = null, testOnlyNow = null } = {}) {
   const root = resolveTrustedRoot(rootDir);
   const findings = [];
+  if (testOnlyNow != null
+    && (testOnlyTrustRoot?.test_only !== true
+      || !Number.isSafeInteger(testOnlyNow))) {
+    throw new TypeError("testOnlyNow requires a test-only trust root and an integer timestamp");
+  }
+  const trustValidationNow = testOnlyNow ?? Date.now();
   const requestedContractPath = contractPath || DEFAULT_CONTRACT_PATH;
   if (requestedContractPath !== DEFAULT_CONTRACT_PATH) {
     addFinding(findings, "P0", "CONTRACT_PATH_FORBIDDEN", "The external release contract is canonical and cannot be selected by the input bundle.", { requested: requestedContractPath, canonical: DEFAULT_CONTRACT_PATH });
@@ -2325,11 +2332,11 @@ export function validateExternalReleaseReadiness({ rootDir = process.cwd(), inpu
     const gate = contract.gates?.[gateId];
     if (!gate) continue;
     if (gateId === "tenant_provisioning") {
-      gateReports[gateId] = inspectTenantGate({ rootDir: root, input, gate, expected, findings, gateId, trustRegistry });
+      gateReports[gateId] = inspectTenantGate({ rootDir: root, input, gate, expected, findings, gateId, trustRegistry, now: trustValidationNow });
       continue;
     }
     const receiptRef = getPathValue(input, gate.input_path);
-    let result = inspectReceipt({ rootDir: root, receiptRef, gate, gateId, expected, findings, trustRegistry });
+    let result = inspectReceipt({ rootDir: root, receiptRef, gate, gateId, expected, findings, trustRegistry, now: trustValidationNow });
     if (gateId === "api_artifact_deployment") result = inspectApiReceipt({ result, gate, expected, findings, gateId });
     if (gateId === "m365_consent_deployment_visibility") result = inspectM365Receipt({ result, gate, expected, findings, gateId });
     if (gateId === "macos_distribution") result = inspectMacReceipt({ rootDir: root, result, gate, findings, gateId });

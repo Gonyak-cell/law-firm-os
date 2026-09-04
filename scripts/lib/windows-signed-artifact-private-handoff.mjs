@@ -134,13 +134,29 @@ function sameFileIdentity(left, right) {
   return left.dev === right.dev && left.ino === right.ino && left.size === right.size;
 }
 
+function expectedPlatformRealpath(resolved) {
+  if (process.platform !== "darwin") return resolved;
+  for (const alias of ["/var", "/tmp", "/etc"]) {
+    if (resolved !== alias && !resolved.startsWith(`${alias}/`)) continue;
+    const trustedTarget = `/private${alias}`;
+    if (realpathSync(alias) === trustedTarget) {
+      return `${trustedTarget}${resolved.slice(alias.length)}`;
+    }
+  }
+  return resolved;
+}
+
 function openRegularFileSnapshot(filePath, label, { captureJson = false } = {}) {
   const resolved = path.resolve(filePath);
   const before = lstatSync(resolved, { bigint: true });
   assert.equal(before.isSymbolicLink(), false, `${label} cannot be a symbolic link`);
   assert.equal(before.isFile(), true, `${label} must be a regular file`);
   assert.equal(before.nlink, 1n, `${label} cannot be hard-linked`);
-  assert.equal(realpathSync(resolved), resolved, `${label} cannot traverse a link`);
+  assert.equal(
+    realpathSync(resolved),
+    expectedPlatformRealpath(resolved),
+    `${label} cannot traverse a link`,
+  );
   const fd = openSync(resolved, fsConstants.O_RDONLY | (fsConstants.O_NOFOLLOW ?? 0));
   try {
     const descriptor = fstatSync(fd, { bigint: true });
@@ -188,7 +204,11 @@ function assertSnapshotPathIdentity(snapshot, label) {
   assert.equal(current.isSymbolicLink(), false, `${label} cannot be a symbolic link`);
   assert.equal(current.isFile(), true, `${label} must remain a regular file`);
   assert.equal(current.nlink, 1n, `${label} cannot become hard-linked`);
-  assert.equal(realpathSync(snapshot.path), snapshot.path, `${label} cannot traverse a link`);
+  assert.equal(
+    realpathSync(snapshot.path),
+    expectedPlatformRealpath(snapshot.path),
+    `${label} cannot traverse a link`,
+  );
   assert.equal(sameFileIdentity(current, fstatSync(snapshot.fd, { bigint: true })), true, `${label} was replaced after validation`);
 }
 
@@ -420,7 +440,11 @@ export function stageWindowsSignedArtifactHandoff({
   try {
     mkdirSync(target, { recursive: false, mode: 0o700 });
     targetCreated = true;
-    assert.equal(realpathSync(target), target, "handoff staging directory cannot traverse a link");
+    assert.equal(
+      realpathSync(target),
+      expectedPlatformRealpath(target),
+      "handoff staging directory cannot traverse a link",
+    );
     const stagedPaths = {};
     for (const [kind, definition] of Object.entries(STAGED_ARTIFACTS)) {
       const stagedPath = path.join(target, definition.file);
@@ -556,7 +580,11 @@ export function createWindowsSignedArtifactEncryptedBridge({
     inspected = inspectHandoffArtifacts({ paths, sourceSha, sourceTree, candidateRole });
     mkdirSync(target, { recursive: false, mode: 0o700 });
     targetCreated = true;
-    assert.equal(realpathSync(target), target, "encrypted bridge directory cannot traverse a link");
+    assert.equal(
+      realpathSync(target),
+      expectedPlatformRealpath(target),
+      "encrypted bridge directory cannot traverse a link",
+    );
     dataKey = randomBytesFn(32);
     assert.ok(Buffer.isBuffer(dataKey) && dataKey.length === 32, "encrypted bridge data key must contain 32 random bytes");
     const wrappedKey = publicEncryptFn({
@@ -739,7 +767,11 @@ function inspectWindowsSignedArtifactEncryptedBridge({
 }) {
   validateCandidateIdentity({ sourceSha, sourceTree, candidateRole });
   const encryptedRoot = path.resolve(encryptedDir);
-  assert.equal(realpathSync(encryptedRoot), encryptedRoot, "encrypted bridge directory cannot traverse a link");
+  assert.equal(
+    realpathSync(encryptedRoot),
+    expectedPlatformRealpath(encryptedRoot),
+    "encrypted bridge directory cannot traverse a link",
+  );
   assert.deepEqual(
     readdirSync(encryptedRoot).sort(),
     ["envelope.json", ...Object.values(ENCRYPTED_BRIDGE_FILE_NAMES)].sort(),
@@ -876,7 +908,11 @@ export async function decryptWindowsSignedArtifactEncryptedBridge({
     }
     mkdirSync(target, { recursive: false, mode: 0o700 });
     targetCreated = true;
-    assert.equal(realpathSync(target), target, "decrypted handoff directory cannot traverse a link");
+    assert.equal(
+      realpathSync(target),
+      expectedPlatformRealpath(target),
+      "decrypted handoff directory cannot traverse a link",
+    );
     const decryptInputs = {};
     for (const [kind, definition] of Object.entries(STAGED_ARTIFACTS)) {
       const record = envelope.artifacts[kind];
@@ -1520,7 +1556,11 @@ export function createWindowsSignedArtifactPrivateHandoffLocatorEnvelope({
     validateWindowsSignedArtifactPrivateHandoffLocatorEnvelope(envelope);
     mkdirSync(target, { recursive: false, mode: 0o700 });
     targetCreated = true;
-    assert.equal(realpathSync(target), target, "Windows private handoff locator envelope directory cannot traverse a link");
+    assert.equal(
+      realpathSync(target),
+      expectedPlatformRealpath(target),
+      "Windows private handoff locator envelope directory cannot traverse a link",
+    );
     writeBytesExclusive(path.join(target, PRIVATE_LOCATOR_CIPHERTEXT_FILE), ciphertext, "Windows private handoff locator ciphertext");
     const envelopeBytes = Buffer.from(`${JSON.stringify(envelope, null, 2)}\n`, "utf8");
     writeBytesExclusive(path.join(target, PRIVATE_LOCATOR_ENVELOPE_FILE), envelopeBytes, "Windows private handoff locator envelope");
@@ -1560,7 +1600,11 @@ export async function executeWindowsSignedArtifactPrivateHandoff({
   const safeBindings = validateWindowsSignedArtifactHandoffBindings(bindings, { now });
   assert.ok(aws && typeof aws === "object", "AWS handoff adapter is required");
   const stagingRoot = path.resolve(stagingDir);
-  assert.equal(realpathSync(stagingRoot), stagingRoot, "handoff staging directory cannot traverse a link");
+  assert.equal(
+    realpathSync(stagingRoot),
+    expectedPlatformRealpath(stagingRoot),
+    "handoff staging directory cannot traverse a link",
+  );
   const paths = Object.fromEntries(Object.entries(STAGED_ARTIFACTS).map(([kind, definition]) => [kind, path.join(stagingRoot, definition.file)]));
   const inspected = inspectHandoffArtifacts({ paths, sourceSha, sourceTree, candidateRole });
   const resolvedReceiptPath = path.resolve(receiptPath);
@@ -1735,7 +1779,29 @@ export function createWindowsSignedArtifactAwsCliAdapter({ region = WINDOWS_SIGN
         ownership: json(["s3api", "get-bucket-ownership-controls", ...common]),
       };
     },
-    async putObject({ bucket, key, bodyPath, byteSize, contentType, checksumSha256, kmsKeyArn, retainUntil, expectedOwner, metadata }) {
+    async putObject({
+      bucket,
+      key,
+      bodyPath,
+      byteSize,
+      contentType,
+      checksumSha256,
+      kmsKeyArn,
+      retainUntil,
+      expectedOwner,
+      metadata,
+      ifMatch = null,
+      ifNoneMatch = null,
+    }) {
+      assert.equal(ifMatch == null || ifNoneMatch == null, true,
+        "AWS S3 upload cannot use both If-Match and If-None-Match");
+      if (ifMatch != null) {
+        assert.match(ifMatch, /^"[0-9a-f]{32}(?:-[1-9][0-9]*)?"$/u,
+          "AWS S3 upload If-Match ETag is invalid");
+      }
+      if (ifNoneMatch != null) {
+        assert.equal(ifNoneMatch, "*", "AWS S3 upload If-None-Match must be an asterisk");
+      }
       const snapshot = openRegularFileSnapshot(bodyPath, "AWS S3 upload body");
       try {
         assert.equal(snapshot.byte_size, byteSize, "AWS S3 upload body byte count differs");
@@ -1754,6 +1820,8 @@ export function createWindowsSignedArtifactAwsCliAdapter({ region = WINDOWS_SIGN
           "--object-lock-mode", "COMPLIANCE",
           "--object-lock-retain-until-date", retainUntil,
           "--metadata", awsMetadata(metadata),
+          ...(ifMatch == null ? [] : ["--if-match", ifMatch]),
+          ...(ifNoneMatch == null ? [] : ["--if-none-match", ifNoneMatch]),
         ]);
         assertSnapshotPathIdentity(snapshot, "AWS S3 upload body");
         assert.equal(descriptorDigest(snapshot.fd, snapshot.byte_size), snapshot.sha256, "AWS S3 upload body changed during upload");

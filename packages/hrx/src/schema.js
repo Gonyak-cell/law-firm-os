@@ -3,6 +3,7 @@ const EMPLOYMENT_TYPES = ["full_time", "part_time", "contractor", "intern"];
 const EMPLOYMENT_PROFILE_STATUSES = ["active", "future", "on_leave", "terminated"];
 const EMPLOYEE_USER_LINK_PURPOSES = ["login_mapping"];
 const RESERVED_IDENTITY_FIELDS = ["user_id", "iam_user_id", "user_account_id", "account_id"];
+const SAFE_SCOPE_REF = /^[A-Za-z0-9_.:-]{1,160}$/u;
 
 export const HRX_CORE_SCHEMA_VERSION = "law-firm-os.hrx-core-schema.v0.1";
 export const HRX_EMPLOYEE_STATUSES = Object.freeze([...EMPLOYEE_STATUSES]);
@@ -50,6 +51,57 @@ function stringField(input, field, errors, { optional = false } = {}) {
     return "";
   }
   return value.trim();
+}
+
+function optionalSafeScopeRef(input, field, errors) {
+  const value = stringField(input, field, errors, { optional: true });
+  if (value !== null && !SAFE_SCOPE_REF.test(value)) {
+    errors.push(`${field} must be a safe scope reference`);
+    return null;
+  }
+  return value;
+}
+
+function employeePhotoFields(input, errors) {
+  const objectId = stringField(input, "photo_object_id", errors, {
+    optional: true,
+  });
+  const digest = stringField(input, "photo_sha256", errors, { optional: true });
+  const contentType = stringField(input, "photo_content_type", errors, {
+    optional: true,
+  });
+  const versionId = stringField(input, "photo_version_id", errors, {
+    optional: true,
+  });
+  const rawByteSize = input?.photo_byte_size;
+  const byteSize = rawByteSize === undefined || rawByteSize === null
+    ? null
+    : Number(rawByteSize);
+  const present = [objectId, digest, contentType, byteSize]
+    .filter((value) => value !== null).length;
+  if (present !== 0 && present !== 4) {
+    errors.push("employee photo metadata must be complete or absent");
+  }
+  if (objectId !== null && !/^employee-photo:[a-f0-9]{64}$/u.test(objectId)) {
+    errors.push("photo_object_id must be an opaque employee photo reference");
+  }
+  if (digest !== null && !/^[a-f0-9]{64}$/u.test(digest)) {
+    errors.push("photo_sha256 must be a SHA-256 digest");
+  }
+  if (contentType !== null && contentType !== "image/png") {
+    errors.push("photo_content_type must be image/png");
+  }
+  if (byteSize !== null
+      && (!Number.isSafeInteger(byteSize) || byteSize < 8 || byteSize > 5 * 1024 * 1024)) {
+    errors.push("photo_byte_size must be between 8 bytes and 5 MiB");
+  }
+  return {
+    photo_object_id: objectId,
+    photo_sha256: digest,
+    photo_byte_size: byteSize,
+    photo_content_type: contentType,
+    photo_version_id: versionId,
+  };
 }
 
 function enumField(input, field, allowed, errors, { defaultValue } = {}) {
@@ -147,8 +199,10 @@ export function validateEmployee(input) {
     display_name: stringField(input, "display_name", errors),
     legal_name: stringField(input, "legal_name", errors, { optional: true }),
     work_email: stringField(input, "work_email", errors, { optional: true }),
+    mobile_phone: stringField(input, "mobile_phone", errors, { optional: true }),
     status: enumField(input, "status", EMPLOYEE_STATUSES, errors, { defaultValue: "active" }),
     source_ref: stringField(input, "source_ref", errors, { optional: true }),
+    ...employeePhotoFields(input, errors),
   };
   return result(errors, value);
 }
@@ -172,7 +226,18 @@ export function validateEmploymentProfile(input) {
     status: enumField(input, "status", EMPLOYMENT_PROFILE_STATUSES, errors, { defaultValue: "active" }),
     title: stringField(input, "title", errors, { optional: true }),
     org_unit_id: stringField(input, "org_unit_id", errors, { optional: true }),
+    legal_entity_id: optionalSafeScopeRef(input, "legal_entity_id", errors),
+    affiliation: stringField(input, "affiliation", errors, { optional: true }),
+    department: stringField(input, "department", errors, { optional: true }),
+    organization_group: stringField(
+      input,
+      "organization_group",
+      errors,
+      { optional: true },
+    ),
+    country: stringField(input, "country", errors, { optional: true }),
     manager_employee_id: stringField(input, "manager_employee_id", errors, { optional: true }),
+    start_date: optionalIsoDate(input, "start_date", errors),
     effective_from: requiredIsoDate(input, "effective_from", errors),
     effective_to: optionalIsoDate(input, "effective_to", errors),
     source_ref: stringField(input, "source_ref", errors, { optional: true }),

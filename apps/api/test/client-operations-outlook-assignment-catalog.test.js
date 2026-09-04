@@ -50,7 +50,7 @@ test("combined migration 306 binds the exact Outlook assignment authority catalo
     hashDomainValue(OUTLOOK_DESKTOP_ASSIGNMENT_AUTHORITY_CATALOG),
   );
 
-  assert.equal(CLIENT_OPERATIONS_MIGRATION_CATALOG.migration_count, 78);
+  assert.equal(CLIENT_OPERATIONS_MIGRATION_CATALOG.migration_count, 79);
   assert.equal(Object.isFrozen(CLIENT_OPERATIONS_MIGRATION_CATALOG), true);
   assert.equal(
     Object.isFrozen(CLIENT_OPERATIONS_MIGRATION_CATALOG.migrations),
@@ -62,7 +62,7 @@ test("combined migration 306 binds the exact Outlook assignment authority catalo
   );
   assert.equal(
     CLIENT_OPERATIONS_MIGRATION_CATALOG_SHA256,
-    "7b03e0175cf1b3266951d8fb59fc2ae0f390bd620a4a0cf4aeb2be58fb502302",
+    "43c6a087834d9dd2177be0b63fc94cf723181b93b04f40a65689b6431bd44556",
   );
   const normalizedCatalog = normalizeClientOperationsMigrationCatalog();
   assert.equal(
@@ -79,7 +79,7 @@ test("combined migration 306 binds the exact Outlook assignment authority catalo
   );
   assert.equal(
     normalizedCatalog.ledger_sha256,
-    "d323c0d66ad146dcda231c1688469615b3073efeed153cb78620ce49d177e162",
+    "fe0b9c53de1617361fd607692beb7e462b28159321e7830d507836948fcfdbc3",
   );
   const assignmentCatalogRow =
     CLIENT_OPERATIONS_MIGRATION_CATALOG.migrations.at(-3);
@@ -87,11 +87,11 @@ test("combined migration 306 binds the exact Outlook assignment authority catalo
     CLIENT_OPERATIONS_SCHEMA_MANIFEST.entries.at(-3);
   assert.equal(
     hashDomainValue(CLIENT_OPERATIONS_SCHEMA_MANIFEST.entries.slice(0, -3)),
-    "955acda6770f6adb1c7a14b117b6eb36ac3310da45dfaa9ff0595d22b95ac995",
+    "ae6b2ffa029916bb364772dfa64bb507a6aafc4627aabe49127957c55381421b",
   );
   assert.equal(
     hashDomainValue(CLIENT_OPERATIONS_SCHEMA_MANIFEST.entries.slice(0, -2)),
-    "8d8da4ab27a6de8db5e612b2d55945ffeb70fd61a7b43fb2b10c39d72cbaad6a",
+    "65da3dccd4e9f0079abbbe9d4176776624df697dccb52923bdf9f889e3553c91",
   );
   assert.deepEqual(CLIENT_OPERATIONS_SCHEMA_MANIFEST.entries.at(-4), {
     id: "305_client_outlook_desktop_release_trust",

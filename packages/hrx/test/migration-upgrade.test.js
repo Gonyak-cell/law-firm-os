@@ -5,10 +5,10 @@ import { auditHrxCheckpointUpgrades } from "../../../scripts/validate-hrx-checkp
 test("MG-005 upgrades 010, 020, and 025 file databases without data loss", () => {
   const report = auditHrxCheckpointUpgrades();
   assert.equal(report.verdict, "PASS");
-  assert.equal(report.final_migration_count, 48);
-  assert.equal(report.final_migration, "048_hrx_recruiting_pipeline_receipts.sql");
+  assert.equal(report.final_migration_count, 49);
+  assert.equal(report.final_migration, "049_hrx_directory_authority.sql");
   assert.deepEqual(report.checkpoints.map(({ checkpoint }) => checkpoint), [10, 20, 25]);
-  assert.deepEqual(report.checkpoints.map(({ upgrade_migration_count }) => upgrade_migration_count), [38, 28, 23]);
+  assert.deepEqual(report.checkpoints.map(({ upgrade_migration_count }) => upgrade_migration_count), [39, 29, 24]);
   assert.equal(report.checkpoint_count, 3);
   assert.equal(report.total_seeded_table_count, 32);
   assert.equal(report.total_seeded_row_count, 32);

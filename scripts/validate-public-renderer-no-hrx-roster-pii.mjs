@@ -10,6 +10,10 @@ const rosterPath = path.resolve(
   ROOT,
   configuredRosterPath || "docs/reorganization/client-matter-os/matter-vault-r4/launch/hrx-member-roster-source-of-truth.json",
 );
+const registrationPath = path.resolve(
+  ROOT,
+  "docs/reorganization/client-matter-os/matter-vault-r4/launch/matter-vault-user-registration-seed.json",
+);
 const rendererRoots = [
   path.join(ROOT, "apps/web/dist"),
   path.join(ROOT, "apps/desktop/src/renderer/web"),
@@ -19,16 +23,28 @@ const configuredPhotoSourcePath = String(process.env.LAWOS_HRX_MEMBER_PHOTO_SOUR
 const photoSourcePath = path.resolve(ROOT, configuredPhotoSourcePath || "apps/api/src/hrx-member-photos");
 
 assert(existsSync(rosterPath), "HRX roster source is required for value-based public-renderer PII validation");
+assert(existsSync(registrationPath), "Registration seed is required for value-based public-renderer PII validation");
 assert(rendererRoots.length > 0, "At least one built renderer is required for PII validation");
 assert(existsSync(photoSourcePath), "HRX member photo source is required for public-renderer PII validation");
 
 const roster = JSON.parse(readFileSync(rosterPath, "utf8"));
 const members = Array.isArray(roster.members) ? roster.members : [];
 const protectedKeys = ["display_name", "legal_name", "work_email", "employee_id", "user_id", "manager_employee_id"];
-const protectedValues = [...new Set(
-  members.flatMap((member) => protectedKeys.map((key) => String(member?.[key] ?? "").trim())).filter((value) => value.length >= 4),
-)];
-assert(protectedValues.length > 0, "HRX roster PII validator requires at least one protected value");
+const rosterProtectedValues =
+  members.flatMap((member) => protectedKeys.map((key) => String(member?.[key] ?? "").trim())).filter((value) => value.length >= 4);
+const registration = JSON.parse(readFileSync(registrationPath, "utf8"));
+const users = Array.isArray(registration.users) ? registration.users : [];
+const registrationProtectedKeys = ["display_name", "email", "english_name", "user_id"];
+const registrationProtectedValues = users
+  .flatMap((user) => registrationProtectedKeys.map((key) => String(user?.[key] ?? "").trim()))
+  .filter((value) => value.length >= 4);
+const protectedValues = [...new Set([
+  ...rosterProtectedValues,
+  ...registrationProtectedValues,
+  String(roster.tenant_id ?? "").trim(),
+  String(registration.tenant_id ?? "").trim(),
+].filter((value) => value.length >= 4))];
+assert(protectedValues.length > 0, "Private identity validator requires at least one protected value");
 
 function filesUnder(directory) {
   return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
@@ -65,5 +81,18 @@ for (const rendererRoot of rendererRoots) {
   }
 }
 
-assert.deepEqual(findings, [], `HRX roster PII detected in public renderer files: ${JSON.stringify(findings)}`);
-console.log(JSON.stringify({ verdict: "PASS", renderer_root_count: rendererRoots.length, scanned_files: scannedFiles, protected_value_count: protectedValues.length, protected_photo_count: protectedPhotoHashes.size, protected_values_printed: false }, null, 2));
+assert.deepEqual(
+  findings,
+  [],
+  `Protected identity or photo data detected in public renderer files: ${JSON.stringify(findings)}`,
+);
+console.log(JSON.stringify({
+  verdict: "PASS",
+  renderer_root_count: rendererRoots.length,
+  scanned_files: scannedFiles,
+  roster_member_count: members.length,
+  registration_account_count: users.length,
+  protected_value_count: protectedValues.length,
+  protected_photo_count: protectedPhotoHashes.size,
+  protected_values_printed: false,
+}, null, 2));

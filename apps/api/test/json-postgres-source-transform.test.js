@@ -303,6 +303,12 @@ test("record-aware transform keeps unique records and removes only the older ove
       work_email: "person@example.test",
       title: "Attorney",
       org_unit_id: "legal",
+      affiliation: "Synthetic Firm",
+      department: "Legal",
+      organization_group: "Synthetic Firm",
+      country: "대한민국",
+      mobile_phone: "+82-10-0000-0000",
+      start_date: "2024-03-01",
       status: "active",
     }],
   }));
@@ -623,6 +629,12 @@ test("record-aware transform merges partial HRX stores before enforcing referenc
       work_email: "person@example.test",
       title: "Attorney",
       org_unit_id: "legal",
+      affiliation: "Synthetic Firm",
+      department: "Legal",
+      organization_group: "Synthetic Firm",
+      country: "대한민국",
+      mobile_phone: "+82-10-0000-0000",
+      start_date: "2024-03-01",
       status: "active",
     }],
   }));
@@ -755,6 +767,20 @@ test("record-aware transform merges partial HRX stores before enforcing referenc
     record.record_type === "hrx_employment_profiles"
     && record.payload.profile_id === "legacy_profile_001"
     && record.payload.title === "Attorney"));
+  const rosterEmployee = hrx.records.find((record) =>
+    record.record_type === "hrx_employees"
+    && record.payload.employee_id === "employee_001");
+  const rosterProfile = hrx.records.find((record) =>
+    record.record_type === "hrx_employment_profiles"
+    && record.payload.profile_id === "profile_employee_001");
+  assert.equal(rosterEmployee.payload.mobile_phone, "+82-10-0000-0000");
+  assert.equal(rosterProfile.payload.effective_from, "2024-03-01");
+  assert.equal(rosterProfile.payload.start_date, "2024-03-01");
+  assert.equal(rosterProfile.payload.legal_entity_id, null);
+  assert.equal(rosterProfile.payload.affiliation, "Synthetic Firm");
+  assert.equal(rosterProfile.payload.department, "Legal");
+  assert.equal(rosterProfile.payload.organization_group, "Synthetic Firm");
+  assert.equal(rosterProfile.payload.country, "대한민국");
   assert.ok(hrx.records.some((record) =>
     record.record_type === "hrx_employment_profiles"
     && record.payload.profile_id === "version_profile_001"

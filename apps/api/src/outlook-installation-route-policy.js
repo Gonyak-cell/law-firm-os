@@ -68,6 +68,7 @@ const ROUTES = [
   ["desktop.installations.read", "GET", "/api/desktop/installations/:installation_id", C.desktopLifecycleExempt],
   ["desktop.installations.heartbeat", "POST", "/api/desktop/installations/:installation_id/heartbeat", C.desktopLifecycleExempt],
   ["desktop.installations.retire", "POST", "/api/desktop/installations/:installation_id/retire", C.desktopLifecycleExempt],
+  ["desktop.internal_updates.authorize", "POST", "/api/desktop/internal-updates/authorize", C.protectedOperation],
 ];
 
 export const OUTLOOK_INSTALLATION_ROUTE_POLICIES = Object.freeze(ROUTES.map(([

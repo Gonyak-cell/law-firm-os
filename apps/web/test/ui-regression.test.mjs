@@ -1896,7 +1896,7 @@ test("Client Matter People Vault surfaces stay API-backed and fail closed", asyn
   assert.match(apiClientSource, /permission_check_only/);
   assert.match(apiClientSource, /bridgeToken/);
   assert.match(apiClientSource, /kind: "guarded"/);
-  assert.match(apiClientSource, /tenant_amic_matter_vault/);
+  assert.match(apiClientSource, /runtimeTenant\("tenant", "vault", "synthetic"\)/);
   assert.match(apiClientSource, /matter_vault_operator/);
   assert.match(apiClientSource, /\/api\/crm\/leads/);
   assert.match(apiClientSource, /\/api\/crm\/accounts/);
@@ -2251,7 +2251,7 @@ test("HRX audit UI preserves server-owned step-up and no local fallback", async 
   assert.match(challengeSource, /권한 확인/);
   assert.doesNotMatch(challengeSource, /Trusted session only|Additional verification required|protected activity/);
   assert.doesNotMatch(challengeSource, /x-lawos-hrx-step-up|tenant-a|actor_id|mfa: true/);
-  assert.match(peopleApiSource, /tenant_amic_matter_vault/);
+  assert.match(peopleApiSource, /const HRX_ORG_REF = "tenant_hrx_synthetic"/);
   assert.match(peopleApiSource, /lawos\.session\.envelope/);
   assert.match(peopleApiSource, /sessionHrxRuntimeHeaders/);
   assert.match(peopleApiSource, /if \(!envelope\) return \{ "x-lawos-tenant-id": HRX_ORG_REF \}/);

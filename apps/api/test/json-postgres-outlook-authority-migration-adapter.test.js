@@ -104,14 +104,14 @@ async function applyPrefixThrough305(state, label) {
   const assignmentIndex = catalog.findIndex(
     ({ id }) => id === "306_client_outlook_desktop_assignment",
   );
-  assert.equal(catalog.length, 78);
-  assert.equal(assignmentIndex, 75);
+  assert.equal(catalog.length, 79);
+  assert.equal(assignmentIndex, 76);
   await runPostgresMigrations(state.admin, {
     migrations: catalog.slice(0, assignmentIndex), appliedBy: label,
   });
   assert.equal((await state.admin.query(
     "SELECT count(*)::int AS count FROM lawos_meta.schema_migrations",
-  )).rows[0].count, 75);
+  )).rows[0].count, 76);
 }
 
 test("migration adapter fails closed and clears its caller-owned secret", () => {
@@ -142,9 +142,9 @@ test("migration adapter runs 001-006, role bootstrap, 007-009, then exact replay
   const receipt = first.normalizeRunReceipt(raw);
   const readiness = first.getRoleReadiness();
   assert.equal(receipt.outcome, "committed");
-  assert.equal(receipt.migrations.length, 78);
+  assert.equal(receipt.migrations.length, 79);
   assert.equal(receipt.migration_applied_count,
-    78 - listPostgresFoundationMigrations().length);
+    79 - listPostgresFoundationMigrations().length);
   assert.equal(receipt.role_configuration_transaction_committed_count, 1);
   assert.equal(receipt.postgres_mutation_committed_count,
     receipt.migration_applied_count + 1);
@@ -178,8 +178,8 @@ test("migration adapter runs 001-006, role bootstrap, 007-009, then exact replay
   assert.ok(replayInput.secret.every((byte) => byte === 0));
 });
 
-test("migration adapter applies the exact 75-to-78 transition", async (t) => {
-  const state = await fixture(t, "outlook-authority-adapter-75-78");
+test("migration adapter applies the exact 76-to-79 transition", async (t) => {
+  const state = await fixture(t, "outlook-authority-adapter-76-79");
   if (!state) return;
   await applyPrefixThrough305(state, "outlook-adapter-prefix");
   const input = options();
@@ -187,7 +187,7 @@ test("migration adapter applies the exact 75-to-78 transition", async (t) => {
   let raw;
   try {
     raw = await runClientOperationsPostgresMigrations(state.admin, {
-      appliedBy: "outlook-adapter-75-78", ...adapter.runnerOptions,
+      appliedBy: "outlook-adapter-76-79", ...adapter.runnerOptions,
     });
   } finally { adapter.dispose(); }
   const receipt = adapter.normalizeRunReceipt(raw);
@@ -218,7 +218,7 @@ test("migration adapter preserves role COMMIT unknown without rollback", async (
   } finally { adapter.dispose(); }
   assert.equal(failure.failure_phase, "outlook_authority_paused");
   assert.equal(failure.migration_applied_count, 0);
-  assert.equal(failure.migrations.length, 75);
+  assert.equal(failure.migrations.length, 76);
   assert.deepEqual(failure.migrations.at(-1), {
     id: "305_client_outlook_desktop_release_trust",
     checksum: CLIENT_OPERATIONS_MIGRATION_CATALOG.migrations.find(

@@ -1,0 +1,196 @@
+name: AMIC OS Internal Unsigned Readback
+
+on:
+  workflow_call:
+    inputs:
+      approval_ref:
+        required: true
+        type: string
+      publication_mode:
+        required: true
+        type: string
+      source_sha:
+        required: true
+        type: string
+      source_tree:
+        required: true
+        type: string
+      retain_until:
+        required: true
+        type: string
+      readback_locator_base64:
+        required: true
+        type: string
+      publication_receipt_sha256:
+        required: true
+        type: string
+
+permissions: {}
+
+jobs:
+  exact-version-independent-readback:
+    name: Read 9 baseline or 18 successor exact S3 versions with isolated authority
+    if: >-
+      ${{
+        github.repository == 'Gonyak-cell/law-firm-os' &&
+        github.ref == 'refs/heads/main' &&
+        github.event_name == 'workflow_dispatch' &&
+        github.workflow_ref == 'Gonyak-cell/law-firm-os/.github/workflows/amic-os-internal-unsigned-publish.yml@refs/heads/main'
+      }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    environment:
+      name: amic-os-internal-unsigned-readback
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Checkout exact reviewed readback source
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ inputs.source_sha }}
+          fetch-depth: 1
+          persist-credentials: false
+          clean: true
+
+      - name: Setup pinned Node 22
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: "22"
+
+      - name: Validate exact source, locator handoff, and public trust root before OIDC
+        shell: bash
+        env:
+          INPUT_SOURCE_SHA: ${{ inputs.source_sha }}
+          INPUT_SOURCE_TREE: ${{ inputs.source_tree }}
+          INPUT_APPROVAL_REF: ${{ inputs.approval_ref }}
+          INPUT_PUBLICATION_MODE: ${{ inputs.publication_mode }}
+          INPUT_RETAIN_UNTIL: ${{ inputs.retain_until }}
+          INPUT_READBACK_LOCATOR_B64: ${{ inputs.readback_locator_base64 }}
+          INPUT_PUBLICATION_RECEIPT_SHA256: ${{ inputs.publication_receipt_sha256 }}
+          ARTIFACT_BUCKET: ${{ vars.AMIC_INTERNAL_ARTIFACT_BUCKET }}
+          ACCESS_LOG_BUCKET: ${{ vars.AMIC_INTERNAL_ACCESS_LOG_BUCKET }}
+          ARTIFACT_KMS_KEY_ARN: ${{ vars.AMIC_INTERNAL_ARTIFACT_KMS_KEY_ARN }}
+          READER_ROLE_ARN: ${{ vars.AMIC_INTERNAL_READBACK_ROLE_ARN }}
+          METADATA_PUBLIC_KEY_SPKI_B64: ${{ vars.AMIC_INTERNAL_METADATA_PUBLIC_KEY_SPKI_B64 }}
+          METADATA_PUBLIC_KEY_SHA256: ${{ vars.AMIC_INTERNAL_METADATA_PUBLIC_KEY_SHA256 }}
+          CLOUDFRONT_DOMAIN: ${{ vars.AMIC_INTERNAL_CLOUDFRONT_DOMAIN }}
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REPOSITORY" = "Gonyak-cell/law-firm-os"
+          test "$GITHUB_REF" = "refs/heads/main"
+          test "$RUNNER_ENVIRONMENT" = "github-hosted"
+          test "$(git rev-parse HEAD)" = "$INPUT_SOURCE_SHA"
+          test "$(git rev-parse 'HEAD^{tree}')" = "$INPUT_SOURCE_TREE"
+          test -z "$(git status --porcelain)"
+          [[ "$INPUT_SOURCE_SHA" =~ ^[0-9a-f]{40}$ ]]
+          [[ "$INPUT_SOURCE_TREE" =~ ^[0-9a-f]{40}$ ]]
+          [[ "$INPUT_APPROVAL_REF" =~ ^[A-Za-z0-9][A-Za-z0-9._:-]{0,199}$ ]]
+          [[ "$INPUT_PUBLICATION_MODE" =~ ^(baseline|successor)$ ]]
+          [[ "$INPUT_RETAIN_UNTIL" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{3}Z$ ]]
+          [[ "$INPUT_PUBLICATION_RECEIPT_SHA256" =~ ^[0-9a-f]{64}$ ]]
+          [[ "$ARTIFACT_BUCKET" =~ ^[a-z0-9]([a-z0-9-]{1,61}[a-z0-9])$ ]]
+          [[ "$ACCESS_LOG_BUCKET" =~ ^[a-z0-9]([a-z0-9-]{1,61}[a-z0-9])$ ]]
+          [[ "$ARTIFACT_KMS_KEY_ARN" =~ ^arn:aws:kms:ap-northeast-2:770880870480:key/[0-9a-f-]{36}$ ]]
+          [[ "$READER_ROLE_ARN" =~ ^arn:aws:iam::770880870480:role/[A-Za-z0-9+=,.@_/-]+$ ]]
+          [[ "$METADATA_PUBLIC_KEY_SHA256" =~ ^[0-9a-f]{64}$ ]]
+          [[ "$CLOUDFRONT_DOMAIN" =~ ^d[a-z0-9]{3,62}\.cloudfront\.net$ ]]
+          run_root="$RUNNER_TEMP/amic-os-internal-readback-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+          test ! -e "$run_root"
+          install -d -m 700 "$run_root"
+          RUN_ROOT="$run_root" node --input-type=module <<'NODE'
+          import { createHash } from "node:crypto";
+          import { writeFileSync } from "node:fs";
+          const canonical = (name) => {
+            const value = process.env[name] ?? "";
+            const bytes = Buffer.from(value, "base64");
+            if (!bytes.length || bytes.toString("base64") !== value) throw new Error(`${name} is not canonical base64`);
+            return bytes;
+          };
+          const locatorBytes = canonical("INPUT_READBACK_LOCATOR_B64");
+          const locator = JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(locatorBytes));
+          const expectedPrefix = process.env.INPUT_PUBLICATION_MODE === "baseline"
+            ? "internal-unsigned/baseline/"
+            : "internal-unsigned/channel/";
+          if (!locator || typeof locator !== "object" || !String(locator.key ?? "").startsWith(expectedPrefix)) {
+            throw new Error("publication locator handoff is invalid");
+          }
+          const publicKey = canonical("METADATA_PUBLIC_KEY_SPKI_B64");
+          if (createHash("sha256").update(publicKey).digest("hex") !== process.env.METADATA_PUBLIC_KEY_SHA256) {
+            throw new Error("metadata public key fingerprint differs");
+          }
+          const bindings = {
+            accountId: "770880870480",
+            region: "ap-northeast-2",
+            bucket: process.env.ARTIFACT_BUCKET,
+            accessLogBucket: process.env.ACCESS_LOG_BUCKET,
+            kmsKeyArn: process.env.ARTIFACT_KMS_KEY_ARN,
+            retainUntil: process.env.INPUT_RETAIN_UNTIL,
+          };
+          writeFileSync(`${process.env.RUN_ROOT}/publication-locator.json`, `${JSON.stringify(locator, null, 2)}\n`, { flag: "wx", mode: 0o600 });
+          writeFileSync(`${process.env.RUN_ROOT}/bindings.json`, `${JSON.stringify(bindings, null, 2)}\n`, { flag: "wx", mode: 0o600 });
+          NODE
+          echo "AMIC_INTERNAL_READBACK_ROOT=$run_root" >> "$GITHUB_ENV"
+
+      - name: Assume isolated exact-version readback role
+        uses: aws-actions/configure-aws-credentials@61815dcd50bd041e203e49132bacad1fd04d2708
+        with:
+          role-to-assume: ${{ vars.AMIC_INTERNAL_READBACK_ROLE_ARN }}
+          aws-region: ap-northeast-2
+          role-session-name: amic-os-internal-readback-${{ github.run_id }}-${{ github.run_attempt }}
+          role-duration-seconds: 900
+          allowed-account-ids: "770880870480"
+          mask-aws-account-id: true
+          output-credentials: false
+          unset-current-credentials: true
+
+      - name: Re-read and verify every exact object version and anonymous denial
+        shell: bash
+        env:
+          METADATA_PUBLIC_KEY_SPKI_B64: ${{ vars.AMIC_INTERNAL_METADATA_PUBLIC_KEY_SPKI_B64 }}
+          METADATA_PUBLIC_KEY_SHA256: ${{ vars.AMIC_INTERNAL_METADATA_PUBLIC_KEY_SHA256 }}
+          CLOUDFRONT_DOMAIN: ${{ vars.AMIC_INTERNAL_CLOUDFRONT_DOMAIN }}
+          APPROVAL_REF: ${{ inputs.approval_ref }}
+          PUBLICATION_MODE: ${{ inputs.publication_mode }}
+        run: |
+          set -euo pipefail
+          node scripts/readback-amic-os-internal-unsigned.mjs --execute \
+            --approval-ref "$APPROVAL_REF" \
+            --publication-mode "$PUBLICATION_MODE" \
+            --bindings "$AMIC_INTERNAL_READBACK_ROOT/bindings.json" \
+            --locator "$AMIC_INTERNAL_READBACK_ROOT/publication-locator.json" \
+            --trusted-public-key-spki-base64 "$METADATA_PUBLIC_KEY_SPKI_B64" \
+            --trusted-public-key-sha256 "$METADATA_PUBLIC_KEY_SHA256" \
+            --cloudfront-domain "$CLOUDFRONT_DOMAIN" \
+            --receipt "$AMIC_INTERNAL_READBACK_ROOT/readback-receipt.json" \
+            > "$AMIC_INTERNAL_READBACK_ROOT/readback-stdout.json"
+          node --input-type=module <<'NODE'
+          import { readFileSync } from "node:fs";
+          const root = process.env.AMIC_INTERNAL_READBACK_ROOT;
+          const receipt = JSON.parse(readFileSync(`${root}/readback-receipt.json`, "utf8"));
+          const expectedCount = process.env.PUBLICATION_MODE === "baseline" ? 9 : 18;
+          if (receipt.state !== "PASS" || receipt.publication_mode !== process.env.PUBLICATION_MODE
+              || receipt.exact_version_read_count !== expectedCount
+              || receipt.anonymous_s3_denied !== true || receipt.unsigned_cloudfront_denied !== true
+              || receipt.public_installer_available !== false || receipt.source_sha !== process.env.GITHUB_SHA) {
+            throw new Error("independent readback receipt is invalid");
+          }
+          NODE
+
+      - name: Upload sanitized independent readback receipt only
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: amic-os-internal-unsigned-readback-${{ inputs.source_sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ env.AMIC_INTERNAL_READBACK_ROOT }}/readback-receipt.json
+          if-no-files-found: error
+          include-hidden-files: false
+          retention-days: 90
+
+      - name: Remove run-owned readback staging
+        if: always()
+        shell: bash
+        run: |
+          set +e
+          if [[ -n "${AMIC_INTERNAL_READBACK_ROOT:-}" && -d "$AMIC_INTERNAL_READBACK_ROOT" ]]; then
+            rm -rf -- "$AMIC_INTERNAL_READBACK_ROOT"
+          fi

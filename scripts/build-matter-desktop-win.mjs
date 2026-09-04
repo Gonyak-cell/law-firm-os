@@ -22,6 +22,8 @@ import {
 } from "./lib/matter-desktop-provenance.mjs";
 import {
   assertInternalUnsignedPackage,
+  createInternalUnsignedUpdateTrustManifest,
+  INTERNAL_UNSIGNED_UPDATE_TRUST_FILENAME,
 } from "./lib/matter-desktop-internal-unsigned.mjs";
 import {
   copyDesktopLocalApiRuntime,
@@ -58,6 +60,9 @@ assertDesktopInternalUnsignedBuildProvenance({
   expectedSourceSha: process.env.MATTER_DESKTOP_EXPECTED_SOURCE_SHA,
   expectedSourceTree: process.env.MATTER_DESKTOP_EXPECTED_SOURCE_TREE,
 });
+const internalUnsignedUpdateTrust = internalUnsignedDistribution
+  ? createInternalUnsignedUpdateTrustManifest(process.env)
+  : null;
 const appId = channelConfig.appId;
 const artifactName = `${channelConfig.windowsArtifactPrefix}-${packageJson.version}`;
 const packageDir = join(distRoot, `${artifactName}-win32-x64`);
@@ -187,8 +192,16 @@ try {
         bundled_local_api: false,
       }, null, 2)}\n`,
     );
+    await writeFile(
+      join(packageDir, "resources", INTERNAL_UNSIGNED_UPDATE_TRUST_FILENAME),
+      `${JSON.stringify(internalUnsignedUpdateTrust, null, 2)}\n`,
+    );
   } else {
     await rm(internalUnsignedMarkerPath, { force: true });
+    await rm(
+      join(packageDir, "resources", INTERNAL_UNSIGNED_UPDATE_TRUST_FILENAME),
+      { force: true },
+    );
   }
   buildManifest = createDesktopBuildManifest({
     version: packageJson.version,

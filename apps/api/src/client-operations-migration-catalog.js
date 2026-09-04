@@ -3,7 +3,7 @@ import { hashDomainValue } from "../../../packages/persistence/src/domain-ledger
 export const CLIENT_OPERATIONS_MIGRATION_CATALOG_VERSION =
   "law-firm-os.json-postgres-rehearsal-migration-catalog.v1";
 
-const MIGRATION_COUNT = 78;
+const MIGRATION_COUNT = 79;
 const ASSIGNMENT_MIGRATION_ID =
   "306_client_outlook_desktop_assignment";
 const ASSIGNMENT_SOURCE_MIGRATION_ID =

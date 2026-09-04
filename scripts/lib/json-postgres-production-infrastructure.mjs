@@ -4,6 +4,13 @@ export const JSON_POSTGRES_PRODUCTION_INFRASTRUCTURE_VERSION = "law-firm-os.json
 export const JSON_POSTGRES_PRODUCTION_ARTIFACT_STORE_VERSION = "law-firm-os.json-postgres-production-artifact-store.v4";
 export const JSON_POSTGRES_PRODUCTION_COST_CEILING_KRW = 300_000;
 export const JSON_POSTGRES_PRODUCTION_BUDGET_USD = 190;
+export const JSON_POSTGRES_EXTERNAL_READ_PROVIDER_PACK_SECRET_NAME =
+  "/lawos/production/external-read/provider-packs";
+export const JSON_POSTGRES_EXTERNAL_READ_CREDENTIAL_SECRET_PREFIX =
+  "/lawos/production/external-read/credentials";
+const JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SECRET_NAME =
+  "/lawos/disabled/external-read/provider-packs";
+const JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SHA256 = "0".repeat(64);
 export const JSON_POSTGRES_WINDOWS_SIGNED_ARTIFACT_PREFIX = "windows/signed/v1/";
 export const JSON_POSTGRES_WINDOWS_SIGNED_ARTIFACT_KEY_PATTERN =
   "windows/signed/v1/{source_sha}/{version}/{candidate_role}/{artifact_kind}/sha256/{artifact_sha256}/{filename}";
@@ -67,6 +74,45 @@ function fail(message) {
 
 function clone(value) {
   return JSON.parse(JSON.stringify(value));
+}
+
+function externalReadProviderConfigurationRule() {
+  return {
+    Assertions: [{
+      Assert: {
+        "Fn::Or": [
+          {
+            "Fn::And": [
+              { "Fn::Equals": [{ Ref: "EnableExternalReadProviders" }, "false"] },
+              { "Fn::Equals": [
+                { Ref: "ExternalReadProviderPackSecretName" },
+                JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SECRET_NAME,
+              ] },
+              { "Fn::Equals": [
+                { Ref: "ExternalReadProviderPackSha256" },
+                JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SHA256,
+              ] },
+            ],
+          },
+          {
+            "Fn::And": [
+              { "Fn::Equals": [{ Ref: "EnableExternalReadProviders" }, "true"] },
+              { "Fn::Equals": [
+                { Ref: "ExternalReadProviderPackSecretName" },
+                JSON_POSTGRES_EXTERNAL_READ_PROVIDER_PACK_SECRET_NAME,
+              ] },
+              { "Fn::Not": [{ "Fn::Equals": [
+                { Ref: "ExternalReadProviderPackSha256" },
+                JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SHA256,
+              ] }] },
+            ],
+          },
+        ],
+      },
+      AssertDescription:
+        "External read providers require the exact production pack secret and a non-placeholder SHA-256; disabled mode requires both placeholders",
+    }],
+  };
 }
 
 function replaceStrings(value) {
@@ -1454,6 +1500,27 @@ export function buildJsonPostgresProductionTemplate(stagingTemplate) {
     AllowedPattern: "^/lawos/[A-Za-z0-9/_+=.@-]{1,230}/$",
     Description: "Same-account Secrets Manager name prefix for owner-bound delegated credentials",
   };
+  template.Parameters.EnableExternalReadProviders = {
+    Type: "String",
+    Default: "false",
+    AllowedValues: ["true", "false"],
+    Description: "Fail-closed activation for reviewed external read provider packs",
+  };
+  template.Parameters.ExternalReadProviderPackSecretName = {
+    Type: "String",
+    Default: JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SECRET_NAME,
+    AllowedValues: [
+      JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SECRET_NAME,
+      JSON_POSTGRES_EXTERNAL_READ_PROVIDER_PACK_SECRET_NAME,
+    ],
+    Description: "Exact same-account Secrets Manager name containing reviewed provider-pack bytes",
+  };
+  template.Parameters.ExternalReadProviderPackSha256 = {
+    Type: "String",
+    Default: JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SHA256,
+    AllowedPattern: "^[0-9a-f]{64}$",
+    Description: "SHA-256 of the exact UTF-8 provider-pack secret bytes",
+  };
   template.Parameters.RuntimeGeneration = {
     Type: "Number",
     Default: 1,
@@ -1506,6 +1573,13 @@ export function buildJsonPostgresProductionTemplate(stagingTemplate) {
   template.Conditions.ProjectionWorkerEnabled = {
     "Fn::Equals": [{ Ref: "EnableProjectionWorker" }, "true"],
   };
+  template.Conditions.ExternalReadProvidersEnabled = {
+    "Fn::Equals": [{ Ref: "EnableExternalReadProviders" }, "true"],
+  };
+  template.Rules = {
+    ExternalReadProviderConfigurationIsClosed:
+      externalReadProviderConfigurationRule(),
+  };
   template.Conditions.OutlookConversationWorkerConfigured = {
     "Fn::And": [
       { "Fn::Not": [{ "Fn::Equals": [
@@ -1555,6 +1629,14 @@ export function buildJsonPostgresProductionTemplate(stagingTemplate) {
   };
   const outlookCredentialSecretArn = {
     "Fn::Sub": "arn:${AWS::Partition}:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${ClientOutlookCredentialSecretPrefix}*",
+  };
+  const externalReadProviderPackSecretArn = {
+    "Fn::Sub":
+      "arn:${AWS::Partition}:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${ExternalReadProviderPackSecretName}-*",
+  };
+  const externalReadCredentialSecretArn = {
+    "Fn::Sub":
+      `arn:\${AWS::Partition}:secretsmanager:\${AWS::Region}:\${AWS::AccountId}:secret:${JSON_POSTGRES_EXTERNAL_READ_CREDENTIAL_SECRET_PREFIX}/*`,
   };
   for (const item of resources.SecretsManagerEndpoint.Properties.PolicyDocument.Statement) {
     if (Array.isArray(item.Resource)) {
@@ -1611,6 +1693,28 @@ export function buildJsonPostgresProductionTemplate(stagingTemplate) {
     Resource: [
       { Ref: "ProjectionDatabaseSecret" },
       { Ref: "TenantContextSecret" },
+    ],
+  });
+  resources.SecretsManagerEndpoint.Properties.PolicyDocument.Statement.push({
+    "Fn::If": [
+      "ExternalReadProvidersEnabled",
+      {
+        Sid: "ApiUsesExactExternalReadSecrets",
+        Effect: "Allow",
+        Principal: { AWS: { "Fn::GetAtt": ["ApiExecutionRole", "Arn"] } },
+        Action: [
+          "secretsmanager:CreateSecret",
+          "secretsmanager:DeleteSecret",
+          "secretsmanager:GetSecretValue",
+          "secretsmanager:PutSecretValue",
+          "secretsmanager:TagResource",
+        ],
+        Resource: [
+          clone(externalReadProviderPackSecretArn),
+          clone(externalReadCredentialSecretArn),
+        ],
+      },
+      { Ref: "AWS::NoValue" },
     ],
   });
   resources.HttpApiDefaultRoute.Metadata.LawOSPublicRouteException = {
@@ -1713,6 +1817,116 @@ export function buildJsonPostgresProductionTemplate(stagingTemplate) {
       },
     ],
   });
+
+  resources.ExternalReadSecretsPolicy = {
+    Type: "AWS::IAM::Policy",
+    Condition: "ExternalReadProvidersEnabled",
+    Properties: {
+      PolicyName: "lawos-production-external-read-secrets",
+      Roles: [{ Ref: "ApiExecutionRole" }],
+      PolicyDocument: {
+        Version: "2012-10-17",
+        Statement: [
+          {
+            Sid: "ReadExactExternalReadProviderPack",
+            Effect: "Allow",
+            Action: "secretsmanager:GetSecretValue",
+            Resource: clone(externalReadProviderPackSecretArn),
+          },
+          {
+            Sid: "CreateTaggedExternalReadCredentialGenerations",
+            Effect: "Allow",
+            Action: "secretsmanager:CreateSecret",
+            Resource: clone(externalReadCredentialSecretArn),
+            Condition: {
+              ArnEquals: {
+                "secretsmanager:KmsKeyArn": {
+                  "Fn::GetAtt": ["ProductionKey", "Arn"],
+                },
+              },
+              StringEquals: {
+                "aws:RequestTag/lawos-purpose": [
+                  "external-read",
+                  "external-read-tombstone",
+                ],
+              },
+              "ForAllValues:StringEquals": {
+                "aws:TagKeys": ["lawos-purpose"],
+              },
+              Null: { "aws:RequestTag/lawos-purpose": "false" },
+            },
+          },
+          {
+            Sid: "TagExternalReadCredentialPurposeOnly",
+            Effect: "Allow",
+            Action: "secretsmanager:TagResource",
+            Resource: clone(externalReadCredentialSecretArn),
+            Condition: {
+              StringEquals: {
+                "aws:RequestTag/lawos-purpose": [
+                  "external-read",
+                  "external-read-tombstone",
+                ],
+              },
+              "ForAllValues:StringEquals": {
+                "aws:TagKeys": ["lawos-purpose"],
+              },
+              Null: { "aws:RequestTag/lawos-purpose": "false" },
+            },
+          },
+          {
+            Sid: "UseTaggedExternalReadCredentialGenerations",
+            Effect: "Allow",
+            Action: [
+              "secretsmanager:GetSecretValue",
+              "secretsmanager:PutSecretValue",
+            ],
+            Resource: clone(externalReadCredentialSecretArn),
+            Condition: {
+              StringEquals: {
+                "aws:ResourceTag/lawos-purpose": [
+                  "external-read",
+                  "external-read-tombstone",
+                ],
+              },
+            },
+          },
+          {
+            Sid: "ScheduleTaggedExternalReadCredentialDeletion",
+            Effect: "Allow",
+            Action: "secretsmanager:DeleteSecret",
+            Resource: clone(externalReadCredentialSecretArn),
+            Condition: {
+              StringEquals: {
+                "aws:ResourceTag/lawos-purpose": [
+                  "external-read",
+                  "external-read-tombstone",
+                ],
+              },
+              BoolIfExists: {
+                "secretsmanager:ForceDeleteWithoutRecovery": "false",
+              },
+              NumericGreaterThanEquals: {
+                "secretsmanager:RecoveryWindowInDays": "7",
+              },
+              NumericLessThanEquals: {
+                "secretsmanager:RecoveryWindowInDays": "30",
+              },
+            },
+          },
+          {
+            Sid: "DenyExternalReadCredentialForceDelete",
+            Effect: "Deny",
+            Action: "secretsmanager:DeleteSecret",
+            Resource: clone(externalReadCredentialSecretArn),
+            Condition: {
+              Bool: { "secretsmanager:ForceDeleteWithoutRecovery": "true" },
+            },
+          },
+        ],
+      },
+    },
+  };
 
   const adminRole = resources.AdminExecutionRole;
   const readSecrets = statement(adminRole, "ReadExactBootstrapSecrets");
@@ -2214,6 +2428,34 @@ export function buildJsonPostgresProductionTemplate(stagingTemplate) {
   apiEnvironment.LAWOS_PROGRAM_INPUT_KMS_KEY_ARN = {
     "Fn::GetAtt": ["ProductionKey", "Arn"],
   };
+  apiEnvironment.LAWOS_EXTERNAL_READ_PROVIDER_PACKS_SECRET_ID = {
+    "Fn::If": [
+      "ExternalReadProvidersEnabled",
+      { Ref: "ExternalReadProviderPackSecretName" },
+      "",
+    ],
+  };
+  apiEnvironment.LAWOS_EXTERNAL_READ_PROVIDER_PACKS_SHA256 = {
+    "Fn::If": [
+      "ExternalReadProvidersEnabled",
+      { Ref: "ExternalReadProviderPackSha256" },
+      "",
+    ],
+  };
+  apiEnvironment.LAWOS_EXTERNAL_READ_SECRET_PREFIX = {
+    "Fn::If": [
+      "ExternalReadProvidersEnabled",
+      JSON_POSTGRES_EXTERNAL_READ_CREDENTIAL_SECRET_PREFIX,
+      "",
+    ],
+  };
+  apiEnvironment.LAWOS_EXTERNAL_READ_KMS_KEY_ARN = {
+    "Fn::If": [
+      "ExternalReadProvidersEnabled",
+      { "Fn::GetAtt": ["ProductionKey", "Arn"] },
+      "",
+    ],
+  };
   resources.ProjectionWorkerDeadLetterAlarm = {
     Type: "AWS::CloudWatch::Alarm",
     Properties: {
@@ -2495,6 +2737,7 @@ export function buildJsonPostgresProductionTemplate(stagingTemplate) {
     dual_write: false,
     offline_capability: "rejected",
     production_traffic_default: false,
+    external_read_providers_default: false,
   };
   template.Outputs.ProgramInputBucketName = { Value: { Ref: "ProgramInputBucket" } };
   template.Outputs.ProgramInputKmsKeyArn = { Value: { "Fn::GetAtt": ["ProductionKey", "Arn"] } };
@@ -2536,6 +2779,9 @@ export function buildJsonPostgresProductionTemplate(stagingTemplate) {
   template.Outputs.ProductionTrafficEnabled = {
     Value: { "Fn::If": ["ProductionTrafficEnabled", "true", "false"] },
   };
+  template.Outputs.ExternalReadProvidersEnabled = {
+    Value: { "Fn::If": ["ExternalReadProvidersEnabled", "true", "false"] },
+  };
   return template;
 }
 
@@ -2559,11 +2805,21 @@ export function validateJsonPostgresProductionTemplate(template) {
     || template.Metadata?.json_fallback !== false
     || template.Metadata?.dual_write !== false
     || template.Metadata?.offline_capability !== "rejected"
-    || template.Metadata?.production_traffic_default !== false) {
+    || template.Metadata?.production_traffic_default !== false
+    || template.Metadata?.external_read_providers_default !== false) {
     fail("production template authority metadata drifted");
   }
   if (template.Parameters?.EnableLambdaEniBootstrap?.Default !== "false"
     || template.Parameters?.EnableProductionTraffic?.Default !== "false"
+    || template.Parameters?.EnableExternalReadProviders?.Default !== "false"
+    || template.Parameters?.ExternalReadProviderPackSecretName?.Default
+      !== JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SECRET_NAME
+    || template.Parameters?.ExternalReadProviderPackSha256?.Default
+      !== JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SHA256
+    || template.Conditions?.ExternalReadProvidersEnabled?.["Fn::Equals"]?.[0]?.Ref
+      !== "EnableExternalReadProviders"
+    || stableJson(template.Rules?.ExternalReadProviderConfigurationIsClosed)
+      !== stableJson(externalReadProviderConfigurationRule())
     || template.Parameters?.RuntimeGeneration?.Type !== "Number"
     || template.Parameters?.RuntimeGeneration?.Default !== 1
     || template.Parameters?.RuntimeGeneration?.MinValue !== 1
@@ -2636,6 +2892,21 @@ export function validateJsonPostgresProductionTemplate(template) {
     || resources.ApiFunction?.Properties?.Environment?.Variables?.LAWOS_PERSISTENCE_AUTHORITY !== "postgres-v2"
     || resources.ApiFunction?.Properties?.Environment?.Variables?.LAWOS_RUNTIME_PROFILE !== "operational"
     || resources.ApiFunction?.Properties?.Environment?.Variables
+      ?.LAWOS_EXTERNAL_READ_PROVIDER_PACKS_SECRET_ID?.["Fn::If"]?.[0]
+      !== "ExternalReadProvidersEnabled"
+    || resources.ApiFunction?.Properties?.Environment?.Variables
+      ?.LAWOS_EXTERNAL_READ_PROVIDER_PACKS_SECRET_ID?.["Fn::If"]?.[1]?.Ref
+      !== "ExternalReadProviderPackSecretName"
+    || resources.ApiFunction?.Properties?.Environment?.Variables
+      ?.LAWOS_EXTERNAL_READ_PROVIDER_PACKS_SHA256?.["Fn::If"]?.[1]?.Ref
+      !== "ExternalReadProviderPackSha256"
+    || resources.ApiFunction?.Properties?.Environment?.Variables
+      ?.LAWOS_EXTERNAL_READ_SECRET_PREFIX?.["Fn::If"]?.[1]
+      !== JSON_POSTGRES_EXTERNAL_READ_CREDENTIAL_SECRET_PREFIX
+    || resources.ApiFunction?.Properties?.Environment?.Variables
+      ?.LAWOS_EXTERNAL_READ_KMS_KEY_ARN?.["Fn::If"]?.[1]?.["Fn::GetAtt"]?.[0]
+      !== "ProductionKey"
+    || resources.ApiFunction?.Properties?.Environment?.Variables
       ?.LAWOS_HRX_RELATIONAL_PROJECTION_ENABLED?.["Fn::If"]?.[0]
       !== "ProjectionWorkerEnabled"
     || resources.ApiFunction?.Properties?.Environment?.Variables
@@ -2666,6 +2937,8 @@ export function validateJsonPostgresProductionTemplate(template) {
       ?.["Fn::GetAtt"]?.[0] !== "ProjectionWorkerDeadLetterQueue"
     || outputs.ApiFunctionName?.Value?.Ref !== "ApiFunction"
     || outputs.DmsBucketName?.Value?.Ref !== "DmsBucket"
+    || outputs.ExternalReadProvidersEnabled?.Value?.["Fn::If"]?.[0]
+      !== "ExternalReadProvidersEnabled"
     || resources.AdminFunction?.Properties?.Environment?.Variables?.LAWOS_DATABASE_IDENTIFIER?.Ref !== "Database") {
     fail("production DR/runtime outputs drifted");
   }
@@ -2747,6 +3020,96 @@ export function validateJsonPostgresProductionTemplate(template) {
     || brokerEndpointStatement?.Action !== "lambda:InvokeFunction"
     || brokerEndpointStatement?.Resource?.["Fn::Sub"] !== brokerArn) {
     fail("production Outlook provider composition drifted");
+  }
+  const externalPackArn =
+    "arn:${AWS::Partition}:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${ExternalReadProviderPackSecretName}-*";
+  const externalCredentialArn =
+    `arn:\${AWS::Partition}:secretsmanager:\${AWS::Region}:\${AWS::AccountId}:secret:${JSON_POSTGRES_EXTERNAL_READ_CREDENTIAL_SECRET_PREFIX}/*`;
+  const externalPolicy = resources.ExternalReadSecretsPolicy;
+  const externalStatements = externalPolicy?.Properties?.PolicyDocument?.Statement ?? [];
+  const externalPackRead = externalStatements.find(
+    ({ Sid }) => Sid === "ReadExactExternalReadProviderPack",
+  );
+  const externalCreate = externalStatements.find(
+    ({ Sid }) => Sid === "CreateTaggedExternalReadCredentialGenerations",
+  );
+  const externalTag = externalStatements.find(
+    ({ Sid }) => Sid === "TagExternalReadCredentialPurposeOnly",
+  );
+  const externalUse = externalStatements.find(
+    ({ Sid }) => Sid === "UseTaggedExternalReadCredentialGenerations",
+  );
+  const externalDelete = externalStatements.find(
+    ({ Sid }) => Sid === "ScheduleTaggedExternalReadCredentialDeletion",
+  );
+  const externalForceDeleteDeny = externalStatements.find(
+    ({ Sid }) => Sid === "DenyExternalReadCredentialForceDelete",
+  );
+  const externalEndpointConditional = resources.SecretsManagerEndpoint?.Properties
+    ?.PolicyDocument?.Statement?.find(
+      (item) => item?.["Fn::If"]?.[0] === "ExternalReadProvidersEnabled",
+    )?.["Fn::If"];
+  const externalEndpoint = externalEndpointConditional?.[1];
+  const externalActions = [
+    "secretsmanager:CreateSecret",
+    "secretsmanager:DeleteSecret",
+    "secretsmanager:GetSecretValue",
+    "secretsmanager:PutSecretValue",
+    "secretsmanager:TagResource",
+  ];
+  if (externalPolicy?.Type !== "AWS::IAM::Policy"
+    || externalPolicy.Condition !== "ExternalReadProvidersEnabled"
+    || externalPolicy.Properties?.PolicyName
+      !== "lawos-production-external-read-secrets"
+    || JSON.stringify(externalPolicy.Properties?.Roles)
+      !== JSON.stringify([{ Ref: "ApiExecutionRole" }])
+    || externalStatements.length !== 6
+    || externalPackRead?.Action !== "secretsmanager:GetSecretValue"
+    || externalPackRead?.Resource?.["Fn::Sub"] !== externalPackArn
+    || externalCreate?.Action !== "secretsmanager:CreateSecret"
+    || externalCreate?.Resource?.["Fn::Sub"] !== externalCredentialArn
+    || externalCreate?.Condition?.ArnEquals?.["secretsmanager:KmsKeyArn"]
+      ?.["Fn::GetAtt"]?.[0] !== "ProductionKey"
+    || JSON.stringify(externalCreate?.Condition?.StringEquals?.["aws:RequestTag/lawos-purpose"])
+      !== JSON.stringify(["external-read", "external-read-tombstone"])
+    || externalCreate?.Condition?.Null?.["aws:RequestTag/lawos-purpose"] !== "false"
+    || externalTag?.Action !== "secretsmanager:TagResource"
+    || externalTag?.Resource?.["Fn::Sub"] !== externalCredentialArn
+    || JSON.stringify(externalTag?.Condition?.StringEquals?.["aws:RequestTag/lawos-purpose"])
+      !== JSON.stringify(["external-read", "external-read-tombstone"])
+    || JSON.stringify(externalTag?.Condition?.["ForAllValues:StringEquals"]?.["aws:TagKeys"])
+      !== JSON.stringify(["lawos-purpose"])
+    || externalTag?.Condition?.Null?.["aws:RequestTag/lawos-purpose"] !== "false"
+    || JSON.stringify(externalUse?.Action) !== JSON.stringify([
+      "secretsmanager:GetSecretValue",
+      "secretsmanager:PutSecretValue",
+    ])
+    || externalUse?.Resource?.["Fn::Sub"] !== externalCredentialArn
+    || JSON.stringify(externalUse?.Condition?.StringEquals?.["aws:ResourceTag/lawos-purpose"])
+      !== JSON.stringify(["external-read", "external-read-tombstone"])
+    || externalDelete?.Action !== "secretsmanager:DeleteSecret"
+    || externalDelete?.Resource?.["Fn::Sub"] !== externalCredentialArn
+    || JSON.stringify(externalDelete?.Condition?.StringEquals?.["aws:ResourceTag/lawos-purpose"])
+      !== JSON.stringify(["external-read", "external-read-tombstone"])
+    || externalDelete?.Condition?.BoolIfExists
+      ?.["secretsmanager:ForceDeleteWithoutRecovery"]
+      !== "false"
+    || externalDelete?.Condition?.NumericGreaterThanEquals
+      ?.["secretsmanager:RecoveryWindowInDays"] !== "7"
+    || externalDelete?.Condition?.NumericLessThanEquals
+      ?.["secretsmanager:RecoveryWindowInDays"] !== "30"
+    || externalForceDeleteDeny?.Effect !== "Deny"
+    || externalForceDeleteDeny?.Action !== "secretsmanager:DeleteSecret"
+    || externalForceDeleteDeny?.Resource?.["Fn::Sub"] !== externalCredentialArn
+    || externalForceDeleteDeny?.Condition?.Bool
+      ?.["secretsmanager:ForceDeleteWithoutRecovery"] !== "true"
+    || externalEndpointConditional?.[0] !== "ExternalReadProvidersEnabled"
+    || externalEndpointConditional?.[2]?.Ref !== "AWS::NoValue"
+    || externalEndpoint?.Principal?.AWS?.["Fn::GetAtt"]?.[0] !== "ApiExecutionRole"
+    || JSON.stringify(externalEndpoint?.Action) !== JSON.stringify(externalActions)
+    || JSON.stringify(externalEndpoint?.Resource?.map((item) => item?.["Fn::Sub"]))
+      !== JSON.stringify([externalPackArn, externalCredentialArn])) {
+    fail("production external-read Secrets Manager authority drifted");
   }
   if (resources.HttpApi.Properties.DisableExecuteApiEndpoint?.["Fn::If"]?.[2] !== true
     || resources.PasswordResetWorkerSchedule.Properties.ScheduleExpression !== "rate(1 minute)"
@@ -3179,6 +3542,8 @@ export function validateJsonPostgresProductionTemplate(template) {
     projection_worker_function_count: 1,
     projection_worker_master_secret_read_count: 0,
     projection_worker_schedule_enabled_by_default: false,
+    external_read_secret_policy_count: 1,
+    external_read_providers_enabled_by_default: false,
     production_traffic_enabled_by_default: false,
     monthly_cost_ceiling_krw: JSON_POSTGRES_PRODUCTION_COST_CEILING_KRW,
   });

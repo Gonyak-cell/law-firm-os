@@ -38,6 +38,11 @@ Bare `node apps/api/src/server.js`, `npm run api:start`, desktop development, an
 | LAWOS_POSTGRES_TENANT_CONTEXT_SECRET_ID | yes | Secret reference used to authenticate tenant RLS context. |
 | LAWOS_POSTGRES_SSL_MODE | yes | `verify-full` in operational. |
 | LAWOS_PAYROLL_ARTIFACT_KEY_SECRET_ID | yes | Secret reference for payroll artifact encryption material. |
+| LAWOS_EXTERNAL_READ_PROVIDER_PACKS_JSON | local/provider-conditional | Exact closed JSON bundle for local reviewed read-only API-key pack tests only; production uses the secret reference below. Configure exactly one source with its SHA-256. Empty/absent means zero approved providers. |
+| LAWOS_EXTERNAL_READ_PROVIDER_PACKS_SECRET_ID | production/provider-conditional | Exact same-account AWS Secrets Manager name containing at most 64 KiB of provider-pack UTF-8 bytes. Mutually exclusive with the inline JSON source. |
+| LAWOS_EXTERNAL_READ_PROVIDER_PACKS_SHA256 | provider-conditional | Lowercase SHA-256 of the exact UTF-8 provider-pack bytes. Partial, ambiguous, unreadable, or mismatched configuration fails startup. |
+| LAWOS_EXTERNAL_READ_SECRET_PREFIX | provider-conditional | Fixed AWS Secrets Manager name prefix used to derive opaque tenant/legal-entity/connection/provider-bound credential generations. Required when a provider pack is active. |
+| LAWOS_EXTERNAL_READ_KMS_KEY_ARN | provider-conditional | Same-region customer-managed KMS key ARN required for every created credential or tombstone secret. Production IAM independently requires this exact key at creation; tagged credential deletion is recoverable for 7–30 days and force deletion is denied. |
 
 All operational domains use the PostgreSQL RepositoryPortV2 path with transaction, tenant RLS, optimistic version, idempotency, audit, and outbox capabilities. JSON fallback, dual-write, offline mutation, and legacy JSON maintenance writers are disabled.
 

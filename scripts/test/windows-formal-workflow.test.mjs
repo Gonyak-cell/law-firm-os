@@ -613,14 +613,14 @@ test("Windows Authenticode workflow validates public inputs and vendor bytes bef
   assert.equal(toolchainLock.packages["node_modules/app-builder-lib"].version, "26.15.3");
   assert.equal(
     createHash("sha256").update(toolchainLockBody).digest("hex"),
-    "d13063e65f5c6f07f78b7319fe562b68a0072fb264a7a207b5cef185350d72f6",
+    "c0fd9b17600af37217a47a2e2d377e202e9b36736e425decc72fe0bb203393be",
   );
   for (const [packagePath, lockedPackage] of Object.entries(toolchainLock.packages)) {
     if (!packagePath || !lockedPackage.resolved?.startsWith("https://registry.npmjs.org/")) continue;
     assert.match(lockedPackage.integrity ?? "", /^sha512-/u, `${packagePath} must have a reviewed npm integrity`);
   }
   assert.match(toolchainStep, /\.github\\toolchains\\windows-authenticode-electron-builder/u);
-  assert.match(toolchainStep, /d13063e65f5c6f07f78b7319fe562b68a0072fb264a7a207b5cef185350d72f6/u);
+  assert.match(toolchainStep, /c0fd9b17600af37217a47a2e2d377e202e9b36736e425decc72fe0bb203393be/u);
   assert.doesNotMatch(toolchainStep, /npm install|package-lock-only/u);
   assert.match(toolchainStep, /NPM_CONFIG_AUDIT: 'false'/u);
   assert.match(toolchainStep, /NPM_CONFIG_FUND: 'false'/u);

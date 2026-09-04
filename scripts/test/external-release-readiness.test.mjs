@@ -2302,6 +2302,31 @@ test("normal production validation rejects a caller-minted registry even when le
   assert.throws(() => main(["--root", fixture.root, "--input", fixture.inputRef.path, "--trust-registry", fixture.registryRef.path, "--trust-registry-sha256", fixture.registryRef.sha256]), /unknown argument/);
 });
 
+test("test-only validation clock requires an explicit test-only trust root", () => {
+  const fixture = makeCompleteFixture();
+  const testOnlyNow = Date.parse("2026-08-12T02:00:00Z");
+  const validate = (overrides = {}) => validateExternalReleaseReadiness({
+    rootDir: fixture.root,
+    inputPath: fixture.inputRef.path,
+    contractPath: "contracts/external-release-readiness-contract.json",
+    testOnlyNow,
+    ...overrides,
+  });
+
+  assert.throws(validate, /testOnlyNow requires a test-only trust root and an integer timestamp/);
+  assert.throws(
+    () => validate({ testOnlyTrustRoot: { ...fixture.testOnlyTrustRoot, test_only: false } }),
+    /testOnlyNow requires a test-only trust root and an integer timestamp/,
+  );
+  assert.throws(
+    () => validate({ testOnlyTrustRoot: fixture.testOnlyTrustRoot, testOnlyNow: 1.5 }),
+    /testOnlyNow requires a test-only trust root and an integer timestamp/,
+  );
+
+  const report = validate({ testOnlyTrustRoot: fixture.testOnlyTrustRoot });
+  assert.equal(report.verdict, "PASS", JSON.stringify(report.findings));
+});
+
 test("canonical contract hash rejects an empty or drifted caller contract", () => {
   const fixture = makeCompleteFixture();
   writeFileSync(path.join(fixture.root, "contracts/external-release-readiness-contract.json"), Buffer.from("{}\n"));

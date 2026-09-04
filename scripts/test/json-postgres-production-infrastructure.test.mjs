@@ -2,6 +2,8 @@ import { readFileSync } from "node:fs";
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  JSON_POSTGRES_EXTERNAL_READ_CREDENTIAL_SECRET_PREFIX,
+  JSON_POSTGRES_EXTERNAL_READ_PROVIDER_PACK_SECRET_NAME,
   buildJsonPostgresProductionArtifactStoreTemplate,
   buildJsonPostgresProductionArtifactStoreWindowsHandoffBaselineTemplate,
   buildJsonPostgresProductionArtifactStoreWindowsHandoffV2Template,
@@ -25,6 +27,8 @@ test("production template derives the proven private topology without synthetic 
   assert.equal(result.multi_az_rds_count, 1);
   assert.equal(result.object_lock_bucket_count, 2);
   assert.equal(result.production_traffic_enabled_by_default, false);
+  assert.equal(result.external_read_providers_enabled_by_default, false);
+  assert.equal(result.external_read_secret_policy_count, 1);
   assert.match(result.template_sha256, /^[0-9a-f]{64}$/u);
   assert.deepEqual(template.Parameters.RuntimeGeneration, {
     Type: "Number",
@@ -33,6 +37,78 @@ test("production template derives the proven private topology without synthetic 
   });
   assert.ok(template.Resources.ProductionKey);
   assert.ok(template.Resources.ProductionKeyAlias);
+  assert.equal(template.Parameters.EnableExternalReadProviders.Default, "false");
+  assert.equal(
+    template.Parameters.ExternalReadProviderPackSecretName.AllowedValues[1],
+    JSON_POSTGRES_EXTERNAL_READ_PROVIDER_PACK_SECRET_NAME,
+  );
+  assert.equal(
+    template.Conditions.ExternalReadProvidersEnabled["Fn::Equals"][0].Ref,
+    "EnableExternalReadProviders",
+  );
+  assert.equal(
+    template.Resources.ExternalReadSecretsPolicy.Condition,
+    "ExternalReadProvidersEnabled",
+  );
+  assert.deepEqual(
+    template.Resources.ExternalReadSecretsPolicy.Properties.Roles,
+    [{ Ref: "ApiExecutionRole" }],
+  );
+  assert.equal(
+    template.Resources.ApiFunction.Properties.Environment.Variables
+      .LAWOS_EXTERNAL_READ_SECRET_PREFIX["Fn::If"][1],
+    JSON_POSTGRES_EXTERNAL_READ_CREDENTIAL_SECRET_PREFIX,
+  );
+  assert.equal(
+    template.Resources.ApiFunction.Properties.Environment.Variables
+      .LAWOS_EXTERNAL_READ_KMS_KEY_ARN["Fn::If"][1]["Fn::GetAtt"][0],
+    "ProductionKey",
+  );
+  const externalPolicyStatements = template.Resources.ExternalReadSecretsPolicy
+    .Properties.PolicyDocument.Statement;
+  assert.deepEqual(
+    externalPolicyStatements.find(
+      ({ Sid }) => Sid === "UseTaggedExternalReadCredentialGenerations",
+    ).Action,
+    [
+      "secretsmanager:GetSecretValue",
+      "secretsmanager:PutSecretValue",
+    ],
+  );
+  assert.deepEqual(
+    externalPolicyStatements.find(
+      ({ Sid }) => Sid === "CreateTaggedExternalReadCredentialGenerations",
+    ).Condition.ArnEquals["secretsmanager:KmsKeyArn"],
+    { "Fn::GetAtt": ["ProductionKey", "Arn"] },
+  );
+  assert.deepEqual(
+    externalPolicyStatements.find(
+      ({ Sid }) => Sid === "TagExternalReadCredentialPurposeOnly",
+    ).Condition["ForAllValues:StringEquals"]["aws:TagKeys"],
+    ["lawos-purpose"],
+  );
+  assert.deepEqual(
+    externalPolicyStatements.find(
+      ({ Sid }) => Sid === "ScheduleTaggedExternalReadCredentialDeletion",
+    ).Condition,
+    {
+      StringEquals: {
+        "aws:ResourceTag/lawos-purpose": [
+          "external-read",
+          "external-read-tombstone",
+        ],
+      },
+      BoolIfExists: { "secretsmanager:ForceDeleteWithoutRecovery": "false" },
+      NumericGreaterThanEquals: { "secretsmanager:RecoveryWindowInDays": "7" },
+      NumericLessThanEquals: { "secretsmanager:RecoveryWindowInDays": "30" },
+    },
+  );
+  assert.equal(
+    externalPolicyStatements.find(
+      ({ Sid }) => Sid === "DenyExternalReadCredentialForceDelete",
+    ).Condition.Bool["secretsmanager:ForceDeleteWithoutRecovery"],
+    "true",
+  );
   assert.equal(template.Resources.StagingKey, undefined);
   assert.equal(template.Resources.StagingKeyAlias, undefined);
   assert.equal(
@@ -442,6 +518,41 @@ test("production template fails closed on public RDS, synthetic content, wildcar
       });
     },
     (value) => { value.Parameters.EnableProductionTraffic.Default = "true"; },
+    (value) => { value.Parameters.EnableExternalReadProviders.Default = "true"; },
+    (value) => {
+      value.Rules.ExternalReadProviderConfigurationIsClosed.Assertions[0]
+        .AssertDescription = "weakened";
+    },
+    (value) => {
+      value.Resources.ExternalReadSecretsPolicy.Properties.PolicyDocument.Statement
+        .find((item) => item.Sid === "UseTaggedExternalReadCredentialGenerations")
+        .Resource = "*";
+    },
+    (value) => {
+      value.Resources.ExternalReadSecretsPolicy.Properties.PolicyDocument.Statement
+        .find((item) => item.Sid === "CreateTaggedExternalReadCredentialGenerations")
+        .Condition.ArnEquals["secretsmanager:KmsKeyArn"] = "*";
+    },
+    (value) => {
+      value.Resources.ExternalReadSecretsPolicy.Properties.PolicyDocument.Statement
+        .find((item) => item.Sid === "TagExternalReadCredentialPurposeOnly")
+        .Condition["ForAllValues:StringEquals"]["aws:TagKeys"].push("unsafe-tag");
+    },
+    (value) => {
+      value.Resources.ExternalReadSecretsPolicy.Properties.PolicyDocument.Statement
+        .find((item) => item.Sid === "ScheduleTaggedExternalReadCredentialDeletion")
+        .Condition.NumericGreaterThanEquals["secretsmanager:RecoveryWindowInDays"] = "0";
+    },
+    (value) => {
+      value.Resources.ExternalReadSecretsPolicy.Properties.PolicyDocument.Statement
+        .find((item) => item.Sid === "DenyExternalReadCredentialForceDelete")
+        .Condition.Bool["secretsmanager:ForceDeleteWithoutRecovery"] = "false";
+    },
+    (value) => {
+      value.Resources.SecretsManagerEndpoint.Properties.PolicyDocument.Statement
+        .find((item) => item["Fn::If"]?.[0] === "ExternalReadProvidersEnabled")
+        ["Fn::If"][1].Action.push("secretsmanager:RestoreSecret");
+    },
     (value) => {
       value.Resources.AdminExecutionRole.Properties.Policies[0].PolicyDocument.Statement
         .find((item) => item.Sid === "ReadExactBootstrapSecrets").Resource =
