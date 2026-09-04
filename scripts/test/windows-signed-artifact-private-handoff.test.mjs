@@ -24,6 +24,7 @@ import {
 } from "../lib/matter-desktop-provenance.mjs";
 import {
   WINDOWS_SIGNED_ARTIFACT_PRIVATE_HANDOFF_SCHEMA,
+  createWindowsSignedArtifactAwsCliAdapter,
   createWindowsSignedArtifactEncryptedBridge,
   decryptWindowsSignedArtifactEncryptedBridge,
   executeWindowsSignedArtifactPrivateHandoff,
@@ -54,6 +55,62 @@ const FILE_NAMES = {
 const NATIVE_CONTENT_SHA256 = "4".repeat(64);
 const NATIVE_IDENTITY_SHA256 = "5".repeat(64);
 const NATIVE_PHASES = ["B0", "I1", "B1", "I2", "B2"];
+
+test("AWS CLI diagnostics expose only allowlisted operation-bound codes, never raw output", async () => {
+  const privateValue = "private-credential-and-object-locator-must-not-be-returned";
+  const serviceError = (code, operation = "HeadObject") =>
+    `An error occurred (${code}) when calling the ${operation} operation: ${privateValue}`;
+  const cases = [
+    { stderr: serviceError("AccessDenied"), expected: "AccessDenied" },
+    { stderr: Buffer.from(serviceError("BadDigest")), expected: "BadDigest" },
+    { stderr: serviceError("InvalidRequest"), expected: "InvalidRequest" },
+    { stderr: serviceError("KMS.DisabledException"), expected: "KMS.DisabledException" },
+    { stderr: serviceError(privateValue), expected: "AWS_CLI_FAILED" },
+    { stderr: serviceError("AccessDenied", "PutObject"), expected: "AWS_CLI_FAILED" },
+    { stderr: `secret: AccessDenied ${privateValue}`, expected: "AWS_CLI_FAILED" },
+    { stderr: "x".repeat(8192) + "\n" + serviceError("AccessDenied"), expected: "AWS_CLI_FAILED" },
+    { stderr: "", code: "ENOENT", expected: "ENOENT" },
+    { stderr: "", code: "ETIMEDOUT", expected: "ETIMEDOUT" },
+    { stderr: "", code: privateValue, expected: "AWS_CLI_FAILED" },
+    { stderr: "", output: privateValue, expected: "AWS_CLI_INVALID_JSON" },
+  ];
+  for (const item of cases) {
+    let calls = 0;
+    const aws = createWindowsSignedArtifactAwsCliAdapter({
+      execFileSyncImpl(command, args, options) {
+        calls += 1;
+        assert.equal(command, "aws");
+        assert.deepEqual(args.slice(0, 2), ["s3api", "head-object"]);
+        assert.deepEqual(options.stdio, ["ignore", "pipe", "pipe"]);
+        if (item.output) return item.output;
+        throw Object.assign(new Error(privateValue), {
+          stderr: item.stderr, stdout: privateValue, code: item.code,
+          output: [null, privateValue, item.stderr],
+        });
+      },
+    });
+    await assert.rejects(aws.headObject({ bucket: privateValue, key: privateValue,
+      versionId: privateValue, expectedOwner: ACCOUNT }), (error) => {
+      assert.equal(error.code, item.expected);
+      assert.equal(error.message, `AWS CLI s3api head-object failed (${item.expected})`);
+      assert.deepEqual(Object.keys(error), ["code"]);
+      assert.equal(error.cause, undefined);
+      assert.equal(JSON.stringify(error).includes(privateValue), false);
+      assert.equal(error.stack.includes(privateValue), false);
+      return true;
+    });
+    assert.equal(calls, 1, "diagnostics must not retry AWS operations");
+  }
+});
+
+test("AWS CLI successful JSON readback remains unchanged", async () => {
+  const expected = { VersionId: "exact-version", ContentLength: 42 };
+  const aws = createWindowsSignedArtifactAwsCliAdapter({
+    execFileSyncImpl: () => JSON.stringify(expected),
+  });
+  assert.deepEqual(await aws.headObject({ bucket: BUCKET, key: "artifact", versionId: "exact-version",
+    expectedOwner: ACCOUNT }), expected);
+});
 
 function sha256(bytes) {
   return createHash("sha256").update(bytes).digest("hex");
