@@ -312,6 +312,8 @@ test("Windows state receipt validation rejects boundary, lineage, host, and nati
 
 test("Windows state collector is read-only apart from one create-new evidence receipt", async (t) => {
   const source = await readFile(COLLECTOR, "utf8");
+  assert.doesNotMatch(source, /\$(?:Host|HOME|PID|PSVersionTable|IsWindows|IsLinux|IsMacOS)\s*=/iu,
+    "collector locals must not overwrite PowerShell automatic variables");
   assert.match(source, /#requires -Version 7\.2/u);
   assert.match(source, /JWS-GALAXYBOOK/u);
   assert.match(source, /C:\\Program Files\\matter/u);
@@ -364,6 +366,10 @@ test("Windows state collector is read-only apart from one create-new evidence re
     });
     assert.equal(validation.valid, true);
     assert.equal(validation.passed, false);
+  } else {
+    assert.notEqual(value.host, null, "Windows host collection must actually run, even on a non-canary CI host");
+    assert.equal(value.host.windows, true);
+    assert.equal(value.safe_error_codes.includes("WINDOWS_STATE_COLLECTION_FAILED"), false);
   }
   const before = sha256(bytes);
   const overwrite = spawnSync("pwsh", args, { cwd: ROOT, encoding: "utf8" });

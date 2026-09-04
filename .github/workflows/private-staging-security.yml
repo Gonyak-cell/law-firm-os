@@ -19,6 +19,28 @@ permissions:
   contents: read
 
 jobs:
+  windows-publication:
+    name: Windows internal publication regression
+    runs-on: windows-latest
+    timeout-minutes: 10
+    steps:
+      - name: Configure deterministic Git line endings
+        run: |
+          git config --global core.autocrlf false
+          git config --global core.eol lf
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: "22"
+      - name: Exercise Windows file durability and read-only host collection with synthetic publication ports
+        run: >-
+          node --test --test-concurrency=1
+          scripts/test/amic-os-internal-distribution-publication.test.mjs
+          scripts/test/amic-os-internal-distribution-workflows.test.mjs
+          scripts/test/amic-os-internal-windows-state.test.mjs
+
   security:
     name: Private staging security
     runs-on: ubuntu-latest

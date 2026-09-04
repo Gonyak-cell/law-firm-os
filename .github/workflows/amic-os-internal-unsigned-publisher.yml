@@ -135,6 +135,12 @@ jobs:
       - name: Install exact locked dependencies
         run: npm ci
 
+      - name: Run Windows publication and host-state regressions before packaging or AWS credentials
+        run: >-
+          node --test --test-concurrency=1
+          scripts/test/amic-os-internal-distribution-publication.test.mjs
+          scripts/test/amic-os-internal-windows-state.test.mjs
+
       - name: Prepare packaged renderer
         env:
           MATTER_DESKTOP_BUILD_RECEIPT: "0"

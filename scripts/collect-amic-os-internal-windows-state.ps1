@@ -557,7 +557,7 @@ try {
   $systemDrive = ([string]$env:SystemDrive).ToUpperInvariant()
   $disk = Get-CimInstance Win32_LogicalDisk -Filter "DeviceID='$systemDrive'"
   if ($null -eq $os -or $null -eq $disk) { throw 'host inventory unavailable' }
-  $host = [ordered]@{
+  $hostState = [ordered]@{
     windows = $true
     computer_name = $computerName
     computer_name_exact = $computerName -ceq $ExpectedComputerName
@@ -622,8 +622,8 @@ try {
 
   $zeroStage = @('preinstall', 'postuninstall').Contains($Stage)
   $checks = [ordered]@{
-    host_identity_exact = [bool]$host.computer_name_exact
-    windows_x64 = $host.os_architecture -eq 'x64' -and $host.process_architecture -eq 'x64'
+    host_identity_exact = [bool]$hostState.computer_name_exact
+    windows_x64 = $hostState.os_architecture -eq 'x64' -and $hostState.process_architecture -eq 'x64'
     install_root_exact = if ($zeroStage) { -not $installRootPresent } else { $installRootPresent }
     uninstall_entry_exact = if ($zeroStage) {
       $uninstallEntries.Count -eq 0
@@ -739,7 +739,7 @@ try {
     canary_id = $CanaryId
     captured_at_utc = [DateTime]::UtcNow.ToString('yyyy-MM-ddTHH:mm:ss.fffZ')
     expected = $expected
-    host = $host
+    host = $hostState
     checks = $checks
     observed = [ordered]@{
       install_root_present = [bool]$installRootPresent

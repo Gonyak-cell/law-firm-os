@@ -81,6 +81,11 @@ test("internal-unsigned publisher builds on exact main, validates before AWS cre
       < source.indexOf("aws-actions/configure-aws-credentials@"),
     "local security preflight must run before AWS credential configuration",
   );
+  const windowsRegression = source.indexOf("scripts/test/amic-os-internal-distribution-publication.test.mjs");
+  assert.ok(windowsRegression > source.indexOf("npm ci")
+    && windowsRegression < source.indexOf("Prepare packaged renderer"),
+  "real Windows publication fixtures must pass before building or configuring AWS credentials");
+  assert.match(source, /scripts\/test\/amic-os-internal-windows-state\.test\.mjs/u);
   assert.ok(
     source.indexOf("aws-actions/configure-aws-credentials@")
       < source.indexOf("'scripts/publish-amic-os-internal-unsigned.mjs', '--execute'"),

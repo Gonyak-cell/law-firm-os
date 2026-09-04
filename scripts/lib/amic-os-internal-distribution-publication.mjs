@@ -705,9 +705,7 @@ function signedDocument(value, privateKey, kind, filename, signatureKind, signat
 
 async function materializeGeneratedRecord(root, record) {
   const path = join(root, record.filename);
-  await writeFile(path, record.body, { flag: "wx", mode: 0o600 });
-  const handle = await open(path, "r");
-  try { await handle.sync?.(); } finally { await handle.close(); }
+  await writeFile(path, record.body, { flag: "wx", mode: 0o600, flush: true });
   return Object.freeze({ ...record, path });
 }
 
