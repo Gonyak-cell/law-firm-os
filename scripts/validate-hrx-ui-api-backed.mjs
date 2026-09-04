@@ -98,7 +98,7 @@ assert(
 assert(apiClient.includes("/api/hrx/compensation"), "HRX UI client must call compensation record API");
 assert(apiClient.includes("lawos_hrx_step_up_token"), "HRX UI client must read only signed session step-up tokens");
 assert(apiClient.includes('kind: "step_up_required"'), "HRX UI client must preserve server step-up-required state");
-assert(apiClient.includes("tenant_amic_matter_vault"), "HRX UI client must use the registered Matter Vault tenant for local runtime");
+assert(apiClient.includes('const HRX_ORG_REF = "tenant_hrx_synthetic"'), "HRX UI client must keep the unauthenticated local fallback synthetic");
 assert(apiClient.includes("lawos.session.envelope"), "HRX UI client must read the non-secret LawOS session envelope");
 assert(apiClient.includes("sessionHrxRuntimeHeaders"), "HRX UI client must derive HRX runtime headers from the signed-in session envelope");
 assert(apiClient.includes("function desktopReadBridge") && apiClient.includes("window.matterSession?.api"), "Desktop HRX UI client must use the main-process read bridge when no local API base URL is handed off");
