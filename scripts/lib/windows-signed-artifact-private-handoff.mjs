@@ -1723,18 +1723,46 @@ function awsMetadata(metadata) {
   return Object.entries(metadata).map(([key, value]) => `${key}=${value}`).join(",");
 }
 
-export function createWindowsSignedArtifactAwsCliAdapter({ region = WINDOWS_SIGNED_ARTIFACT_HANDOFF_REGION } = {}) {
+const SAFE_AWS_CLI_SERVICE_ERRORS = new Set([
+  "AccessDenied", "AccessDeniedException", "AuthorizationHeaderMalformed", "BadDigest",
+  "ConditionalRequestConflict", "EntityTooLarge", "ExpiredToken", "InternalError",
+  "InvalidArgument", "InvalidDigest", "InvalidRequest", "InvalidToken", "MalformedXML",
+  "NoSuchBucket", "NoSuchKey", "NotImplemented", "PreconditionFailed", "RequestTimeout",
+  "ServiceUnavailable", "SignatureDoesNotMatch", "SlowDown",
+  "KMS.AccessDeniedException", "KMS.DisabledException", "KMS.InvalidStateException",
+  "KMS.NotFoundException", "KMS.ThrottlingException",
+]);
+const SAFE_AWS_CLI_PROCESS_ERRORS = new Set([
+  "ENOENT", "EACCES", "ETIMEDOUT", "ENOBUFS", "ERR_CHILD_PROCESS_STDIO_MAXBUFFER",
+]);
+
+function sanitizedAwsCliError(error, args) {
+  const stderr = typeof error?.stderr === "string"
+    ? error.stderr.slice(0, 8192)
+    : Buffer.isBuffer(error?.stderr) ? error.stderr.subarray(0, 8192).toString("utf8") : "";
+  const match = stderr.match(/^An error occurred \(([A-Za-z0-9.]+)\) when calling the ([A-Za-z0-9]+) operation:/mu);
+  const operation = args[1].split("-").map((part) => part[0].toUpperCase() + part.slice(1)).join("");
+  const code = error instanceof SyntaxError ? "AWS_CLI_INVALID_JSON"
+    : match?.[2] === operation && SAFE_AWS_CLI_SERVICE_ERRORS.has(match[1]) ? match[1]
+      : SAFE_AWS_CLI_PROCESS_ERRORS.has(error?.code) ? error.code : "AWS_CLI_FAILED";
+  return Object.assign(new Error(`AWS CLI ${args.slice(0, 2).join(" ")} failed (${code})`), { code });
+}
+
+export function createWindowsSignedArtifactAwsCliAdapter({
+  region = WINDOWS_SIGNED_ARTIFACT_HANDOFF_REGION,
+  execFileSyncImpl = execFileSync,
+} = {}) {
   const json = (args) => {
     try {
-      const output = execFileSync("aws", [...args, "--region", region, "--no-cli-pager", "--output", "json"], {
+      const output = execFileSyncImpl("aws", [...args, "--region", region, "--no-cli-pager", "--output", "json"], {
         encoding: "utf8",
         windowsHide: true,
         maxBuffer: 16 * 1024 * 1024,
         stdio: ["ignore", "pipe", "pipe"],
       });
       return JSON.parse(output || "{}");
-    } catch {
-      throw new Error(`AWS CLI ${args.slice(0, 2).join(" ")} failed`);
+    } catch (error) {
+      throw sanitizedAwsCliError(error, args);
     }
   };
   return Object.freeze({
