@@ -9,6 +9,7 @@ import {
 } from "../lib/json-postgres-production-infrastructure.mjs";
 import {
   JSON_POSTGRES_PRODUCTION_STACK,
+  JSON_POSTGRES_DISABLED_AMIC_INTERNAL_UPDATE_PARAMETERS,
   validateJsonPostgresW15ProductionChangeSet,
 } from "../lib/json-postgres-production-execution.mjs";
 
@@ -67,6 +68,11 @@ test("W15 production review rejects Outlook resources while their parameters are
         ParameterKey: "ClientOutlookCredentialSecretPrefix",
         ParameterValue: JSON_POSTGRES_OUTLOOK_DISABLED_CREDENTIAL_SECRET_PREFIX,
       },
+      ...Object.entries(JSON_POSTGRES_DISABLED_AMIC_INTERNAL_UPDATE_PARAMETERS)
+        .map(([ParameterKey, ParameterValue]) => ({
+          ParameterKey,
+          ParameterValue,
+        })),
     ],
     Changes: [
       ...OUTLOOK_ADDITIONS.map(([logicalId, type]) =>

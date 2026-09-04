@@ -11,6 +11,9 @@ export const JSON_POSTGRES_EXTERNAL_READ_CREDENTIAL_SECRET_PREFIX =
 export const JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SECRET_NAME =
   "/lawos/disabled/external-read/provider-packs";
 export const JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SHA256 = "0".repeat(64);
+export const JSON_POSTGRES_AMIC_INTERNAL_UPDATE_DISABLED_BUCKET =
+  "disabled-amic-internal-update";
+export const JSON_POSTGRES_AMIC_INTERNAL_UPDATE_DISABLED_VALUE = "disabled";
 export const JSON_POSTGRES_OUTLOOK_DISABLED_CONFIG_SECRET_NAME =
   "/lawos/disabled/outlook/config";
 export const JSON_POSTGRES_OUTLOOK_DISABLED_CREDENTIAL_SECRET_PREFIX =
@@ -127,6 +130,57 @@ function externalReadProviderConfigurationRule() {
       },
       AssertDescription:
         "External read providers require the exact production pack secret and a non-placeholder SHA-256; disabled mode requires both placeholders",
+    }],
+  };
+}
+
+function amicInternalUpdateBrokerConfigurationRule() {
+  const disabled = JSON_POSTGRES_AMIC_INTERNAL_UPDATE_DISABLED_VALUE;
+  const parameters = [
+    "AmicInternalUnsignedArtifactKmsKeyArn",
+    "AmicInternalUnsignedCloudFrontDomain",
+    "AmicInternalUnsignedCloudFrontKeyPairId",
+    "AmicInternalUnsignedCloudFrontPrivateKeySecretArn",
+    "AmicInternalUnsignedMetadataPublicKeySpkiBase64",
+  ];
+  return {
+    Assertions: [{
+      Assert: {
+        "Fn::Or": [
+          {
+            "Fn::And": [
+              { "Fn::Equals": [
+                { Ref: "EnableAmicInternalUnsignedUpdateBroker" },
+                "false",
+              ] },
+              { "Fn::Equals": [
+                { Ref: "AmicInternalUnsignedArtifactBucketName" },
+                JSON_POSTGRES_AMIC_INTERNAL_UPDATE_DISABLED_BUCKET,
+              ] },
+              ...parameters.map((name) => ({
+                "Fn::Equals": [{ Ref: name }, disabled],
+              })),
+            ],
+          },
+          {
+            "Fn::And": [
+              { "Fn::Equals": [
+                { Ref: "EnableAmicInternalUnsignedUpdateBroker" },
+                "true",
+              ] },
+              { "Fn::Not": [{ "Fn::Equals": [
+                { Ref: "AmicInternalUnsignedArtifactBucketName" },
+                JSON_POSTGRES_AMIC_INTERNAL_UPDATE_DISABLED_BUCKET,
+              ] }] },
+              ...parameters.map((name) => ({
+                "Fn::Not": [{ "Fn::Equals": [{ Ref: name }, disabled] }],
+              })),
+            ],
+          },
+        ],
+      },
+      AssertDescription:
+        "AMIC internal update broker requires one complete distribution binding; disabled mode requires every placeholder",
     }],
   };
 }
@@ -1537,6 +1591,53 @@ export function buildJsonPostgresProductionTemplate(stagingTemplate) {
     AllowedPattern: "^[0-9a-f]{64}$",
     Description: "SHA-256 of the exact UTF-8 provider-pack secret bytes",
   };
+  template.Parameters.EnableAmicInternalUnsignedUpdateBroker = {
+    Type: "String",
+    Default: "false",
+    AllowedValues: ["true", "false"],
+    Description:
+      "Fail-closed activation for the authenticated AMIC OS internal update download broker",
+  };
+  template.Parameters.AmicInternalUnsignedArtifactBucketName = {
+    Type: "String",
+    Default: JSON_POSTGRES_AMIC_INTERNAL_UPDATE_DISABLED_BUCKET,
+    AllowedPattern: "^[a-z0-9](?:[a-z0-9-]{1,61}[a-z0-9])$",
+    Description: "Exact private internal-unsigned distribution bucket",
+  };
+  template.Parameters.AmicInternalUnsignedArtifactKmsKeyArn = {
+    Type: "String",
+    Default: JSON_POSTGRES_AMIC_INTERNAL_UPDATE_DISABLED_VALUE,
+    AllowedPattern:
+      "^(?:disabled|arn:aws:kms:[a-z0-9-]+:[0-9]{12}:key/[0-9a-f-]{36})$",
+    Description: "Exact same-account KMS key ARN for internal-unsigned objects",
+  };
+  template.Parameters.AmicInternalUnsignedCloudFrontDomain = {
+    Type: "String",
+    Default: JSON_POSTGRES_AMIC_INTERNAL_UPDATE_DISABLED_VALUE,
+    AllowedPattern: "^(?:disabled|d[a-z0-9]{3,62}\\.cloudfront\\.net)$",
+    Description: "Exact private CloudFront distribution domain",
+  };
+  template.Parameters.AmicInternalUnsignedCloudFrontKeyPairId = {
+    Type: "String",
+    Default: JSON_POSTGRES_AMIC_INTERNAL_UPDATE_DISABLED_VALUE,
+    AllowedPattern: "^(?:disabled|[A-Z0-9]{8,128})$",
+    Description: "Exact CloudFront trusted public-key ID",
+  };
+  template.Parameters.AmicInternalUnsignedCloudFrontPrivateKeySecretArn = {
+    Type: "String",
+    Default: JSON_POSTGRES_AMIC_INTERNAL_UPDATE_DISABLED_VALUE,
+    AllowedPattern:
+      "^(?:disabled|arn:aws:secretsmanager:[a-z0-9-]+:[0-9]{12}:secret:[A-Za-z0-9/_+=.@-]+)$",
+    Description: "Exact same-account Secrets Manager ARN for the CloudFront signing key",
+  };
+  template.Parameters.AmicInternalUnsignedMetadataPublicKeySpkiBase64 = {
+    Type: "String",
+    Default: JSON_POSTGRES_AMIC_INTERNAL_UPDATE_DISABLED_VALUE,
+    MinLength: 8,
+    MaxLength: 256,
+    AllowedPattern: "^(?:disabled|[A-Za-z0-9+/]{56,254}={0,2})$",
+    Description: "Pinned Ed25519 metadata verification public key in DER SPKI base64",
+  };
   template.Parameters.RuntimeGeneration = {
     Type: "Number",
     Default: 1,
@@ -1592,9 +1693,17 @@ export function buildJsonPostgresProductionTemplate(stagingTemplate) {
   template.Conditions.ExternalReadProvidersEnabled = {
     "Fn::Equals": [{ Ref: "EnableExternalReadProviders" }, "true"],
   };
+  template.Conditions.AmicInternalUnsignedUpdateBrokerEnabled = {
+    "Fn::Equals": [
+      { Ref: "EnableAmicInternalUnsignedUpdateBroker" },
+      "true",
+    ],
+  };
   template.Rules = {
     ExternalReadProviderConfigurationIsClosed:
       externalReadProviderConfigurationRule(),
+    AmicInternalUpdateBrokerConfigurationIsClosed:
+      amicInternalUpdateBrokerConfigurationRule(),
   };
   template.Conditions.OutlookConversationWorkerConfigured = {
     "Fn::And": [
@@ -1674,6 +1783,13 @@ export function buildJsonPostgresProductionTemplate(stagingTemplate) {
           "Fn::If": [
             "OutlookConversationWorkerConfigured",
             clone(outlookCredentialSecretArn),
+            { Ref: "AWS::NoValue" },
+          ],
+        });
+        item.Resource.push({
+          "Fn::If": [
+            "AmicInternalUnsignedUpdateBrokerEnabled",
+            { Ref: "AmicInternalUnsignedCloudFrontPrivateKeySecretArn" },
             { Ref: "AWS::NoValue" },
           ],
         });
@@ -2527,6 +2643,47 @@ export function buildJsonPostgresProductionTemplate(stagingTemplate) {
       "",
     ],
   };
+  const configuredInternalUpdateEnvironment = (value) => ({
+    "Fn::If": [
+      "AmicInternalUnsignedUpdateBrokerEnabled",
+      value,
+      "",
+    ],
+  });
+  apiEnvironment.LAWOS_AMIC_INTERNAL_UPDATE_ENABLED = {
+    "Fn::If": [
+      "AmicInternalUnsignedUpdateBrokerEnabled",
+      "true",
+      "false",
+    ],
+  };
+  apiEnvironment.LAWOS_AMIC_INTERNAL_UPDATE_AWS_ACCOUNT_ID = {
+    Ref: "AWS::AccountId",
+  };
+  apiEnvironment.LAWOS_AMIC_INTERNAL_UPDATE_BUCKET =
+    configuredInternalUpdateEnvironment({
+      Ref: "AmicInternalUnsignedArtifactBucketName",
+    });
+  apiEnvironment.LAWOS_AMIC_INTERNAL_UPDATE_KMS_KEY_ARN =
+    configuredInternalUpdateEnvironment({
+      Ref: "AmicInternalUnsignedArtifactKmsKeyArn",
+    });
+  apiEnvironment.LAWOS_AMIC_INTERNAL_UPDATE_CLOUDFRONT_DOMAIN =
+    configuredInternalUpdateEnvironment({
+      Ref: "AmicInternalUnsignedCloudFrontDomain",
+    });
+  apiEnvironment.LAWOS_AMIC_INTERNAL_UPDATE_CLOUDFRONT_KEY_PAIR_ID =
+    configuredInternalUpdateEnvironment({
+      Ref: "AmicInternalUnsignedCloudFrontKeyPairId",
+    });
+  apiEnvironment.LAWOS_AMIC_INTERNAL_UPDATE_CLOUDFRONT_PRIVATE_KEY_SECRET_ARN =
+    configuredInternalUpdateEnvironment({
+      Ref: "AmicInternalUnsignedCloudFrontPrivateKeySecretArn",
+    });
+  apiEnvironment.LAWOS_AMIC_INTERNAL_UPDATE_ED25519_PUBLIC_KEY_SPKI_BASE64 =
+    configuredInternalUpdateEnvironment({
+      Ref: "AmicInternalUnsignedMetadataPublicKeySpkiBase64",
+    });
   resources.ProjectionWorkerDeadLetterAlarm = {
     Type: "AWS::CloudWatch::Alarm",
     Properties: {
@@ -2809,6 +2966,22 @@ export function buildJsonPostgresProductionTemplate(stagingTemplate) {
       { "Fn::Sub": "${DmsBucket.Arn}/approved-real-migration/*" },
     ],
   });
+  resources.S3GatewayEndpoint.Properties.PolicyDocument.Statement.push({
+    "Fn::If": [
+      "AmicInternalUnsignedUpdateBrokerEnabled",
+      {
+        Sid: "ApiReadsExactInternalUnsignedDistribution",
+        Effect: "Allow",
+        Principal: { AWS: { "Fn::GetAtt": ["ApiExecutionRole", "Arn"] } },
+        Action: ["s3:GetObject", "s3:GetObjectVersion"],
+        Resource: {
+          "Fn::Sub":
+            "arn:${AWS::Partition}:s3:::${AmicInternalUnsignedArtifactBucketName}/internal-unsigned/*",
+        },
+      },
+      { Ref: "AWS::NoValue" },
+    ],
+  });
 
   resources.ApiLogGroup.Properties.RetentionInDays = 365;
   resources.AdminLogGroup.Properties.RetentionInDays = 365;
@@ -2827,6 +3000,7 @@ export function buildJsonPostgresProductionTemplate(stagingTemplate) {
     offline_capability: "rejected",
     production_traffic_default: false,
     external_read_providers_default: false,
+    amic_internal_unsigned_update_broker_default: false,
   };
   template.Outputs.ProgramInputBucketName = { Value: { Ref: "ProgramInputBucket" } };
   template.Outputs.ProgramInputKmsKeyArn = { Value: { "Fn::GetAtt": ["ProductionKey", "Arn"] } };
@@ -2873,6 +3047,15 @@ export function buildJsonPostgresProductionTemplate(stagingTemplate) {
   template.Outputs.ExternalReadProvidersEnabled = {
     Value: { "Fn::If": ["ExternalReadProvidersEnabled", "true", "false"] },
   };
+  template.Outputs.AmicInternalUnsignedUpdateBrokerEnabled = {
+    Value: {
+      "Fn::If": [
+        "AmicInternalUnsignedUpdateBrokerEnabled",
+        "true",
+        "false",
+      ],
+    },
+  };
   return template;
 }
 
@@ -2905,7 +3088,9 @@ export function validateJsonPostgresProductionTemplate(template) {
     || template.Metadata?.dual_write !== false
     || template.Metadata?.offline_capability !== "rejected"
     || template.Metadata?.production_traffic_default !== false
-    || template.Metadata?.external_read_providers_default !== false) {
+    || template.Metadata?.external_read_providers_default !== false
+    || template.Metadata?.amic_internal_unsigned_update_broker_default
+      !== false) {
     fail("production template authority metadata drifted");
   }
   if (template.Parameters?.EnableLambdaEniBootstrap?.Default !== "false"
@@ -2915,10 +3100,33 @@ export function validateJsonPostgresProductionTemplate(template) {
       !== JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SECRET_NAME
     || template.Parameters?.ExternalReadProviderPackSha256?.Default
       !== JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SHA256
+    || template.Parameters?.EnableAmicInternalUnsignedUpdateBroker?.Default
+      !== "false"
+    || template.Parameters?.AmicInternalUnsignedArtifactBucketName?.Default
+      !== JSON_POSTGRES_AMIC_INTERNAL_UPDATE_DISABLED_BUCKET
+    || template.Parameters?.AmicInternalUnsignedArtifactKmsKeyArn?.Default
+      !== JSON_POSTGRES_AMIC_INTERNAL_UPDATE_DISABLED_VALUE
+    || template.Parameters?.AmicInternalUnsignedCloudFrontDomain?.Default
+      !== JSON_POSTGRES_AMIC_INTERNAL_UPDATE_DISABLED_VALUE
+    || template.Parameters?.AmicInternalUnsignedCloudFrontKeyPairId?.Default
+      !== JSON_POSTGRES_AMIC_INTERNAL_UPDATE_DISABLED_VALUE
+    || template.Parameters
+      ?.AmicInternalUnsignedCloudFrontPrivateKeySecretArn?.Default
+      !== JSON_POSTGRES_AMIC_INTERNAL_UPDATE_DISABLED_VALUE
+    || template.Parameters
+      ?.AmicInternalUnsignedCloudFrontPrivateKeySecretArn?.NoEcho != null
+    || template.Parameters
+      ?.AmicInternalUnsignedMetadataPublicKeySpkiBase64?.Default
+      !== JSON_POSTGRES_AMIC_INTERNAL_UPDATE_DISABLED_VALUE
     || template.Conditions?.ExternalReadProvidersEnabled?.["Fn::Equals"]?.[0]?.Ref
       !== "EnableExternalReadProviders"
+    || template.Conditions?.AmicInternalUnsignedUpdateBrokerEnabled
+      ?.["Fn::Equals"]?.[0]?.Ref
+      !== "EnableAmicInternalUnsignedUpdateBroker"
     || stableJson(template.Rules?.ExternalReadProviderConfigurationIsClosed)
       !== stableJson(externalReadProviderConfigurationRule())
+    || stableJson(template.Rules?.AmicInternalUpdateBrokerConfigurationIsClosed)
+      !== stableJson(amicInternalUpdateBrokerConfigurationRule())
     || template.Parameters?.RuntimeGeneration?.Type !== "Number"
     || template.Parameters?.RuntimeGeneration?.Default !== 1
     || template.Parameters?.RuntimeGeneration?.MinValue !== 1
@@ -2926,6 +3134,15 @@ export function validateJsonPostgresProductionTemplate(template) {
     fail("production safety parameters drifted");
   }
   const resources = template.Resources ?? {};
+  const apiEnvironment = resources.ApiFunction?.Properties?.Environment
+    ?.Variables ?? {};
+  const expectedInternalUpdateEnvironment = (parameter) => ({
+    "Fn::If": [
+      "AmicInternalUnsignedUpdateBrokerEnabled",
+      { Ref: parameter },
+      "",
+    ],
+  });
   const forbiddenNetwork = Object.values(resources).filter((resource) =>
     ["AWS::EC2::InternetGateway", "AWS::EC2::NatGateway", "AWS::EC2::EIP"].includes(resource.Type));
   if (forbiddenNetwork.length > 0) fail("production template creates public routing");
@@ -3017,7 +3234,46 @@ export function validateJsonPostgresProductionTemplate(template) {
       ?.LAWOS_HRX_RELATIONAL_PROJECTION_VALIDATION_OBJECT_KEY != null
     || resources.ApiFunction?.Properties?.Environment?.Variables
       ?.LAWOS_EXECUTION_PACKET_SHA256?.Ref
-      !== "ExecutionPacketSha256") {
+      !== "ExecutionPacketSha256"
+    || stableJson(apiEnvironment.LAWOS_AMIC_INTERNAL_UPDATE_ENABLED)
+      !== stableJson({
+        "Fn::If": [
+          "AmicInternalUnsignedUpdateBrokerEnabled",
+          "true",
+          "false",
+        ],
+      })
+    || apiEnvironment.LAWOS_AMIC_INTERNAL_UPDATE_AWS_ACCOUNT_ID?.Ref
+      !== "AWS::AccountId"
+    || stableJson(apiEnvironment.LAWOS_AMIC_INTERNAL_UPDATE_BUCKET)
+      !== stableJson(expectedInternalUpdateEnvironment(
+        "AmicInternalUnsignedArtifactBucketName",
+      ))
+    || stableJson(apiEnvironment.LAWOS_AMIC_INTERNAL_UPDATE_KMS_KEY_ARN)
+      !== stableJson(expectedInternalUpdateEnvironment(
+        "AmicInternalUnsignedArtifactKmsKeyArn",
+      ))
+    || stableJson(apiEnvironment.LAWOS_AMIC_INTERNAL_UPDATE_CLOUDFRONT_DOMAIN)
+      !== stableJson(expectedInternalUpdateEnvironment(
+        "AmicInternalUnsignedCloudFrontDomain",
+      ))
+    || stableJson(
+      apiEnvironment.LAWOS_AMIC_INTERNAL_UPDATE_CLOUDFRONT_KEY_PAIR_ID,
+    ) !== stableJson(expectedInternalUpdateEnvironment(
+      "AmicInternalUnsignedCloudFrontKeyPairId",
+    ))
+    || stableJson(
+      apiEnvironment
+        .LAWOS_AMIC_INTERNAL_UPDATE_CLOUDFRONT_PRIVATE_KEY_SECRET_ARN,
+    ) !== stableJson(expectedInternalUpdateEnvironment(
+      "AmicInternalUnsignedCloudFrontPrivateKeySecretArn",
+    ))
+    || stableJson(
+      apiEnvironment
+        .LAWOS_AMIC_INTERNAL_UPDATE_ED25519_PUBLIC_KEY_SPKI_BASE64,
+    ) !== stableJson(expectedInternalUpdateEnvironment(
+      "AmicInternalUnsignedMetadataPublicKeySpkiBase64",
+    ))) {
     fail("production Lambda authority contract drifted");
   }
   const outputs = template.Outputs ?? {};
@@ -3046,6 +3302,8 @@ export function validateJsonPostgresProductionTemplate(template) {
     || outputs.DmsBucketName?.Value?.Ref !== "DmsBucket"
     || outputs.ExternalReadProvidersEnabled?.Value?.["Fn::If"]?.[0]
       !== "ExternalReadProvidersEnabled"
+    || outputs.AmicInternalUnsignedUpdateBrokerEnabled?.Value
+      ?.["Fn::If"]?.[0] !== "AmicInternalUnsignedUpdateBrokerEnabled"
     || resources.AdminFunction?.Properties?.Environment?.Variables?.LAWOS_DATABASE_IDENTIFIER?.Ref !== "Database") {
     fail("production DR/runtime outputs drifted");
   }
@@ -3244,6 +3502,15 @@ export function validateJsonPostgresProductionTemplate(template) {
     || JSON.stringify(externalEndpoint?.Resource?.map((item) => item?.["Fn::Sub"]))
       !== JSON.stringify([externalPackArn, externalCredentialArn])) {
     fail("production external-read Secrets Manager authority drifted");
+  }
+  const internalSignerSecret = endpointRuntimeSecrets.find((resource) =>
+    resource?.["Fn::If"]?.[0]
+      === "AmicInternalUnsignedUpdateBrokerEnabled");
+  const internalSignerSecretConditional = internalSignerSecret?.["Fn::If"];
+  if (internalSignerSecretConditional?.[1]?.Ref
+      !== "AmicInternalUnsignedCloudFrontPrivateKeySecretArn"
+    || internalSignerSecretConditional?.[2]?.Ref !== "AWS::NoValue") {
+    fail("production internal-update signer endpoint authority drifted");
   }
   const outlookEnvironment = resources.ApiFunction?.Properties?.Environment
     ?.Variables ?? {};
@@ -3685,6 +3952,11 @@ export function validateJsonPostgresProductionTemplate(template) {
     { "Fn::GetAtt": ["DmsBucket", "Arn"] },
     { "Fn::Sub": "${DmsBucket.Arn}/approved-real-migration/*" },
   ];
+  const internalUpdateEndpoint = resources.S3GatewayEndpoint?.Properties
+    ?.PolicyDocument?.Statement?.find((item) =>
+      item?.["Fn::If"]?.[0]
+        === "AmicInternalUnsignedUpdateBrokerEnabled")?.["Fn::If"];
+  const internalUpdateRead = internalUpdateEndpoint?.[1];
   if (!productionInputEndpoint
     || productionInputEndpoint.Effect !== "Allow"
     || productionInputEndpoint.Principal !== "*"
@@ -3694,6 +3966,17 @@ export function validateJsonPostgresProductionTemplate(template) {
     || JSON.stringify(productionInputEndpoint.Resource)
       !== JSON.stringify(endpointResources)) {
     fail("production S3 endpoint program-input or migration-DMS authority drifted");
+  }
+  if (internalUpdateRead?.Sid !== "ApiReadsExactInternalUnsignedDistribution"
+    || internalUpdateRead?.Effect !== "Allow"
+    || internalUpdateRead?.Principal?.AWS?.["Fn::GetAtt"]?.[0]
+      !== "ApiExecutionRole"
+    || JSON.stringify(internalUpdateRead?.Action)
+      !== JSON.stringify(["s3:GetObject", "s3:GetObjectVersion"])
+    || internalUpdateRead?.Resource?.["Fn::Sub"]
+      !== "arn:${AWS::Partition}:s3:::${AmicInternalUnsignedArtifactBucketName}/internal-unsigned/*"
+    || internalUpdateEndpoint?.[2]?.Ref !== "AWS::NoValue") {
+    fail("production internal-update S3 endpoint authority drifted");
   }
   const digest = sha256(template);
   return Object.freeze({
@@ -3716,6 +3999,7 @@ export function validateJsonPostgresProductionTemplate(template) {
     projection_worker_schedule_enabled_by_default: false,
     external_read_secret_policy_count: 1,
     external_read_providers_enabled_by_default: false,
+    amic_internal_unsigned_update_broker_enabled_by_default: false,
     production_traffic_enabled_by_default: false,
     monthly_cost_ceiling_krw: JSON_POSTGRES_PRODUCTION_COST_CEILING_KRW,
   });

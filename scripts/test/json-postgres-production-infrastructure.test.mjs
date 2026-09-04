@@ -2,6 +2,8 @@ import { readFileSync } from "node:fs";
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  JSON_POSTGRES_AMIC_INTERNAL_UPDATE_DISABLED_BUCKET,
+  JSON_POSTGRES_AMIC_INTERNAL_UPDATE_DISABLED_VALUE,
   JSON_POSTGRES_EXTERNAL_READ_CREDENTIAL_SECRET_PREFIX,
   JSON_POSTGRES_EXTERNAL_READ_PROVIDER_PACK_SECRET_NAME,
   JSON_POSTGRES_OUTLOOK_DISABLED_CONFIG_SECRET_NAME,
@@ -31,6 +33,10 @@ test("production template derives the proven private topology without synthetic 
   assert.equal(result.object_lock_bucket_count, 2);
   assert.equal(result.production_traffic_enabled_by_default, false);
   assert.equal(result.external_read_providers_enabled_by_default, false);
+  assert.equal(
+    result.amic_internal_unsigned_update_broker_enabled_by_default,
+    false,
+  );
   assert.equal(result.external_read_secret_policy_count, 1);
   assert.match(result.template_sha256, /^[0-9a-f]{64}$/u);
   assert.deepEqual(template.Parameters.RuntimeGeneration, {
@@ -568,6 +574,112 @@ test("production template derives the proven private topology without synthetic 
   );
 });
 
+test("production API binds the internal updater only through one complete disabled-default contract", () => {
+  const template = buildJsonPostgresProductionTemplate(reference);
+  const parameters = template.Parameters;
+  const environment = template.Resources.ApiFunction.Properties.Environment
+    .Variables;
+  const configured = (parameter) => ({
+    "Fn::If": [
+      "AmicInternalUnsignedUpdateBrokerEnabled",
+      { Ref: parameter },
+      "",
+    ],
+  });
+
+  assert.equal(parameters.EnableAmicInternalUnsignedUpdateBroker.Default, "false");
+  assert.equal(
+    parameters.AmicInternalUnsignedArtifactBucketName.Default,
+    JSON_POSTGRES_AMIC_INTERNAL_UPDATE_DISABLED_BUCKET,
+  );
+  for (const name of [
+    "AmicInternalUnsignedArtifactKmsKeyArn",
+    "AmicInternalUnsignedCloudFrontDomain",
+    "AmicInternalUnsignedCloudFrontKeyPairId",
+    "AmicInternalUnsignedCloudFrontPrivateKeySecretArn",
+    "AmicInternalUnsignedMetadataPublicKeySpkiBase64",
+  ]) {
+    assert.equal(
+      parameters[name].Default,
+      JSON_POSTGRES_AMIC_INTERNAL_UPDATE_DISABLED_VALUE,
+    );
+  }
+  assert.equal(
+    parameters.AmicInternalUnsignedCloudFrontPrivateKeySecretArn.NoEcho,
+    undefined,
+  );
+  assert.deepEqual(
+    template.Conditions.AmicInternalUnsignedUpdateBrokerEnabled,
+    {
+      "Fn::Equals": [
+        { Ref: "EnableAmicInternalUnsignedUpdateBroker" },
+        "true",
+      ],
+    },
+  );
+  assert.deepEqual(environment.LAWOS_AMIC_INTERNAL_UPDATE_ENABLED, {
+    "Fn::If": [
+      "AmicInternalUnsignedUpdateBrokerEnabled",
+      "true",
+      "false",
+    ],
+  });
+  assert.deepEqual(environment.LAWOS_AMIC_INTERNAL_UPDATE_AWS_ACCOUNT_ID, {
+    Ref: "AWS::AccountId",
+  });
+  for (const [name, parameter] of [
+    ["LAWOS_AMIC_INTERNAL_UPDATE_BUCKET", "AmicInternalUnsignedArtifactBucketName"],
+    ["LAWOS_AMIC_INTERNAL_UPDATE_KMS_KEY_ARN", "AmicInternalUnsignedArtifactKmsKeyArn"],
+    ["LAWOS_AMIC_INTERNAL_UPDATE_CLOUDFRONT_DOMAIN", "AmicInternalUnsignedCloudFrontDomain"],
+    ["LAWOS_AMIC_INTERNAL_UPDATE_CLOUDFRONT_KEY_PAIR_ID", "AmicInternalUnsignedCloudFrontKeyPairId"],
+    ["LAWOS_AMIC_INTERNAL_UPDATE_CLOUDFRONT_PRIVATE_KEY_SECRET_ARN", "AmicInternalUnsignedCloudFrontPrivateKeySecretArn"],
+    ["LAWOS_AMIC_INTERNAL_UPDATE_ED25519_PUBLIC_KEY_SPKI_BASE64", "AmicInternalUnsignedMetadataPublicKeySpkiBase64"],
+  ]) {
+    assert.deepEqual(environment[name], configured(parameter));
+  }
+  const signerSecret = template.Resources.SecretsManagerEndpoint.Properties
+    .PolicyDocument.Statement
+    .find((item) => item.Sid === "ApiReadsExactRuntimeSecrets")
+    .Resource.find((item) => item["Fn::If"]?.[0]
+      === "AmicInternalUnsignedUpdateBrokerEnabled");
+  assert.deepEqual(signerSecret, {
+    "Fn::If": [
+      "AmicInternalUnsignedUpdateBrokerEnabled",
+      { Ref: "AmicInternalUnsignedCloudFrontPrivateKeySecretArn" },
+      { Ref: "AWS::NoValue" },
+    ],
+  });
+  const s3Read = template.Resources.S3GatewayEndpoint.Properties.PolicyDocument
+    .Statement.find((item) => item["Fn::If"]?.[0]
+      === "AmicInternalUnsignedUpdateBrokerEnabled");
+  assert.deepEqual(s3Read, {
+    "Fn::If": [
+      "AmicInternalUnsignedUpdateBrokerEnabled",
+      {
+        Sid: "ApiReadsExactInternalUnsignedDistribution",
+        Effect: "Allow",
+        Principal: { AWS: { "Fn::GetAtt": ["ApiExecutionRole", "Arn"] } },
+        Action: ["s3:GetObject", "s3:GetObjectVersion"],
+        Resource: {
+          "Fn::Sub":
+            "arn:${AWS::Partition}:s3:::${AmicInternalUnsignedArtifactBucketName}/internal-unsigned/*",
+        },
+      },
+      { Ref: "AWS::NoValue" },
+    ],
+  });
+  assert.deepEqual(
+    template.Outputs.AmicInternalUnsignedUpdateBrokerEnabled.Value,
+    {
+      "Fn::If": [
+        "AmicInternalUnsignedUpdateBrokerEnabled",
+        "true",
+        "false",
+      ],
+    },
+  );
+});
+
 test("production template fails closed on public RDS, synthetic content, wildcard IAM and default traffic", () => {
   for (const mutate of [
     (value) => { value.Resources.Database.Properties.PubliclyAccessible = true; },
@@ -579,6 +691,33 @@ test("production template fails closed on public RDS, synthetic content, wildcar
     },
     (value) => { value.Parameters.EnableProductionTraffic.Default = "true"; },
     (value) => { value.Parameters.EnableExternalReadProviders.Default = "true"; },
+    (value) => {
+      value.Parameters.EnableAmicInternalUnsignedUpdateBroker.Default = "true";
+    },
+    (value) => {
+      value.Rules.AmicInternalUpdateBrokerConfigurationIsClosed.Assertions[0]
+        .AssertDescription = "weakened";
+    },
+    (value) => {
+      value.Resources.ApiFunction.Properties.Environment.Variables
+        .LAWOS_AMIC_INTERNAL_UPDATE_BUCKET["Fn::If"][0] =
+        "ProductionTrafficEnabled";
+    },
+    (value) => {
+      value.Resources.SecretsManagerEndpoint.Properties.PolicyDocument.Statement
+        .find((item) => item.Sid === "ApiReadsExactRuntimeSecrets")
+        .Resource = value.Resources.SecretsManagerEndpoint.Properties
+          .PolicyDocument.Statement
+          .find((item) => item.Sid === "ApiReadsExactRuntimeSecrets")
+          .Resource.filter((item) => item["Fn::If"]?.[0]
+            !== "AmicInternalUnsignedUpdateBrokerEnabled");
+    },
+    (value) => {
+      value.Resources.S3GatewayEndpoint.Properties.PolicyDocument.Statement
+        .find((item) => item["Fn::If"]?.[0]
+          === "AmicInternalUnsignedUpdateBrokerEnabled")
+        ["Fn::If"][1].Action.push("s3:ListBucket");
+    },
     (value) => {
       value.Rules.ExternalReadProviderConfigurationIsClosed.Assertions[0]
         .AssertDescription = "weakened";
@@ -1965,6 +2104,28 @@ test("W15 worker event validation uses the closed source packet", () => {
   assert.doesNotMatch(
     source,
     /validateJsonPostgresW15ProjectionEvent\(workerEvent, \{\s+packet,\s+/u,
+  );
+});
+
+test("production runner gates internal updater activation on live private infrastructure", () => {
+  const source = readFileSync(
+    "scripts/run-json-postgres-production-infrastructure.mjs",
+    "utf8",
+  );
+  for (const operation of [
+    "create-internal-update-broker-change-set",
+    "execute-internal-update-broker-change-set",
+    "verify-internal-update-broker",
+  ]) {
+    assert.match(source, new RegExp(`"${operation}"`, "u"));
+  }
+  assert.match(source, /assertInternalUpdateDistributionState\(binding\)/u);
+  assert.match(source, /assertInternalUpdateApiEnvironment\(binding\)/u);
+  assert.match(source, /"secretsmanager", "describe-secret"/u);
+  assert.doesNotMatch(source, /"secretsmanager", "get-secret-value"/u);
+  assert.match(
+    source,
+    /internalUpdateBinding: binding/u,
   );
 });
 
