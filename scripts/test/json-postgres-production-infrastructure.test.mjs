@@ -2134,8 +2134,19 @@ test("W15 inventory bootstrap closes the pre-schema audit cycle without direct s
     "scripts/run-json-postgres-production-infrastructure.mjs",
     "utf8",
   );
+  const createBranch = runner.slice(
+    runner.indexOf('} else if (operation === "w15-create-change-set"'),
+    runner.indexOf('} else if (operation === "w15-execute-change-set"'),
+  );
   assert.match(runner, /cloudFormationParameterJsonArgs\(parameters\)/u);
   assert.doesNotMatch(runner, /cloudFormationParameterArgs\(parameters\)/u);
+  assert.match(createBranch, /const parameters = \{\s+\.\.\.current,/u);
+  for (const field of ["Owner", "ReviewDate", "ExpirationDate"]) {
+    assert.doesNotMatch(
+      createBranch,
+      new RegExp(`${field}: input\\.`, "u"),
+    );
+  }
   assert.match(
     runner,
     /"w15-bootstrap-create-change-set"\)[\s\S]{0,3000}EnableExternalReadProviders: "false",[\s\S]{0,300}ExternalReadProviderPackSecretName:\s*JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SECRET_NAME,[\s\S]{0,300}ExternalReadProviderPackSha256:\s*JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SHA256/u,
