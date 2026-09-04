@@ -32,6 +32,7 @@ import {
   sanitizeAmicInternalBaselinePublicationReceipt,
   sanitizeAmicInternalPublicationReceipt,
   sanitizeAmicInternalManagedBootstrapPublicationReceipt,
+  validateAmicInternalDistributionBindings,
 } from "../lib/amic-os-internal-distribution-publication.mjs";
 import { createDesktopBuildManifest } from "../lib/matter-desktop-provenance.mjs";
 import {
@@ -618,6 +619,45 @@ function managedBootstrapReadbackInput(aws, receipt, expectedRelease = managedBo
     cloudFrontDomain: "d111111abcdef8.cloudfront.net", now: NOW,
   };
 }
+
+test("distribution rejects fractional retention before any AWS operation in every publication mode", async () => {
+  const invalidBindings = { ...bindings(), retainUntil: "2027-09-04T11:00:00.298Z" };
+  assert.throws(() => validateAmicInternalDistributionBindings(invalidBindings, { now: NOW }),
+    /retention must use whole UTC seconds/u);
+  for (const publicationMode of ["managed-bootstrap", "baseline", "successor"]) {
+    let awsCalls = 0;
+    const unexpectedCall = async () => { awsCalls += 1; throw new Error("unexpected AWS operation"); };
+    await assert.rejects(executeAmicInternalDistributionPublication({
+      aws: { inspectGovernance: unexpectedCall, putObject: unexpectedCall,
+        headObject: unexpectedCall, getObject: unexpectedCall },
+      bindings: invalidBindings, publicationMode, now: NOW,
+    }), /retention must use whole UTC seconds/u);
+    assert.equal(awsCalls, 0);
+  }
+  assert.deepEqual(validateAmicInternalDistributionBindings(bindings(), { now: NOW }), bindings());
+  for (const days of [364, 3651]) {
+    assert.throws(() => validateAmicInternalDistributionBindings({
+      ...bindings(), retainUntil: new Date(NOW + days * 86400000).toISOString(),
+    }, { now: NOW }), /retention must be 365 to 3650 days/u);
+  }
+});
+
+test("publication still rejects a whole-second retention mismatch before its completion marker", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "amic-os-retention-readback-"));
+  try {
+    const target = managedBootstrapRelease();
+    const aws = new FakeAwsDistribution({ rollbackTargetPresent: false });
+    const headObject = aws.headObject.bind(aws);
+    aws.headObject = async (input) => ({ ...await headObject(input),
+      ObjectLockRetainUntilDate: "2027-09-04T10:59:59.000Z" });
+    await assert.rejects(executeAmicInternalDistributionPublication({
+      aws, bindings: bindings(), release: target,
+      artifactPaths: await fixtureArtifacts(root, { target }), privateKey,
+      publicationMode: "managed-bootstrap", now: NOW,
+    }), /installer HEAD retention differs/u);
+    assert.deepEqual(aws.puts.map(({ kind }) => kind), ["installer"]);
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
 
 test("managed bootstrap publishes seven private versions without an installation or updater grant", async () => {
   const root = await mkdtemp(path.join(tmpdir(), "amic-os-managed-bootstrap-"));

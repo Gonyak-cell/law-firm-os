@@ -56,6 +56,9 @@ test("internal-unsigned publisher builds on exact main, validates before AWS cre
   );
   assert.match(source, /CSC_IDENTITY_AUTO_DISCOVERY: "false"/u);
   assert.match(source, /MATTER_DESKTOP_DISTRIBUTION_PROFILE: internal-unsigned/u);
+  assert.match(source,
+    /\$retainUntil = \[DateTimeOffset\]::UtcNow\.AddDays\(366\)\.AddSeconds\(1\)\.ToString\('yyyy-MM-ddTHH:mm:ss\.000Z'\)/u,
+    "retention must be generated at whole-second precision without rounding protection down");
   assert.match(source, /publication_mode:/u);
   assert.match(
     source,

@@ -531,6 +531,7 @@ function validateBindings(bindings, now) {
     "artifact KMS key ARN is invalid",
   );
   assert.equal(new Date(bindings.retainUntil).toISOString(), bindings.retainUntil);
+  assert.equal(Date.parse(bindings.retainUntil) % 1000, 0, "artifact retention must use whole UTC seconds");
   const retentionDays = (Date.parse(bindings.retainUntil) - now) / (24 * 60 * 60 * 1000);
   assert.ok(retentionDays >= 365 && retentionDays <= 3650, "artifact retention must be 365 to 3650 days");
   return Object.freeze({ ...bindings });
