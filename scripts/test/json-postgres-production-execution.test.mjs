@@ -1,6 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SECRET_NAME,
+  JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SHA256,
+} from "../lib/json-postgres-production-infrastructure.mjs";
+import {
   JSON_POSTGRES_PRODUCTION_ACCOUNT,
   JSON_POSTGRES_PRODUCTION_ARTIFACT_STACK,
   JSON_POSTGRES_PRODUCTION_STACK,
@@ -38,6 +42,20 @@ function packet() {
       approved_tenant_ids: ["tenant-approved"],
     },
   };
+}
+
+function disabledExternalReadParameters() {
+  return [
+    { ParameterKey: "EnableExternalReadProviders", ParameterValue: "false" },
+    {
+      ParameterKey: "ExternalReadProviderPackSecretName",
+      ParameterValue: JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SECRET_NAME,
+    },
+    {
+      ParameterKey: "ExternalReadProviderPackSha256",
+      ParameterValue: JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SHA256,
+    },
+  ];
 }
 
 test("production caller must use the exact role chain", () => {
@@ -90,6 +108,15 @@ test("production stack parameters preserve exact packet, tenant, traffic and ENI
   });
   assert.equal(parameters.EnableProductionTraffic, "false");
   assert.equal(parameters.EnableLambdaEniBootstrap, "true");
+  assert.equal(parameters.EnableExternalReadProviders, "false");
+  assert.equal(
+    parameters.ExternalReadProviderPackSecretName,
+    JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SECRET_NAME,
+  );
+  assert.equal(
+    parameters.ExternalReadProviderPackSha256,
+    JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SHA256,
+  );
   assert.equal(parameters.EnableProjectionWorker, "false");
   assert.equal(parameters.ProjectionWorkerEventJson, "{}");
   assert.equal(
@@ -239,6 +266,7 @@ test("W15 update review permits only bounded projection additions and exact supp
       ProjectionWorkerSchedule: {},
       ProjectionWorkerInvokePermission: {},
       ProjectionWorkerLagAlarm: {},
+      ExternalReadSecretsPolicy: {},
       Database: {},
     },
   };
@@ -246,6 +274,7 @@ test("W15 update review permits only bounded projection additions and exact supp
     StackName: JSON_POSTGRES_PRODUCTION_STACK,
     ChangeSetType: "UPDATE",
     ChangeSetId: "w15-change-set-1",
+    Parameters: disabledExternalReadParameters(),
     Changes: [
       {
         ResourceChange: {
@@ -256,6 +285,7 @@ test("W15 update review permits only bounded projection additions and exact supp
         },
       },
       ...[
+        ["ExternalReadSecretsPolicy", "AWS::IAM::Policy", "False"],
         ["ProjectionWorkerExecutionRole", "AWS::IAM::Role", "False"],
         ["ProjectionWorkerDeadLetterAlarm", "AWS::CloudWatch::Alarm", "False"],
         ["ProjectionWorkerDeadLetterQueue", "AWS::SQS::Queue", "False"],
@@ -298,8 +328,9 @@ test("W15 update review permits only bounded projection additions and exact supp
     parametersSha256: "a".repeat(64),
     templateSha256: "b".repeat(64),
   });
-  assert.equal(reviewed.add_count, 11);
+  assert.equal(reviewed.add_count, 12);
   assert.equal(reviewed.modify_count, 1);
+  assert.equal(reviewed.external_read_providers_enabled, false);
   const database = structuredClone(changeSet);
   database.Changes.push({
     ResourceChange: {
@@ -316,6 +347,41 @@ test("W15 update review permits only bounded projection additions and exact supp
       templateSha256: "b".repeat(64),
     }),
     /unapproved resource change/u,
+  );
+  const enabled = structuredClone(changeSet);
+  enabled.Parameters.find((entry) =>
+    entry.ParameterKey === "EnableExternalReadProviders").ParameterValue =
+      "true";
+  assert.throws(
+    () => validateJsonPostgresW15ProductionChangeSet(enabled, {
+      template,
+      parametersSha256: "a".repeat(64),
+      templateSha256: "b".repeat(64),
+    }),
+    /must keep external providers disabled/u,
+  );
+  const absent = structuredClone(changeSet);
+  absent.Parameters = [];
+  assert.throws(
+    () => validateJsonPostgresW15ProductionChangeSet(absent, {
+      template,
+      parametersSha256: "a".repeat(64),
+      templateSha256: "b".repeat(64),
+    }),
+    /provider parameters are ambiguous/u,
+  );
+  const inherited = structuredClone(changeSet);
+  const inheritedFlag = inherited.Parameters.find((entry) =>
+    entry.ParameterKey === "EnableExternalReadProviders");
+  delete inheritedFlag.ParameterValue;
+  inheritedFlag.UsePreviousValue = true;
+  assert.throws(
+    () => validateJsonPostgresW15ProductionChangeSet(inherited, {
+      template,
+      parametersSha256: "a".repeat(64),
+      templateSha256: "b".repeat(64),
+    }),
+    /provider parameters are ambiguous/u,
   );
   const replacement = structuredClone(changeSet);
   replacement.Changes[1].ResourceChange.Replacement = "True";
@@ -540,6 +606,11 @@ test("artifact bucket and production stack observations are exact and fail close
       DmsBucketName: value.target.dms_bucket_name,
       EnableProductionTraffic: "false",
       EnableLambdaEniBootstrap: "false",
+      EnableExternalReadProviders: "false",
+      ExternalReadProviderPackSecretName:
+        JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SECRET_NAME,
+      ExternalReadProviderPackSha256:
+        JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SHA256,
       EnableProjectionWorker: "false",
       ProjectionWorkerEventJson: "{}",
       HrxProjectionMappingObjectKey:
@@ -549,12 +620,26 @@ test("artifact bucket and production stack observations are exact and fail close
       ProjectionWorkerLagThresholdMs: "24",
       MonthlyCostCeilingKrw: "300000",
     }).map(([ParameterKey, ParameterValue]) => ({ ParameterKey, ParameterValue })),
+    Outputs: [{
+      OutputKey: "ExternalReadProvidersEnabled",
+      OutputValue: "false",
+    }],
   };
   assert.equal(assertJsonPostgresProductionStack(stack, {
     packet: value,
     artifactVersion: "v1",
     trustRegistrySha256: "e".repeat(64),
   }).temporary_eni_allow_expected, 0);
+  const providerEnabledStack = structuredClone(stack);
+  providerEnabledStack.Outputs[0].OutputValue = "true";
+  assert.throws(
+    () => assertJsonPostgresProductionStack(providerEnabledStack, {
+      packet: value,
+      artifactVersion: "v1",
+      trustRegistrySha256: "e".repeat(64),
+    }),
+    /external provider output drifted/u,
+  );
   const trafficStack = structuredClone(stack);
   trafficStack.Parameters.find((entry) =>
     entry.ParameterKey === "EnableProductionTraffic").ParameterValue = "true";

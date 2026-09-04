@@ -2,6 +2,10 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SECRET_NAME,
+  JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SHA256,
+} from "../lib/json-postgres-production-infrastructure.mjs";
+import {
   JSON_POSTGRES_PRODUCTION_STACK,
   validateJsonPostgresW15ProductionChangeSet,
 } from "../lib/json-postgres-production-execution.mjs";
@@ -42,6 +46,17 @@ test("production review admits only the exact dedicated Outlook worker additions
     StackName: JSON_POSTGRES_PRODUCTION_STACK,
     ChangeSetType: "UPDATE",
     ChangeSetId: "outlook-dedicated-worker-change-set",
+    Parameters: [
+      { ParameterKey: "EnableExternalReadProviders", ParameterValue: "false" },
+      {
+        ParameterKey: "ExternalReadProviderPackSecretName",
+        ParameterValue: JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SECRET_NAME,
+      },
+      {
+        ParameterKey: "ExternalReadProviderPackSha256",
+        ParameterValue: JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SHA256,
+      },
+    ],
     Changes: [
       ...OUTLOOK_ADDITIONS.map(([logicalId, type]) =>
         change("Add", logicalId, type)),

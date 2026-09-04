@@ -1880,6 +1880,10 @@ test("W15 inventory bootstrap closes the pre-schema audit cycle without direct s
   assert.doesNotMatch(runner, /cloudFormationParameterArgs\(parameters\)/u);
   assert.match(
     runner,
+    /"w15-bootstrap-create-change-set"\)[\s\S]{0,3000}EnableExternalReadProviders: "false",[\s\S]{0,300}ExternalReadProviderPackSecretName:\s*JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SECRET_NAME,[\s\S]{0,300}ExternalReadProviderPackSha256:\s*JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SHA256/u,
+  );
+  assert.match(
+    runner,
     /sourceIsAncestor: gitIsAncestor\(sourceSha, originMainSha\)/u,
   );
   assert.doesNotMatch(

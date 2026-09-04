@@ -75,6 +75,15 @@ state. Preserve the receipt and obtain separate approval for an exact-purpose
 CloudFormation change-set review. Do not treat absent provider parameters as
 equivalent to `false`, and do not continue to target discovery.
 
+The existing W15 bootstrap change-set path is the only prepared upgrade path
+for this state. It sends `EnableExternalReadProviders=false` and both disabled
+provider-pack placeholders explicitly, rejects missing values,
+`UsePreviousValue`, or any mismatch in the described change set, and requires
+the deployed parameter set and `ExternalReadProvidersEnabled` output to read
+back as `false`. Creating or executing that change set is an AWS write and
+still requires separate operator approval; this read-only inspection does not
+authorize it.
+
 **If it reports an enabled provider or ambiguous disabled binding:** stop and
 escalate. Do not run the migration or weaken the inspection.
 

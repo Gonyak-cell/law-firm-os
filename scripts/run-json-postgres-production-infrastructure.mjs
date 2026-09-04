@@ -27,6 +27,8 @@ import {
   validateCloudFormationChangeSetTemplate,
 } from "./lib/cloudformation-template-transport.mjs";
 import {
+  JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SECRET_NAME,
+  JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SHA256,
   JSON_POSTGRES_PRODUCTION_ENI_ACTIONS,
   buildJsonPostgresProductionArtifactStoreWindowsHandoffBaselineTemplate,
   buildJsonPostgresProductionArtifactStoreWindowsHandoffV2Template,
@@ -1528,6 +1530,11 @@ if (operation === "preflight"
     ExpirationDate: input.expiration_date,
     ExecutionPacketSha256: packet.packet_sha256,
     EnableLambdaEniBootstrap: "true",
+    EnableExternalReadProviders: "false",
+    ExternalReadProviderPackSecretName:
+      JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SECRET_NAME,
+    ExternalReadProviderPackSha256:
+      JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SHA256,
     EnableProjectionWorker: "false",
     ProjectionWorkerEventJson: "{}",
     HrxProjectionMappingObjectKey:
