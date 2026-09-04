@@ -100,7 +100,7 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
           if ($env:APPROVAL_REF -notmatch '\A[A-Za-z0-9][A-Za-z0-9._:-]{0,199}\z') { throw 'approval_ref is invalid' }
-          if ($env:PUBLICATION_MODE -notin @('baseline', 'successor')) { throw 'publication_mode is invalid' }
+          if ($env:PUBLICATION_MODE -notin @('baseline', 'successor', 'managed-bootstrap')) { throw 'publication_mode is invalid' }
           if ($env:PUBLISHER_ROLE_ARN -notmatch '\Aarn:aws:iam::770880870480:role/[A-Za-z0-9+=,.@_/-]+\z') { throw 'publisher role ARN is invalid' }
           if ($env:ARTIFACT_BUCKET -notmatch '\A[a-z0-9](?:[a-z0-9-]{1,61}[a-z0-9])\z') { throw 'artifact bucket is invalid' }
           if ($env:ACCESS_LOG_BUCKET -notmatch '\A[a-z0-9](?:[a-z0-9-]{1,61}[a-z0-9])\z') { throw 'access-log bucket is invalid' }
@@ -241,7 +241,13 @@ jobs:
           if ($private.state -cne 'PASS' -or $private.receipt_sha256 -cne $result.private_receipt_sha256) {
             throw 'private publication receipt differs from public receipt binding'
           }
-          $locator = if ($env:PUBLICATION_MODE -ceq 'baseline') { $private.baseline_marker } else { $private.channel_pointer }
+          $locator = if ($env:PUBLICATION_MODE -ceq 'managed-bootstrap') {
+            $private.managed_bootstrap_marker
+          } elseif ($env:PUBLICATION_MODE -ceq 'baseline') {
+            $private.baseline_marker
+          } else {
+            $private.channel_pointer
+          }
           $locatorJson = $locator | ConvertTo-Json -Compress
           $locatorBase64 = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($locatorJson))
           "readback_locator_base64=$locatorBase64" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append

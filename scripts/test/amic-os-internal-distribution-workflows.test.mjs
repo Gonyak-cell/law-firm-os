@@ -104,9 +104,9 @@ test("independent readback uses its own environment and read-only OIDC job", asy
     source,
     /verify-amic-os-internal-github-environment\.mjs --environment amic-os-internal-unsigned-readback/u,
   );
-  assert.match(source, /Read 9 baseline or 18 successor exact S3 versions with isolated authority/u);
+  assert.match(source, /Read 7 bootstrap, 9 baseline, or 18 successor exact S3 versions with isolated authority/u);
   assert.match(source, /scripts\/readback-amic-os-internal-unsigned\.mjs --execute/u);
-  assert.match(source, /expectedCount = process\.env\.PUBLICATION_MODE === "baseline" \? 9 : 18/u);
+  assert.match(source, /expectedCount = \{ baseline: 9, successor: 18, "managed-bootstrap": 7 \}/u);
   assert.match(source, /--publication-mode "\$PUBLICATION_MODE"/u);
   assert.match(source, /--locator "\$AMIC_INTERNAL_READBACK_ROOT\/publication-locator\.json"/u);
   assert.match(source, /anonymous_s3_denied !== true/u);
@@ -125,6 +125,21 @@ test("independent readback uses its own environment and read-only OIDC job", asy
       < source.indexOf("aws-actions/configure-aws-credentials@"),
     "protected environment must be verified before readback AWS credentials",
   );
+});
+
+test("managed bootstrap uses the same protected build and isolated reader without an installation shortcut", async () => {
+  const readWorkflow = (name) => readFile(path.join(root, `.github/workflows/${name}.yml`), "utf8");
+  const dispatcher = await readWorkflow("amic-os-internal-unsigned-publish");
+  const publisher = await readWorkflow("amic-os-internal-unsigned-publisher");
+  const reader = await readWorkflow("amic-os-internal-unsigned-readback");
+  assert.match(dispatcher, /- managed-bootstrap/u);
+  assert.match(publisher, /'baseline', 'successor', 'managed-bootstrap'/u);
+  assert.match(publisher, /\$private\.managed_bootstrap_marker/u);
+  assert.match(reader, /internal-unsigned\/baseline\/managed-bootstrap\//u);
+  assert.match(reader, /validateAmicInternalDistributionRelease/u);
+  assert.match(reader, /release\.sourceSha !== process\.env\.INPUT_SOURCE_SHA/u);
+  assert.match(reader, /release_args=\(--release/u);
+  assert.doesNotMatch(publisher, /installationId\s*=|installation_id\s*=/u);
 });
 
 function protectedEnvironment(name) {

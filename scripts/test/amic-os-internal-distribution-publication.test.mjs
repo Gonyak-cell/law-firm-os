@@ -12,6 +12,7 @@ import {
   INTERNAL_UPDATE_KEY_ID,
   canonicalizeUpdateMetadata,
   signUpdateMetadataBytes,
+  verifyAndParseUpdateMetadataBytes,
 } from "../../apps/desktop/src/main/updates.js";
 import {
   AMIC_INTERNAL_BASELINE_DOCUMENT_SCHEMA,
@@ -21,12 +22,16 @@ import {
   AMIC_INTERNAL_METADATA_SIGNING_SECRET_SCHEMA,
   AMIC_INTERNAL_PUBLICATION_RECEIPT_SCHEMA,
   AMIC_INTERNAL_PROVENANCE_SCHEMA,
+  AMIC_INTERNAL_MANAGED_BOOTSTRAP_BOUNDARIES,
+  AMIC_INTERNAL_MANAGED_BOOTSTRAP_MANIFEST_SCHEMA,
   executeAmicInternalDistributionPublication,
+  amicInternalManagedBootstrapScopeKey,
   amicInternalBaselineScopeKey,
   amicInternalChannelScopeKey,
   parseAmicInternalMetadataSigningSecret,
   sanitizeAmicInternalBaselinePublicationReceipt,
   sanitizeAmicInternalPublicationReceipt,
+  sanitizeAmicInternalManagedBootstrapPublicationReceipt,
 } from "../lib/amic-os-internal-distribution-publication.mjs";
 import { createDesktopBuildManifest } from "../lib/matter-desktop-provenance.mjs";
 import {
@@ -34,6 +39,7 @@ import {
   AMIC_INTERNAL_READBACK_RECEIPT_SCHEMA,
   verifyAmicInternalBaselineReadback,
   verifyAmicInternalDistributionReadback,
+  verifyAmicInternalManagedBootstrapReadback,
 } from "../lib/amic-os-internal-distribution-readback.mjs";
 
 const { privateKey, publicKey } = generateKeyPairSync("ed25519");
@@ -596,6 +602,162 @@ function bindings() {
     retainUntil: "2027-09-04T11:00:00.000Z",
   };
 }
+
+function managedBootstrapRelease() {
+  const target = release();
+  delete target.installationId;
+  delete target.predecessor;
+  return target;
+}
+
+function managedBootstrapReadbackInput(aws, receipt, expectedRelease = managedBootstrapRelease()) {
+  return {
+    aws, bindings: bindings(), bootstrapMarker: receipt.managed_bootstrap_marker,
+    expectedRelease, trustedPublicKey: publicKey,
+    expectedPublicKeySha256: sha256(publicKey.export({ type: "spki", format: "der" })),
+    cloudFrontDomain: "d111111abcdef8.cloudfront.net", now: NOW,
+  };
+}
+
+test("managed bootstrap publishes seven private versions without an installation or updater grant", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "amic-os-managed-bootstrap-"));
+  try {
+    const target = managedBootstrapRelease();
+    const aws = new FakeAwsDistribution({ rollbackTargetPresent: false });
+    const input = {
+      aws, bindings: bindings(), release: target,
+      artifactPaths: await fixtureArtifacts(root, { target }), privateKey,
+      publicationMode: "managed-bootstrap", now: NOW,
+    };
+    const receipt = await executeAmicInternalDistributionPublication(input);
+    assert.equal(receipt.state, "PASS");
+    assert.equal(receipt.object_count, 7);
+    assert.equal(aws.puts.at(-1).kind, "managed_bootstrap_marker");
+    assert.equal(aws.puts.at(-1).ifNoneMatch, "*");
+    assert.equal(aws.puts.at(-1).key, amicInternalManagedBootstrapScopeKey(target));
+    assert.deepEqual(aws.puts.map(({ kind }) => kind), [
+      "installer", "build_manifest", "sbom", "provenance", "release_manifest",
+      "release_manifest_signature", "managed_bootstrap_marker",
+    ]);
+    const manifestRef = receipt.objects.release_manifest;
+    const manifest = JSON.parse(aws.objects.get(`${manifestRef.key}?versionId=${manifestRef.version_id}`).bytes);
+    assert.equal(manifest.schema_version, AMIC_INTERNAL_MANAGED_BOOTSTRAP_MANIFEST_SCHEMA);
+    assert.equal(Object.hasOwn(manifest, "installation_id"), false);
+    assert.equal(Object.hasOwn(manifest, "predecessor"), false);
+    const signatureRef = receipt.objects.release_manifest_signature;
+    assert.equal(verifyAndParseUpdateMetadataBytes({
+      metadataBytes: aws.objects.get(`${manifestRef.key}?versionId=${manifestRef.version_id}`).bytes,
+      signatureBytes: aws.objects.get(`${signatureRef.key}?versionId=${signatureRef.version_id}`).bytes,
+      trustedKeyId: INTERNAL_UPDATE_KEY_ID,
+      trustedPublicKeys: { [INTERNAL_UPDATE_KEY_ID]: publicKey },
+    }).valid, false, "a signed first package must never become update authorization");
+    const readback = await verifyAmicInternalManagedBootstrapReadback(managedBootstrapReadbackInput(aws, receipt));
+    assert.equal(readback.state, "PASS");
+    assert.equal(readback.exact_version_read_count, 7);
+    assert.equal(readback.artifact_sha256, receipt.objects.installer.sha256);
+    assert.equal(readback.anonymous_s3_denied, true);
+    assert.equal(readback.unsigned_cloudfront_denied, true);
+    const safe = sanitizeAmicInternalManagedBootstrapPublicationReceipt(receipt);
+    for (const record of [receipt, manifest, readback, safe]) {
+      for (const [field, value] of Object.entries(AMIC_INTERNAL_MANAGED_BOOTSTRAP_BOUNDARIES)) {
+        assert.equal(record[field], value, field);
+      }
+    }
+    assert.doesNotMatch(JSON.stringify(safe), /internal-unsigned\/|version-007|"amic-internal"|PRIVATE KEY/u);
+    assert.equal(safe.raw_object_key_included, false);
+    assert.equal(safe.raw_version_id_included, false);
+    assert.throws(() => sanitizeAmicInternalManagedBootstrapPublicationReceipt({
+      ...receipt, installation_registered: true,
+    }), /bootstrap receipt boundary differs/u);
+    await assert.rejects(executeAmicInternalDistributionPublication(input), /already has immutable history/u);
+    assert.equal(aws.puts.length, 7);
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
+
+test("managed bootstrap rejects added identity or authorization fields and incomplete history before writes", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "amic-os-bootstrap-input-"));
+  try {
+    const target = managedBootstrapRelease();
+    const artifactPaths = await fixtureArtifacts(root, { target });
+    for (const patch of [
+      { release: { ...target, installationId: "invented-installation" } },
+      { release: { ...target, predecessor: release().predecessor } },
+      { release: { ...target, api_key: "forbidden" } },
+      { revocations: revocations() },
+      { rollback: rollbackAuthorization() },
+    ]) {
+      const aws = new FakeAwsDistribution({ rollbackTargetPresent: false });
+      await assert.rejects(executeAmicInternalDistributionPublication({
+        aws, bindings: bindings(), release: target, artifactPaths, privateKey,
+        publicationMode: "managed-bootstrap", now: NOW, ...patch,
+      }), /schema differs|cannot include/u);
+      assert.equal(aws.puts.length, 0);
+    }
+    for (const history of [
+      null, [],
+      { IsTruncated: true }, { NextToken: "more" }, { Versions: {} },
+      { DeleteMarkers: [{ Key: amicInternalManagedBootstrapScopeKey(target), VersionId: "deleted" }] },
+    ]) {
+      const aws = new FakeAwsDistribution({ rollbackTargetPresent: false });
+      aws.listObjectVersions = async () => history;
+      await assert.rejects(executeAmicInternalDistributionPublication({
+        aws, bindings: bindings(), release: target, artifactPaths, privateKey,
+        publicationMode: "managed-bootstrap", now: NOW,
+      }), /history/u);
+      assert.equal(aws.puts.length, 0);
+    }
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
+
+test("managed bootstrap never commits a marker after a partial readback or competing publication", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "amic-os-bootstrap-commit-"));
+  try {
+    const target = managedBootstrapRelease();
+    const artifactPaths = await fixtureArtifacts(root, { target });
+    for (const [options, message] of [
+      [{ failGetKind: "release_manifest" }, /GET digest differs/u],
+      [{ raceControlKind: "managed_bootstrap_marker" }, /PreconditionFailed/u],
+    ]) {
+      const aws = new FakeAwsDistribution({ rollbackTargetPresent: false, ...options });
+      await assert.rejects(executeAmicInternalDistributionPublication({
+        aws, bindings: bindings(), release: target, artifactPaths, privateKey,
+        publicationMode: "managed-bootstrap", now: NOW,
+      }), message);
+      assert.equal(aws.puts.some(({ kind }) => kind === "managed_bootstrap_marker"), false);
+      assert.equal(aws.puts.some(({ kind }) => /update|channel|rollback/u.test(kind)), false);
+    }
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
+
+test("managed bootstrap readback rejects scope, trust, expiry, public access, and immutable-byte drift", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "amic-os-bootstrap-readback-"));
+  try {
+    const target = managedBootstrapRelease();
+    const aws = new FakeAwsDistribution({ rollbackTargetPresent: false });
+    const receipt = await executeAmicInternalDistributionPublication({
+      aws, bindings: bindings(), release: target,
+      artifactPaths: await fixtureArtifacts(root, { target }), privateKey,
+      publicationMode: "managed-bootstrap", now: NOW,
+    });
+    const input = managedBootstrapReadbackInput(aws, receipt);
+    for (const [patch, message] of [
+      [{ expectedRelease: { ...target, lawosTenantId: "another-tenant" } }, /scope differs/u],
+      [{ expectedRelease: { ...target, sourceSha: "c".repeat(40) } }, /binding differs/u],
+      [{ expectedPublicKeySha256: "0".repeat(64) }, /fingerprint differs/u],
+      [{ bootstrapMarker: { ...input.bootstrapMarker, version_id: "null" } }, /not immutable/u],
+      [{ now: Date.parse(target.expiresAt) }, /expired/u],
+    ]) await assert.rejects(verifyAmicInternalManagedBootstrapReadback({ ...input, ...patch }), message);
+    const originalProbe = aws.probeAnonymousAccess;
+    aws.probeAnonymousAccess = async () => ({ s3_status: 403, cloudfront_status: 200 });
+    await assert.rejects(verifyAmicInternalManagedBootstrapReadback(input), /CloudFront bootstrap access/u);
+    aws.probeAnonymousAccess = originalProbe;
+    const installer = receipt.objects.installer;
+    const stored = aws.objects.get(`${installer.key}?versionId=${installer.version_id}`);
+    stored.bytes = Buffer.alloc(stored.bytes.length, 0x78);
+    await assert.rejects(verifyAmicInternalManagedBootstrapReadback(input), /installer body hash differs/u);
+    assert.equal(aws.puts.length, 7);
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
 
 test("internal-unsigned publication uploads every exact object and moves the signed channel pointer last", async () => {
   const root = await mkdtemp(path.join(tmpdir(), "amic-os-publication-test-"));

@@ -8,13 +8,14 @@ on:
         required: true
         type: string
       publication_mode:
-        description: One-time non-discoverable baseline or normal rollback-ready successor
+        description: Owner-mediated first package, installation baseline, or rollback-ready successor
         required: true
         default: successor
         type: choice
         options:
           - successor
           - baseline
+          - managed-bootstrap
       release_document_base64:
         description: Non-secret, closed-schema Base64 JSON release and predecessor binding
         required: true
@@ -72,3 +73,4 @@ jobs:
       retain_until: ${{ needs.publish-private-internal-unsigned.outputs.retain_until }}
       readback_locator_base64: ${{ needs.publish-private-internal-unsigned.outputs.readback_locator_base64 }}
       publication_receipt_sha256: ${{ needs.publish-private-internal-unsigned.outputs.publication_receipt_sha256 }}
+      release_document_base64: ${{ inputs.release_document_base64 }}

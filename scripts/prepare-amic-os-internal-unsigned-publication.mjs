@@ -16,13 +16,13 @@ function requiredEnvironment(name) {
 }
 
 const publicationMode = option("--publication-mode");
-if (!["baseline", "successor"].includes(publicationMode)) {
-  throw new Error("--publication-mode must be baseline or successor");
+if (!["baseline", "successor", "managed-bootstrap"].includes(publicationMode)) {
+  throw new Error("--publication-mode must be baseline, successor, or managed-bootstrap");
 }
-if (publicationMode === "baseline"
+if (publicationMode !== "successor"
     && (process.env.AMIC_INTERNAL_REVOCATIONS_DOCUMENT_B64
       || process.env.AMIC_INTERNAL_ROLLBACK_DOCUMENT_B64)) {
-  throw new Error("baseline preflight cannot include revocations or rollback authorization");
+  throw new Error(`${publicationMode} preflight cannot include revocations or rollback authorization`);
 }
 
 const result = await prepareAmicInternalUnsignedPublication({

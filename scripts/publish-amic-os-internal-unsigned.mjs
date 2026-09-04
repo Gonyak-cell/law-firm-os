@@ -13,6 +13,7 @@ import {
   createAmicInternalDistributionAwsCliAdapter,
   executeAmicInternalDistributionPublication,
   sanitizeAmicInternalBaselinePublicationReceipt,
+  sanitizeAmicInternalManagedBootstrapPublicationReceipt,
   sanitizeAmicInternalPublicationReceipt,
 } from "./lib/amic-os-internal-distribution-publication.mjs";
 
@@ -54,8 +55,8 @@ if (!/^[A-Za-z0-9][A-Za-z0-9._:-]{0,199}$/u.test(approvalRef)) {
   throw new Error("--approval-ref is invalid");
 }
 const publicationMode = option("--publication-mode");
-if (!["baseline", "successor"].includes(publicationMode)) {
-  throw new Error("--publication-mode must be baseline or successor");
+if (!["baseline", "successor", "managed-bootstrap"].includes(publicationMode)) {
+  throw new Error("--publication-mode must be baseline, successor, or managed-bootstrap");
 }
 if (process.env.GITHUB_ACTIONS !== "true"
     || process.env.GITHUB_REPOSITORY !== "Gonyak-cell/law-firm-os"
@@ -72,9 +73,9 @@ const revocations = publicationMode === "successor"
 const rollback = publicationMode === "successor"
   ? readJson(option("--rollback"), "rollback authorization")
   : undefined;
-if (publicationMode === "baseline"
+if (publicationMode !== "successor"
     && (process.argv.includes("--revocations") || process.argv.includes("--rollback"))) {
-  throw new Error("baseline publication cannot include revocations or rollback authorization");
+  throw new Error(`${publicationMode} publication cannot include revocations or rollback authorization`);
 }
 const receiptPath = newPrivateOutput(option("--private-receipt"), "private receipt");
 const publicReceiptPath = newPrivateOutput(option("--public-receipt"), "public receipt");
@@ -98,9 +99,11 @@ const receipt = await executeAmicInternalDistributionPublication({
   publicationMode,
 });
 const publicReceipt = {
-  ...(publicationMode === "baseline"
-    ? sanitizeAmicInternalBaselinePublicationReceipt(receipt)
-    : sanitizeAmicInternalPublicationReceipt(receipt)),
+  ...({
+    baseline: sanitizeAmicInternalBaselinePublicationReceipt,
+    successor: sanitizeAmicInternalPublicationReceipt,
+    "managed-bootstrap": sanitizeAmicInternalManagedBootstrapPublicationReceipt,
+  }[publicationMode](receipt)),
   approval_ref: approvalRef,
 };
 writeFileSync(receiptPath, `${JSON.stringify(receipt, null, 2)}\n`, {

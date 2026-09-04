@@ -234,7 +234,7 @@ export async function prepareAmicInternalUnsignedPublication({
   runner,
   now = Date.now(),
 } = {}) {
-  assert.ok(["baseline", "successor"].includes(publicationMode), "publication mode is invalid");
+  assert.ok(["baseline", "successor", "managed-bootstrap"].includes(publicationMode), "publication mode is invalid");
   const root = realpathSync(repoRoot);
   const output = assertPathOutsideWorktree({
     repoRoot: root,
@@ -245,7 +245,7 @@ export async function prepareAmicInternalUnsignedPublication({
   const safeBindings = validateAmicInternalDistributionBindings(bindings, { now });
   const release = validateAmicInternalDistributionRelease(
     parseBase64Json(releaseBase64, "release document"),
-    { now },
+    { now, publicationMode },
   );
   const revocations = publicationMode === "successor"
     ? assertInternalUnsignedRevocationsDocument(
@@ -257,9 +257,9 @@ export async function prepareAmicInternalUnsignedPublication({
       parseBase64Json(rollbackBase64, "rollback authorization"),
     )
     : undefined;
-  if (publicationMode === "baseline") {
-    assert.equal(revocationsBase64, undefined, "baseline preflight cannot include revocations");
-    assert.equal(rollbackBase64, undefined, "baseline preflight cannot include rollback authorization");
+  if (publicationMode !== "successor") {
+    assert.equal(revocationsBase64, undefined, `${publicationMode} preflight cannot include revocations`);
+    assert.equal(rollbackBase64, undefined, `${publicationMode} preflight cannot include rollback authorization`);
   }
   validateRunner(runner, release.sourceSha);
   if (publicationMode === "successor") {
@@ -403,7 +403,7 @@ export async function prepareAmicInternalUnsignedPublication({
       provenance_sha256: files.provenance.sha256,
       revocation_revision: revocations?.revision ?? null,
       rollback_id: rollback?.rollbackId ?? null,
-      output_file_count: publicationMode === "baseline" ? 6 : 8,
+      output_file_count: publicationMode === "successor" ? 8 : 6,
       authenticode_status: "not_signed",
       privacy_audit: "verified",
       real_seed_included: false,

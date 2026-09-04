@@ -271,6 +271,19 @@ Gate `G6`: for a new scope, an isolated reader can GET all nine baseline Version
 
 ### Phase 7 — GitHub OIDC build and publish pipeline
 
+First-install correction, 2026-09-04: a never-installed managed PC cannot supply
+the trusted installation ID required by the existing baseline/update flow.
+The explicit `managed-bootstrap` mode now separates a first package from device
+enrollment: it reuses the protected Windows build and independent reader, writes
+seven private versions with a signed closed manifest and conditional one-time
+marker, and forbids installation/predecessor fields and update/rollback grants.
+The owner obtains the exact verified executable through AWS SSO-authenticated
+private S3 API access and transfers it to the managed PC. Company-data access
+still requires login and ordinary server registration. This is not a self-service
+tenant download portal. See `../runbooks/amic-os-managed-bootstrap.md` for source
+behavior, handoff checks and the separate baseline-adoption implementation gate.
+Local tests are not evidence of a published bootstrap or an installed host.
+
 Owner decision, 2026-09-04: the independent human reviewer requirement is
 withdrawn for this internal-unsigned lane. Both environments require exactly
 the repository's pinned individual owner as reviewer, allow that owner to
