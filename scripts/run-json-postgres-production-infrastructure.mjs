@@ -31,7 +31,6 @@ import {
   JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SHA256,
   JSON_POSTGRES_OUTLOOK_DISABLED_CONFIG_SECRET_NAME,
   JSON_POSTGRES_OUTLOOK_DISABLED_CREDENTIAL_SECRET_PREFIX,
-  JSON_POSTGRES_PRODUCTION_ENI_ACTIONS,
   buildJsonPostgresProductionArtifactStoreWindowsHandoffBaselineTemplate,
   buildJsonPostgresProductionArtifactStoreWindowsHandoffV2Template,
   buildJsonPostgresProductionArtifactStoreWindowsHandoffV3Template,
@@ -66,6 +65,7 @@ import {
   jsonPostgresProductionParametersSha256,
   validateJsonPostgresAmicInternalUpdateBinding,
   validateJsonPostgresAmicInternalUpdateBrokerChangeSet,
+  validateJsonPostgresProductionEniPolicyInventory,
   validateJsonPostgresProductionChangeSet,
   validateJsonPostgresW15ProductionChangeSet,
   validateJsonPostgresW15WorkerObservability,
@@ -1272,28 +1272,24 @@ function validateEniAuthorityRemoved({ includeProjection = false } = {}) {
   ];
   for (const [roleName, policyName] of roles) {
     const listed = awsJson(["iam", "list-role-policies", "--role-name", roleName], { region: false });
-    if (JSON.stringify(listed.PolicyNames) !== JSON.stringify([policyName])) {
-      throw new Error(`unexpected inline policy remains on ${roleName}`);
+    if (!Array.isArray(listed.PolicyNames)
+      || new Set(listed.PolicyNames).size !== listed.PolicyNames.length) {
+      throw new Error(`invalid inline policy inventory on ${roleName}`);
     }
-    const policy = awsJson([
-      "iam", "get-role-policy",
-      "--role-name", roleName,
-      "--policy-name", policyName,
-    ], { region: false }).PolicyDocument;
-    for (const statement of policy.Statement ?? []) {
-      const actions = new Set(Array.isArray(statement.Action) ? statement.Action : [statement.Action]);
-      if (statement.Effect === "Allow"
-        && statement.Resource === "*"
-        && JSON_POSTGRES_PRODUCTION_ENI_ACTIONS.every((action) => actions.has(action))) {
-        temporaryAllowCount += 1;
-      }
-      if (statement.Sid === "DenyFunctionCodeEc2Networking"
-        && statement.Effect === "Deny"
-        && statement.Resource === "*"
-        && statement.Condition?.ArnEquals?.["lambda:SourceFunctionArn"]) {
-        explicitDenyCount += 1;
-      }
-    }
+    const policyDocuments = Object.fromEntries(listed.PolicyNames.map((name) => [
+      name,
+      awsJson([
+        "iam", "get-role-policy",
+        "--role-name", roleName,
+        "--policy-name", name,
+      ], { region: false }).PolicyDocument,
+    ]));
+    const validation = validateJsonPostgresProductionEniPolicyInventory({
+      runtimePolicyName: policyName,
+      policyDocuments,
+    });
+    temporaryAllowCount += validation.temporary_eni_allow_count;
+    explicitDenyCount += validation.source_function_explicit_deny_count;
   }
   if (temporaryAllowCount !== 0 || explicitDenyCount !== roles.length) {
     throw new Error("production Lambda ENI authority removal failed");
