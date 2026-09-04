@@ -4,6 +4,7 @@ import path from "node:path";
 import test from "node:test";
 
 import {
+  AMIC_INTERNAL_PROTECTED_ENVIRONMENTS,
   inspectAmicInternalGitHubEnvironment,
   validateAmicInternalGitHubEnvironment,
 } from "../verify-amic-os-internal-github-environment.mjs";
@@ -132,8 +133,11 @@ function protectedEnvironment(name) {
     can_admins_bypass: false,
     protection_rules: [{
       type: "required_reviewers",
-      prevent_self_review: true,
-      reviewers: [{ type: "User", reviewer: { login: "private-reviewer" } }],
+      prevent_self_review: false,
+      reviewers: [{
+        type: "User",
+        reviewer: { id: 212459168, type: "User", login: "private-owner" },
+      }],
     }],
     deployment_branch_policy: {
       protected_branches: true,
@@ -166,21 +170,49 @@ test("internal-unsigned environment guard returns only sanitized protection fact
   assert.equal(calls[0][1].redirect, "error");
   assert.equal(calls[0][1].headers.Authorization, "Bearer test-token");
   assert.equal(result.verdict, "PASS");
+  assert.equal(result.schema_version, "law-firm-os.amic-internal-github-environment.v2");
+  assert.equal(result.approval_mode, "single-owner");
+  assert.equal(result.owner_reviewer_verified, true);
   assert.equal(result.required_reviewer_count, 1);
+  assert.equal(result.prevent_self_review, false);
   assert.equal(result.github_api_read_count, 1);
   assert.equal(result.raw_reviewer_identity_returned, false);
   assert.equal(result.raw_token_returned, false);
-  assert.doesNotMatch(JSON.stringify(result), /private-reviewer|test-token/u);
+  assert.doesNotMatch(JSON.stringify(result), /private-owner|212459168|test-token/u);
 });
 
-test("internal-unsigned environment guard rejects every missing protection", () => {
+test("both internal environments accept only the pinned single owner with self-review enabled", () => {
+  for (const environmentName of AMIC_INTERNAL_PROTECTED_ENVIRONMENTS) {
+    const result = validateAmicInternalGitHubEnvironment(
+      protectedEnvironment(environmentName), { environmentName },
+    );
+    assert.equal(result.verdict, "PASS");
+    assert.equal(result.approval_mode, "single-owner");
+    assert.equal(result.admins_can_bypass, false);
+    assert.equal(result.protected_branches_only, true);
+  }
+});
+
+test("internal-unsigned environment guard rejects owner-policy drift and every missing protection", () => {
   const name = "amic-os-internal-unsigned-readback";
   const mutations = [
     (value) => { value.protection_rules[0].reviewers = []; },
-    (value) => { value.protection_rules[0].prevent_self_review = false; },
+    (value) => { value.protection_rules[0].reviewers.push(value.protection_rules[0].reviewers[0]); },
+    (value) => { value.protection_rules[0].reviewers[0].reviewer.id = 123; },
+    (value) => { value.protection_rules[0].reviewers[0].reviewer.id = "212459168"; },
+    (value) => { delete value.protection_rules[0].reviewers[0].reviewer.id; },
+    (value) => { value.protection_rules[0].reviewers[0].type = "Team"; },
+    (value) => { value.protection_rules[0].reviewers[0].reviewer.type = "Bot"; },
+    (value) => { value.protection_rules[0].prevent_self_review = true; },
+    (value) => { delete value.protection_rules[0].prevent_self_review; },
+    (value) => { value.protection_rules = []; },
+    (value) => { value.protection_rules.push(value.protection_rules[0]); },
     (value) => { value.can_admins_bypass = true; },
+    (value) => { delete value.can_admins_bypass; },
     (value) => { value.deployment_branch_policy.protected_branches = false; },
     (value) => { value.deployment_branch_policy.custom_branch_policies = true; },
+    (value) => { value.deployment_branch_policy = null; },
+    (value) => { value.name = "unapproved-environment"; },
   ];
   for (const mutate of mutations) {
     const value = protectedEnvironment(name);
