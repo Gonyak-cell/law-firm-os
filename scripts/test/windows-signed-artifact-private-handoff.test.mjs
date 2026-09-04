@@ -63,10 +63,15 @@ test("AWS CLI diagnostics expose only allowlisted operation-bound codes, never r
   const cases = [
     { stderr: serviceError("AccessDenied"), expected: "AccessDenied" },
     { stderr: Buffer.from(serviceError("BadDigest")), expected: "BadDigest" },
+    { stderr: `aws: [ERROR]: ${serviceError("AccessDenied")}`, expected: "AccessDenied" },
+    { stderr: Buffer.from(`\r\naws: [ERROR]: ${serviceError("InvalidArgument")}\r\nAdditional error details:\r\n${privateValue}`), expected: "InvalidArgument" },
     { stderr: serviceError("InvalidRequest"), expected: "InvalidRequest" },
     { stderr: serviceError("KMS.DisabledException"), expected: "KMS.DisabledException" },
     { stderr: serviceError(privateValue), expected: "AWS_CLI_FAILED" },
     { stderr: serviceError("AccessDenied", "PutObject"), expected: "AWS_CLI_FAILED" },
+    { stderr: `aws: [ERROR]: ${serviceError("AccessDenied", "PutObject")}`, expected: "AWS_CLI_FAILED" },
+    { stderr: `aws: [ERROR]: ${serviceError(privateValue)}`, expected: "AWS_CLI_FAILED" },
+    { stderr: `untrusted-prefix ${serviceError("AccessDenied")}`, expected: "AWS_CLI_FAILED" },
     { stderr: `secret: AccessDenied ${privateValue}`, expected: "AWS_CLI_FAILED" },
     { stderr: "x".repeat(8192) + "\n" + serviceError("AccessDenied"), expected: "AWS_CLI_FAILED" },
     { stderr: "", code: "ENOENT", expected: "ENOENT" },
@@ -82,6 +87,8 @@ test("AWS CLI diagnostics expose only allowlisted operation-bound codes, never r
         assert.equal(command, "aws");
         assert.deepEqual(args.slice(0, 2), ["s3api", "head-object"]);
         assert.deepEqual(options.stdio, ["ignore", "pipe", "pipe"]);
+        assert.equal(options.env.AWS_CLI_ERROR_FORMAT, "legacy");
+        assert.equal(options.env.PATH, process.env.PATH);
         if (item.output) return item.output;
         throw Object.assign(new Error(privateValue), {
           stderr: item.stderr, stdout: privateValue, code: item.code,

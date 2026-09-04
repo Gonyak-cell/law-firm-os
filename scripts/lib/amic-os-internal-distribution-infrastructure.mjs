@@ -669,7 +669,7 @@ export function buildAmicInternalDistributionTemplate() {
           {
             Sid: "PublishImmutableInternalUnsignedObjects",
             Effect: "Allow",
-            Action: ["s3:PutObject", "s3:PutObjectRetention", "s3:PutObjectTagging"],
+            Action: "s3:PutObject",
             Resource: {
               "Fn::Sub": `\${ArtifactBucket.Arn}/${AMIC_INTERNAL_DISTRIBUTION_PREFIX}*`,
             },
@@ -681,6 +681,24 @@ export function buildAmicInternalDistributionTemplate() {
                 },
                 "s3:object-lock-mode": "COMPLIANCE",
               },
+              Null: { "s3:object-lock-retain-until-date": "false" },
+              NumericGreaterThanEquals: {
+                "s3:object-lock-remaining-retention-days": 365,
+              },
+              NumericLessThanEquals: {
+                "s3:object-lock-remaining-retention-days": 3650,
+              },
+            },
+          },
+          {
+            Sid: "SetComplianceRetentionForInternalUnsignedObjects",
+            Effect: "Allow",
+            Action: "s3:PutObjectRetention",
+            Resource: {
+              "Fn::Sub": `\${ArtifactBucket.Arn}/${AMIC_INTERNAL_DISTRIBUTION_PREFIX}*`,
+            },
+            Condition: {
+              StringEquals: { "s3:object-lock-mode": "COMPLIANCE" },
               Null: { "s3:object-lock-retain-until-date": "false" },
               NumericGreaterThanEquals: {
                 "s3:object-lock-remaining-retention-days": 365,

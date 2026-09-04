@@ -119,6 +119,41 @@ test("CloudFront prefix-scoped KMS decrypt uses object encryption context rather
   assert.throws(() => validateAmicInternalDistributionTemplate(template), /template drifted/u);
 });
 
+test("publisher separates encrypted uploads from retention authorization with action-supported conditions", () => {
+  const statements = buildAmicInternalDistributionTemplate().Resources.PublisherRole
+    .Properties.Policies[0].PolicyDocument.Statement;
+  const grants = (action) => statements.filter(({ Effect, Action }) =>
+    Effect === "Allow" && (Array.isArray(Action) ? Action : [Action]).includes(action));
+  const uploads = grants("s3:PutObject");
+  const retentions = grants("s3:PutObjectRetention");
+  assert.equal(uploads.length, 1);
+  assert.equal(retentions.length, 1);
+  assert.equal(uploads[0].Action, "s3:PutObject");
+  assert.equal(retentions[0].Action, "s3:PutObjectRetention");
+  assert.deepEqual(uploads[0].Resource, {
+    "Fn::Sub": `\${ArtifactBucket.Arn}/${AMIC_INTERNAL_DISTRIBUTION_PREFIX}*`,
+  });
+  assert.deepEqual(retentions[0].Resource, uploads[0].Resource);
+  const retentionConditions = {
+    StringEquals: { "s3:object-lock-mode": "COMPLIANCE" },
+    Null: { "s3:object-lock-retain-until-date": "false" },
+    NumericGreaterThanEquals: { "s3:object-lock-remaining-retention-days": 365 },
+    NumericLessThanEquals: { "s3:object-lock-remaining-retention-days": 3650 },
+  };
+  assert.deepEqual(retentions[0].Condition, retentionConditions);
+  assert.deepEqual(uploads[0].Condition, {
+    ...retentionConditions,
+    StringEquals: {
+      "s3:x-amz-server-side-encryption": "aws:kms",
+      "s3:x-amz-server-side-encryption-aws-kms-key-id": {
+        "Fn::GetAtt": ["ArtifactKey", "Arn"],
+      },
+      ...retentionConditions.StringEquals,
+    },
+  });
+  assert.deepEqual(grants("s3:PutObjectTagging"), []);
+});
+
 test("publisher can describe only its artifact key directly while cryptographic use remains S3-only", () => {
   const statements = buildAmicInternalDistributionTemplate().Resources.PublisherRole
     .Properties.Policies[0].PolicyDocument.Statement;
