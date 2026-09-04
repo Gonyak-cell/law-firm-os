@@ -9,6 +9,7 @@ import {
   JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SHA256,
   JSON_POSTGRES_OUTLOOK_DISABLED_CONFIG_SECRET_NAME,
   JSON_POSTGRES_OUTLOOK_DISABLED_CREDENTIAL_SECRET_PREFIX,
+  JSON_POSTGRES_PRODUCTION_ENI_ACTIONS,
   JSON_POSTGRES_OUTLOOK_WORKER_RESOURCE_IDS,
 } from "./json-postgres-production-infrastructure.mjs";
 
@@ -227,6 +228,63 @@ export function assertJsonPostgresProductionCaller(identity, {
     account: identity.Account,
     role,
     caller_arn_sha256: sha256(identity.Arn),
+  });
+}
+
+export function validateJsonPostgresProductionEniPolicyInventory({
+  runtimePolicyName,
+  policyDocuments,
+}) {
+  if (typeof runtimePolicyName !== "string" || !runtimePolicyName
+    || !policyDocuments || typeof policyDocuments !== "object"
+    || Array.isArray(policyDocuments)
+    || !Object.hasOwn(policyDocuments, runtimePolicyName)) {
+    fail("production ENI inline policy inventory is invalid");
+  }
+  let temporaryAllowCount = 0;
+  let explicitDenyCount = 0;
+  const eniActions = new Set(JSON_POSTGRES_PRODUCTION_ENI_ACTIONS);
+  for (const [policyName, document] of Object.entries(policyDocuments)) {
+    if (!document || typeof document !== "object" || Array.isArray(document)) {
+      fail("production ENI inline policy document is invalid");
+    }
+    const statements = Array.isArray(document.Statement)
+      ? document.Statement
+      : document.Statement
+        ? [document.Statement]
+        : [];
+    for (const statement of statements) {
+      const actions = new Set(
+        (Array.isArray(statement?.Action)
+          ? statement.Action
+          : [statement?.Action]).filter(Boolean),
+      );
+      const resources = Array.isArray(statement?.Resource)
+        ? statement.Resource
+        : [statement?.Resource];
+      if (statement?.Effect === "Allow"
+        && resources.includes("*")
+        && [...actions].some((action) => eniActions.has(action))) {
+        temporaryAllowCount += 1;
+      }
+      if (policyName === runtimePolicyName
+        && statement?.Sid === "DenyFunctionCodeEc2Networking"
+        && statement.Effect === "Deny"
+        && resources.includes("*")
+        && JSON_POSTGRES_PRODUCTION_ENI_ACTIONS.every((action) =>
+          actions.has(action))
+        && statement.Condition?.ArnEquals?.["lambda:SourceFunctionArn"]) {
+        explicitDenyCount += 1;
+      }
+    }
+  }
+  if (temporaryAllowCount !== 0 || explicitDenyCount !== 1) {
+    fail("production Lambda ENI authority removal failed");
+  }
+  return Object.freeze({
+    temporary_eni_allow_count: 0,
+    source_function_explicit_deny_count: 1,
+    inspected_inline_policy_count: Object.keys(policyDocuments).length,
   });
 }
 

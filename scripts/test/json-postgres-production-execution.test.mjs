@@ -6,6 +6,7 @@ import {
   JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SHA256,
   JSON_POSTGRES_OUTLOOK_DISABLED_CONFIG_SECRET_NAME,
   JSON_POSTGRES_OUTLOOK_DISABLED_CREDENTIAL_SECRET_PREFIX,
+  JSON_POSTGRES_PRODUCTION_ENI_ACTIONS,
 } from "../lib/json-postgres-production-infrastructure.mjs";
 import {
   JSON_POSTGRES_PRODUCTION_ACCOUNT,
@@ -29,6 +30,7 @@ import {
   validateJsonPostgresAmicInternalUpdateBinding,
   validateJsonPostgresAmicInternalUpdateBrokerChangeSet,
   validateJsonPostgresProductionChangeSet,
+  validateJsonPostgresProductionEniPolicyInventory,
   validateJsonPostgresW15ProductionChangeSet,
   validateJsonPostgresW15WorkerObservability,
 } from "../lib/json-postgres-production-execution.mjs";
@@ -131,6 +133,61 @@ test("production caller must use the exact role chain", () => {
     Account: JSON_POSTGRES_PRODUCTION_ACCOUNT,
     Arn: `arn:aws:sts::${JSON_POSTGRES_PRODUCTION_ACCOUNT}:assumed-role/matter-prod-deploy-admin/codex`,
   }, { role: "matter-cutover-operator" }), /matter-cutover-operator/u);
+});
+
+test("production ENI verification preserves unrelated inline policies but rejects any ENI allow", () => {
+  const runtimePolicyName = "lawos-production-api-runtime";
+  const runtimePolicy = {
+    Version: "2012-10-17",
+    Statement: [{
+      Sid: "DenyFunctionCodeEc2Networking",
+      Effect: "Deny",
+      Action: [...JSON_POSTGRES_PRODUCTION_ENI_ACTIONS],
+      Resource: "*",
+      Condition: {
+        ArnEquals: {
+          "lambda:SourceFunctionArn": "arn:aws:lambda:ap-northeast-2:770880870480:function:lawos-production-api",
+        },
+      },
+    }],
+  };
+  const unrelatedPolicy = {
+    Version: "2012-10-17",
+    Statement: [{
+      Sid: "InvokeExactBroker",
+      Effect: "Allow",
+      Action: "lambda:InvokeFunction",
+      Resource: "arn:aws:lambda:ap-northeast-2:770880870480:function:lawos-microsoft-egress-prod",
+    }],
+  };
+  assert.deepEqual(validateJsonPostgresProductionEniPolicyInventory({
+    runtimePolicyName,
+    policyDocuments: {
+      [runtimePolicyName]: runtimePolicy,
+      "lawos-microsoft-egress-broker-invoke": unrelatedPolicy,
+    },
+  }), {
+    temporary_eni_allow_count: 0,
+    source_function_explicit_deny_count: 1,
+    inspected_inline_policy_count: 2,
+  });
+  assert.throws(() => validateJsonPostgresProductionEniPolicyInventory({
+    runtimePolicyName,
+    policyDocuments: {
+      [runtimePolicyName]: runtimePolicy,
+      "unexpected-eni-allow": {
+        Statement: [{
+          Effect: "Allow",
+          Action: "ec2:CreateNetworkInterface",
+          Resource: "*",
+        }],
+      },
+    },
+  }), /ENI authority removal failed/u);
+  assert.throws(() => validateJsonPostgresProductionEniPolicyInventory({
+    runtimePolicyName,
+    policyDocuments: { "unrelated-policy": unrelatedPolicy },
+  }), /inline policy inventory is invalid/u);
 });
 
 test("production stack parameters preserve exact packet, tenant, traffic and ENI boundaries", () => {
