@@ -4,6 +4,9 @@ import test from "node:test";
 import {
   JSON_POSTGRES_EXTERNAL_READ_CREDENTIAL_SECRET_PREFIX,
   JSON_POSTGRES_EXTERNAL_READ_PROVIDER_PACK_SECRET_NAME,
+  JSON_POSTGRES_OUTLOOK_DISABLED_CONFIG_SECRET_NAME,
+  JSON_POSTGRES_OUTLOOK_DISABLED_CREDENTIAL_SECRET_PREFIX,
+  JSON_POSTGRES_OUTLOOK_WORKER_RESOURCE_IDS,
   buildJsonPostgresProductionArtifactStoreTemplate,
   buildJsonPostgresProductionArtifactStoreWindowsHandoffBaselineTemplate,
   buildJsonPostgresProductionArtifactStoreWindowsHandoffV2Template,
@@ -304,7 +307,7 @@ test("production template derives the proven private topology without synthetic 
   );
   assert.equal(
     template.Resources.PasswordResetWorkerSchedule.Properties.ScheduleExpression,
-    "rate(1 minute)",
+    "rate(5 minutes)",
   );
   assert.equal(
     template.Parameters.EnableOutlookConversationWorker.Default,
@@ -315,6 +318,14 @@ test("production template derives the proven private topology without synthetic 
     {
       "Fn::And": [
         { Condition: "ProductionTrafficEnabled" },
+        { Condition: "OutlookConversationWorkerProvisioned" },
+      ],
+    },
+  );
+  assert.deepEqual(
+    template.Conditions.OutlookConversationWorkerProvisioned,
+    {
+      "Fn::And": [
         { "Fn::Equals": [{ Ref: "EnableOutlookConversationWorker" }, "true"] },
         { Condition: "OutlookConversationWorkerConfigured" },
       ],
@@ -326,11 +337,11 @@ test("production template derives the proven private topology without synthetic 
       "Fn::And": [
         { "Fn::Not": [{ "Fn::Equals": [
           { Ref: "ClientOutlookM365ConfigSecretName" },
-          "/lawos/disabled/outlook/config",
+          JSON_POSTGRES_OUTLOOK_DISABLED_CONFIG_SECRET_NAME,
         ] }] },
         { "Fn::Not": [{ "Fn::Equals": [
           { Ref: "ClientOutlookCredentialSecretPrefix" },
-          "/lawos/disabled/outlook/credentials/",
+          JSON_POSTGRES_OUTLOOK_DISABLED_CREDENTIAL_SECRET_PREFIX,
         ] }] },
       ],
     },
@@ -340,6 +351,24 @@ test("production template derives the proven private topology without synthetic 
     {
       "Fn::If": ["OutlookConversationWorkerEnabled", "ENABLED", "DISABLED"],
     },
+  );
+  for (const logicalId of JSON_POSTGRES_OUTLOOK_WORKER_RESOURCE_IDS) {
+    assert.equal(
+      template.Resources[logicalId].Condition,
+      "OutlookConversationWorkerProvisioned",
+    );
+  }
+  assert.equal(
+    template.Resources.MicrosoftEgressBrokerLambdaEndpoint.Condition,
+    "OutlookConversationWorkerConfigured",
+  );
+  assert.equal(
+    template.Outputs.OutlookConversationWorkerFunctionName.Condition,
+    "OutlookConversationWorkerProvisioned",
+  );
+  assert.equal(
+    template.Outputs.OutlookConversationWorkerDeadLetterQueueArn.Condition,
+    "OutlookConversationWorkerProvisioned",
   );
   assert.deepEqual(
     JSON.parse(template.Resources.OutlookConversationWorkerSchedule.Properties.Targets[0].Input),
@@ -393,38 +422,69 @@ test("production template derives the proven private topology without synthetic 
     template.Resources.OutlookConversationWorkerDeadLetterAlarm.Properties.MetricName,
     "ApproximateNumberOfMessagesVisible",
   );
+  const configuredOutlookEnvironment = (value) => ({
+    "Fn::If": [
+      "OutlookConversationWorkerConfigured",
+      value,
+      { Ref: "AWS::NoValue" },
+    ],
+  });
   assert.deepEqual(
     template.Resources.ApiFunction.Properties.Environment.Variables
       .LAWOS_OUTLOOK_CONVERSATION_WORKER_SCHEDULE_ENABLED,
-    { "Fn::If": ["OutlookConversationWorkerEnabled", "true", "false"] },
+    configuredOutlookEnvironment({
+      "Fn::If": ["OutlookConversationWorkerEnabled", "true", "false"],
+    }),
+  );
+  assert.deepEqual(
+    template.Resources.ApiFunction.Properties.Environment.Variables
+      .LAWOS_CLIENT_OUTLOOK_M365_GRAPH_ENABLED,
+    configuredOutlookEnvironment({
+      "Fn::If": ["OutlookConversationWorkerEnabled", "true", "false"],
+    }),
   );
   assert.deepEqual(
     template.Resources.ApiFunction.Properties.Environment.Variables
       .LAWOS_CLIENT_OUTLOOK_PROVIDER_RUNTIME_ENABLED,
-    { "Fn::If": ["OutlookConversationWorkerEnabled", "true", "false"] },
+    configuredOutlookEnvironment({
+      "Fn::If": ["OutlookConversationWorkerEnabled", "true", "false"],
+    }),
   );
   assert.deepEqual(
     template.Resources.ApiFunction.Properties.Environment.Variables
       .LAWOS_CLIENT_OUTLOOK_M365_CONFIG_SECRET_ID,
-    { Ref: "ClientOutlookM365ConfigSecretName" },
+    configuredOutlookEnvironment({ Ref: "ClientOutlookM365ConfigSecretName" }),
   );
   assert.deepEqual(
     template.Resources.ApiFunction.Properties.Environment.Variables
       .LAWOS_GRAPH_NOTIFICATION_URL,
-    { "Fn::Sub": "${HttpApi.ApiEndpoint}/api/outlook/graph/notifications" },
+    configuredOutlookEnvironment({
+      "Fn::Sub": "${HttpApi.ApiEndpoint}/api/outlook/graph/notifications",
+    }),
+  );
+  assert.deepEqual(
+    template.Resources.ApiFunction.Properties.Environment.Variables
+      .LAWOS_CLIENT_OUTLOOK_INQUIRY_ENABLED,
+    configuredOutlookEnvironment("false"),
   );
   const apiStatements = template.Resources.ApiExecutionRole.Properties.Policies
     .flatMap((policy) => policy.PolicyDocument?.Statement ?? []);
+  const brokerInvoke = apiStatements.find((item) =>
+    item["Fn::If"]?.[1]?.Sid === "InvokeExactMicrosoftEgressBroker");
   assert.deepEqual(
-    apiStatements.find(({ Sid }) => Sid === "InvokeExactMicrosoftEgressBroker"),
-    {
-      Sid: "InvokeExactMicrosoftEgressBroker",
-      Effect: "Allow",
-      Action: "lambda:InvokeFunction",
-      Resource: {
-        "Fn::Sub": "arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:lawos-microsoft-egress-prod",
+    brokerInvoke["Fn::If"],
+    [
+      "OutlookConversationWorkerConfigured",
+      {
+        Sid: "InvokeExactMicrosoftEgressBroker",
+        Effect: "Allow",
+        Action: "lambda:InvokeFunction",
+        Resource: {
+          "Fn::Sub": "arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:lawos-microsoft-egress-prod",
+        },
       },
-    },
+      { Ref: "AWS::NoValue" },
+    ],
   );
   assert.equal(
     template.Resources.MicrosoftEgressBrokerLambdaEndpoint.Properties
@@ -638,6 +698,43 @@ test("production template fails closed on public RDS, synthetic content, wildcar
     },
     (value) => {
       value.Resources.OutlookConversationWorkerFunction.Properties.Timeout = 5;
+    },
+    (value) => {
+      delete value.Resources.OutlookConversationWorkerFunction.Condition;
+    },
+    (value) => {
+      delete value.Resources.MicrosoftEgressBrokerLambdaEndpoint.Condition;
+    },
+    (value) => {
+      value.Outputs.OutlookConversationWorkerFunctionName.Condition =
+        "OutlookConversationWorkerEnabled";
+    },
+    (value) => {
+      value.Conditions.OutlookConversationWorkerProvisioned["Fn::And"].pop();
+    },
+    (value) => {
+      value.Resources.ApiFunction.Properties.Environment.Variables
+        .LAWOS_CLIENT_OUTLOOK_M365_GRAPH_ENABLED = {
+          "Fn::If": ["OutlookConversationWorkerEnabled", "true", "false"],
+        };
+    },
+    (value) => {
+      value.Resources.ApiExecutionRole.Properties.Policies[0]
+        .PolicyDocument.Statement
+        .find((item) => item["Fn::If"]?.[1]?.Sid
+          === "InvokeExactMicrosoftEgressBroker")["Fn::If"][0] =
+          "ProductionTrafficEnabled";
+    },
+    (value) => {
+      value.Resources.SecretsManagerEndpoint.Properties.PolicyDocument.Statement
+        .find((item) => item.Sid === "ApiReadsExactRuntimeSecrets")
+        .Resource.find((item) => item["Fn::If"]?.[0]
+          === "OutlookConversationWorkerConfigured")["Fn::If"][0] =
+          "ProductionTrafficEnabled";
+    },
+    (value) => {
+      value.Resources.PasswordResetWorkerSchedule.Properties.ScheduleExpression =
+        "rate(1 minute)";
     },
     (value) => {
       value.Resources.OutlookConversationWorkerSchedule.Properties.Targets[0]

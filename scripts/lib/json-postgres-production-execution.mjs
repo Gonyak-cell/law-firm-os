@@ -5,6 +5,9 @@ import {
 import {
   JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SECRET_NAME,
   JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SHA256,
+  JSON_POSTGRES_OUTLOOK_DISABLED_CONFIG_SECRET_NAME,
+  JSON_POSTGRES_OUTLOOK_DISABLED_CREDENTIAL_SECRET_PREFIX,
+  JSON_POSTGRES_OUTLOOK_WORKER_RESOURCE_IDS,
 } from "./json-postgres-production-infrastructure.mjs";
 
 export const JSON_POSTGRES_PRODUCTION_ACCOUNT = "770880870480";
@@ -32,18 +35,6 @@ const SAFE_CONDITIONAL_REPLACEMENT = new Set([
   "OutlookConversationWorkerSchedule",
 ]);
 export const JSON_POSTGRES_W15_ALLOWED_ADDED_RESOURCES = Object.freeze([
-  "ExternalReadSecretsPolicy",
-  "MicrosoftEgressBrokerLambdaEndpoint",
-  "OutlookConversationWorkerDeadLetterAlarm",
-  "OutlookConversationWorkerDeadLetterQueue",
-  "OutlookConversationWorkerDeadLetterQueuePolicy",
-  "OutlookConversationWorkerDeliveryFailureAlarm",
-  "OutlookConversationWorkerErrorAlarm",
-  "OutlookConversationWorkerEventInvokeConfig",
-  "OutlookConversationWorkerFunction",
-  "OutlookConversationWorkerInvokePermission",
-  "OutlookConversationWorkerLogGroup",
-  "OutlookConversationWorkerSchedule",
   "ProjectionAuditorDatabaseSecret",
   "ProjectionAuditorExecutionRole",
   "ProjectionAuditorFunction",
@@ -68,19 +59,6 @@ export const JSON_POSTGRES_W15_ALLOWED_MODIFIED_RESOURCES = Object.freeze([
   "ApiExecutionRole",
   "ApiFunction",
   "HttpApiIntegration",
-  "MicrosoftEgressBrokerLambdaEndpoint",
-  "OutlookConversationWorkerDeadLetterAlarm",
-  "OutlookConversationWorkerDeadLetterQueue",
-  "OutlookConversationWorkerDeadLetterQueuePolicy",
-  "OutlookConversationWorkerDeliveryFailureAlarm",
-  "OutlookConversationWorkerErrorAlarm",
-  "OutlookConversationWorkerEventInvokeConfig",
-  "OutlookConversationWorkerFunction",
-  "OutlookConversationWorkerInvokePermission",
-  "OutlookConversationWorkerLogGroup",
-  "OutlookConversationWorkerSchedule",
-  "PasswordResetWorkerInvokePermission",
-  "PasswordResetWorkerSchedule",
   "ProductionKey",
   "ProjectionAuditorDatabaseSecret",
   "ProjectionAuditorExecutionRole",
@@ -217,6 +195,11 @@ export function buildJsonPostgresProductionStackParameters({
       JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SECRET_NAME,
     ExternalReadProviderPackSha256:
       JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SHA256,
+    EnableOutlookConversationWorker: "false",
+    ClientOutlookM365ConfigSecretName:
+      JSON_POSTGRES_OUTLOOK_DISABLED_CONFIG_SECRET_NAME,
+    ClientOutlookCredentialSecretPrefix:
+      JSON_POSTGRES_OUTLOOK_DISABLED_CREDENTIAL_SECRET_PREFIX,
     EnableProjectionWorker: enableProjectionWorker ? "true" : "false",
     ProjectionWorkerEventJson: projectionWorkerEventJson,
     HrxProjectionMappingObjectKey: hrxProjectionMappingObjectKey,
@@ -249,7 +232,7 @@ function exactChangeSetParameter(changeSet, key) {
   if (matches.length !== 1
       || matches[0].UsePreviousValue === true
       || typeof matches[0].ParameterValue !== "string") {
-    fail("W15 production change set provider parameters are ambiguous");
+    fail("W15 production change set safety parameters are ambiguous");
   }
   return matches[0].ParameterValue;
 }
@@ -339,13 +322,33 @@ export function validateJsonPostgresW15ProductionChangeSet(changeSet, {
     ) !== JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SHA256) {
     fail("W15 production change set must keep external providers disabled");
   }
+  if (exactChangeSetParameter(changeSet, "EnableOutlookConversationWorker")
+      !== "false"
+    || exactChangeSetParameter(
+      changeSet,
+      "ClientOutlookM365ConfigSecretName",
+    ) !== JSON_POSTGRES_OUTLOOK_DISABLED_CONFIG_SECRET_NAME
+    || exactChangeSetParameter(
+      changeSet,
+      "ClientOutlookCredentialSecretPrefix",
+    ) !== JSON_POSTGRES_OUTLOOK_DISABLED_CREDENTIAL_SECRET_PREFIX) {
+    fail("W15 production change set must keep Outlook resources disabled");
+  }
   const templateResources = new Set(Object.keys(template?.Resources ?? {}));
   const allowedAdds = new Set(JSON_POSTGRES_W15_ALLOWED_ADDED_RESOURCES);
   const allowedModifies =
     new Set(JSON_POSTGRES_W15_ALLOWED_MODIFIED_RESOURCES);
   const changes = normalizedChanges(changeSet);
   if (changes.length < 1) fail("W15 production change set is empty");
+  const disabledResourceIds = new Set([
+    "ExternalReadSecretsPolicy",
+    "MicrosoftEgressBrokerLambdaEndpoint",
+    ...JSON_POSTGRES_OUTLOOK_WORKER_RESOURCE_IDS,
+  ]);
   for (const change of changes) {
+    if (disabledResourceIds.has(change.logical_resource_id)) {
+      fail("W15 production change set contains a disabled provider resource change");
+    }
     if (!templateResources.has(change.logical_resource_id)
       || (change.action === "Add"
         && !allowedAdds.has(change.logical_resource_id))
@@ -368,6 +371,7 @@ export function validateJsonPostgresW15ProductionChangeSet(changeSet, {
     template_sha256: templateSha256,
     parameters_sha256: parametersSha256,
     external_read_providers_enabled: false,
+    outlook_resources_enabled: false,
     ...(templateUrl === null ? {} : { template_url: templateUrl }),
     changes,
   };
@@ -475,6 +479,11 @@ export function assertJsonPostgresProductionStack(stack, {
       JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SECRET_NAME,
     ExternalReadProviderPackSha256:
       JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SHA256,
+    EnableOutlookConversationWorker: "false",
+    ClientOutlookM365ConfigSecretName:
+      JSON_POSTGRES_OUTLOOK_DISABLED_CONFIG_SECRET_NAME,
+    ClientOutlookCredentialSecretPrefix:
+      JSON_POSTGRES_OUTLOOK_DISABLED_CREDENTIAL_SECRET_PREFIX,
     EnableProjectionWorker: projectionWorkerEnabled ? "true" : "false",
     ProjectionWorkerLagThresholdMs: "24",
     MonthlyCostCeilingKrw: "300000",

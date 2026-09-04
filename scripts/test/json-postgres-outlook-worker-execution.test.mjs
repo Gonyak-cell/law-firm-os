@@ -4,6 +4,8 @@ import test from "node:test";
 import {
   JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SECRET_NAME,
   JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SHA256,
+  JSON_POSTGRES_OUTLOOK_DISABLED_CONFIG_SECRET_NAME,
+  JSON_POSTGRES_OUTLOOK_DISABLED_CREDENTIAL_SECRET_PREFIX,
 } from "../lib/json-postgres-production-infrastructure.mjs";
 import {
   JSON_POSTGRES_PRODUCTION_STACK,
@@ -32,7 +34,7 @@ function change(action, logicalId, resourceType, replacement = "False") {
   };
 }
 
-test("production review admits only the exact dedicated Outlook worker additions", () => {
+test("W15 production review rejects Outlook resources while their parameters are disabled", () => {
   const modified = [
     ["ApiExecutionRole", "AWS::IAM::Role"],
     ["OutlookConversationWorkerInvokePermission", "AWS::Lambda::Permission"],
@@ -56,6 +58,15 @@ test("production review admits only the exact dedicated Outlook worker additions
         ParameterKey: "ExternalReadProviderPackSha256",
         ParameterValue: JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SHA256,
       },
+      { ParameterKey: "EnableOutlookConversationWorker", ParameterValue: "false" },
+      {
+        ParameterKey: "ClientOutlookM365ConfigSecretName",
+        ParameterValue: JSON_POSTGRES_OUTLOOK_DISABLED_CONFIG_SECRET_NAME,
+      },
+      {
+        ParameterKey: "ClientOutlookCredentialSecretPrefix",
+        ParameterValue: JSON_POSTGRES_OUTLOOK_DISABLED_CREDENTIAL_SECRET_PREFIX,
+      },
     ],
     Changes: [
       ...OUTLOOK_ADDITIONS.map(([logicalId, type]) =>
@@ -64,23 +75,9 @@ test("production review admits only the exact dedicated Outlook worker additions
         change("Modify", logicalId, type)),
     ],
   };
-  const reviewed = validateJsonPostgresW15ProductionChangeSet(changeSet, {
+  assert.throws(() => validateJsonPostgresW15ProductionChangeSet(changeSet, {
     template,
     parametersSha256: "a".repeat(64),
     templateSha256: "b".repeat(64),
-  });
-  assert.equal(reviewed.add_count, OUTLOOK_ADDITIONS.length);
-  assert.equal(reviewed.modify_count, modified.length);
-
-  const drift = structuredClone(changeSet);
-  drift.Changes.push(change(
-    "Add",
-    "OutlookConversationWorkerWildcardPolicy",
-    "AWS::IAM::Policy",
-  ));
-  assert.throws(() => validateJsonPostgresW15ProductionChangeSet(drift, {
-    template,
-    parametersSha256: "a".repeat(64),
-    templateSha256: "b".repeat(64),
-  }), /unapproved resource change/u);
+  }), /disabled provider resource change/u);
 });

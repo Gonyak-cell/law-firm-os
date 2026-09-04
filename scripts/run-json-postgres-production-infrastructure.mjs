@@ -29,6 +29,8 @@ import {
 import {
   JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SECRET_NAME,
   JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SHA256,
+  JSON_POSTGRES_OUTLOOK_DISABLED_CONFIG_SECRET_NAME,
+  JSON_POSTGRES_OUTLOOK_DISABLED_CREDENTIAL_SECRET_PREFIX,
   JSON_POSTGRES_PRODUCTION_ENI_ACTIONS,
   buildJsonPostgresProductionArtifactStoreWindowsHandoffBaselineTemplate,
   buildJsonPostgresProductionArtifactStoreWindowsHandoffV2Template,
@@ -1105,11 +1107,6 @@ const W15_WORKER_TOGGLE_CHANGE_IDS = new Set([
   "ApiExecutionRole",
   "ApiFunction",
   "HttpApiIntegration",
-  "OutlookConversationWorkerFunction",
-  "OutlookConversationWorkerInvokePermission",
-  "OutlookConversationWorkerSchedule",
-  "PasswordResetWorkerInvokePermission",
-  "PasswordResetWorkerSchedule",
   "ProjectionWorkerSchedule",
   "ProjectionWorkerInvokePermission",
   "ProjectionWorkerDeadLetterQueuePolicy",
@@ -1535,6 +1532,11 @@ if (operation === "preflight"
       JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SECRET_NAME,
     ExternalReadProviderPackSha256:
       JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SHA256,
+    EnableOutlookConversationWorker: "false",
+    ClientOutlookM365ConfigSecretName:
+      JSON_POSTGRES_OUTLOOK_DISABLED_CONFIG_SECRET_NAME,
+    ClientOutlookCredentialSecretPrefix:
+      JSON_POSTGRES_OUTLOOK_DISABLED_CREDENTIAL_SECRET_PREFIX,
     EnableProjectionWorker: "false",
     ProjectionWorkerEventJson: "{}",
     HrxProjectionMappingObjectKey:
@@ -2059,6 +2061,16 @@ if (operation === "preflight"
   }
   const parameters = {
     ...current,
+    EnableExternalReadProviders: "false",
+    ExternalReadProviderPackSecretName:
+      JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SECRET_NAME,
+    ExternalReadProviderPackSha256:
+      JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SHA256,
+    EnableOutlookConversationWorker: "false",
+    ClientOutlookM365ConfigSecretName:
+      JSON_POSTGRES_OUTLOOK_DISABLED_CONFIG_SECRET_NAME,
+    ClientOutlookCredentialSecretPrefix:
+      JSON_POSTGRES_OUTLOOK_DISABLED_CREDENTIAL_SECRET_PREFIX,
     EnableProjectionWorker: "true",
     ProjectionWorkerEventJson: serializedWorkerEventLocator,
     HrxProjectionMappingObjectKey: mappingLocator.key,
@@ -2195,6 +2207,16 @@ if (operation === "preflight"
   validateEniAuthorityRemoved({ includeProjection: true });
   const parameters = {
     ...current,
+    EnableExternalReadProviders: "false",
+    ExternalReadProviderPackSecretName:
+      JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SECRET_NAME,
+    ExternalReadProviderPackSha256:
+      JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SHA256,
+    EnableOutlookConversationWorker: "false",
+    ClientOutlookM365ConfigSecretName:
+      JSON_POSTGRES_OUTLOOK_DISABLED_CONFIG_SECRET_NAME,
+    ClientOutlookCredentialSecretPrefix:
+      JSON_POSTGRES_OUTLOOK_DISABLED_CREDENTIAL_SECRET_PREFIX,
     EnableProjectionWorker: "false",
     ProjectionWorkerEventJson: "{}",
     HrxProjectionMappingObjectKey:

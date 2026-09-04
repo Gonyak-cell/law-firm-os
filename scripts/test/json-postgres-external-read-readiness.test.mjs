@@ -4,6 +4,8 @@ import test from "node:test";
 import {
   JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SECRET_NAME,
   JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SHA256,
+  JSON_POSTGRES_OUTLOOK_DISABLED_CONFIG_SECRET_NAME,
+  JSON_POSTGRES_OUTLOOK_DISABLED_CREDENTIAL_SECRET_PREFIX,
   buildJsonPostgresProductionTemplate,
 } from "../lib/json-postgres-production-infrastructure.mjs";
 import {
@@ -33,6 +35,15 @@ function stack(overrides = {}) {
         ParameterKey: "ExternalReadProviderPackSha256",
         ParameterValue: JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SHA256,
       },
+      { ParameterKey: "EnableOutlookConversationWorker", ParameterValue: "false" },
+      {
+        ParameterKey: "ClientOutlookM365ConfigSecretName",
+        ParameterValue: JSON_POSTGRES_OUTLOOK_DISABLED_CONFIG_SECRET_NAME,
+      },
+      {
+        ParameterKey: "ClientOutlookCredentialSecretPrefix",
+        ParameterValue: JSON_POSTGRES_OUTLOOK_DISABLED_CREDENTIAL_SECRET_PREFIX,
+      },
     ],
     Outputs: [{
       OutputKey: "ExternalReadProvidersEnabled",
@@ -53,6 +64,7 @@ test("readiness inspection passes only the exact deployed disabled candidate", (
   assert.equal(result.state, "READY_DISABLED");
   assert.equal(result.template_change_count, 0);
   assert.equal(result.provider_enabled, false);
+  assert.equal(result.outlook_resources_enabled, false);
   assert.equal(result.aws_write_count, 0);
   assert.equal(result.secret_value_read_count, 0);
   assert.equal(result.production_ready_claim, false);
@@ -125,6 +137,32 @@ test("readiness inspection rejects enabled or ambiguously disabled providers", (
       ...source,
     }),
     (error) => error.code === "EXTERNAL_READ_DISABLED_BINDING_DRIFT",
+  );
+  const outlookEnabled = stack();
+  outlookEnabled.Parameters.find((row) =>
+    row.ParameterKey === "EnableOutlookConversationWorker").ParameterValue =
+      "true";
+  assert.throws(
+    () => inspectExternalReadReadiness({
+      liveTemplate: candidate,
+      candidateTemplate: candidate,
+      stack: outlookEnabled,
+      ...source,
+    }),
+    (error) => error.code === "OUTLOOK_RESOURCE_ENABLED",
+  );
+  const outlookAmbiguous = stack();
+  outlookAmbiguous.Parameters.find((row) =>
+    row.ParameterKey === "ClientOutlookM365ConfigSecretName").ParameterValue =
+      "/lawos/production/outlook/config";
+  assert.throws(
+    () => inspectExternalReadReadiness({
+      liveTemplate: candidate,
+      candidateTemplate: candidate,
+      stack: outlookAmbiguous,
+      ...source,
+    }),
+    (error) => error.code === "OUTLOOK_DISABLED_BINDING_DRIFT",
   );
   const duplicate = stack();
   duplicate.Outputs.push(duplicate.Outputs[0]);

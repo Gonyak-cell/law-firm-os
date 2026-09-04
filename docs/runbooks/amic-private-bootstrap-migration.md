@@ -68,7 +68,8 @@ It compares resources, parameters, conditions, rules, outputs, and metadata
 against the exact local candidate and writes a 0600 receipt.
 
 **Expected result:** `READY_DISABLED` with `PASS`, an exact candidate-template
-match, and both the provider parameter and output explicitly `false`.
+match, the provider parameter and output explicitly `false`, and the Outlook
+worker parameter plus both Outlook secret placeholders explicitly disabled.
 
 **If it returns `UPGRADE_REVIEW_REQUIRED`:** exit code 2 is an expected closed
 state. Preserve the receipt and obtain separate approval for an exact-purpose
@@ -76,16 +77,18 @@ CloudFormation change-set review. Do not treat absent provider parameters as
 equivalent to `false`, and do not continue to target discovery.
 
 The existing W15 bootstrap change-set path is the only prepared upgrade path
-for this state. It sends `EnableExternalReadProviders=false` and both disabled
-provider-pack placeholders explicitly, rejects missing values,
-`UsePreviousValue`, or any mismatch in the described change set, and requires
-the deployed parameter set and `ExternalReadProvidersEnabled` output to read
-back as `false`. Creating or executing that change set is an AWS write and
-still requires separate operator approval; this read-only inspection does not
-authorize it.
+for this state. It sends `EnableExternalReadProviders=false`, both disabled
+provider-pack placeholders, `EnableOutlookConversationWorker=false`, and both
+disabled Outlook secret placeholders explicitly. It rejects missing values,
+`UsePreviousValue`, any mismatch, and every provider or Outlook resource change
+while those controls are disabled. Post-execution verification requires the
+same parameters and `ExternalReadProvidersEnabled=false`. Creating or executing
+that change set is an AWS write and still requires separate operator approval;
+this read-only inspection does not authorize it.
 
-**If it reports an enabled provider or ambiguous disabled binding:** stop and
-escalate. Do not run the migration or weaken the inspection.
+**If it reports an enabled provider, enabled Outlook worker, or ambiguous
+disabled binding:** stop and escalate. Do not run the migration or weaken the
+inspection.
 
 ### Discover the exact production target
 

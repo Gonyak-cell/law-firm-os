@@ -3,6 +3,8 @@ import test from "node:test";
 import {
   JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SECRET_NAME,
   JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SHA256,
+  JSON_POSTGRES_OUTLOOK_DISABLED_CONFIG_SECRET_NAME,
+  JSON_POSTGRES_OUTLOOK_DISABLED_CREDENTIAL_SECRET_PREFIX,
 } from "../lib/json-postgres-production-infrastructure.mjs";
 import {
   JSON_POSTGRES_PRODUCTION_ACCOUNT,
@@ -54,6 +56,15 @@ function disabledExternalReadParameters() {
     {
       ParameterKey: "ExternalReadProviderPackSha256",
       ParameterValue: JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SHA256,
+    },
+    { ParameterKey: "EnableOutlookConversationWorker", ParameterValue: "false" },
+    {
+      ParameterKey: "ClientOutlookM365ConfigSecretName",
+      ParameterValue: JSON_POSTGRES_OUTLOOK_DISABLED_CONFIG_SECRET_NAME,
+    },
+    {
+      ParameterKey: "ClientOutlookCredentialSecretPrefix",
+      ParameterValue: JSON_POSTGRES_OUTLOOK_DISABLED_CREDENTIAL_SECRET_PREFIX,
     },
   ];
 }
@@ -116,6 +127,15 @@ test("production stack parameters preserve exact packet, tenant, traffic and ENI
   assert.equal(
     parameters.ExternalReadProviderPackSha256,
     JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SHA256,
+  );
+  assert.equal(parameters.EnableOutlookConversationWorker, "false");
+  assert.equal(
+    parameters.ClientOutlookM365ConfigSecretName,
+    JSON_POSTGRES_OUTLOOK_DISABLED_CONFIG_SECRET_NAME,
+  );
+  assert.equal(
+    parameters.ClientOutlookCredentialSecretPrefix,
+    JSON_POSTGRES_OUTLOOK_DISABLED_CREDENTIAL_SECRET_PREFIX,
   );
   assert.equal(parameters.EnableProjectionWorker, "false");
   assert.equal(parameters.ProjectionWorkerEventJson, "{}");
@@ -266,7 +286,7 @@ test("W15 update review permits only bounded projection additions and exact supp
       ProjectionWorkerSchedule: {},
       ProjectionWorkerInvokePermission: {},
       ProjectionWorkerLagAlarm: {},
-      ExternalReadSecretsPolicy: {},
+      PasswordResetWorkerSchedule: {},
       Database: {},
     },
   };
@@ -285,7 +305,6 @@ test("W15 update review permits only bounded projection additions and exact supp
         },
       },
       ...[
-        ["ExternalReadSecretsPolicy", "AWS::IAM::Policy", "False"],
         ["ProjectionWorkerExecutionRole", "AWS::IAM::Role", "False"],
         ["ProjectionWorkerDeadLetterAlarm", "AWS::CloudWatch::Alarm", "False"],
         ["ProjectionWorkerDeadLetterQueue", "AWS::SQS::Queue", "False"],
@@ -328,9 +347,10 @@ test("W15 update review permits only bounded projection additions and exact supp
     parametersSha256: "a".repeat(64),
     templateSha256: "b".repeat(64),
   });
-  assert.equal(reviewed.add_count, 12);
+  assert.equal(reviewed.add_count, 11);
   assert.equal(reviewed.modify_count, 1);
   assert.equal(reviewed.external_read_providers_enabled, false);
+  assert.equal(reviewed.outlook_resources_enabled, false);
   const database = structuredClone(changeSet);
   database.Changes.push({
     ResourceChange: {
@@ -342,6 +362,23 @@ test("W15 update review permits only bounded projection additions and exact supp
   });
   assert.throws(
     () => validateJsonPostgresW15ProductionChangeSet(database, {
+      template,
+      parametersSha256: "a".repeat(64),
+      templateSha256: "b".repeat(64),
+    }),
+    /unapproved resource change/u,
+  );
+  const passwordSchedule = structuredClone(changeSet);
+  passwordSchedule.Changes.push({
+    ResourceChange: {
+      Action: "Modify",
+      LogicalResourceId: "PasswordResetWorkerSchedule",
+      ResourceType: "AWS::Events::Rule",
+      Replacement: "False",
+    },
+  });
+  assert.throws(
+    () => validateJsonPostgresW15ProductionChangeSet(passwordSchedule, {
       template,
       parametersSha256: "a".repeat(64),
       templateSha256: "b".repeat(64),
@@ -368,7 +405,7 @@ test("W15 update review permits only bounded projection additions and exact supp
       parametersSha256: "a".repeat(64),
       templateSha256: "b".repeat(64),
     }),
-    /provider parameters are ambiguous/u,
+    /safety parameters are ambiguous/u,
   );
   const inherited = structuredClone(changeSet);
   const inheritedFlag = inherited.Parameters.find((entry) =>
@@ -381,7 +418,19 @@ test("W15 update review permits only bounded projection additions and exact supp
       parametersSha256: "a".repeat(64),
       templateSha256: "b".repeat(64),
     }),
-    /provider parameters are ambiguous/u,
+    /safety parameters are ambiguous/u,
+  );
+  const outlookEnabled = structuredClone(changeSet);
+  outlookEnabled.Parameters.find((entry) =>
+    entry.ParameterKey === "EnableOutlookConversationWorker").ParameterValue =
+      "true";
+  assert.throws(
+    () => validateJsonPostgresW15ProductionChangeSet(outlookEnabled, {
+      template,
+      parametersSha256: "a".repeat(64),
+      templateSha256: "b".repeat(64),
+    }),
+    /must keep Outlook resources disabled/u,
   );
   const replacement = structuredClone(changeSet);
   replacement.Changes[1].ResourceChange.Replacement = "True";
@@ -611,6 +660,11 @@ test("artifact bucket and production stack observations are exact and fail close
         JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SECRET_NAME,
       ExternalReadProviderPackSha256:
         JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SHA256,
+      EnableOutlookConversationWorker: "false",
+      ClientOutlookM365ConfigSecretName:
+        JSON_POSTGRES_OUTLOOK_DISABLED_CONFIG_SECRET_NAME,
+      ClientOutlookCredentialSecretPrefix:
+        JSON_POSTGRES_OUTLOOK_DISABLED_CREDENTIAL_SECRET_PREFIX,
       EnableProjectionWorker: "false",
       ProjectionWorkerEventJson: "{}",
       HrxProjectionMappingObjectKey:

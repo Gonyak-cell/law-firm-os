@@ -7,6 +7,8 @@ import { fileURLToPath } from "node:url";
 import {
   JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SECRET_NAME,
   JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SHA256,
+  JSON_POSTGRES_OUTLOOK_DISABLED_CONFIG_SECRET_NAME,
+  JSON_POSTGRES_OUTLOOK_DISABLED_CREDENTIAL_SECRET_PREFIX,
   buildJsonPostgresProductionTemplate,
   validateJsonPostgresProductionTemplate,
 } from "./lib/json-postgres-production-infrastructure.mjs";
@@ -126,6 +128,33 @@ export function inspectExternalReadReadiness({
       "disabled provider parameters or output drifted",
     );
   }
+  const outlookParameter = parameters.EnableOutlookConversationWorker;
+  const outlookConfig = parameters.ClientOutlookM365ConfigSecretName;
+  const outlookCredentialPrefix =
+    parameters.ClientOutlookCredentialSecretPrefix;
+  if (outlookParameter === "true") {
+    fail(
+      "OUTLOOK_RESOURCE_ENABLED",
+      "Outlook resources must remain disabled for this upgrade",
+    );
+  }
+  const outlookParameterPresent = outlookParameter != null;
+  const anyOutlookParameterPresent = outlookParameterPresent
+    || outlookConfig != null || outlookCredentialPrefix != null;
+  const allOutlookParametersPresent = outlookParameterPresent
+    && outlookConfig != null && outlookCredentialPrefix != null;
+  if ((anyOutlookParameterPresent && !allOutlookParametersPresent)
+      || (outlookParameterPresent && (
+        outlookParameter !== "false"
+        || outlookConfig !== JSON_POSTGRES_OUTLOOK_DISABLED_CONFIG_SECRET_NAME
+        || outlookCredentialPrefix
+          !== JSON_POSTGRES_OUTLOOK_DISABLED_CREDENTIAL_SECRET_PREFIX
+      ))) {
+    fail(
+      "OUTLOOK_DISABLED_BINDING_DRIFT",
+      "disabled Outlook parameters drifted",
+    );
+  }
   const sections = Object.fromEntries([
     "Resources",
     "Parameters",
@@ -150,7 +179,8 @@ export function inspectExternalReadReadiness({
     && changeCount === 0 && !metadataChanged;
   const readyDisabled = exactCandidate
     && providerParameter === "false"
-    && providerOutput === "false";
+    && providerOutput === "false"
+    && outlookParameter === "false";
   return Object.freeze({
     schema_version: SCHEMA,
     verdict: readyDisabled ? "PASS" : "BLOCKED",
@@ -173,6 +203,8 @@ export function inspectExternalReadReadiness({
     provider_parameter_present: providerParameterPresent,
     provider_output_present: providerOutputPresent,
     provider_enabled: false,
+    outlook_parameter_present: outlookParameterPresent,
+    outlook_resources_enabled: false,
     exact_candidate_template: exactCandidate,
     aws_read_count: awsReadCount,
     aws_write_count: 0,
@@ -283,6 +315,7 @@ export function runExternalReadReadinessInspection(argv = process.argv.slice(2))
     template_change_count: receipt.template_change_count,
     sections: receipt.sections,
     provider_enabled: false,
+    outlook_resources_enabled: false,
     aws_read_count: receipt.aws_read_count,
     aws_write_count: 0,
     secret_value_read_count: 0,
