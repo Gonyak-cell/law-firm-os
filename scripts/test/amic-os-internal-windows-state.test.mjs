@@ -312,7 +312,7 @@ test("Windows state receipt validation rejects boundary, lineage, host, and nati
 
 test("Windows state collector is read-only apart from one create-new evidence receipt", async (t) => {
   const source = await readFile(COLLECTOR, "utf8");
-  assert.doesNotMatch(source, /\$(?:Host|HOME|PID|PSVersionTable|IsWindows|IsLinux|IsMacOS)\s*=/iu,
+  assert.doesNotMatch(source, /\$(?:Host|HOME|PID|Matches|PSVersionTable|IsWindows|IsLinux|IsMacOS)\s*=/iu,
     "collector locals must not overwrite PowerShell automatic variables");
   assert.match(source, /#requires -Version 7\.2/u);
   assert.match(source, /JWS-GALAXYBOOK/u);
@@ -367,7 +367,7 @@ test("Windows state collector is read-only apart from one create-new evidence re
     assert.equal(validation.valid, true);
     assert.equal(validation.passed, false);
   } else {
-    assert.notEqual(value.host, null, "Windows host collection must actually run, even on a non-canary CI host");
+    assert.notEqual(value.host, null, `Windows host collection must actually run: ${result.stderr}`);
     assert.equal(value.host.windows, true);
     assert.equal(value.safe_error_codes.includes("WINDOWS_STATE_COLLECTION_FAILED"), false);
   }
@@ -375,6 +375,33 @@ test("Windows state collector is read-only apart from one create-new evidence re
   const overwrite = spawnSync("pwsh", args, { cwd: ROOT, encoding: "utf8" });
   assert.notEqual(overwrite.status, 0);
   assert.equal(sha256(await readFile(output)), before);
+});
+
+test("collector task predicate handles non-executable actions without hiding product references", (t) => {
+  const result = spawnSync("pwsh", ["-NoLogo", "-NoProfile", "-Command", `
+    $ErrorActionPreference = 'Stop'
+    Set-StrictMode -Version Latest
+    $ast = [System.Management.Automation.Language.Parser]::ParseFile($env:AMIC_COLLECTOR_TEST_PATH, [ref]$null, [ref]$null)
+    $pathFunction = $ast.Find({param($node) $node -is [System.Management.Automation.Language.FunctionDefinitionAst] -and $node.Name -eq 'Test-ProductPathReference'}, $true)
+    . ([scriptblock]::Create($pathFunction.Extent.Text))
+    $taskAssignment = $ast.Find({param($node) $node -is [System.Management.Automation.Language.AssignmentStatementAst] -and $node.Left -is [System.Management.Automation.Language.VariableExpressionAst] -and $node.Left.VariablePath.UserPath -eq 'productTasks'}, $true)
+    $InstallRoot = 'C:\\Program Files\\matter'
+    $ExecutablePath = "$InstallRoot\\matter.exe"
+    function Get-ScheduledTask {
+      [pscustomobject]@{ Actions = @([pscustomobject]@{ ClassId = 'unrelated-com-handler' }) }
+      [pscustomobject]@{ Actions = @([pscustomobject]@{ Execute = 'C:\\Windows\\System32\\notepad.exe' }) }
+      [pscustomobject]@{ Actions = @([pscustomobject]@{ Execute = $ExecutablePath }) }
+      [pscustomobject]@{ Actions = @([pscustomobject]@{ Arguments = ('"' + $ExecutablePath + '"') }) }
+      [pscustomobject]@{ Actions = @() }
+    }
+    $observed = @(& ([scriptblock]::Create($taskAssignment.Right.Extent.Text)))
+    if ($observed.Count -ne 2) { throw 'Product task predicate count differs' }
+  `], { cwd: ROOT, encoding: "utf8", env: { ...process.env, AMIC_COLLECTOR_TEST_PATH: COLLECTOR } });
+  if (result.error?.code === "ENOENT") {
+    t.skip("PowerShell is unavailable on this test host");
+    return;
+  }
+  assert.equal(result.status, 0, result.stderr);
 });
 
 test("Windows zero-one-zero CLI emits only hashes and a bounded claim", async () => {
