@@ -154,7 +154,11 @@ function approvedExecution(packet) {
   });
 }
 
-async function fixture() {
+async function fixture({
+  accountOnlyDisposition = "quarantine",
+  accountOnlyTenantId = "tenant-synthetic",
+  linkedTenantId = "tenant-synthetic",
+} = {}) {
   const root = await mkdtemp(join(tmpdir(), "amic-bootstrap-migration-"));
   await mkdir(join(root, "source"), { recursive: true });
   await mkdir(join(root, "photos"), { recursive: true });
@@ -166,8 +170,12 @@ async function fixture() {
       email: "linked@example.test",
       status: "active",
       display_name: "Linked Person",
+      local_dev: {
+        synthetic_only: true,
+        synthetic_token: "local-dev-only:linked@example.test",
+      },
       tenant_memberships: [{
-        tenant_id: "tenant-synthetic",
+        tenant_id: linkedTenantId,
         status: "active",
         role_profile_id: "staff",
         role_ids: ["staff"],
@@ -180,8 +188,12 @@ async function fixture() {
       email: "pending@example.test",
       status: "active",
       display_name: "Pending Person",
+      local_dev: {
+        synthetic_only: true,
+        synthetic_token: "local-dev-only:pending@example.test",
+      },
       tenant_memberships: [{
-        tenant_id: "tenant-synthetic",
+        tenant_id: accountOnlyTenantId,
         status: "active",
         role_ids: ["staff"],
         group_ids: ["legal"],
@@ -239,6 +251,9 @@ async function fixture() {
     if (assignment.source_presence.roster) {
       assignment.disposition = "assign";
       assignment.legal_entity_id = "company-synthetic";
+    } else if (accountOnlyDisposition === "assign") {
+      assignment.disposition = "assign";
+      assignment.legal_entity_id = "company-synthetic";
     } else {
       assignment.disposition = "quarantine";
       assignment.quarantine_reason_code = "ACCOUNT_ONLY_REVIEW";
@@ -255,6 +270,8 @@ test("private bootstrap compiler creates a scoped real-data corpus without photo
   });
   assert.equal(compiled.corpus.data_scope, "approved-real-manifest");
   assert.equal(compiled.corpus.accounts.length, 1);
+  assert.equal("local_dev" in compiled.corpus.accounts[0], false);
+  assert.doesNotMatch(JSON.stringify(compiled.corpus), /local-dev-only/u);
   const hrx = compiled.corpus.domains.find((domain) =>
     domain.domain_id === "hrx");
   assert.equal(hrx.records.length, 3);
@@ -299,6 +316,43 @@ test("private bootstrap dry-run emits only counts and digests and performs no wr
   assert.doesNotMatch(
     JSON.stringify(receipt),
     /Linked Person|linked@example\.test|employee-linked/u,
+  );
+});
+
+test("approved account-only tenant drift is stripped into a disabled target membership", async () => {
+  const { sourceOptions, mapping } = await fixture({
+    accountOnlyDisposition: "assign",
+    accountOnlyTenantId: "tenant-legacy",
+  });
+  const compiled = await compileAmicPrivateBootstrapMigration({
+    ...sourceOptions,
+    mapping,
+  });
+  const account = compiled.corpus.accounts.find((row) =>
+    row.profile?.roster_link_status === "pending-roster-link");
+  assert.equal(compiled.corpus.accounts.length, 2);
+  assert.equal(account.membership.tenant_id, "tenant-synthetic");
+  assert.equal(account.membership.status, "disabled");
+  assert.deepEqual(account.membership.role_ids, []);
+  assert.deepEqual(account.membership.group_ids, []);
+  assert.deepEqual(account.membership.scopes, []);
+  assert.deepEqual(account.membership.hrx_scopes, []);
+  assert.equal(account.role_profile_id, null);
+  assert.deepEqual(account.role_ids, []);
+  assert.deepEqual(account.group_ids, []);
+  assert.deepEqual(account.scopes, []);
+  assert.deepEqual(account.hrx_scopes, []);
+  assert.equal(account.profile.login_allowed, false);
+  assert.equal("local_dev" in account, false);
+  assert.equal(JSON.stringify(account).includes("tenant-legacy"), false);
+
+  const drifted = await fixture({ linkedTenantId: "tenant-legacy" });
+  await assert.rejects(
+    compileAmicPrivateBootstrapMigration({
+      ...drifted.sourceOptions,
+      mapping: drifted.mapping,
+    }),
+    /registration membership is outside the inventory tenant/u,
   );
 });
 

@@ -138,10 +138,15 @@ function disabledMembership(tenantId, sourceRef) {
 
 function targetMembership(user, tenantId, disabled) {
   const source = directMembership(user, tenantId);
+  if (disabled) {
+    const sourceRef = source?.tenant_id == null || source.tenant_id === tenantId
+      ? source?.source_ref ?? user.source_ref
+      : user.source_ref;
+    return disabledMembership(tenantId, sourceRef);
+  }
   if (!source || (source.tenant_id != null && source.tenant_id !== tenantId)) {
     throw new TypeError("registration membership is outside the inventory tenant");
   }
-  if (disabled) return disabledMembership(tenantId, source.source_ref ?? user.source_ref);
   return Object.freeze({
     tenant_id: tenantId,
     status: source.status === "disabled" ? "disabled" : "active",
@@ -293,12 +298,21 @@ export async function compileAmicPrivateBootstrapMigration({
     );
     const accountOnly = !member;
     const membership = targetMembership(user, tenantId, accountOnly);
+    const serverUser = structuredClone(user);
+    Reflect.deleteProperty(serverUser, "local_dev");
     accounts.push(Object.freeze({
-      ...structuredClone(user),
+      ...serverUser,
       tenant_id: tenantId,
       status: accountOnly ? "disabled" : user.status,
       account_status: accountOnly ? "disabled" : user.account_status,
       credential_status: accountOnly ? "disabled" : user.credential_status,
+      ...(accountOnly ? {
+        role_profile_id: null,
+        role_ids: Object.freeze([]),
+        group_ids: Object.freeze([]),
+        scopes: Object.freeze([]),
+        hrx_scopes: Object.freeze([]),
+      } : {}),
       tenant_memberships: Object.freeze([membership]),
       membership,
       profile: accountProfile(user, member, legalEntityId, accountOnly),
