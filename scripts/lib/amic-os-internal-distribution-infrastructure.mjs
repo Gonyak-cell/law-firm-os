@@ -408,7 +408,9 @@ export function buildAmicInternalDistributionTemplate() {
         Type: "AWS::CloudFront::PublicKey",
         Properties: {
           PublicKeyConfig: {
-            CallerReference: { "Fn::Sub": "amic-os-internal-unsigned-${AWS::StackId}" },
+            CallerReference: {
+              "Fn::Select": [2, { "Fn::Split": ["/", { Ref: "AWS::StackId" }] }],
+            },
             Comment: "Public key for short-lived authenticated internal download URLs",
             EncodedKey: { Ref: "CloudFrontPublicKeyPem" },
             Name: { "Fn::Sub": "amic-os-internal-unsigned-${AWS::AccountId}" },

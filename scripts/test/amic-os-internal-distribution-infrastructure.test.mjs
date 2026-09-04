@@ -86,6 +86,22 @@ test("internal-unsigned distribution stack is private, versioned, logged, OAC-on
   );
 });
 
+test("CloudFront public key uses the bounded stack UUID as its stable caller reference", () => {
+  const template = buildAmicInternalDistributionTemplate();
+  const caller = template.Resources.ViewerPublicKey.Properties.PublicKeyConfig.CallerReference;
+  assert.deepEqual(caller, {
+    "Fn::Select": [2, { "Fn::Split": ["/", { Ref: "AWS::StackId" }] }],
+  });
+  const stackArn = "arn:aws:cloudformation:ap-northeast-2:770880870480:stack/amic-os-internal-unsigned-distribution/11111111-2222-4333-8444-555555555555";
+  const uuid = stackArn.split(caller["Fn::Select"][1]["Fn::Split"][0])[caller["Fn::Select"][0]];
+  assert.equal(uuid, "11111111-2222-4333-8444-555555555555");
+  assert.equal(uuid.length, 36);
+  template.Resources.ViewerPublicKey.Properties.PublicKeyConfig.CallerReference = {
+    "Fn::Sub": "amic-os-internal-unsigned-${AWS::StackId}",
+  };
+  assert.throws(() => validateAmicInternalDistributionTemplate(template), /template drifted/u);
+});
+
 test("CloudFront prefix-scoped KMS decrypt uses object encryption context rather than a bucket key", () => {
   const template = buildAmicInternalDistributionTemplate();
   const resources = template.Resources;
