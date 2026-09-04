@@ -354,6 +354,40 @@ function exactChangeSetParameter(changeSet, key) {
   return matches[0].ParameterValue;
 }
 
+function approvedW15ApiDependentModification(changeSet, change) {
+  const expected = {
+    PasswordResetWorkerSchedule: {
+      resource_type: "AWS::Events::Rule",
+      replacement: "False",
+      property: "Targets",
+      recreation: "Never",
+      causing_entity: "ApiFunction.Arn",
+    },
+    PasswordResetWorkerInvokePermission: {
+      resource_type: "AWS::Lambda::Permission",
+      replacement: "Conditional",
+      property: "SourceArn",
+      recreation: "Always",
+      causing_entity: "PasswordResetWorkerSchedule.Arn",
+    },
+  }[change.logical_resource_id];
+  if (!expected) return false;
+  const matches = (changeSet.Changes ?? []).filter((entry) =>
+    entry?.ResourceChange?.LogicalResourceId === change.logical_resource_id);
+  const detail = matches[0]?.ResourceChange?.Details;
+  return matches.length === 1
+    && change.action === "Modify"
+    && change.resource_type === expected.resource_type
+    && change.replacement === expected.replacement
+    && detail?.length === 1
+    && detail[0]?.ChangeSource === "ResourceAttribute"
+    && detail[0]?.Evaluation === "Dynamic"
+    && detail[0]?.CausingEntity === expected.causing_entity
+    && detail[0]?.Target?.Attribute === "Properties"
+    && detail[0]?.Target?.Name === expected.property
+    && detail[0]?.Target?.RequiresRecreation === expected.recreation;
+}
+
 export function validateJsonPostgresProductionChangeSet(changeSet, {
   stackName,
   changeSetType,
@@ -473,6 +507,8 @@ export function validateJsonPostgresW15ProductionChangeSet(changeSet, {
     ...JSON_POSTGRES_OUTLOOK_WORKER_RESOURCE_IDS,
   ]);
   for (const change of changes) {
+    const approvedApiDependent =
+      approvedW15ApiDependentModification(changeSet, change);
     if (disabledResourceIds.has(change.logical_resource_id)) {
       fail("W15 production change set contains a disabled provider resource change");
     }
@@ -480,7 +516,8 @@ export function validateJsonPostgresW15ProductionChangeSet(changeSet, {
       || (change.action === "Add"
         && !allowedAdds.has(change.logical_resource_id))
       || (change.action === "Modify"
-        && !allowedModifies.has(change.logical_resource_id))
+        && !allowedModifies.has(change.logical_resource_id)
+        && !approvedApiDependent)
       || !["Add", "Modify"].includes(change.action)
       || change.replacement === "True"
       || (change.replacement === "Conditional"
