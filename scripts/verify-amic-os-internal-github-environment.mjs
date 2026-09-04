@@ -1,5 +1,8 @@
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import {
+  AMIC_INTERNAL_DISTRIBUTION_OWNER_ID,
+} from "./lib/amic-os-internal-distribution-infrastructure.mjs";
 
 const API_URL = "https://api.github.com";
 const REPOSITORY = "Gonyak-cell/law-firm-os";
@@ -24,19 +27,24 @@ export function validateAmicInternalGitHubEnvironment(value, {
     || value?.name !== environmentName
     || reviewerRules.length !== 1
     || !Array.isArray(reviewers)
-    || reviewers.length < 1
-    || reviewerRules[0].prevent_self_review !== true
+    || reviewers.length !== 1
+    || reviewers[0]?.type !== "User"
+    || reviewers[0]?.reviewer?.type !== "User"
+    || reviewers[0]?.reviewer?.id !== Number(AMIC_INTERNAL_DISTRIBUTION_OWNER_ID)
+    || reviewerRules[0].prevent_self_review !== false
     || value?.can_admins_bypass !== false
     || value?.deployment_branch_policy?.protected_branches !== true
     || value?.deployment_branch_policy?.custom_branch_policies !== false) {
     fail("internal unsigned GitHub environment protection is incomplete");
   }
   return Object.freeze({
-    schema_version: "law-firm-os.amic-internal-github-environment.v1",
+    schema_version: "law-firm-os.amic-internal-github-environment.v2",
     verdict: "PASS",
     environment_name: environmentName,
+    approval_mode: "single-owner",
+    owner_reviewer_verified: true,
     required_reviewer_count: reviewers.length,
-    prevent_self_review: true,
+    prevent_self_review: false,
     admins_can_bypass: false,
     protected_branches_only: true,
     github_api_read_count: 1,
