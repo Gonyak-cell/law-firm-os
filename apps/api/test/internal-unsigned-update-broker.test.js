@@ -415,7 +415,7 @@ test("channel or object tampering fails closed without returning a signed URL", 
     assert.equal(result.status, 503);
     assert.equal(result.body.outcome, "blocked");
     assert.equal(result.body.signed_url_returned, false);
-    assert.equal(httpHostnames(result.body).includes(DOMAIN), false);
+    assert.deepEqual(httpHostnames(result.body), []);
   }
 });
 

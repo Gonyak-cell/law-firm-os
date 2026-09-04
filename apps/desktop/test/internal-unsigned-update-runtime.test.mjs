@@ -352,7 +352,7 @@ test("runtime bootstraps a non-discoverable baseline from its signed successor p
   assert.equal(available.available_version, "0.1.33");
   assert.equal(available.signed_url_returned, false);
   assert.equal(available.local_path_returned, false);
-  assert.equal(httpHostnames(available).includes(DOMAIN), false);
+  assert.deepEqual(httpHostnames(available), []);
   assert.equal(authorizationCalls, 1);
   assert.equal(
     stateStore.snapshot().current.metadata_base64,
