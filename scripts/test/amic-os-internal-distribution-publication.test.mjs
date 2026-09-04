@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { createHash, generateKeyPairSync, sign as signBytes } from "node:crypto";
-import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
@@ -48,6 +48,14 @@ const NOW = Date.parse("2026-09-03T11:00:00.000Z");
 const ACCOUNT_ID = "770880870480";
 const REGION = "ap-northeast-2";
 const KMS_KEY_ARN = `arn:aws:kms:${REGION}:${ACCOUNT_ID}:key/11111111-1111-4111-8111-111111111111`;
+
+test("generated publication records use an exclusive flushed write on Windows too", async () => {
+  const source = await readFile(new URL("../lib/amic-os-internal-distribution-publication.mjs", import.meta.url), "utf8");
+  const materialize = source.slice(source.indexOf("async function materializeGeneratedRecord("),
+    source.indexOf("function validateProviderReadback("));
+  assert.match(materialize, /writeFile\(path, record\.body, \{ flag: "wx", mode: 0o600, flush: true \}\)/u);
+  assert.doesNotMatch(materialize, /open\(path, "r"\)|catch\s*[({]/u);
+});
 
 function sha256(bytes) {
   return createHash("sha256").update(bytes).digest("hex");

@@ -69,6 +69,13 @@ test("AMIC OS NSIS installer bundles and user-registers the Classic adapter with
   assert.match(nsis, /WriteRegDWORD HKCU .*"LoadBehavior" 3/u);
   assert.match(nsis, /DeleteRegKey HKCU "Software\\Microsoft\\Office\\Outlook\\Addins\\\$\{AMIC_OUTLOOK_PROGID\}"/u);
   assert.match(nsis, /RMDir \/r "\$LOCALAPPDATA\\AMIC OS\\OutlookAttachments"/u);
+  const protocolCleanup = nsis.match(/!macro amicUnregisterOwnedProtocolForCurrentUser\n([\s\S]*?)!macroend/u)?.[1];
+  assert.ok(protocolCleanup, "uninstall must remove its own protocol handler");
+  assert.match(protocolCleanup, /ReadRegStr \$0 HKCU "Software\\Classes\\matter\\shell\\open\\command" ""/u);
+  assert.match(protocolCleanup, /\$\{If\} \$0 == '"\$INSTDIR\\matter\.exe" "%1"'\s+DeleteRegKey HKCU "Software\\Classes\\matter"\s+\$\{EndIf\}/u);
+  assert.equal(nsis.match(/!insertmacro amicUnregisterOwnedProtocolForCurrentUser/gu)?.length, 2);
+  assert.equal(nsis.match(/DeleteRegKey HKCU "Software\\Classes\\matter"/gu)?.length, 1,
+    "foreign protocol targets must not be removed by an unguarded path");
   assert.doesNotMatch(nsis, /Invoke-WebRequest|curl|vault_documents|immutable_versions|audit_records/iu);
 
   assert.match(buildScript, /"dotnet",\s*\["build", classicOutlookProjectPath/su);

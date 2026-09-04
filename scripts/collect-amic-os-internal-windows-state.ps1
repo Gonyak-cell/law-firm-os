@@ -133,7 +133,7 @@ function Open-RegistryKey {
 }
 
 function Get-ProductUninstallEntries {
-  $matches = @()
+  $entries = @()
   $uninstallPath = 'Software\Microsoft\Windows\CurrentVersion\Uninstall'
   foreach ($hive in @(
     [Microsoft.Win32.RegistryHive]::LocalMachine,
@@ -164,7 +164,7 @@ function Get-ProductUninstallEntries {
                 [Microsoft.Win32.RegistryValueOptions]::DoNotExpandEnvironmentNames
               )
               $expectedUninstall = '"' + (Join-Path $InstallRoot 'Uninstall matter.exe') + '" /allusers'
-              $matches += [ordered]@{
+              $entries += [ordered]@{
                 display_name_exact = $displayName -ceq "AMIC OS $ExpectedVersion"
                 display_version_exact = $displayVersion -ceq $ExpectedVersion
                 install_location_exact = [string]::IsNullOrEmpty($installLocation) `
@@ -183,7 +183,7 @@ function Get-ProductUninstallEntries {
       }
     }
   }
-  return @($matches)
+  return @($entries)
 }
 
 function Test-ProductPathReference {
@@ -557,7 +557,7 @@ try {
   $systemDrive = ([string]$env:SystemDrive).ToUpperInvariant()
   $disk = Get-CimInstance Win32_LogicalDisk -Filter "DeviceID='$systemDrive'"
   if ($null -eq $os -or $null -eq $disk) { throw 'host inventory unavailable' }
-  $host = [ordered]@{
+  $hostState = [ordered]@{
     windows = $true
     computer_name = $computerName
     computer_name_exact = $computerName -ceq $ExpectedComputerName
@@ -595,9 +595,10 @@ try {
   })
   $productTasks = @(Get-ScheduledTask | Where-Object {
     @($_.Actions | Where-Object {
-      (Test-ProductPathReference ([string]$_.Execute)) `
-        -or (Test-ProductPathReference ([string]$_.Arguments)
-      )
+      $executeProperty = $_.PSObject.Properties['Execute']
+      $argumentsProperty = $_.PSObject.Properties['Arguments']
+      ($null -ne $executeProperty -and (Test-ProductPathReference ([string]$executeProperty.Value))) `
+        -or ($null -ne $argumentsProperty -and (Test-ProductPathReference ([string]$argumentsProperty.Value)))
     }).Count -gt 0
   })
   $updateCachePresent = Test-Path -LiteralPath (Join-Path $env:TEMP 'amic-os-internal-update-cache')
@@ -622,8 +623,8 @@ try {
 
   $zeroStage = @('preinstall', 'postuninstall').Contains($Stage)
   $checks = [ordered]@{
-    host_identity_exact = [bool]$host.computer_name_exact
-    windows_x64 = $host.os_architecture -eq 'x64' -and $host.process_architecture -eq 'x64'
+    host_identity_exact = [bool]$hostState.computer_name_exact
+    windows_x64 = $hostState.os_architecture -eq 'x64' -and $hostState.process_architecture -eq 'x64'
     install_root_exact = if ($zeroStage) { -not $installRootPresent } else { $installRootPresent }
     uninstall_entry_exact = if ($zeroStage) {
       $uninstallEntries.Count -eq 0
@@ -739,7 +740,7 @@ try {
     canary_id = $CanaryId
     captured_at_utc = [DateTime]::UtcNow.ToString('yyyy-MM-ddTHH:mm:ss.fffZ')
     expected = $expected
-    host = $host
+    host = $hostState
     checks = $checks
     observed = [ordered]@{
       install_root_present = [bool]$installRootPresent
@@ -765,6 +766,7 @@ try {
   }
   Write-Receipt $receipt $(if ($checks.stage_state_exact) { 0 } else { 2 })
 } catch {
+  [Console]::Error.WriteLine("WINDOWS_STATE_COLLECTION_FAILED line=$($_.InvocationInfo.ScriptLineNumber) type=$($_.Exception.GetType().FullName)")
   Write-Receipt ([ordered]@{
     schema_version = $SchemaVersion
     verdict = 'BLOCKED'
