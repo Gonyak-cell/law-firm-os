@@ -74,6 +74,7 @@ jobs:
             apps/api/test/finance-postgres-adapter.test.js \
             apps/api/test/immutable-program-input.test.js \
             apps/api/test/client-operations-internal-installation-catalog.test.js \
+            apps/api/test/client-operations-outlook-assignment-catalog.test.js \
             apps/api/test/internal-unsigned-installation-api.test.js \
             apps/api/test/internal-unsigned-legacy-client-http.test.js \
             apps/api/test/json-postgres-outlook-authority-migration-adapter.test.js \
@@ -84,6 +85,7 @@ jobs:
             apps/api/test/member-photo-storage-composition.test.js \
             apps/api/test/persistence-authority.test.js \
             apps/api/test/persistence-authority-schema-bridge.test.js \
+            apps/api/test/persistence-authority-schema-transition-postgres.test.js \
             apps/api/test/postgres-api-runtime-authority.test.js \
             apps/api/test/postgres-vault-dms-api.test.js \
             apps/api/test/private-staging-cut006.test.js \
@@ -118,9 +120,11 @@ jobs:
             packages/persistence/test/json-postgres-migration.test.js \
             packages/persistence/test/migration-executor.test.js \
             packages/persistence/test/migration-reconciliation.test.js \
+            packages/persistence/test/outlook-authority-corporate-workspace-receipts.test.js \
             packages/persistence/test/performance-acceptance.test.js \
             packages/persistence/test/postgres-application-role.test.js \
             packages/persistence/test/postgres-repository-contract.test.js \
+            packages/persistence/test/postgres-reviewed-corporate-transition.test.js \
             packages/persistence/test/postgres-transaction.test.js \
             packages/persistence/test/private-staging-cut005.test.js \
             packages/persistence/test/program-stage-gates.test.js \

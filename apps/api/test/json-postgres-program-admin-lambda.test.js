@@ -41,6 +41,7 @@ import {
 import {
   CLIENT_OPERATIONS_MIGRATION_CATALOG_SHA256,
   CLIENT_OPERATIONS_SCHEMA_MANIFEST,
+  selectClientOperationsMigrationTarget,
   listClientOperationsPostgresMigrations,
 } from "../src/client-operations-schema.js";
 import {
@@ -65,9 +66,9 @@ const SOURCE_TREE = "b".repeat(40);
 const PACKET_SHA = "c".repeat(64);
 const ARTIFACT_SHA = "d".repeat(64);
 const KMS = "arn:aws:kms:ap-northeast-2:770880870480:key/75868150-c892-47fc-8bea-17caa1808127";
-const OFFICIAL_MIGRATION_CATALOG_COUNT = 80;
+const OFFICIAL_MIGRATION_CATALOG_COUNT = 81;
 const OFFICIAL_MIGRATION_CATALOG_SHA256 =
-  "2ef366427d98ed297ab376c8fc7e6a255cf6a054d0eaa660dc6fb7e13c814f79";
+  "8de3211a545ebb7c50813990d15f6abc215ffd23a7d09ba2149d9b37fd96e8c7";
 
 assert.equal(
   CLIENT_OPERATIONS_MIGRATION_CATALOG_SHA256,
@@ -734,7 +735,7 @@ function syntheticOutlookVerification({ catalog, phase, roleBootstrap }) {
 }
 
 function syntheticOutlookMigrationCatalog({
-  catalogSha256 = "9".repeat(64),
+  catalogSha256 = "2ef366427d98ed297ab376c8fc7e6a255cf6a054d0eaa660dc6fb7e13c814f79",
 } = {}) {
   return {
     catalog_sha256: catalogSha256,
@@ -764,7 +765,7 @@ function syntheticFreshOutlookHarness({
   putFailureReadback = "absent",
   credentialOverrides = {},
   clientDriftPhase = null,
-  migrationCatalogSha256 = "9".repeat(64),
+  migrationCatalogSha256 = "2ef366427d98ed297ab376c8fc7e6a255cf6a054d0eaa660dc6fb7e13c814f79",
 } = {}) {
   const calls = [];
   const authorityCatalog = normalizeLawosOutlookAuthorityCatalog(
@@ -1139,7 +1140,7 @@ test("Outlook commit binds the normalized migration catalog before claim access"
       bindings: {
         ...signed.packet.bindings,
         authority_manifest_sha256: authorityCatalog.catalog_sha256,
-        migration_catalog_sha256: "0".repeat(64),
+        migration_catalog_sha256: CLIENT_OPERATIONS_MIGRATION_CATALOG_SHA256,
       },
     },
   };
@@ -1634,7 +1635,7 @@ test("Outlook fresh commit keeps one client through three phases and publishes o
     syntheticOutlookAuthorityCatalog(),
   );
   const migrationCatalog = {
-    catalog_sha256: "9".repeat(64),
+    catalog_sha256: CLIENT_OPERATIONS_MIGRATION_CATALOG_SHA256,
     catalog_id: "synthetic-email-dms-007",
     schema_version: "lawos.email-dms.synthetic-007.v1",
     target_schema: "lawos_email_dms",
@@ -1963,7 +1964,7 @@ function retainedOutlookRun(harness, mode) {
   return createOutlookAuthorityMigrationRunReceipt({
     identity: OUTLOOK_RECEIPT_IDENTITY,
     migrations: listClientOperationsPostgresMigrations().map(({ id, sql }) => ({
-      id, checksum: checksumPostgresMigration(sql), applied: applied === 1 && id === "309_client_internal_unsigned_installation_authority",
+      id, checksum: checksumPostgresMigration(sql), applied: applied === 1 && id === "016_dms_corporate_workspace",
     })),
     progress: {
       outlook_authority_replay_verified: true,
@@ -2643,6 +2644,40 @@ test("production schema ledger readback rejects a catalog mismatch before any wr
     (error) => error?.code === "LAWOS_PROGRAM_MIGRATION_CATALOG",
   );
   assert.equal(poolEnded, true);
+});
+
+test("final-source schema readback binds each signed target to its complete exact ledger", async () => {
+  for (const targetSha of [
+    "2ef366427d98ed297ab376c8fc7e6a255cf6a054d0eaa660dc6fb7e13c814f79",
+    "8de3211a545ebb7c50813990d15f6abc215ffd23a7d09ba2149d9b37fd96e8c7",
+  ]) {
+    const target = selectClientOperationsMigrationTarget(targetSha);
+    const signed = authorization();
+    signed.packet.bindings.migration_catalog_sha256 = targetSha;
+    let selectedRows = target.normalized.ledger_entries;
+    const options = {
+      event: { action: JSON_POSTGRES_PRODUCTION_BOOTSTRAP_ACTION, mode: "readback" },
+      env: env(), authorize: async () => signed,
+      resolveSecret: async () => ({ username: "master", password: "synthetic-value" }),
+      createPool: () => ({
+        async query(sql) {
+          assert.match(sql, /^\s*SELECT\b/iu);
+          return { rows: selectedRows.map(({ id, checksum }) => ({ migration_id: id, checksum })) };
+        },
+        async end() {},
+      }),
+    };
+    const result = await readJsonPostgresProductionSchemaLedger(options);
+    assert.equal(result.source_sha, SOURCE_SHA);
+    assert.equal(result.migration_catalog_sha256, targetSha);
+    assert.equal(result.migration_count, target.normalized.migration_catalog_count);
+    assert.equal(result.production_write_count, 0);
+    selectedRows = targetSha.startsWith("2ef")
+      ? CLIENT_OPERATIONS_SCHEMA_MANIFEST.entries
+      : CLIENT_OPERATIONS_SCHEMA_MANIFEST.entries.filter(({ id }) => id !== "016_dms_corporate_workspace");
+    await assert.rejects(readJsonPostgresProductionSchemaLedger(options),
+      (error) => error.code === "LAWOS_POSTGRES_MIGRATION_HISTORY_DIVERGED");
+  }
 });
 
 test("W13 packet catalog binding rejects a valid wrong digest before readback secrets or database access", async () => {

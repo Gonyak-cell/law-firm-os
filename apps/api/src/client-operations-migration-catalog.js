@@ -3,7 +3,16 @@ import { hashDomainValue } from "../../../packages/persistence/src/domain-ledger
 export const CLIENT_OPERATIONS_MIGRATION_CATALOG_VERSION =
   "law-firm-os.json-postgres-rehearsal-migration-catalog.v1";
 
-const MIGRATION_COUNT = 80;
+export const CLIENT_OPERATIONS_REVIEWED_MIGRATION_TARGETS = Object.freeze({
+  "2ef366427d98ed297ab376c8fc7e6a255cf6a054d0eaa660dc6fb7e13c814f79": Object.freeze({
+    migration_count: 80,
+    ledger_sha256: "4d2b71686f05f483fee882b742e363ee4ce24e95879dce267a81083adc47287f",
+  }),
+  "8de3211a545ebb7c50813990d15f6abc215ffd23a7d09ba2149d9b37fd96e8c7": Object.freeze({
+    migration_count: 81,
+    ledger_sha256: "29530ec602b720deeb1e26625c85a3dcc1268e2bfc116b6b86bfada761cb38a7",
+  }),
+});
 const ASSIGNMENT_MIGRATION_ID =
   "306_client_outlook_desktop_assignment";
 const ASSIGNMENT_SOURCE_MIGRATION_ID =
@@ -70,13 +79,15 @@ export function normalizeClientOperationsMigrationCatalogMaterial(
   { expectedCatalogSha256 } = {},
 ) {
   const migrations = catalog?.migrations;
+  const target = CLIENT_OPERATIONS_REVIEWED_MIGRATION_TARGETS[expectedCatalogSha256];
   if (!exactKeys(catalog, CATALOG_KEYS)
     || catalog.schema_version
       !== CLIENT_OPERATIONS_MIGRATION_CATALOG_VERSION
     || catalog.authority !== "postgres-v2"
     || !Array.isArray(migrations)
     || catalog.migration_count !== migrations.length
-    || migrations.length !== MIGRATION_COUNT) {
+    || !target
+    || migrations.length !== target.migration_count) {
     throw new TypeError("Client operations migration catalog is invalid");
   }
   const ledgerEntries = migrations.map((entry) => {
@@ -217,7 +228,8 @@ export function normalizeClientOperationsMigrationCatalogMaterial(
   }
   const catalogSha256 = hashDomainValue(catalog);
   if (!SHA256.test(expectedCatalogSha256 ?? "")
-    || catalogSha256 !== expectedCatalogSha256) {
+    || catalogSha256 !== expectedCatalogSha256
+    || hashDomainValue(ledgerEntries) !== target.ledger_sha256) {
     throw new TypeError("Client operations migration catalog digest is invalid");
   }
   return Object.freeze({

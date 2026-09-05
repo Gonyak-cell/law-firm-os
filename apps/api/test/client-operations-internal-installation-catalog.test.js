@@ -12,7 +12,7 @@ import {
 
 test("migration 309 adds a closed internal authority binding after unchanged legacy migration 308", () => {
   const catalog = CLIENT_OPERATIONS_MIGRATION_CATALOG;
-  assert.equal(catalog.migration_count, 80);
+  assert.equal(catalog.migration_count, 81);
   assert.equal(catalog.migrations.at(-2).id, "308_client_outlook_desktop_legacy_windows_compatibility");
   const last = catalog.migrations.at(-1);
   assert.equal(last.id, "309_client_internal_unsigned_installation_authority");

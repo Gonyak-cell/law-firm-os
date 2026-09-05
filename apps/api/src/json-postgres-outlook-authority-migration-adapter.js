@@ -4,7 +4,7 @@ import { verifyOutlookAssignmentMigrationPreflight } from "../../../packages/ema
 import { verifyOutlookAssignmentMigrationPostflight } from "../../../packages/email-dms/src/outlook-desktop-assignment-migration-postflight.js";
 import { configureLawosOutlookDatabaseRoles, verifyLawosOutlookApplicationRolePrecondition, verifyLawosOutlookDatabaseRoles } from "../../../packages/persistence/src/postgres/outlook-authority-roles.js";
 import { assertOutlookAuthorityMigrationFailureReceipt, assertOutlookAuthorityMigrationRunReceipt, createOutlookPostgresRoleConfigurationCommitUnknownError } from "../../../packages/persistence/src/postgres/migration-runner.js";
-import { CLIENT_OPERATIONS_MIGRATION_CATALOG, normalizeClientOperationsMigrationCatalog } from "./client-operations-schema.js";
+import { CLIENT_OPERATIONS_MIGRATION_CATALOG, selectClientOperationsMigrationTarget } from "./client-operations-schema.js";
 import { hashDomainValue } from "../../../packages/persistence/src/domain-ledger.js";
 import { readInternalUnsignedInstallationAuthorityReadback } from "../../../packages/email-dms/src/internal-unsigned-installation-authority-readback.js";
 
@@ -16,19 +16,12 @@ const OPTION_KEYS = Object.freeze(["approvedTenantIds", "assignmentPassword",
 const MIGRATION = Object.freeze({ catalog_id: AUTHORITY.bootstrap_receipt.migration_catalog_id,
   schema_version: AUTHORITY.bootstrap_receipt.migration_schema_version,
   target_schema: AUTHORITY.schema.name });
-const NORMALIZED_MIGRATION_CATALOG = normalizeClientOperationsMigrationCatalog(
-  CLIENT_OPERATIONS_MIGRATION_CATALOG,
-);
-const MIGRATION_CATALOG_ROWS = Object.freeze(
-  CLIENT_OPERATIONS_MIGRATION_CATALOG.migrations.map((row) => Object.freeze({
-    id: row.id, source_migration_id: row.source_migration_id,
-    file_name: row.file_name, checksum: row.checksum,
-  })),
-);
 const HISTORICAL_MIGRATION_CATALOG_SHA256 = hashDomainValue({
   ...CLIENT_OPERATIONS_MIGRATION_CATALOG,
   migration_count: 79,
-  migrations: CLIENT_OPERATIONS_MIGRATION_CATALOG.migrations.slice(0, -1),
+  migrations: CLIENT_OPERATIONS_MIGRATION_CATALOG.migrations.filter(({ id }) =>
+    id !== "016_dms_corporate_workspace"
+      && id !== "309_client_internal_unsigned_installation_authority"),
 });
 
 function fail(message) {
@@ -80,10 +73,14 @@ export function createJsonPostgresOutlookAuthorityMigrationAdapter(options = {})
     if (authoritySha !== OUTLOOK_DESKTOP_ASSIGNMENT_AUTHORITY_CATALOG_SHA256) {
       fail("authority manifest does not match the reviewed catalog");
     }
-    if (migrationSha !== NORMALIZED_MIGRATION_CATALOG.migration_catalog_sha256) {
+    let target;
+    try { target = selectClientOperationsMigrationTarget(migrationSha); } catch {
       fail("migration manifest does not match the reviewed catalog");
     }
-    const catalog = MIGRATION_CATALOG_ROWS;
+    const catalog = Object.freeze(target.catalog.migrations.map((row) => Object.freeze({
+      id: row.id, source_migration_id: row.source_migration_id,
+      file_name: row.file_name, checksum: row.checksum,
+    })));
     const tenants = options.approvedTenantIds;
     const passwords = [options.controlPassword, options.assignmentPassword,
       options.lifecycleVerifierPassword];

@@ -85,27 +85,48 @@ test("terminal Client migrations use one direct Outlook authority cleanup", asyn
       database_name: "lawos",
     });
 
+    const initial = (await fixture.adminPool.query(
+      "SELECT migration_id FROM lawos_meta.schema_migrations ORDER BY migration_id",
+    )).rows;
+    assert.equal(initial.length, 15);
+    assert.equal(initial.some(({ migration_id }) => migration_id === "016_dms_corporate_workspace"), false);
+    const stages = [];
     const applied = await runOutlookAuthorityPostgresMigrations(fixture, {
       appliedBy: "outlook-authority-fixture-apply",
+      async onStage(stage, receipt) {
+        const rows = (await fixture.adminPool.query(
+          "SELECT migration_id FROM lawos_meta.schema_migrations ORDER BY migration_id",
+        )).rows;
+        stages.push({ stage, receipt, rows });
+      },
     });
-    assert.equal(applied.outcome, "committed");
-    assert.equal(applied.migrations.find(
-      ({ id }) => id === "306_client_outlook_desktop_assignment",
-    )?.applied, true);
-    assert.equal(applied.migrations.find(
-      ({ id }) => id ===
-        "307_client_outlook_desktop_trusted_current_read",
-    )?.applied, true);
-    assert.equal(applied.migrations.find(
-      ({ id }) => id ===
-        "308_client_outlook_desktop_legacy_windows_compatibility",
-    )?.applied, true);
-    assert.equal(applied.migrations.find(
-      ({ id }) => id ===
-        "309_client_internal_unsigned_installation_authority",
-    )?.applied, true);
-    assert.equal(applied.role_configuration_transaction_committed_count, 1);
-    assert.equal(applied.outlook_assignment_transaction_committed, true);
+    assert.deepEqual(stages.map(({ stage, rows }) => [stage, rows.length]), [
+      ["historical79", 79], ["authority80", 80], ["combined81", 81],
+    ]);
+    const [historical, authority, combined] = stages.map(({ receipt }) => receipt);
+    assert.equal(historical.outcome, "committed");
+    for (const id of ["306_client_outlook_desktop_assignment",
+      "307_client_outlook_desktop_trusted_current_read",
+      "308_client_outlook_desktop_legacy_windows_compatibility"]) {
+      assert.equal(historical.migrations.find((row) => row.id === id)?.applied, true);
+    }
+    assert.equal(historical.migrations.some(({ id }) =>
+      id === "309_client_internal_unsigned_installation_authority"), false);
+    assert.equal(historical.role_configuration_transaction_committed_count, 1);
+    assert.equal(historical.outlook_assignment_transaction_committed, true);
+    assert.equal(authority.outcome, "appended");
+    assert.deepEqual(authority.migrations.filter(({ applied }) => applied).map(({ id }) => id),
+      ["309_client_internal_unsigned_installation_authority"]);
+    assert.equal(combined.outcome, "appended");
+    assert.deepEqual(combined.migrations.filter(({ applied }) => applied).map(({ id }) => id),
+      ["016_dms_corporate_workspace"]);
+    for (const receipt of [authority, combined]) {
+      assert.equal(receipt.migration_applied_count, 1);
+      assert.equal(receipt.postgres_mutation_committed_count, 1);
+      assert.equal(receipt.role_configuration_transaction_committed_count, 0);
+      assert.equal(receipt.role_bootstrap_sha256, historical.role_bootstrap_sha256);
+    }
+    assert.equal(applied, combined);
 
     const replay = await runOutlookAuthorityPostgresMigrations(fixture, {
       appliedBy: "outlook-authority-fixture-replay",

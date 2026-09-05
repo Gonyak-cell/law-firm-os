@@ -28,6 +28,16 @@ const COMMIT_UNKNOWN_ERRORS = new WeakSet();
 const ROLE_CONFIGURATION_COMMIT_UNKNOWN_EXPECTATIONS = new WeakMap();
 const INTERNAL_INSTALLATION_HISTORICAL_CATALOG_SHA256 =
   "43c6a087834d9dd2177be0b63fc94cf723181b93b04f40a65689b6431bd44556";
+const INTERNAL_INSTALLATION_CATALOG_SHA256 =
+  "2ef366427d98ed297ab376c8fc7e6a255cf6a054d0eaa660dc6fb7e13c814f79";
+const CORPORATE_WORKSPACE_CATALOG_SHA256 =
+  "8de3211a545ebb7c50813990d15f6abc215ffd23a7d09ba2149d9b37fd96e8c7";
+const HISTORICAL_LEDGER_SHA256 =
+  "fe0b9c53de1617361fd607692beb7e462b28159321e7830d507836948fcfdbc3";
+const INTERNAL_INSTALLATION_LEDGER_SHA256 =
+  "4d2b71686f05f483fee882b742e363ee4ce24e95879dce267a81083adc47287f";
+const CORPORATE_WORKSPACE_LEDGER_SHA256 =
+  "29530ec602b720deeb1e26625c85a3dcc1268e2bfc116b6b86bfada761cb38a7";
 
 function isReviewedInternalInstallationAppend(catalog) {
   const final = catalog.at(-1);
@@ -39,6 +49,14 @@ function isReviewedInternalInstallationAppend(catalog) {
     && final.file_name === "./010_internal_unsigned_installation_authority.sql"
     && final.checksum ===
       "171ecf90f09903ba802e2693cea65f8b98f0a26a0690292749936d3bcd1569e1";
+}
+
+function isReviewedCorporateWorkspaceAppend(catalog) {
+  return catalog.length === 81
+    && hashDomainValue(catalog) ===
+      "d21181c7a79b1cb6a895f1305279013dc8fd194fc56a0089d265d487b346e334"
+    && isReviewedInternalInstallationAppend(catalog.filter(({ id }) =>
+      id !== "016_dms_corporate_workspace"));
 }
 
 export function createOutlookPostgresCommitUnknownError() {
@@ -147,6 +165,8 @@ export async function runPostgresMigrations(pool, {
   }
   const callbackCatalog = closeOutlookAuthorityMigrationCatalog(ordered);
   const reviewedInternalAppend = isReviewedInternalInstallationAppend(callbackCatalog);
+  const reviewedCorporateAppend = isReviewedCorporateWorkspaceAppend(callbackCatalog);
+  const reviewedAuthorityTarget = reviewedInternalAppend || reviewedCorporateAppend;
   const internalAuthorityPresent = callbackCatalog.some((migration) =>
     migration.id === "309_client_internal_unsigned_installation_authority"
       || migration.id === "010_internal_unsigned_installation_authority"
@@ -156,7 +176,9 @@ export async function runPostgresMigrations(pool, {
   }
   if ((internalAuthorityPresent
         || onInternalUnsignedInstallationAuthorityPostMigration !== undefined)
-      && (!authorityCallbacksEnabled || !reviewedInternalAppend
+      && (!authorityCallbacksEnabled || !reviewedAuthorityTarget
+        || migrationCatalogSha256 !== (reviewedCorporateAppend
+          ? CORPORATE_WORKSPACE_CATALOG_SHA256 : INTERNAL_INSTALLATION_CATALOG_SHA256)
         || typeof onInternalUnsignedInstallationAuthorityPostMigration !== "function")) {
     throw new TypeError("Internal installation postflight requires the exact reviewed catalog");
   }
@@ -253,6 +275,17 @@ export async function runPostgresMigrations(pool, {
         });
       }
     }
+    if (reviewedAuthorityTarget) {
+      const ledgerSha = hashDomainValue(historyResult.rows.map(({ migration_id, checksum }) => ({
+        id: migration_id, checksum,
+      })));
+      const allowedLedgers = reviewedCorporateAppend
+        ? [INTERNAL_INSTALLATION_LEDGER_SHA256, CORPORATE_WORKSPACE_LEDGER_SHA256]
+        : [HISTORICAL_LEDGER_SHA256, INTERNAL_INSTALLATION_LEDGER_SHA256];
+      if (!allowedLedgers.includes(ledgerSha)) {
+        throw migrationHistoryError("Reviewed PostgreSQL transition requires the exact prior or replay catalog");
+      }
+    }
     const history = new Map(historyResult.rows.map((row) => [row.migration_id, row]));
     const authorityMigration = authorityCallbacksEnabled
       ? ordered.find(isOutlookAuthorityMigration)
@@ -261,12 +294,12 @@ export async function runPostgresMigrations(pool, {
       ? history.has(authorityMigration.id)
       : false;
     if (authorityAlreadyApplied) {
-      const reviewedAppend = reviewedInternalAppend;
+      const reviewedAppend = reviewedAuthorityTarget;
       if ((history.size !== ordered.length
             && !(reviewedAppend && history.size === ordered.length - 1))
           || (reviewedAppend && historyResult.rows.some((row, index) =>
-            row.migration_id !== ordered[index]?.id
-              || row.checksum !== ordered[index]?.checksum))
+            row.migration_id !== expectedHistoryCatalog[index]?.id
+              || row.checksum !== expectedHistoryCatalog[index]?.checksum))
           || beforeMigrationsResult === undefined) {
         throw migrationHistoryError(
           "Outlook authority replay requires the exact completed catalog",

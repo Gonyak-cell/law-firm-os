@@ -27,8 +27,9 @@ field must equal the SHA-256 of the private key's Ed25519 public SPKI DER bytes.
 Grant the API only the required secret read. Configure the matching issuer ID,
 public key, and digest independently for the adoption publisher and reader.
 Duplicate issuer or public-key pins in the former server environment variables
-are rejected. Missing the secret reference leaves the internal authority
-disabled; malformed configuration, a key mismatch, or a changed live SQL
+are rejected. Missing the secret reference disables signing and the dedicated
+endpoints while preserving internal-binding enforcement at a verified 80- or
+81-row catalog. Malformed configuration, a key mismatch, or a changed live SQL
 authority prevents activation.
 
 The single reference adds its ARN length plus 55 bytes to a nonempty compact
@@ -39,31 +40,38 @@ actual ARN using the existing deployment budget guard before CloudFormation.
 
 The original runtime requires exactly 79 catalog rows, so it is not a rollback
 target after 309. Use the API composition bridge, which selects only the pinned
-historical 79-row catalog or the exact target 80-row catalog and passes that
-choice to the unchanged strict verifier in one read-only snapshot. Other counts,
-missing rows, and mismatched checksums fail. The 79-row mode prohibits the signer
+historical 79-row catalog, authority 80-row catalog, or combined 81-row catalog
+and passes that choice to the unchanged strict verifier in one read-only
+snapshot. The 80-row catalog with corporate 016 but without authority 309 is
+rejected. Other counts, missing rows, and mismatched checksums fail. The 79-row mode prohibits the signer
 secret reference; the signing service also verifies its SQL authority before
 fetching its key.
 
 Deploy in this order:
 
-1. Record the bridge source SHA, artifact hash, and exact rollback artifact.
+1. Record the final 81-row bridge source SHA, artifact hash, and exact rollback artifact.
    Deploy the bridge with the signer reference absent, and verify the actual
    79-row catalog and application behavior.
-2. Apply 309 through the reviewed append adapter and read back all 80 rows and
-   the new authority. Preserve the 79-row ledger and historical pause evidence.
-3. Activate the exact signer secret reference after the full environment budget
+2. From that same final source, apply only 309 using the signed authority80
+   target below. Read back all 80 rows and the new authority before continuing.
+   Preserve the 79-row ledger and historical pause evidence.
+3. With a separate signed combined81 target, apply only
+   `016_dms_corporate_workspace` and read back all 81 rows. This foundation
+   migration sorts before already applied HRX rows; the reviewed gap does not
+   rewrite any existing ledger row. Keep the signer reference absent during
+   both schema stages. A direct 79-to-81 transition is rejected.
+4. Activate the exact signer secret reference after the full environment budget
    check. Verify startup, signing authority, and the independently pinned issuer.
-4. Grant the approved device and verify its real enrollment.
+5. Grant the approved device and verify its real enrollment.
 
 After step 2, rollback only to the pinned config-off bridge artifact that
-supports the exact 80-row catalog. Do not roll back to the original 79-only
+supports all three exact catalogs. Do not roll back to the original 79-only
 runtime or remove migration history to make it start. In the bridge, no internal
 binding leaves ordinary legacy behavior available. Database errors and invalid
 internal bindings never permit fallback. The new internal endpoints fail closed
 while the authority is disabled.
 
-At 80 rows, removing the signer reference disables attestation and the dedicated
+At 80 or 81 rows, removing the signer reference disables attestation and the dedicated
 new endpoints while retaining the internal SQL checks on existing lifecycle and
 trusted-current routes. A revoked internal grant cannot become legacy-trusted
 when the signing configuration is removed.
@@ -76,8 +84,45 @@ Its readiness attestation binds the actual schema count and hash. The current
 client migration runner rejects a conflicting historical attestation and does
 not provide schema-only rebinding. An enabled deployment therefore needs a
 separate readiness transition before this rollout; do not delete the old receipt,
-claim 79 rows when 80 exist, or treat rerunning the importer as a refresh. This
+claim a historical count when the actual catalog differs, or treat rerunning the importer as a refresh. This
 bridge does not change that client feature or its readiness validation.
+
+### Exact signed migration targets
+
+The protected entry remains `bootstrapJsonPostgresProductionDatabase` in
+`apps/api/src/json-postgres-program-admin-lambda.js`, with action
+`lawos-json-postgres-production-bootstrap` and mode `commit`. There is no
+caller-supplied SQL, arbitrary catalog path, or new unsigned action. The existing
+owner-signed W13 packet's `bindings.migration_catalog_sha256` selects exactly one
+target. `selectClientOperationsMigrationTarget(digest)` in
+`apps/api/src/client-operations-schema.js` returns the complete reviewed
+`catalog` document, SQL migration list, and normalized ledger. Retain that
+complete catalog document's ordered IDs and checksums with the signed program
+input manifest, approval, and receipt.
+
+| Target | Rich catalog SHA-256 | Ordered ledger SHA-256 |
+| --- | --- | --- |
+| authority80 | `2ef366427d98ed297ab376c8fc7e6a255cf6a054d0eaa660dc6fb7e13c814f79` | `4d2b71686f05f483fee882b742e363ee4ce24e95879dce267a81083adc47287f` |
+| combined81 | `8de3211a545ebb7c50813990d15f6abc215ffd23a7d09ba2149d9b37fd96e8c7` | `29530ec602b720deeb1e26625c85a3dcc1268e2bfc116b6b86bfada761cb38a7` |
+
+Both packets retain the same final executor `source_sha`, `source_tree`, and
+artifact binding, while their target digest and operation approval are distinct.
+The runner independently checks the full before ledger: authority80 accepts only
+historical79 or an exact80 replay; combined81 accepts only authority80 or an
+exact81 replay. The immutable historical 007 pause digest remains unchanged.
+Each successful stage writes one migration, zero roles, and zero role secrets;
+an exact replay records zero mutations. A failed postflight keeps a separate
+partial receipt; it does not convert an applied migration into a success claim.
+
+Use the same protected action with mode `readback` and the corresponding signed
+target to verify its complete ledger. Independently read the installation SQL
+authority with `verifyInternalUnsignedInstallationAuthorityReadback`, which is
+also mandatory in each stage's migration postflight. Verify corporate schema
+and activation prerequisites through its protected operator path before creating
+a corporate workspace. Do not use the separate Task3 diagnostic operator chain
+for these stage receipts: its operator-side rich source-catalog digest and
+API-side slim source-ledger digest currently differ. That pre-existing contract
+remains unresolved; it is not an alternative target selector.
 
 ## Authorize and enroll one device
 

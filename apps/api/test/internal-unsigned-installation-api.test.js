@@ -227,13 +227,16 @@ test("verified schema determines unsigned guard activation without fetching an a
   await assert.rejects(createInternalUnsignedInstallationRuntimeFromEnv({ ...options, schema_migration_count: 79,
     env: { AWS_REGION: "ap-northeast-2", LAWOS_INTERNAL_INSTALLATION_ATTESTATION_SECRET_ID: "synthetic/attestation" },
   }), /requires migration 80/u);
-  for (const count of [undefined, null, 0, 78, 81, "80", true]) {
+  for (const count of [undefined, null, 0, 78, 82, "80", true]) {
     await assert.rejects(createInternalUnsignedInstallationRuntimeFromEnv({ ...options, schema_migration_count: count }), /verified migration count/u);
   }
   assert.equal(metadataReads, 0);
   assert.equal(secretCalls, 0);
+  const combined = await createInternalUnsignedInstallationRuntimeFromEnv({ ...options, schema_migration_count: 81 });
+  assert.equal(combined.configured, true);
+  assert.equal(combined.attestation_configured, false);
   const service = await createInternalUnsignedInstallationRuntimeFromEnv({ ...options, schema_migration_count: 80 });
-  assert.equal(metadataReads, 1);
+  assert.equal(metadataReads, 2);
   assert.equal(secretCalls, 0);
   assert.equal(service.configured, true);
   assert.equal(service.attestation_configured, false);

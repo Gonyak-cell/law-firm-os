@@ -24,11 +24,9 @@ import {
 } from "../src/client-operations-schema.js";
 import {
   createOutlookAuthorityPostgresFixture,
+  runHistoricalHrxPostgresMigrations,
   runOutlookAuthorityPostgresMigrations,
 } from "./support/outlook-authority-postgres-fixture.js";
-import {
-  runHrxPostgresMigrations,
-} from "../../../packages/hrx/src/postgres-migrations.js";
 
 const TENANT_CONTEXT_SECRET = "test-only-postgres-tenant-context-secret-material";
 
@@ -45,7 +43,7 @@ test("operational migration verification requires the exact additive Client cata
       error?.code
         === "LAWOS_POSTGRES_MIGRATION_HISTORY_DIVERGED",
   );
-  await runHrxPostgresMigrations(fixture.adminPool);
+  await runHistoricalHrxPostgresMigrations(fixture.adminPool);
   const mixedHistory = await fixture.adminPool.query(
     `SELECT migration_id, checksum
        FROM lawos_meta.schema_migrations
@@ -504,7 +502,7 @@ test("API startup activates the transaction-capable PostgreSQL authority without
   t.after(() => rmSync(parent, { recursive: true, force: true }));
   const fixture = await createOutlookAuthorityPostgresFixture(t);
   if (!fixture) return;
-  await runHrxPostgresMigrations(fixture.adminPool);
+  await runHistoricalHrxPostgresMigrations(fixture.adminPool);
   await runOutlookAuthorityPostgresMigrations(fixture);
   let closed = false;
   const pool = {

@@ -32,7 +32,7 @@ export async function createInternalUnsignedInstallationRuntimeFromEnv({
   env = process.env, pool, tenant_id, schema_migration_count, resolveSecret = resolveAwsJsonSecret,
   verifyAuthority = verifyInternalUnsignedInstallationAuthorityReadback,
 } = {}) {
-  if (![79, 80].includes(schema_migration_count)) {
+  if (![79, 80, 81].includes(schema_migration_count)) {
     throw new TypeError("Internal installation authority requires a verified migration count");
   }
   const secretId = String(env[`${CONFIG_PREFIX}SECRET_ID`] ?? "").trim();

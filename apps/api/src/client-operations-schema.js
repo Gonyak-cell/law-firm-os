@@ -318,8 +318,24 @@ export function normalizeClientOperationsMigrationCatalog(
   catalog = CLIENT_OPERATIONS_MIGRATION_CATALOG,
 ) {
   return normalizeClientOperationsMigrationCatalogMaterial(catalog, {
-    expectedCatalogSha256: CLIENT_OPERATIONS_MIGRATION_CATALOG_SHA256,
+    expectedCatalogSha256: catalog?.migration_count === 80
+      ? "2ef366427d98ed297ab376c8fc7e6a255cf6a054d0eaa660dc6fb7e13c814f79"
+      : CLIENT_OPERATIONS_MIGRATION_CATALOG_SHA256,
   });
+}
+
+export function selectClientOperationsMigrationTarget(
+  migrationCatalogSha256 = CLIENT_OPERATIONS_MIGRATION_CATALOG_SHA256,
+) {
+  const migrations = migrationCatalogSha256 ===
+    "2ef366427d98ed297ab376c8fc7e6a255cf6a054d0eaa660dc6fb7e13c814f79"
+    ? Object.freeze(OPERATIONAL_MIGRATIONS.filter(({ id }) => id !== "016_dms_corporate_workspace"))
+    : OPERATIONAL_MIGRATIONS;
+  const catalog = packetMigrationCatalogMaterial(migrations);
+  const normalized = normalizeClientOperationsMigrationCatalogMaterial(catalog, {
+    expectedCatalogSha256: migrationCatalogSha256,
+  });
+  return Object.freeze({ migrations, catalog, normalized });
 }
 
 const SCHEMA_ENTRIES = Object.freeze(
@@ -354,8 +370,9 @@ export function runClientOperationsPostgresMigrations(
     onInternalUnsignedInstallationAuthorityPostMigration,
   } = {},
 ) {
+  const target = selectClientOperationsMigrationTarget(migrationCatalogSha256);
   return runPostgresMigrations(pool, {
-    migrations: OPERATIONAL_MIGRATIONS,
+    migrations: target.migrations,
     appliedBy,
     authorityManifestSha256,
     databaseTargetReceiptSha256,
@@ -369,6 +386,8 @@ export function runClientOperationsPostgresMigrations(
       "013_dms_precedent_search",
       "014_docusign_outbox",
       "015_external_tenant_provisioning",
+      ...(target.normalized.migration_catalog_count === 81
+        ? ["016_dms_corporate_workspace"] : []),
       "149_hrx_049_hrx_directory_authority",
     ],
   });
@@ -377,6 +396,12 @@ export function runClientOperationsPostgresMigrations(
 export function verifyClientOperationsPostgresMigrations(pool) {
   return verifyPostgresMigrationState(pool, {
     migrations: OPERATIONAL_MIGRATIONS,
+  });
+}
+
+export function verifyClientOperationsMigrationTarget(pool, { migrationCatalogSha256 } = {}) {
+  return verifyPostgresMigrationState(pool, {
+    migrations: selectClientOperationsMigrationTarget(migrationCatalogSha256).migrations,
   });
 }
 

@@ -4,6 +4,11 @@ const RUN_SCHEMA = "lawos.outlook-authority-migration-run-receipt.v1";
 const HISTORICAL_RUN_SCHEMA = "lawos.outlook-authority-migration-run-receipt.v2";
 const INTERNAL_INSTALLATION_HISTORICAL_CATALOG_SHA256 =
   "43c6a087834d9dd2177be0b63fc94cf723181b93b04f40a65689b6431bd44556";
+const INTERNAL_INSTALLATION_CATALOG_SHA256 =
+  "2ef366427d98ed297ab376c8fc7e6a255cf6a054d0eaa660dc6fb7e13c814f79";
+const CORPORATE_WORKSPACE_CATALOG_SHA256 =
+  "8de3211a545ebb7c50813990d15f6abc215ffd23a7d09ba2149d9b37fd96e8c7";
+const CORPORATE_WORKSPACE_MIGRATION_ID = "016_dms_corporate_workspace";
 const FAILURE_SCHEMA =
   "lawos.outlook-authority-migration-failure-receipt.v1";
 const SHA256 = /^[a-f0-9]{64}$/u;
@@ -98,7 +103,59 @@ function copyFrozen(value) {
   )));
 }
 
-function assertMigrationRows(migrations) {
+function reviewedAppendMigrationId(value) {
+  const corporate = value.migrations?.length === 81;
+  if ((!corporate && value.migrations?.length !== 80)
+      || value.migration_catalog_sha256 !== (corporate
+        ? CORPORATE_WORKSPACE_CATALOG_SHA256
+        : INTERNAL_INSTALLATION_CATALOG_SHA256)
+      || hashDomainValue(value.migrations.map(({ id, checksum }) => ({ id, checksum })))
+        !== (corporate
+          ? "29530ec602b720deeb1e26625c85a3dcc1268e2bfc116b6b86bfada761cb38a7"
+          : "4d2b71686f05f483fee882b742e363ee4ce24e95879dce267a81083adc47287f")) {
+    return null;
+  }
+  return corporate ? CORPORATE_WORKSPACE_MIGRATION_ID
+    : "309_client_internal_unsigned_installation_authority";
+}
+
+function isCorporateWorkspaceGap(value) {
+  return reviewedAppendMigrationId(value) === CORPORATE_WORKSPACE_MIGRATION_ID
+    && value.migrations.every(({ id, applied }) =>
+      applied === (id === CORPORATE_WORKSPACE_MIGRATION_ID));
+}
+
+function isCorporateWorkspaceFailureBoundary(value) {
+  if (!Array.isArray(value.migrations)) return false;
+  if (value.migration_catalog_sha256 !== CORPORATE_WORKSPACE_CATALOG_SHA256) {
+    return value.migrations.length !== 81;
+  }
+  if (value.role_configuration_transaction_committed_count !== 0
+      || value.outlook_assignment_transaction_committed !== false) return false;
+  if (value.migrations.length === 0) {
+    return value.migration_applied_count === 0
+      && value.postgres_mutation_attempt_count === 0
+      && value.postgres_mutation_committed_count === 0;
+  }
+  if (value.migrations.length === 15) {
+    return value.failure_phase === "migration"
+      && value.migration_applied_count === 0
+      && value.postgres_mutation_attempt_count === 1
+      && [0, null].includes(value.postgres_mutation_committed_count)
+      && value.migrations.every(({ applied }) => applied === false)
+      && hashDomainValue(value.migrations.map(({ id, checksum }) => ({ id, checksum })))
+        === "3e84240e675e9b8231ef1fa3a33897b3791859a8e723a001bb8c59ae8909a4fe";
+  }
+  return reviewedAppendMigrationId(value) === CORPORATE_WORKSPACE_MIGRATION_ID
+    && value.failure_phase === "internal_installation_postflight"
+    && value.postgres_mutation_attempt_count === value.migration_applied_count
+    && value.postgres_mutation_committed_count === value.migration_applied_count
+    && ((value.migration_applied_count === 0
+      && value.migrations.every(({ applied }) => applied === false))
+      || (value.migration_applied_count === 1 && isCorporateWorkspaceGap(value)));
+}
+
+function assertMigrationRows(migrations, { corporateWorkspaceGap = false } = {}) {
   if (!Array.isArray(migrations)) throw new TypeError("Migration receipt is invalid");
   let previous = "";
   let appliedStarted = false;
@@ -109,7 +166,7 @@ function assertMigrationRows(migrations) {
         || typeof migration.applied !== "boolean") {
       throw new TypeError("Migration receipt is invalid");
     }
-    if (appliedStarted && !migration.applied) {
+    if (appliedStarted && !migration.applied && !corporateWorkspaceGap) {
       throw new TypeError("Migration receipt is invalid");
     }
     appliedStarted ||= migration.applied;
@@ -127,6 +184,7 @@ export function assertOutlookAuthorityMigrationRunReceipt(value, expected) {
   const committed = value.outcome === "committed";
   const verified = value.outcome === "verified";
   const appended = value.outcome === "appended";
+  const reviewedAppendId = reviewedAppendMigrationId(value);
   if ((!historical && value.schema_version !== RUN_SCHEMA)
       || (!committed && !verified && !appended)
       || (historical && (committed
@@ -143,17 +201,11 @@ export function assertOutlookAuthorityMigrationRunReceipt(value, expected) {
       || !nonnegative(value.migration_applied_count)
       || value.migration_applied_count !==
         value.migrations.filter(({ applied }) => applied === true).length
-      || ((historical || appended) && (
-        value.migrations.length !== 80
-        || hashDomainValue(value.migrations.slice(0, -1).map(
-          ({ id, checksum }) => ({ id, checksum }),
-        )) !== "fe0b9c53de1617361fd607692beb7e462b28159321e7830d507836948fcfdbc3"
-        || value.migrations.at(-1)?.id !==
-          "309_client_internal_unsigned_installation_authority"
-        || value.migrations.at(-1)?.checksum !==
-          "171ecf90f09903ba802e2693cea65f8b98f0a26a0690292749936d3bcd1569e1"))
+      || ((historical || appended || [80, 81].includes(value.migrations.length))
+        && reviewedAppendId === null)
       || (committed && (
-        value.role_configuration_transaction_committed_count !== 1
+        reviewedAppendId === CORPORATE_WORKSPACE_MIGRATION_ID
+        || value.role_configuration_transaction_committed_count !== 1
         || value.postgres_mutation_attempt_count !==
           value.migration_applied_count + 1
         || value.postgres_mutation_committed_count !==
@@ -167,11 +219,7 @@ export function assertOutlookAuthorityMigrationRunReceipt(value, expected) {
         || value.outlook_assignment_transaction_committed !== false
         || value.migrations.some(({ applied }) => applied)))
       || (appended && (
-        value.migrations.length !== 80
-        || value.migrations.at(-1)?.id !==
-          "309_client_internal_unsigned_installation_authority"
-        || value.migrations.at(-1)?.applied !== true
-        || value.migrations.slice(0, -1).some(({ applied }) => applied)
+        value.migrations.some(({ id, applied }) => applied !== (id === reviewedAppendId))
         || value.migration_applied_count !== 1
         || value.role_configuration_transaction_committed_count !== 0
         || value.postgres_mutation_attempt_count !== 1
@@ -186,7 +234,9 @@ export function assertOutlookAuthorityMigrationRunReceipt(value, expected) {
       || value.role_bootstrap_sha256 !== value.postflight_role_bootstrap_sha256) {
     throw new TypeError("Outlook authority migration run receipt is invalid");
   }
-  assertMigrationRows(value.migrations);
+  assertMigrationRows(value.migrations, {
+    corporateWorkspaceGap: appended && isCorporateWorkspaceGap(value),
+  });
   exactExpected(value, expected, { exactCatalog: true });
   return copyFrozen(value);
 }
@@ -242,6 +292,7 @@ export function assertOutlookAuthorityMigrationFailureReceipt(value, expected) {
   const roleConfigurationCommitUnknown = commitUnknown
     && value.failure_phase === "outlook_authority_paused"
     && value.role_configuration_transaction_committed_count === null;
+  const corporateWorkspaceFailureBoundary = isCorporateWorkspaceFailureBoundary(value);
   if (value.schema_version !== FAILURE_SCHEMA
       || !["failed", "partial"].includes(value.outcome)
       || !value.failure_phase
@@ -251,6 +302,7 @@ export function assertOutlookAuthorityMigrationFailureReceipt(value, expected) {
       || !databaseValid || (!identityAbsent && !identityPresent)
       || !nonnegative(value.migration_applied_count)
       || !Array.isArray(value.migrations)
+      || !corporateWorkspaceFailureBoundary
       || value.migration_applied_count !==
         value.migrations.filter(({ applied }) => applied === true).length
       || !roleCountValid
@@ -274,7 +326,9 @@ export function assertOutlookAuthorityMigrationFailureReceipt(value, expected) {
       || !assignmentCommitValid) {
     throw new TypeError("Outlook authority migration failure receipt is invalid");
   }
-  assertMigrationRows(value.migrations);
+  assertMigrationRows(value.migrations, {
+    corporateWorkspaceGap: corporateWorkspaceFailureBoundary && isCorporateWorkspaceGap(value),
+  });
   exactExpected(value, expected);
   return copyFrozen(value);
 }

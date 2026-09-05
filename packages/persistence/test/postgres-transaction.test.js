@@ -13,14 +13,14 @@ import {
   startDisposablePostgres,
 } from "./helpers/disposable-postgres.js";
 
-test("foundation migration catalog appends the checksum-bound external tenant ledger at 015", () => {
+test("foundation catalog preserves external tenant015 and appends the checksum-bound corporate016", () => {
   const migrations = listPostgresFoundationMigrations();
-  assert.equal(migrations.at(-2)?.id, "014_docusign_outbox");
+  assert.equal(migrations.at(-3)?.id, "014_docusign_outbox");
   assert.deepEqual(
     {
-      id: migrations.at(-1)?.id,
-      file_name: migrations.at(-1)?.file_name,
-      checksum: migrations.at(-1)?.checksum,
+      id: migrations.at(-2)?.id,
+      file_name: migrations.at(-2)?.file_name,
+      checksum: migrations.at(-2)?.checksum,
     },
     {
       id: "015_external_tenant_provisioning",
@@ -28,6 +28,12 @@ test("foundation migration catalog appends the checksum-bound external tenant le
       checksum: "1fbb647ce8c4f7c2f757f095dc1891d48a437b4558ec26d9e1b9d8938b84674b",
     },
   );
+  assert.deepEqual({ id: migrations.at(-1)?.id, file_name: migrations.at(-1)?.file_name,
+    checksum: migrations.at(-1)?.checksum }, {
+    id: "016_dms_corporate_workspace",
+    file_name: "016_dms_corporate_workspace.sql",
+    checksum: "e9298f3043b168bf74b7d69d92b71c13ed88ebe24324f7be5538502d60ea22f7",
+  });
 });
 
 test("PostgreSQL pool requires verified TLS except for explicit loopback disposable use", () => {

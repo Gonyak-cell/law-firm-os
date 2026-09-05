@@ -62,11 +62,10 @@ import {
   verifyPostgresMigrationState,
 } from "../../../packages/persistence/src/postgres/migration-runner.js";
 import {
-  CLIENT_OPERATIONS_MIGRATION_CATALOG,
-  CLIENT_OPERATIONS_MIGRATION_CATALOG_SHA256,
-  CLIENT_OPERATIONS_SCHEMA_MANIFEST,
   normalizeClientOperationsMigrationCatalog,
+  selectClientOperationsMigrationTarget,
   runClientOperationsPostgresMigrations,
+  verifyClientOperationsMigrationTarget,
   verifyClientOperationsPostgresMigrations,
 } from "./client-operations-schema.js";
 import { createPostgresPool } from "../../../packages/persistence/src/postgres/pool.js";
@@ -279,9 +278,10 @@ function isPreconditionFailed(error) {
 
 function assertClientOperationsPacketCatalogBinding(packet) {
   const packetSha256 = packet?.bindings?.migration_catalog_sha256;
-  if (typeof packetSha256 !== "string"
-    || !SHA256.test(packetSha256)
-    || packetSha256 !== CLIENT_OPERATIONS_MIGRATION_CATALOG_SHA256) {
+  try {
+    if (typeof packetSha256 !== "string" || !SHA256.test(packetSha256)) throw new TypeError();
+    selectClientOperationsMigrationTarget(packetSha256);
+  } catch {
     fail(
       "LAWOS_PROGRAM_MIGRATION_CATALOG",
       "Client operations migration catalog is not bound to the exact packet",
@@ -1250,7 +1250,9 @@ function authoritativeClientOperationsCatalog(verified, { packet } = {}) {
     );
   }
   const entries = suppliedEntries;
-  const expected = CLIENT_OPERATIONS_SCHEMA_MANIFEST.entries;
+  const packetSha256 = assertClientOperationsPacketCatalogBinding(packet);
+  const target = selectClientOperationsMigrationTarget(packetSha256).normalized;
+  const expected = target.ledger_entries;
   if (entries.length !== expected.length) {
     fail(
       "LAWOS_PROGRAM_MIGRATION_CATALOG",
@@ -1279,8 +1281,7 @@ function authoritativeClientOperationsCatalog(verified, { packet } = {}) {
       "verified Client operations migration catalog digest drifted",
     );
   }
-  const packetSha256 = assertClientOperationsPacketCatalogBinding(packet);
-  if (computedSha256 !== CLIENT_OPERATIONS_SCHEMA_MANIFEST.schema_sha256) {
+  if (computedSha256 !== target.ledger_sha256) {
     fail(
       "LAWOS_PROGRAM_MIGRATION_CATALOG",
       "verified Client operations migration catalog is not bound to the schema manifest",
@@ -1301,7 +1302,7 @@ export async function readJsonPostgresProductionSchemaLedger({
   authorize = loadJsonPostgresProgramAuthorization,
   resolveSecret = resolveAwsJsonSecret,
   createPool = createPostgresPool,
-  verifyMigrations = verifyClientOperationsPostgresMigrations,
+  verifyMigrations = verifyClientOperationsMigrationTarget,
 } = {}) {
   if (event.action !== JSON_POSTGRES_PRODUCTION_BOOTSTRAP_ACTION
     || !["preflight", "readback"].includes(event.mode)) {
@@ -1369,7 +1370,9 @@ export async function readJsonPostgresProductionSchemaLedger({
   });
   let verified;
   try {
-    verified = await verifyMigrations(pool);
+    verified = await verifyMigrations(pool, {
+      migrationCatalogSha256: authorization.packet.bindings.migration_catalog_sha256,
+    });
   } finally {
     await pool.end();
   }
@@ -1422,10 +1425,10 @@ export async function bootstrapJsonPostgresProductionDatabase({
   putSecret,
   getSecret,
   createPool = createPostgresPool,
-  verifyMigrations = verifyClientOperationsPostgresMigrations,
+  verifyMigrations = verifyClientOperationsMigrationTarget,
   outlookAuthorityManifestSha256 =
     OUTLOOK_DESKTOP_ASSIGNMENT_AUTHORITY_CATALOG_SHA256,
-  outlookMigrationCatalog = CLIENT_OPERATIONS_MIGRATION_CATALOG,
+  outlookMigrationCatalog,
   normalizeOutlookMigrationCatalog =
     normalizeClientOperationsMigrationCatalog,
   createOutlookMigrationAdapter =
@@ -1477,8 +1480,12 @@ export async function bootstrapJsonPostgresProductionDatabase({
       "Outlook authority commit requires all exact role credential secret ids",
     );
   }
+  const reviewedTarget = selectClientOperationsMigrationTarget(
+    assertClientOperationsPacketCatalogBinding(authorization.packet),
+  );
+  const selectedOutlookMigrationCatalog = outlookMigrationCatalog ?? reviewedTarget.catalog;
   if (!SHA256.test(outlookAuthorityManifestSha256 ?? "")
-    || !outlookMigrationCatalog
+    || !selectedOutlookMigrationCatalog
     || typeof normalizeOutlookMigrationCatalog !== "function"
     || typeof createOutlookMigrationAdapter !== "function"
     || typeof runOutlookAuthorityMigrations !== "function") {
@@ -1489,7 +1496,7 @@ export async function bootstrapJsonPostgresProductionDatabase({
   }
   try {
     normalizedOutlookMigrationCatalog =
-      normalizeOutlookMigrationCatalog(outlookMigrationCatalog);
+      normalizeOutlookMigrationCatalog(selectedOutlookMigrationCatalog);
   } catch {
     fail(
       "LAWOS_OUTLOOK_AUTHORITY_CATALOG",
