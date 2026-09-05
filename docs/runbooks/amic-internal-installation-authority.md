@@ -89,6 +89,17 @@ bridge does not change that client feature or its readiness validation.
 
 ### Exact signed migration targets
 
+For each continuation, read the current RDS target and the five-field protected
+007 bootstrap receipt independently. Include `hashDomainValue(bootstrapReceipt)`
+as `target.historical_outlook_bootstrap_sha256` in the current signed W13 packet.
+The new RDS receipt must be fresh at approval and execution; the historical
+receipt remains immutable and does not authorize a new execution. The v4
+operation binding covers both values. Only the exact authority80 and combined81
+targets accept this pin, and a missing or mismatched pin rejects a changed
+target receipt before DDL. The v3 run receipt records the current target hash
+and the complete historical bootstrap receipt separately. Do not replace the
+protected 007 row or reuse an expired approval to make those hashes equal.
+
 The protected entry remains `bootstrapJsonPostgresProductionDatabase` in
 `apps/api/src/json-postgres-program-admin-lambda.js`, with action
 `lawos-json-postgres-production-bootstrap` and mode `commit`. There is no

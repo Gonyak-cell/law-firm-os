@@ -1,7 +1,9 @@
 import { hashDomainValue } from "../domain-ledger.js";
+import { normalizeOutlookAuthorityMigrationPauseExpectation } from "./outlook-authority-migration-seam.js";
 
 const RUN_SCHEMA = "lawos.outlook-authority-migration-run-receipt.v1";
 const HISTORICAL_RUN_SCHEMA = "lawos.outlook-authority-migration-run-receipt.v2";
+const CURRENT_TARGET_RUN_SCHEMA = "lawos.outlook-authority-migration-run-receipt.v3";
 const INTERNAL_INSTALLATION_HISTORICAL_CATALOG_SHA256 =
   "43c6a087834d9dd2177be0b63fc94cf723181b93b04f40a65689b6431bd44556";
 const INTERNAL_INSTALLATION_CATALOG_SHA256 =
@@ -55,6 +57,7 @@ function digestOrNull(value) {
 function exactExpected(value, expected = {}, { exactCatalog = false } = {}) {
   const keys = ["authority_manifest_sha256", "database_name",
     "database_target_receipt_sha256",
+    "historical_outlook_bootstrap_sha256",
     "migration_catalog", "migration_catalog_sha256", "role_bootstrap_sha256",
     "session_user"];
   if (!expected || typeof expected !== "object" || Array.isArray(expected)
@@ -65,6 +68,7 @@ function exactExpected(value, expected = {}, { exactCatalog = false } = {}) {
     ["authority_manifest_sha256", value.authority_manifest_sha256],
     ["database_target_receipt_sha256",
       value.database_target_receipt_sha256],
+    ["historical_outlook_bootstrap_sha256", value.historical_outlook_bootstrap_sha256],
     ["migration_catalog_sha256", value.migration_catalog_sha256],
     ["role_bootstrap_sha256", value.role_bootstrap_sha256],
     ["database_name", value.database?.name],
@@ -175,10 +179,21 @@ function assertMigrationRows(migrations, { corporateWorkspaceGap = false } = {})
 }
 
 export function assertOutlookAuthorityMigrationRunReceipt(value, expected) {
-  const historical = value?.schema_version === HISTORICAL_RUN_SCHEMA;
-  exactRecord(value, historical
-    ? [...RUN_KEYS, "historical_migration_catalog_sha256"] : RUN_KEYS,
+  const currentTarget = value?.schema_version === CURRENT_TARGET_RUN_SCHEMA;
+  const historical = currentTarget || value?.schema_version === HISTORICAL_RUN_SCHEMA;
+  exactRecord(value, [...RUN_KEYS,
+    ...(historical ? ["historical_migration_catalog_sha256"] : []),
+    ...(currentTarget ? ["historical_outlook_bootstrap_receipt", "historical_outlook_bootstrap_sha256"] : [])],
   "Outlook authority migration run receipt");
+  if (currentTarget) {
+    const bootstrap = normalizeOutlookAuthorityMigrationPauseExpectation(value.historical_outlook_bootstrap_receipt);
+    if (hashDomainValue(bootstrap) !== value.historical_outlook_bootstrap_sha256
+        || bootstrap.role_bootstrap_sha256 !== value.role_bootstrap_sha256
+        || bootstrap.authority_manifest_sha256 !== value.authority_manifest_sha256
+        || bootstrap.migration_catalog_sha256 !== value.historical_migration_catalog_sha256) {
+      throw new TypeError("Outlook authority historical bootstrap receipt is unbound");
+    }
+  }
   exactRecord(value.database, ["name", "oid"], "Outlook authority database");
   const { migration_run_receipt_sha256: receiptSha, ...material } = value;
   const committed = value.outcome === "committed";
@@ -336,11 +351,20 @@ export function assertOutlookAuthorityMigrationFailureReceipt(value, expected) {
 export function createOutlookAuthorityMigrationRunReceipt({
   identity, migrations, progress, pauseExpectation, postflight,
   migrationCatalogSha256 = pauseExpectation.migration_catalog_sha256,
+  databaseTargetReceiptSha256 = pauseExpectation.database_target_receipt_sha256,
+  historicalOutlookBootstrapSha256,
 }) {
   const historical = migrationCatalogSha256 !==
     pauseExpectation.migration_catalog_sha256;
+  const currentTarget = historicalOutlookBootstrapSha256 !== undefined;
+  if ((currentTarget && (!historical
+        || hashDomainValue(normalizeOutlookAuthorityMigrationPauseExpectation(pauseExpectation))
+          !== historicalOutlookBootstrapSha256))
+      || (!currentTarget && databaseTargetReceiptSha256 !== pauseExpectation.database_target_receipt_sha256)) {
+    throw new TypeError("Outlook authority current target requires the signed historical bootstrap receipt");
+  }
   const material = {
-    schema_version: historical ? HISTORICAL_RUN_SCHEMA : RUN_SCHEMA,
+    schema_version: currentTarget ? CURRENT_TARGET_RUN_SCHEMA : historical ? HISTORICAL_RUN_SCHEMA : RUN_SCHEMA,
     outcome: progress.outlook_authority_replay_verified
       ? progress.migration_applied_count === 0 ? "verified" : "appended"
       : "committed",
@@ -358,11 +382,14 @@ export function createOutlookAuthorityMigrationRunReceipt({
     role_bootstrap_sha256: pauseExpectation.role_bootstrap_sha256,
     postflight_role_bootstrap_sha256: postflight.role_bootstrap_sha256,
     authority_manifest_sha256: pauseExpectation.authority_manifest_sha256,
-    database_target_receipt_sha256:
-      pauseExpectation.database_target_receipt_sha256,
+    database_target_receipt_sha256: databaseTargetReceiptSha256,
     migration_catalog_sha256: migrationCatalogSha256,
     ...(historical ? { historical_migration_catalog_sha256:
       pauseExpectation.migration_catalog_sha256 } : {}),
+    ...(currentTarget ? {
+      historical_outlook_bootstrap_receipt: pauseExpectation,
+      historical_outlook_bootstrap_sha256: historicalOutlookBootstrapSha256,
+    } : {}),
     authority_postflight_sha256: postflight.authority_postflight_sha256,
     outlook_assignment_transaction_committed:
       progress.outlook_assignment_transaction_committed,

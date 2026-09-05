@@ -20,6 +20,7 @@ import {
 import {
   JSON_POSTGRES_INVENTORY_DELTA_POLICY_SHA256,
 } from "../../packages/persistence/src/postgres/source-authority-manifest.js";
+import { databaseTargetReceipt, databaseTargetReceiptSha256 } from "../../apps/api/test/json-postgres-outlook-authority-fixtures.js";
 
 const SOURCE_SHA = "a".repeat(40);
 const SOURCE_TREE = "b".repeat(40);
@@ -141,6 +142,33 @@ function packet(phase = "w12-real-data-rehearsal") {
     },
   };
 }
+
+test("historical Outlook bootstrap pin is a closed W13 target field requiring a current RDS receipt", () => {
+  const value = packet("w13-production-cutover");
+  const receipt = databaseTargetReceipt();
+  Object.assign(value.target, {
+    historical_outlook_bootstrap_sha256: DIGEST,
+    database_target_receipt: receipt,
+    database_target_receipt_sha256: databaseTargetReceiptSha256(receipt),
+    database_secret_ref: receipt.master_secret_arn,
+    program_input_kms_key_ref: receipt.master_secret_kms_key_arn,
+  });
+  assert.doesNotThrow(() => validateJsonPostgresExecutionPacket(value));
+  for (const pin of [null, true, "", "bad"]) {
+    const invalid = structuredClone(value);
+    invalid.target.historical_outlook_bootstrap_sha256 = pin;
+    assert.throws(() => validateJsonPostgresExecutionPacket(invalid));
+  }
+  const missingTarget = structuredClone(value);
+  delete missingTarget.target.database_target_receipt;
+  delete missingTarget.target.database_target_receipt_sha256;
+  assert.throws(() => validateJsonPostgresExecutionPacket(missingTarget));
+  for (const phase of ["w12-real-data-rehearsal", "w15-relational-projection"]) {
+    const invalid = packet(phase);
+    invalid.target.historical_outlook_bootstrap_sha256 = DIGEST;
+    assert.throws(() => validateJsonPostgresExecutionPacket(invalid));
+  }
+});
 
 function signedApproval(value) {
   const root = mkdtempSync(join(tmpdir(), "lawos-json-postgres-execution-approval-"));

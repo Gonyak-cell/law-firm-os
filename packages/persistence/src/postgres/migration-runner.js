@@ -128,6 +128,7 @@ export async function runPostgresMigrations(pool, {
   allowedHistoricalGapIds = [],
   authorityManifestSha256,
   databaseTargetReceiptSha256,
+  historicalOutlookBootstrapSha256,
   migrationCatalogSha256,
   onBeforeMigrations,
   onOutlookAuthorityPaused,
@@ -167,6 +168,11 @@ export async function runPostgresMigrations(pool, {
   const reviewedInternalAppend = isReviewedInternalInstallationAppend(callbackCatalog);
   const reviewedCorporateAppend = isReviewedCorporateWorkspaceAppend(callbackCatalog);
   const reviewedAuthorityTarget = reviewedInternalAppend || reviewedCorporateAppend;
+  if (historicalOutlookBootstrapSha256 !== undefined
+      && (!/^[a-f0-9]{64}$/u.test(historicalOutlookBootstrapSha256)
+        || !reviewedAuthorityTarget || !authorityCallbacksEnabled)) {
+    throw new TypeError("Historical Outlook bootstrap requires the exact reviewed authority transition");
+  }
   const internalAuthorityPresent = callbackCatalog.some((migration) =>
     migration.id === "309_client_internal_unsigned_installation_authority"
       || migration.id === "010_internal_unsigned_installation_authority"
@@ -311,8 +317,11 @@ export async function runPostgresMigrations(pool, {
         );
       if (authorityPauseExpectation.authority_manifest_sha256 !==
             authorityManifestSha256
-          || authorityPauseExpectation.database_target_receipt_sha256 !==
-            databaseTargetReceiptSha256
+          || (historicalOutlookBootstrapSha256 !== undefined
+            ? hashDomainValue(authorityPauseExpectation) !== historicalOutlookBootstrapSha256
+              || authorityPauseExpectation.migration_catalog_sha256 !==
+                INTERNAL_INSTALLATION_HISTORICAL_CATALOG_SHA256
+            : authorityPauseExpectation.database_target_receipt_sha256 !== databaseTargetReceiptSha256)
           || (authorityPauseExpectation.migration_catalog_sha256 !==
             migrationCatalogSha256 && !(reviewedAppend
               && authorityPauseExpectation.migration_catalog_sha256 ===
@@ -337,7 +346,7 @@ export async function runPostgresMigrations(pool, {
         await client.query("ROLLBACK").catch(() => {});
         throw error;
       }
-    } else if (beforeMigrationsResult !== undefined) {
+    } else if (beforeMigrationsResult !== undefined || historicalOutlookBootstrapSha256 !== undefined) {
       throw new TypeError(
         "Outlook authority pending migration preflight must not return a replay receipt",
       );
@@ -467,6 +476,8 @@ export async function runPostgresMigrations(pool, {
         pauseExpectation: authorityPauseExpectation,
         postflight: authorityPostflight,
         migrationCatalogSha256,
+        databaseTargetReceiptSha256,
+        historicalOutlookBootstrapSha256,
       })
       : Object.freeze(results);
   } catch (error) {

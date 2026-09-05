@@ -816,12 +816,15 @@ function assertOutlookMigrationAdapter(value, expected) {
       "migrationCatalogSha256", "onBeforeMigrations",
       "onOutlookAuthorityPaused", "onOutlookAuthorityPostMigration",
       "onInternalUnsignedInstallationAuthorityPostMigration",
+      ...(expected.historicalOutlookBootstrapSha256 === undefined
+        ? [] : ["historicalOutlookBootstrapSha256"]),
     ])
     || !Object.isFrozen(runner)
     || runner.authorityManifestSha256 !== expected.authorityManifestSha256
     || runner.databaseTargetReceiptSha256
       !== expected.databaseTargetReceiptSha256
     || runner.migrationCatalogSha256 !== expected.migrationCatalogSha256
+    || runner.historicalOutlookBootstrapSha256 !== expected.historicalOutlookBootstrapSha256
     || [runner.onBeforeMigrations, runner.onOutlookAuthorityPaused,
       runner.onOutlookAuthorityPostMigration,
       runner.onInternalUnsignedInstallationAuthorityPostMigration, value.normalizeRunReceipt,
@@ -863,6 +866,7 @@ function assertOutlookMigrationRunSummary(value, {
   authorityManifestSha256,
   databaseTargetReceiptSha256,
   migrationCatalogSha256,
+  historicalOutlookBootstrapSha256,
 } = {}) {
   const readiness = assertOutlookRoleReadiness(
     roleBootstrap,
@@ -875,6 +879,7 @@ function assertOutlookMigrationRunSummary(value, {
       authority_manifest_sha256: authorityManifestSha256,
       database_target_receipt_sha256: databaseTargetReceiptSha256,
       migration_catalog_sha256: migrationCatalogSha256,
+      historical_outlook_bootstrap_sha256: historicalOutlookBootstrapSha256,
       role_bootstrap_sha256: readiness.role_bootstrap_sha256,
     });
   } catch {
@@ -1744,8 +1749,13 @@ export async function bootstrapJsonPostgresProductionDatabase({
       );
     }
     tenantContextBuffer = Buffer.from(tenantContextSecret, "utf8");
+    const historicalBootstrapOptions = Object.hasOwn(authorization.packet.target,
+      "historical_outlook_bootstrap_sha256") ? {
+        historicalOutlookBootstrapSha256: authorization.packet.target.historical_outlook_bootstrap_sha256,
+      } : {};
     migrationAdapter = assertOutlookMigrationAdapter(
       createOutlookMigrationAdapter({
+        ...historicalBootstrapOptions,
         approvedTenantIds,
         controlPassword: outlookControlSecret.password,
         assignmentPassword: outlookAssignmentSecret.password,
@@ -1758,6 +1768,7 @@ export async function bootstrapJsonPostgresProductionDatabase({
         migrationCatalogSha256,
       }),
       {
+        ...historicalBootstrapOptions,
         authorityManifestSha256: outlookAuthorityManifestSha256,
         databaseTargetReceiptSha256:
           authorization.database_target_receipt_sha256,
@@ -1791,6 +1802,7 @@ export async function bootstrapJsonPostgresProductionDatabase({
     migrationRun = assertOutlookMigrationRunSummary(
       migrationAdapter.normalizeRunReceipt(rawMigrationRun),
       {
+        ...historicalBootstrapOptions,
         roleBootstrap,
         approvedTenantIds,
         authorityManifestSha256: outlookAuthorityManifestSha256,

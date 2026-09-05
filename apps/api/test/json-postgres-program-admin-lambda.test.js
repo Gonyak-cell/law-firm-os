@@ -1952,11 +1952,11 @@ test("Outlook commit delegates only canonical adapter runner options and zeroize
   assert.ok(adapterInput.tenantContextSecret.every((byte) => byte === 0));
 });
 
-function retainedOutlookRun(harness, mode) {
+function retainedOutlookRun(harness, mode, freshTarget = false) {
   const applied = mode === "appended" ? 1 : 0;
   const pauseExpectation = outlookPauseExpectation({
     authorityCatalogSha256: harness.authorityCatalog.catalog_sha256,
-    databaseTargetReceiptSha256: harness.authorization.database_target_receipt_sha256,
+    databaseTargetReceiptSha256: freshTarget ? "d".repeat(64) : harness.authorization.database_target_receipt_sha256,
     migrationCatalogSha256:
       "43c6a087834d9dd2177be0b63fc94cf723181b93b04f40a65689b6431bd44556",
     roleBootstrapSha256: harness.readiness.role_bootstrap_sha256,
@@ -1976,17 +1976,22 @@ function retainedOutlookRun(harness, mode) {
       outlook_assignment_transaction_committed: false,
     },
     pauseExpectation,
+    ...(freshTarget ? {
+      databaseTargetReceiptSha256: harness.authorization.database_target_receipt_sha256,
+      historicalOutlookBootstrapSha256: hashDomainValue(pauseExpectation),
+    } : {}),
     migrationCatalogSha256: harness.migrationCatalog.catalog_sha256,
     postflight: { role_bootstrap_sha256: harness.readiness.role_bootstrap_sha256,
       authority_postflight_sha256: "a".repeat(64) },
   });
 }
 
-function retainedOutlookHarness(mode, { forge = null, postflightFailure = false } = {}) {
+function retainedOutlookHarness(mode, { forge = null, postflightFailure = false, freshTarget = false } = {}) {
   const harness = syntheticFreshOutlookHarness({
     migrationCatalogSha256: CLIENT_OPERATIONS_MIGRATION_CATALOG_SHA256,
   });
-  const receipt = retainedOutlookRun(harness, mode);
+  const receipt = retainedOutlookRun(harness, mode, freshTarget);
+  if (freshTarget) harness.authorization.packet.target.historical_outlook_bootstrap_sha256 = receipt.historical_outlook_bootstrap_sha256;
   const failure = Object.assign(new Error("synthetic internal installation postflight drift"), {
     code: "LAWOS_OUTLOOK_MIGRATION_RUN_DRIFT",
   });
@@ -2021,6 +2026,7 @@ function retainedOutlookHarness(mode, { forge = null, postflightFailure = false 
         authorityManifestSha256: input.authorityManifestSha256,
         databaseTargetReceiptSha256: input.databaseTargetReceiptSha256,
         migrationCatalogSha256: input.migrationCatalogSha256,
+        ...(freshTarget ? { historicalOutlookBootstrapSha256: input.historicalOutlookBootstrapSha256 } : {}),
         onBeforeMigrations: async () => {},
         onOutlookAuthorityPaused: async () => assert.fail("retained roles must not be configured"),
         onOutlookAuthorityPostMigration: async () => assert.fail("007 must not run again"),
@@ -2074,6 +2080,38 @@ for (const mode of ["appended", "verified"]) {
     assert.ok(harness.inputBuffer().every((byte) => byte === 0));
   });
 }
+
+for (const mode of ["appended", "verified"]) {
+  test(`Outlook ${mode} continuation propagates the signed historical pin and records the fresh target`, async () => {
+    const harness = retainedOutlookHarness(mode, { freshTarget: true });
+    const result = await bootstrapJsonPostgresProductionDatabase(harness.options);
+    assert.equal(result.outcome, "PASS");
+    assert.deepEqual(harness.secretWrites, []);
+    const receipt = harness.terminalWrites[0].postgres_receipt.receipt;
+    assert.equal(receipt.schema_version, "lawos.outlook-authority-migration-run-receipt.v3");
+    assert.equal(receipt.database_target_receipt_sha256, harness.authorization.database_target_receipt_sha256);
+    assert.equal(receipt.historical_outlook_bootstrap_sha256, harness.authorization.packet.target.historical_outlook_bootstrap_sha256);
+    assert.notEqual(receipt.historical_outlook_bootstrap_receipt.database_target_receipt_sha256, receipt.database_target_receipt_sha256);
+    assert.ok(harness.inputBuffer().every((byte) => byte === 0));
+  });
+}
+
+test("Outlook continuation rejects a dropped or substituted adapter bootstrap pin before connecting", async () => {
+  for (const drop of [false, true]) {
+    const harness = retainedOutlookHarness("appended", { freshTarget: true });
+    const factory = harness.options.createOutlookMigrationAdapter;
+    harness.options.createOutlookMigrationAdapter = (input) => {
+      const adapter = factory(input);
+      const runner = { ...adapter.runnerOptions, historicalOutlookBootstrapSha256: "f".repeat(64) };
+      if (drop) delete runner.historicalOutlookBootstrapSha256;
+      return Object.freeze({ ...adapter, runnerOptions: Object.freeze(runner) });
+    };
+    await assert.rejects(bootstrapJsonPostgresProductionDatabase(harness.options), { code: "LAWOS_OUTLOOK_MIGRATION_RUN_DRIFT" });
+    assert.equal(harness.poolOptions(), undefined);
+    assert.deepEqual(harness.secretWrites, []);
+    assert.ok(harness.inputBuffer().every((byte) => byte === 0));
+  }
+});
 
 test("Outlook appended migration rejects rehashed forged role, mutation, and applied counters before secret writes", async () => {
   for (const forge of [

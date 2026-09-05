@@ -9,7 +9,7 @@ import { createPostgresPool } from "../../../packages/persistence/src/postgres/p
 import { startDisposablePostgres } from "../../../packages/persistence/test/helpers/disposable-postgres.js";
 import { configureLawosOutlookDatabaseRoles, verifyLawosOutlookApplicationRolePrecondition } from "../../../packages/persistence/src/postgres/outlook-authority-roles.js";
 import { OUTLOOK_DESKTOP_ASSIGNMENT_AUTHORITY_CATALOG as AUTHORITY, OUTLOOK_DESKTOP_ASSIGNMENT_AUTHORITY_CATALOG_SHA256 } from "../../../packages/email-dms/src/outlook-desktop-assignment-authority-catalog.js";
-import { createOutlookAssignmentMigrationPauseExpectation } from "../../../packages/email-dms/src/outlook-desktop-assignment-bootstrap-authority.js";
+import { createOutlookAssignmentMigrationPauseExpectation, readOutlookAssignmentMigrationPauseExpectation } from "../../../packages/email-dms/src/outlook-desktop-assignment-bootstrap-authority.js";
 import { verifyOutlookAssignmentMigrationPreflight } from "../../../packages/email-dms/src/outlook-desktop-assignment-authority-readback.js";
 import { verifyOutlookAssignmentMigrationPostflight } from "../../../packages/email-dms/src/outlook-desktop-assignment-migration-postflight.js";
 import { INTERNAL_UNSIGNED_INSTALLATION_SECURITY_DEFINER_FUNCTIONS } from "../../../packages/email-dms/src/internal-unsigned-installation-authority-catalog.js";
@@ -125,8 +125,8 @@ async function historicalFixture(t) {
     control: poolFor("lawos_outlook_control_operator", "lawos", "control-operator-password") };
 }
 
-async function migrate(state, catalogSha) {
-  const adapter = createJsonPostgresOutlookAuthorityMigrationAdapter(adapterOptions(catalogSha));
+async function migrate(state, catalogSha, options = {}) {
+  const adapter = createJsonPostgresOutlookAuthorityMigrationAdapter({ ...adapterOptions(catalogSha), ...options });
   try {
     const result = await runClientOperationsPostgresMigrations(state.admin, {
       appliedBy: `transition-target-${catalogSha.slice(0, 8)}`, ...adapter.runnerOptions,
@@ -287,6 +287,37 @@ async function assertRevokedDisabled(state, service, legacy, client, installatio
   assert.deepEqual(legacy.fallback, { register: 0, heartbeat: 0, retire: 0, read: 0 });
   assert.deepEqual(await installationRows(state), before);
 }
+
+test("fresh target receipts require the signed immutable bootstrap pin for each actual 79 to 80 to 81 transition", async (t) => {
+  const state = await historicalFixture(t);
+  assert.ok(state, "actual temporary PostgreSQL is required");
+  const before = await schemaSnapshot(state);
+  const bootstrap = await readOutlookAssignmentMigrationPauseExpectation(state.admin);
+  const pin = hashDomainValue(bootstrap);
+  for (const [catalog, label] of [[AUTHORITY_SHA, "fresh80"], [COMBINED_SHA, "fresh81"]]) {
+    const snapshot = await schemaSnapshot(state);
+    const options = { databaseTargetReceiptSha256: digest(label) };
+    await assert.rejects(migrate(state, catalog, options));
+    await assert.rejects(migrate(state, catalog, { ...options,
+      historicalOutlookBootstrapSha256: digest("wrong bootstrap") }));
+    assert.deepEqual(await schemaSnapshot(state), snapshot);
+    const approved = { ...options, historicalOutlookBootstrapSha256: pin };
+    const receipt = await migrate(state, catalog, approved);
+    assert.equal(receipt.schema_version, "lawos.outlook-authority-migration-run-receipt.v3");
+    assert.equal(receipt.database_target_receipt_sha256, options.databaseTargetReceiptSha256);
+    assert.equal(receipt.historical_outlook_bootstrap_sha256, pin);
+    assert.deepEqual(receipt.historical_outlook_bootstrap_receipt, bootstrap);
+    assert.equal(receipt.historical_outlook_bootstrap_receipt.database_target_receipt_sha256, TARGET_SHA);
+    assert.equal(receipt.migration_applied_count, 1);
+    assert.equal(receipt.role_configuration_transaction_committed_count, 0);
+    assert.deepEqual((await schemaSnapshot(state)).bootstrap, before.bootstrap);
+    const replay = await migrate(state, catalog, { ...approved,
+      databaseTargetReceiptSha256: digest(`${label} replay`) });
+    assert.equal(replay.postgres_mutation_committed_count, 0);
+    assert.equal(replay.database_target_receipt_sha256, digest(`${label} replay`));
+    assert.deepEqual((await schemaSnapshot(state)).bootstrap, before.bootstrap);
+  }
+});
 
 test("actual historical79 applies only 309 then only 016 while config-off revoked legacy authority stays closed", async (t) => {
   const state = await historicalFixture(t);

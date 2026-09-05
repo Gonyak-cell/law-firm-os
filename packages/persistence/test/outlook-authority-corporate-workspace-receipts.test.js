@@ -97,6 +97,33 @@ test("reviewed receipt pins match the exact source catalogs", () => {
     "29530ec602b720deeb1e26625c85a3dcc1268e2bfc116b6b86bfada761cb38a7");
 });
 
+test("current target receipt carries the complete immutable bootstrap and rejects re-signed historical drift", () => {
+  const request = input();
+  request.pauseExpectation.schema_version = "lawos.outlook-authority-role-bootstrap-receipt.v1";
+  request.databaseTargetReceiptSha256 = "e".repeat(64);
+  const pin = hashDomainValue(request.pauseExpectation);
+  assert.throws(() => createOutlookAuthorityMigrationRunReceipt(request));
+  request.historicalOutlookBootstrapSha256 = pin;
+  const receipt = createOutlookAuthorityMigrationRunReceipt(request);
+  assert.equal(receipt.database_target_receipt_sha256, request.databaseTargetReceiptSha256);
+  assert.equal(receipt.historical_outlook_bootstrap_receipt.database_target_receipt_sha256, SHA_C);
+  assert.deepEqual(assertOutlookAuthorityMigrationRunReceipt(receipt, {
+    historical_outlook_bootstrap_sha256: pin,
+    database_target_receipt_sha256: request.databaseTargetReceiptSha256,
+  }), receipt);
+  for (const key of Object.keys(request.pauseExpectation)) {
+    const changed = structuredClone(receipt);
+    changed.historical_outlook_bootstrap_receipt[key] = "f".repeat(64);
+    assert.throws(() => assertOutlookAuthorityMigrationRunReceipt(resign(changed, "migration_run_receipt_sha256")));
+  }
+  const changed = structuredClone(receipt);
+  changed.historical_outlook_bootstrap_receipt.database_target_receipt_sha256 = SHA_D;
+  changed.historical_outlook_bootstrap_sha256 = hashDomainValue(changed.historical_outlook_bootstrap_receipt);
+  assert.throws(() => assertOutlookAuthorityMigrationRunReceipt(resign(changed, "migration_run_receipt_sha256"), {
+    historical_outlook_bootstrap_sha256: pin,
+  }), /expectation mismatch/u);
+});
+
 for (const target of [AUTHORITY_80, COMBINED_81]) {
   for (const origin of [HISTORICAL_79, target]) {
     for (const replay of [false, true]) {
