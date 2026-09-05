@@ -245,7 +245,7 @@ test("frozen combined prefix upgrades existing 001-014 plus 100/200/300 history 
   assert.equal(replay.every(({ applied }) => !applied), true);
 });
 
-test("client migration wrapper rejects holes outside exact foundation 012-015 allowlist", async (t) => {
+test("client migration wrapper rejects holes outside the explicit historical allowlist", async (t) => {
   const catalog = listClientOperationsPostgresMigrations();
   const hrxStart = catalog.findIndex(({ id }) => id.startsWith("100_"));
   const clientStart = catalog.findIndex(({ id }) => id === "300_client_m365_connection");

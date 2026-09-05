@@ -319,6 +319,7 @@ export function runClientOperationsPostgresMigrations(
       "013_dms_precedent_search",
       "014_docusign_outbox",
       "015_external_tenant_provisioning",
+      "149_hrx_049_hrx_directory_authority",
     ],
   });
 }
