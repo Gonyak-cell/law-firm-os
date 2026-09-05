@@ -100,6 +100,15 @@ target receipt before DDL. The v3 run receipt records the current target hash
 and the complete historical bootstrap receipt separately. Do not replace the
 protected 007 row or reuse an expired approval to make those hashes equal.
 
+The initial 007 receipt may predate the current 79-row catalog. Its original
+catalog hash is preserved as provenance inside the complete signed bootstrap
+pin. This pin does not replace the separate check of every current ledger row:
+the authority transition still requires exactly 79 or 80 rows, and the corporate
+transition requires exactly 80 or 81 rows. A continuation cannot skip directly
+from 79 to 81. Receipts without the complete signed bootstrap pin retain their
+existing historical79 restriction; another original catalog is not accepted
+through that legacy path.
+
 Use the same protected action with a fresh owner-signed `preflight` or `readback`
 packet bound to the exact observed 79, 80, or 81 catalog to obtain
 `historical_outlook_bootstrap_receipt` and `historical_outlook_bootstrap_sha256`.

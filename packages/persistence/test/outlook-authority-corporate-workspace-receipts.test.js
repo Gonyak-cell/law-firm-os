@@ -125,6 +125,33 @@ test("current target receipt carries the complete immutable bootstrap and reject
 });
 
 for (const target of [AUTHORITY_80, COMBINED_81]) {
+  for (const replay of [false, true]) {
+    test(`signed earlier bootstrap preserves its original catalog for ${target.slice(0, 8)}, replay=${replay}`, () => {
+      const request = input({ target, origin: SHA_D, replay });
+      request.pauseExpectation.schema_version = "lawos.outlook-authority-role-bootstrap-receipt.v1";
+      request.databaseTargetReceiptSha256 = "e".repeat(64);
+      assert.throws(() => createOutlookAuthorityMigrationRunReceipt(request));
+      const pin = hashDomainValue(request.pauseExpectation);
+      request.historicalOutlookBootstrapSha256 = pin;
+      const receipt = createOutlookAuthorityMigrationRunReceipt(request);
+      assert.equal(receipt.schema_version, "lawos.outlook-authority-migration-run-receipt.v3");
+      assert.equal(receipt.historical_migration_catalog_sha256, SHA_D);
+      assert.deepEqual(receipt.historical_outlook_bootstrap_receipt, request.pauseExpectation);
+      assertOutlookAuthorityMigrationRunReceipt(receipt, { historical_outlook_bootstrap_sha256: pin });
+      const forged = structuredClone(receipt);
+      forged.historical_outlook_bootstrap_receipt.migration_catalog_sha256 = SHA_A;
+      forged.historical_migration_catalog_sha256 = SHA_A;
+      assert.throws(() => assertOutlookAuthorityMigrationRunReceipt(resign(forged, "migration_run_receipt_sha256")));
+      forged.historical_outlook_bootstrap_sha256 = hashDomainValue(forged.historical_outlook_bootstrap_receipt);
+      assert.throws(() => assertOutlookAuthorityMigrationRunReceipt(resign(forged, "migration_run_receipt_sha256"), {
+        historical_outlook_bootstrap_sha256: pin,
+      }), /expectation mismatch/u);
+      assert.throws(() => runReceipt({ target, origin: SHA_D, replay }), /invalid/u);
+    });
+  }
+}
+
+for (const target of [AUTHORITY_80, COMBINED_81]) {
   for (const origin of [HISTORICAL_79, target]) {
     for (const replay of [false, true]) {
       test(`exact ${target === AUTHORITY_80 ? 80 : 81} receipt origin ${origin.slice(0, 8)} replay=${replay}`, () => {

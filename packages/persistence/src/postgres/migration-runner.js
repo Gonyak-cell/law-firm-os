@@ -315,17 +315,17 @@ export async function runPostgresMigrations(pool, {
         normalizeOutlookAuthorityMigrationPauseExpectation(
           beforeMigrationsResult,
         );
+      // The signed bootstrap pins its original catalog; the current ledger was verified separately.
       if (authorityPauseExpectation.authority_manifest_sha256 !==
             authorityManifestSha256
           || (historicalOutlookBootstrapSha256 !== undefined
             ? hashDomainValue(authorityPauseExpectation) !== historicalOutlookBootstrapSha256
-              || authorityPauseExpectation.migration_catalog_sha256 !==
-                INTERNAL_INSTALLATION_HISTORICAL_CATALOG_SHA256
-            : authorityPauseExpectation.database_target_receipt_sha256 !== databaseTargetReceiptSha256)
-          || (authorityPauseExpectation.migration_catalog_sha256 !==
-            migrationCatalogSha256 && !(reviewedAppend
-              && authorityPauseExpectation.migration_catalog_sha256 ===
-                INTERNAL_INSTALLATION_HISTORICAL_CATALOG_SHA256))) {
+              || authorityPauseExpectation.migration_catalog_sha256 === migrationCatalogSha256
+            : authorityPauseExpectation.database_target_receipt_sha256 !== databaseTargetReceiptSha256
+              || (authorityPauseExpectation.migration_catalog_sha256 !==
+                migrationCatalogSha256 && !(reviewedAppend
+                  && authorityPauseExpectation.migration_catalog_sha256 ===
+                    INTERNAL_INSTALLATION_HISTORICAL_CATALOG_SHA256)))) {
         throw new TypeError("Outlook authority signed digest mismatch");
       }
       progress.migration_phase = "outlook_authority_replay";

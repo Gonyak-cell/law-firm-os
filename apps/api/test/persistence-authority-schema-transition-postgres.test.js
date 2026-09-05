@@ -15,7 +15,7 @@ import { verifyOutlookAssignmentMigrationPostflight } from "../../../packages/em
 import { INTERNAL_UNSIGNED_INSTALLATION_SECURITY_DEFINER_FUNCTIONS } from "../../../packages/email-dms/src/internal-unsigned-installation-authority-catalog.js";
 import { signOutlookDesktopLifecycleRequest } from "../../../packages/email-dms/src/outlook-desktop-installation-proof.js";
 import { roleDatabaseNow, roleJsonCall } from "../../../packages/email-dms/test/support/postgres-outlook-desktop-assignment-authority-fixture.js";
-import { listClientOperationsPostgresMigrations, runClientOperationsPostgresMigrations } from "../src/client-operations-schema.js";
+import { listClientOperationsPostgresMigrations, runClientOperationsPostgresMigrations, selectClientOperationsMigrationReadback } from "../src/client-operations-schema.js";
 import { createJsonPostgresOutlookAuthorityMigrationAdapter } from "../src/json-postgres-outlook-authority-migration-adapter.js";
 import { createInternalUnsignedInstallationRuntimeFromEnv, composeInternalUnsignedInstallationRuntime } from "../src/internal-unsigned-installation-runtime-context.js";
 import { createPostgresOutlookDesktopOperationalRuntime } from "../src/outlook-desktop-operational-runtime.js";
@@ -44,7 +44,7 @@ function adapterOptions(migrationCatalogSha256) {
   };
 }
 
-async function historicalFixture(t) {
+async function historicalFixture(t, { bootstrapAtAssignment = false } = {}) {
   const instance = await startDisposablePostgres(t, { registerCleanup: false });
   if (!instance) return null;
   const pools = [];
@@ -79,15 +79,22 @@ async function historicalFixture(t) {
     (database_role,tenant_id,context_secret,synthetic_wildcard,active)
     VALUES ('lawos_app',$1,$2,false,true)`, [TENANT, Buffer.alloc(48, 7)]);
   await bootstrap.query("ALTER DATABASE lawos SET lawos.environment = 'synthetic-test'");
-  const input = adapterOptions(HISTORICAL_SHA);
+  const initialMigrations = bootstrapAtAssignment
+    ? historical.filter(({ id }) => id <= "306_client_outlook_desktop_assignment") : historical;
+  const currentCatalog = selectClientOperationsMigrationReadback(HISTORICAL_SHA).catalog;
+  const initialCatalogSha = hashDomainValue({ ...currentCatalog,
+    migration_count: initialMigrations.length,
+    migrations: currentCatalog.migrations.filter(({ id }) => initialMigrations.some((m) => m.id === id)),
+  });
+  const input = adapterOptions(initialCatalogSha);
   let preflight;
   let applicationRole;
   let pause;
   try {
     await runPostgresMigrations(admin, {
-      migrations: historical, appliedBy: "transition-actual-historical79",
+      migrations: initialMigrations, appliedBy: "transition-actual-initial-bootstrap",
       authorityManifestSha256: input.authorityManifestSha256,
-      databaseTargetReceiptSha256: TARGET_SHA, migrationCatalogSha256: HISTORICAL_SHA,
+      databaseTargetReceiptSha256: TARGET_SHA, migrationCatalogSha256: initialCatalogSha,
       async onBeforeMigrations(client) {
         preflight = await verifyOutlookAssignmentMigrationPreflight(client, {
           authority_catalog: AUTHORITY, phase: "pre_migration",
@@ -111,7 +118,7 @@ async function historicalFixture(t) {
         pause = createOutlookAssignmentMigrationPauseExpectation({
           role_bootstrap_sha256: readiness.role_bootstrap_sha256,
           authority_manifest_sha256: input.authorityManifestSha256,
-          database_target_receipt_sha256: TARGET_SHA, migration_catalog_sha256: HISTORICAL_SHA,
+          database_target_receipt_sha256: TARGET_SHA, migration_catalog_sha256: initialCatalogSha,
         });
         return pause;
       },
@@ -120,6 +127,10 @@ async function historicalFixture(t) {
         migration_preflight: preflight, transaction_mode: "write",
       }),
     });
+    if (bootstrapAtAssignment) {
+      await runPostgresMigrations(admin, { migrations: historical,
+        appliedBy: "transition-existing-post-bootstrap-migrations" });
+    }
   } finally { input.tenantContextSecret.fill(0); }
   return { admin, observer: poolFor(instance.username),
     app: poolFor("lawos_app", "lawos", "application-password"),
@@ -316,15 +327,23 @@ async function assertRevokedDisabled(state, service, legacy, client, installatio
   assert.deepEqual(await installationRows(state), before);
 }
 
-test("fresh target receipts require the signed immutable bootstrap pin for each actual 79 to 80 to 81 transition", async (t) => {
-  const state = await historicalFixture(t);
+for (const bootstrapAtAssignment of [false, true]) {
+test(`fresh targets preserve the signed bootstrap through actual 79 to 80 to 81, earlier bootstrap=${bootstrapAtAssignment}`, async (t) => {
+  const state = await historicalFixture(t, { bootstrapAtAssignment });
   assert.ok(state, "actual temporary PostgreSQL is required");
   const before = await schemaSnapshot(state);
   const bootstrap = await readOutlookAssignmentMigrationPauseExpectation(state.admin);
+  assert.equal(bootstrap.migration_catalog_sha256 === HISTORICAL_SHA, !bootstrapAtAssignment);
+  assertSchema(before, 79);
   const pin = hashDomainValue(bootstrap);
   const readback = await readProtectedBootstrap(state, HISTORICAL_SHA);
   assert.deepEqual(readback.historical_outlook_bootstrap_receipt, bootstrap);
   assert.equal(readback.historical_outlook_bootstrap_sha256, pin);
+  if (bootstrapAtAssignment) await assert.rejects(migrate(state, AUTHORITY_SHA));
+  await assert.rejects(migrate(state, COMBINED_SHA, {
+    databaseTargetReceiptSha256: digest("premature corporate target"),
+    historicalOutlookBootstrapSha256: pin,
+  }), { code: "LAWOS_POSTGRES_MIGRATION_HISTORY_DIVERGED" });
   assert.deepEqual(await schemaSnapshot(state), before);
   for (const [catalog, label] of [[AUTHORITY_SHA, "fresh80"], [COMBINED_SHA, "fresh81"]]) {
     const snapshot = await schemaSnapshot(state);
@@ -353,6 +372,7 @@ test("fresh target receipts require the signed immutable bootstrap pin for each 
     assert.deepEqual((await schemaSnapshot(state)).bootstrap, before.bootstrap);
   }
 });
+}
 
 test("actual historical79 applies only 309 then only 016 while config-off revoked legacy authority stays closed", async (t) => {
   const state = await historicalFixture(t);

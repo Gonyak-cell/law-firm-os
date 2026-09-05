@@ -152,13 +152,13 @@ export function createJsonPostgresOutlookAuthorityMigrationAdapter(options = {})
           if (pause.authority_manifest_sha256 !== authoritySha
               || (hasHistoricalBootstrap
                 ? hashDomainValue(pause) !== historicalBootstrapSha
-                  || pause.migration_catalog_sha256 !== HISTORICAL_MIGRATION_CATALOG_SHA256
-                : pause.database_target_receipt_sha256 !== targetSha)
-              || (pause.migration_catalog_sha256 !== migrationSha
-                && (HISTORICAL_MIGRATION_CATALOG_SHA256 !==
-                  "43c6a087834d9dd2177be0b63fc94cf723181b93b04f40a65689b6431bd44556"
-                  || pause.migration_catalog_sha256 !==
-                    HISTORICAL_MIGRATION_CATALOG_SHA256))) {
+                  || pause.migration_catalog_sha256 === migrationSha
+                : pause.database_target_receipt_sha256 !== targetSha
+                  || (pause.migration_catalog_sha256 !== migrationSha
+                    && (HISTORICAL_MIGRATION_CATALOG_SHA256 !==
+                      "43c6a087834d9dd2177be0b63fc94cf723181b93b04f40a65689b6431bd44556"
+                      || pause.migration_catalog_sha256 !==
+                        HISTORICAL_MIGRATION_CATALOG_SHA256)))) {
             fail("persisted Outlook migration expectation drifted");
           }
           phase = "post";
