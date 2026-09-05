@@ -1,8 +1,11 @@
 import assert from "node:assert/strict";
 import { createHash, generateKeyPairSync, sign } from "node:crypto";
 import test from "node:test";
+import { createOwnedHeadObjectCommand } from "../../packages/dms/src/storage/s3-bounded-commands.js";
+import { createBoundedS3Client } from "../../packages/dms/src/storage/s3-bounded-client.js";
+import { createS3StorageAdapter, getS3StorageTarget } from "../../packages/dms/src/storage/s3-storage-adapter.js";
 import { createLocalStorageAdapter } from "../../packages/dms/src/storage/local-storage-adapter.js";
-import { createHrxMemberPhotoStorage } from "../../packages/hrx/src/member-photo-storage.js";
+import { createHrxMemberPhotoStorage, getHrxMemberPhotoStorageTarget } from "../../packages/hrx/src/member-photo-storage.js";
 import { createDomainSnapshot, hashDomainValue } from "../../packages/persistence/src/domain-ledger.js";
 import { createPostgresDomainLedger } from "../../packages/persistence/src/postgres/domain-ledger.js";
 import { createMigratedPostgresFixture } from "../../packages/persistence/test/helpers/disposable-postgres.js";
@@ -364,4 +367,91 @@ test("a partial storage failure reports retained and uncertain objects before an
   assert.deepEqual((await f.photos.readPhoto({ tenant_id: SCOPE.tenant_id, ...change, photo: change.expected_photo })).bytes, PNG);
   assert.equal((await executeAmicMemberPhotoReplacement(f.run)).outcome, "PASS");
   assert.equal(f.calls.finalize, 3);
+});
+
+test("signed photo target binds actual constructed S3 coordinates even when every adapter uses the same ID", async (t) => {
+  const f = await fixture(t, { count: 1 });
+  if (!f) return;
+  const productionTarget = {
+    aws_account: "770880870480", aws_region: "ap-northeast-2",
+    database_secret_ref: "lawos/synthetic/postgres-application", tenant_context_secret_ref: "lawos/synthetic/tenant-context",
+    photo_bucket_name: "synthetic-approved-photos", photo_expected_bucket_owner: "770880870480",
+    photo_kms_key_arn: "arn:aws:kms:ap-northeast-2:770880870480:key/11111111-2222-3333-4444-555555555555",
+    photo_prefix: "approved/member-photos", bucket_versioning_required: true, bucket_owner_enforced: true,
+    public_access_block_required: true, server_side_encryption: "aws:kms",
+  };
+  const targetPlan = planAmicMemberPhotoReplacement({ ...CONTEXT, photoStorageAdapterId: "s3-vault", productionTarget,
+    manifest: f.manifest, currentSnapshot: f.before });
+  const run = { ...f.run, plan: targetPlan, approval: approved(targetPlan), readOnly: true };
+  const make = (overrides = {}, region = "ap-northeast-2", clientOptions = {}, handlerOptions) => {
+    const client = createBoundedS3Client({ region, ...clientOptions, credentials: { accessKeyId: "synthetic-only", secretAccessKey: "synthetic-only" } }, handlerOptions);
+    t.after(() => client.destroy());
+    const storage = createS3StorageAdapter({
+      bucket: productionTarget.photo_bucket_name, prefix: productionTarget.photo_prefix,
+      expected_bucket_owner: productionTarget.photo_expected_bucket_owner, kms_key_id: productionTarget.photo_kms_key_arn,
+      region: productionTarget.aws_region, credential_ref: "aws-role:synthetic", client, ...overrides,
+    });
+    return { storage, photos: createHrxMemberPhotoStorage({ storage }), client };
+  };
+  const correct = make();
+  assert.equal(correct.storage.adapter_id, "s3-vault");
+  assert.deepEqual(getS3StorageTarget(correct.storage), {
+    bucket_ref: "s3://synthetic-approved-photos/approved/member-photos", expected_bucket_owner: "770880870480",
+    region: "ap-northeast-2", endpoint_mode: "aws-default-guarded", kms_key_ref: productionTarget.photo_kms_key_arn, server_side_encryption: "aws:kms",
+  });
+  assert.equal(getHrxMemberPhotoStorageTarget(correct.photos), getS3StorageTarget(correct.storage));
+  assert.equal(Object.isFrozen(correct.storage.storage_target), true);
+  assert.equal(Object.isFrozen(correct.photos.storage_target), true);
+  assert.throws(() => { correct.storage.storage_target.bucket_ref = "s3://forged/path"; }, TypeError);
+  assert.throws(() => { correct.client.config.region = "us-east-1"; }, TypeError);
+  // Matching target passes the target gate and reaches the existing read-only receipt requirement; no S3 request is made.
+  await assert.rejects(executeAmicMemberPhotoReplacement({ ...run, memberPhotoStorage: correct.photos }),
+    { code: "LAWOS_AMIC_PHOTO_RECEIPT_MISSING" });
+  const candidates = [
+    make({ bucket: "synthetic-wrong-bucket" }),
+    make({ prefix: "another/prefix" }),
+    make({ expected_bucket_owner: "123456789012" }),
+    make({ kms_key_id: "arn:aws:kms:ap-northeast-2:770880870480:key/aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee" }),
+    make({ kms_key_id: null }),
+    make({}, "us-east-1"), // The injected client's actual region takes precedence over the adapter's region label.
+    make({}, async () => "ap-northeast-2"), // A dynamic region is not immutable target provenance.
+    make({}, "ap-northeast-2", { endpoint: "http://127.0.0.1:1" }),
+    make({}, "ap-northeast-2", { endpointProvider: () => ({ url: new URL("http://127.0.0.1:1") }) }),
+    make({}, "ap-northeast-2", { httpAuthSchemeProvider: () => [] }),
+    make({}, "ap-northeast-2", { httpAuthSchemes: [] }),
+    make({}, "ap-northeast-2", { signer: { sign: async (request) => ({ ...request, hostname: "127.0.0.1" }) } }),
+    make({}, "ap-northeast-2", { signerConstructor: class SyntheticSigner {} }),
+    make({}, "ap-northeast-2", {}, {}), // Custom HTTP transport options are not canonical target provenance.
+  ];
+  const extensions = [{ configure() { extensions.length = 0; } }];
+  candidates.push(make({}, "ap-northeast-2", { extensions }));
+  assert.equal(extensions.length, 0); // Construction ran the extension, but cannot erase its prior custom classification.
+  for (const candidate of candidates) {
+    assert.equal(candidate.photos.storage_adapter_id, correct.photos.storage_adapter_id);
+    await assert.rejects(executeAmicMemberPhotoReplacement({ ...run, memberPhotoStorage: candidate.photos }),
+      { code: "LAWOS_AMIC_PHOTO_STORAGE_TARGET_DRIFT" });
+  }
+  const forgedStorage = { ...candidates[0].storage, storage_target: correct.storage.storage_target };
+  assert.throws(() => getS3StorageTarget(forgedStorage), /constructed adapter/u);
+  assert.throws(() => createHrxMemberPhotoStorage({ storage: forgedStorage }), /constructed adapter/u);
+  const forgedPhotos = { ...candidates[0].photos, storage_target: correct.photos.storage_target };
+  await assert.rejects(executeAmicMemberPhotoReplacement({ ...run, memberPhotoStorage: forgedPhotos }),
+    { code: "LAWOS_AMIC_PHOTO_STORAGE_TARGET_DRIFT" });
+  assert.throws(() => planAmicMemberPhotoReplacement({ ...CONTEXT, environment: "lawos-production", manifest: f.manifest,
+    currentSnapshot: f.before }), { code: "LAWOS_AMIC_PHOTO_STORAGE_TARGET_REQUIRED" });
+  assert.equal((await f.read()).snapshot_hash, f.before.snapshot_hash);
+  assert.equal(f.calls.finalize, 1);
+});
+
+
+test("default S3 target rejects SDK environment endpoint redirection before HTTP", async (t) => {
+  const prior = process.env.AWS_ENDPOINT_URL_S3;
+  process.env.AWS_ENDPOINT_URL_S3 = "http://127.0.0.1:1";
+  t.after(() => { if (prior === undefined) delete process.env.AWS_ENDPOINT_URL_S3; else process.env.AWS_ENDPOINT_URL_S3 = prior; });
+  const client = createBoundedS3Client({ region: "ap-northeast-2", maxAttempts: 1,
+    credentials: { accessKeyId: "synthetic-only", secretAccessKey: "synthetic-only" } });
+  t.after(() => client.destroy());
+  assert.equal(client.config.endpoint_mode, "aws-default-guarded");
+  await assert.rejects(client.send(createOwnedHeadObjectCommand({ Bucket: "synthetic-approved-photos", Key: "no-photo-body",
+    ExpectedBucketOwner: "770880870480" })), { code: "DMS_S3_ENDPOINT_OVERRIDE" });
 });

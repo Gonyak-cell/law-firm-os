@@ -1,9 +1,16 @@
 import { createHash } from "node:crypto";
+import { getS3StorageTarget } from "../../dms/src/storage/s3-storage-adapter.js";
 import {
   assertBoundedStorageReader,
   assertStagedStorageAdapter,
   sha256Hex,
 } from "../../dms/src/storage/storage-adapter.js";
+
+const photoStorageTargets = new WeakMap();
+
+export function getHrxMemberPhotoStorageTarget(photos) {
+  return photoStorageTargets.get(photos);
+}
 
 export const HRX_MEMBER_PHOTO_STORAGE_VERSION =
   "law-firm-os.hrx-member-photo-storage.v1";
@@ -366,8 +373,10 @@ export function createHrxMemberPhotoStorage({ storage } = {}) {
     });
   }
 
-  return Object.freeze({
+  const target = stagedStorage.provider === "s3" ? getS3StorageTarget(stagedStorage) : null;
+  const photos = Object.freeze({
     schema_version: HRX_MEMBER_PHOTO_STORAGE_VERSION,
+    storage_target: target,
     storage_provider: stagedStorage.provider ?? "non-production",
     storage_adapter_id: stagedStorage.adapter_id,
     stagePhoto,
@@ -376,4 +385,6 @@ export function createHrxMemberPhotoStorage({ storage } = {}) {
     deleteStagedPhoto,
     readPhoto,
   });
+  photoStorageTargets.set(photos, target);
+  return photos;
 }

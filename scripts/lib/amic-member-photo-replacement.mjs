@@ -1,9 +1,10 @@
 import { createHash } from "node:crypto";
-import { createHrxMemberPhotoMetadata, assertValidHrxMemberPhotoPng } from "../../packages/hrx/src/member-photo-storage.js";
+import { createHrxMemberPhotoMetadata, assertValidHrxMemberPhotoPng, getHrxMemberPhotoStorageTarget } from "../../packages/hrx/src/member-photo-storage.js";
 import { createDomainSnapshot, hashDomainValue } from "../../packages/persistence/src/domain-ledger.js";
 import { createPostgresDomainLedger } from "../../packages/persistence/src/postgres/domain-ledger.js";
 import { flushDomainSnapshotToScopedLedger } from "../../packages/persistence/src/record-domain-adapter.js";
 import { validateRuntimeSafetyApprovalPayload } from "../../packages/runtime-auth/src/runtime-safety-approval-contract.js";
+import { validateAmicPrivateBootstrapProductionTarget } from "./amic-private-bootstrap-execution.mjs";
 
 export const AMIC_MEMBER_PHOTO_REPLACEMENT_VERSION = "law-firm-os.amic-member-photo-replacement.v1";
 export const AMIC_MEMBER_PHOTO_REPLACEMENT_ACTION = "lawos-amic-member-photo-replace";
@@ -67,11 +68,18 @@ function targets(manifest, snapshot) {
     return { change, employee, profile };
   });
 }
-export function planAmicMemberPhotoReplacement({ manifest, currentSnapshot, sourceSha, sourceTree, photoStorageAdapterId, environment }) {
+function photoTarget(production) {
+  return { bucket_ref: `s3://${production.photo_bucket_name}/${production.photo_prefix}`,
+    expected_bucket_owner: production.photo_expected_bucket_owner, region: production.aws_region, endpoint_mode: "aws-default-guarded",
+    kms_key_ref: production.photo_kms_key_arn, server_side_encryption: production.server_side_encryption };
+}
+export function planAmicMemberPhotoReplacement({ manifest, currentSnapshot, sourceSha, sourceTree, photoStorageAdapterId, productionTarget = null, environment }) {
   validateManifest(manifest);
   requireCondition(/^[a-f0-9]{40}$/u.test(sourceSha) && /^[a-f0-9]{40}$/u.test(sourceTree)
     && typeof photoStorageAdapterId === "string" && REF.test(photoStorageAdapterId)
     && ["synthetic-test", "lawos-private-rehearsal", "lawos-production"].includes(environment), "AMIC_PHOTO_SOURCE_BINDING");
+  const production = productionTarget === null ? null : validateAmicPrivateBootstrapProductionTarget(productionTarget);
+  requireCondition(environment === "synthetic-test" || production !== null, "AMIC_PHOTO_STORAGE_TARGET_REQUIRED");
   const before = createDomainSnapshot(currentSnapshot);
   const changes = targets(manifest, before).map(({ change, employee, profile }) => {
     requireCondition(equal(photoOf(employee.payload), change.expected_photo), "AMIC_PHOTO_STALE_METADATA");
@@ -83,6 +91,7 @@ export function planAmicMemberPhotoReplacement({ manifest, currentSnapshot, sour
   });
   const material = { schema_version: AMIC_MEMBER_PHOTO_REPLACEMENT_VERSION, action: AMIC_MEMBER_PHOTO_REPLACEMENT_ACTION,
     environment, source_sha: sourceSha, source_tree: sourceTree, photo_storage_adapter_id: photoStorageAdapterId, source_manifest_sha256: manifest.source_manifest_sha256,
+    production_target: production, photo_storage_target_sha256: hashDomainValue(production ? photoTarget(production) : null),
     manifest_sha256: hashDomainValue(manifest), request_ref_sha256: hashDomainValue(manifest.request_id),
     tenant_ref_sha256: hashDomainValue(manifest.tenant_id), changed_record_count: changes.length, changes,
     record_deletion_count: 0, previous_objects_preserved: true, source_mutated: false, raw_identity_returned: false };
@@ -137,11 +146,18 @@ export async function executeAmicMemberPhotoReplacement({ pool, manifest, plan, 
     && memberPhotoStorage.storage_adapter_id === plan.photo_storage_adapter_id
     && (plan.environment === "synthetic-test" || memberPhotoStorage.storage_provider === "s3")
     && (readOnly || (typeof memberPhotoStorage.storePhoto === "function" && typeof readPhotoBytes === "function")), "AMIC_PHOTO_STORAGE_REQUIRED");
+  if (plan.production_target !== null) {
+    const target = validateAmicPrivateBootstrapProductionTarget(plan.production_target);
+    const actual = getHrxMemberPhotoStorageTarget(memberPhotoStorage);
+    requireCondition(actual && Object.isFrozen(actual) && equal(actual, photoTarget(target))
+      && hashDomainValue(actual) === plan.photo_storage_target_sha256, "AMIC_PHOTO_STORAGE_TARGET_DRIFT");
+  } else requireCondition(plan.environment === "synthetic-test" && plan.photo_storage_target_sha256 === hashDomainValue(null),
+    "AMIC_PHOTO_STORAGE_TARGET_REQUIRED");
   const scope = { tenant_id: manifest.tenant_id, domain_id: "hrx" };
   const key = `amic-member-photo-replacement:${plan.request_ref_sha256}`;
   const ledger = (readonly) => createPostgresDomainLedger({ pool, clock, transactionOptions: { isolationLevel: "serializable", readOnly: readonly } });
   const assertBaseline = (before) => requireCondition(equal(planAmicMemberPhotoReplacement({ manifest, currentSnapshot: before,
-    sourceSha, sourceTree, photoStorageAdapterId: plan.photo_storage_adapter_id, environment: plan.environment }), plan), "AMIC_PHOTO_BASELINE_DRIFT");
+    sourceSha, sourceTree, photoStorageAdapterId: plan.photo_storage_adapter_id, productionTarget: plan.production_target, environment: plan.environment }), plan), "AMIC_PHOTO_BASELINE_DRIFT");
   async function existing(tx, before) {
     const prior = before.idempotency_entries.find((entry) => entry.key === key);
     if (!prior) return null;
