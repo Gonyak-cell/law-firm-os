@@ -132,13 +132,15 @@ async function verifyBodies(storage, manifest, selected) {
   }
 }
 
+// expectedRegistrySha256 must come from trusted execution configuration, not the approval bundle.
 // readPhotoBytes supplies only the approved display PNG; original_sha256 is provenance, not an original-file upload request.
-export async function executeAmicMemberPhotoReplacement({ pool, manifest, plan, sourceSha, sourceTree, approval,
+export async function executeAmicMemberPhotoReplacement({ pool, manifest, plan, sourceSha, sourceTree, approval, expectedRegistrySha256,
   memberPhotoStorage, readPhotoBytes, readOnly = false, clock = () => new Date() }) {
+  requireCondition(typeof expectedRegistrySha256 === "string" && SHA.test(expectedRegistrySha256), "AMIC_PHOTO_REGISTRY_PIN_REQUIRED");
   manifest = structuredClone(manifest);
   plan = structuredClone(plan);
   if (plan.environment !== "synthetic-test") clock = () => new Date();
-  const verifyApproval = () => verifyAmicMemberPhotoReplacementApproval({ ...approval, plan, sourceSha, sourceTree, now: clock() });
+  const verifyApproval = () => verifyAmicMemberPhotoReplacementApproval({ ...approval, registrySha256: expectedRegistrySha256, plan, sourceSha, sourceTree, now: clock() });
   verifyApproval();
   validateManifest(manifest);
   requireCondition(hashDomainValue(manifest) === plan.manifest_sha256 && hashDomainValue(manifest.tenant_id) === plan.tenant_ref_sha256,

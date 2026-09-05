@@ -46,6 +46,11 @@ function approved(plan, overrides = {}, keyOverrides = {}) {
   return { registryBytes, registrySha256: digest(registryBytes), receiptBytes: Buffer.from(JSON.stringify(receipt)),
     signatureBytes: sign(null, Buffer.from(canonicalizeJson(receipt)), privateKey) };
 }
+function trustedExecutionApproval(plan, ...args) {
+  const approval = approved(plan, ...args);
+  return { approval, expectedRegistrySha256: digest(approval.registryBytes) };
+}
+
 function versionedStorage() {
   const base = createLocalStorageAdapter({ adapter_id: "synthetic-photo-replacement" });
   const calls = { stage: 0, finalize: 0, deleted: 0 };
@@ -87,7 +92,7 @@ async function fixture(t, { count = 2 } = {}) {
     request_id: "photo-replacement-synthetic-001", source_manifest_sha256: "d".repeat(64), changes };
   const before = await read();
   const plan = planAmicMemberPhotoReplacement({ ...CONTEXT, manifest, currentSnapshot: before });
-  const run = { ...CONTEXT, pool: database.appPool, manifest, plan, approval: approved(plan), memberPhotoStorage: photos,
+  const run = { ...CONTEXT, pool: database.appPool, manifest, plan, ...trustedExecutionApproval(plan), memberPhotoStorage: photos,
     readPhotoBytes: async () => NEW_PNG, clock: () => new Date(NOW) };
   return { database, photos, calls, ledger, read, before, manifest, plan, run };
 }
@@ -152,7 +157,7 @@ test("photo replacement preserves old objects and other HRX facts, atomically ro
   changedRequest.changes[1].photo_byte_size = PNG.length;
   const conflictingPlan = planAmicMemberPhotoReplacement({ ...CONTEXT, manifest: changedRequest, currentSnapshot: after });
   await assert.rejects(executeAmicMemberPhotoReplacement({ ...f.run, manifest: changedRequest, plan: conflictingPlan,
-    approval: approved(conflictingPlan), readPhotoBytes: async () => PNG }), { code: "LAWOS_AMIC_PHOTO_REPLAY_CONFLICT" });
+    ...trustedExecutionApproval(conflictingPlan), readPhotoBytes: async () => PNG }), { code: "LAWOS_AMIC_PHOTO_REPLAY_CONFLICT" });
   assert.equal(f.calls.finalize, 3);
 });
 
@@ -192,16 +197,18 @@ test("photo replacement rejects wrong tenant/entity/employee, partial old metada
 test("fresh exact replacement approval is mandatory before any storage operation and again before PG commit", async (t) => {
   const f = await fixture(t, { count: 1 });
   if (!f) return;
-  for (const overrides of [
-    { action: "lawos-amic-private-bootstrap-enrich" },
-    { signed_at: "2026-09-05T02:00:00.000Z" },
-    { expires_at: "2026-09-05T00:30:00.000Z" },
-    { data_scope: ["approved-real-manifest"] },
-    { data_scope: [...memberPhotoReplacementApprovalDataScope(f.plan), "another-scope"] },
-    { contact_scope: ["another-contact"] },
-  ]) await assert.rejects(executeAmicMemberPhotoReplacement({ ...f.run, approval: approved(f.plan, overrides) }));
-  await assert.rejects(executeAmicMemberPhotoReplacement({ ...f.run, sourceSha: "c".repeat(40) }));
-  await assert.rejects(executeAmicMemberPhotoReplacement({ ...f.run, approval: { ...f.run.approval, registrySha256: "f".repeat(64) } }));
+  for (const [overrides, code] of [
+    [{ action: "lawos-amic-private-bootstrap-enrich" }, "APPROVAL_ACTION"],
+    [{ signed_at: "2026-09-05T02:00:00.000Z" }, "LAWOS_AMIC_PHOTO_APPROVAL_SCOPE_TIME"],
+    [{ expires_at: "2026-09-05T00:30:00.000Z" }, "APPROVAL_EXPIRED"],
+    [{ data_scope: ["approved-real-manifest"] }, "LAWOS_AMIC_PHOTO_APPROVAL_SCOPE_TIME"],
+    [{ data_scope: [...memberPhotoReplacementApprovalDataScope(f.plan), "another-scope"] }, "LAWOS_AMIC_PHOTO_APPROVAL_SCOPE_TIME"],
+    [{ contact_scope: ["another-contact"] }, "LAWOS_AMIC_PHOTO_APPROVAL_SCOPE_TIME"],
+  ]) await assert.rejects(executeAmicMemberPhotoReplacement({ ...f.run, ...trustedExecutionApproval(f.plan, overrides) }), { code });
+  await assert.rejects(executeAmicMemberPhotoReplacement({ ...f.run, sourceSha: "c".repeat(40) }), { code: "LAWOS_AMIC_PHOTO_PLAN_DRIFT" });
+  await assert.rejects(executeAmicMemberPhotoReplacement({ ...f.run, expectedRegistrySha256: "f".repeat(64) }), { code: "APPROVAL_REGISTRY_DIGEST" });
+  await assert.rejects(executeAmicMemberPhotoReplacement({ ...f.run,
+    approval: { ...f.run.approval, signatureBytes: Buffer.alloc(64) } }), { code: "APPROVAL_SIGNATURE" });
   await assert.rejects(executeAmicMemberPhotoReplacement({ ...f.run, plan: { ...f.plan, changed_record_count: 7 } }), { code: "LAWOS_AMIC_PHOTO_PLAN_DRIFT" });
   assert.equal(f.calls.finalize, 1);
   let now = NOW;
@@ -260,7 +267,7 @@ test("two simultaneous requests with the same old photo state commit exactly onc
   const results = await Promise.allSettled([
     executeAmicMemberPhotoReplacement({ ...f.run, memberPhotoStorage: photos }),
     executeAmicMemberPhotoReplacement({ ...f.run, manifest: secondManifest, plan: secondPlan,
-      approval: approved(secondPlan), memberPhotoStorage: photos }),
+      ...trustedExecutionApproval(secondPlan), memberPhotoStorage: photos }),
   ]);
   assert.equal(results.filter((result) => result.status === "fulfilled").length, 1);
   const failed = results.find((result) => result.status === "rejected").reason;
@@ -384,7 +391,7 @@ test("signed photo target binds actual constructed S3 coordinates even when ever
   const productionTarget = PRODUCTION_TARGET;
   const targetPlan = planAmicMemberPhotoReplacement({ ...CONTEXT, photoStorageAdapterId: "s3-vault", productionTarget,
     manifest: f.manifest, currentSnapshot: f.before });
-  const run = { ...f.run, plan: targetPlan, approval: approved(targetPlan), readOnly: true };
+  const run = { ...f.run, plan: targetPlan, ...trustedExecutionApproval(targetPlan), readOnly: true };
   const make = (overrides = {}, region = "ap-northeast-2", clientOptions = {}, handlerOptions) => {
     const client = createBoundedS3Client({ region, ...clientOptions, credentials: { accessKeyId: "synthetic-only", secretAccessKey: "synthetic-only" } }, handlerOptions);
     t.after(() => client.destroy());
@@ -476,7 +483,7 @@ test("production and rehearsal ignore an injected past clock for expired approva
     });
     assert.equal(verifyAmicMemberPhotoReplacementApproval({ ...approval, plan, sourceSha: CONTEXT.sourceSha,
       sourceTree: CONTEXT.sourceTree, now: past }).decision, "approved");
-    await assert.rejects(executeAmicMemberPhotoReplacement({ ...f.run, plan, approval,
+    await assert.rejects(executeAmicMemberPhotoReplacement({ ...f.run, plan, approval, expectedRegistrySha256: digest(approval.registryBytes),
       clock: () => { injectedClockCalls += 1; return past; },
       readPhotoBytes: async () => { sourceReads += 1; return NEW_PNG; },
     }), /expired/u);
@@ -485,4 +492,45 @@ test("production and rehearsal ignore an injected past clock for expired approva
   assert.equal(sourceReads, 0);
   assert.equal(f.calls.finalize, 1);
   assert.equal((await f.read()).snapshot_hash, f.before.snapshot_hash);
+});
+
+
+test("photo execution pins registry trust independently of a self-consistent approval bundle", async (t) => {
+  const f = await fixture(t, { count: 1 });
+  if (!f) return;
+  let connects = 0;
+  let sourceReads = 0;
+  let photoReads = 0;
+  let photoStores = 0;
+  const pool = Object.create(f.database.appPool);
+  pool.connect = async () => { connects += 1; return f.database.appPool.connect(); };
+  const memberPhotoStorage = { ...f.photos,
+    async readPhoto(input) { photoReads += 1; return f.photos.readPhoto(input); },
+    async storePhoto(input) { photoStores += 1; return f.photos.storePhoto(input); },
+  };
+  const run = { ...f.run, pool, memberPhotoStorage, readPhotoBytes: async () => { sourceReads += 1; return NEW_PNG; } };
+  for (const pin of [undefined, null, "", "not-a-digest"]) {
+    await assert.rejects(executeAmicMemberPhotoReplacement({ ...run, expectedRegistrySha256: pin }),
+      { code: "LAWOS_AMIC_PHOTO_REGISTRY_PIN_REQUIRED" });
+  }
+  const attacker = approved(f.plan);
+  assert.notEqual(attacker.registrySha256, run.expectedRegistrySha256);
+  assert.equal(verifyAmicMemberPhotoReplacementApproval({ ...attacker, plan: f.plan, sourceSha: CONTEXT.sourceSha,
+    sourceTree: CONTEXT.sourceTree, now: new Date(NOW) }).decision, "approved");
+  await assert.rejects(executeAmicMemberPhotoReplacement({ ...run, approval: attacker }), { code: "APPROVAL_REGISTRY_DIGEST" });
+  assert.deepEqual({ connects, sourceReads, photoReads, photoStores }, { connects: 0, sourceReads: 0, photoReads: 0, photoStores: 0 });
+  assert.equal((await f.read()).snapshot_hash, f.before.snapshot_hash);
+  await assert.rejects(executeAmicMemberPhotoReplacement({ ...run, readOnly: true,
+    approval: { ...run.approval, registrySha256: attacker.registrySha256 } }), { code: "LAWOS_AMIC_PHOTO_RECEIPT_MISSING" });
+  assert.equal(sourceReads + photoReads + photoStores, 0);
+  assert.equal((await executeAmicMemberPhotoReplacement(run)).outcome, "PASS");
+  const completed = await f.read();
+  const calls = { connects, sourceReads, photoReads, photoStores };
+  await assert.rejects(executeAmicMemberPhotoReplacement({ ...run, readOnly: true, expectedRegistrySha256: undefined }),
+    { code: "LAWOS_AMIC_PHOTO_REGISTRY_PIN_REQUIRED" });
+  await assert.rejects(executeAmicMemberPhotoReplacement({ ...run, readOnly: true, approval: attacker }),
+    { code: "APPROVAL_REGISTRY_DIGEST" });
+  assert.deepEqual({ connects, sourceReads, photoReads, photoStores }, calls);
+  assert.equal((await f.read()).snapshot_hash, completed.snapshot_hash);
+  assert.equal((await executeAmicMemberPhotoReplacement({ ...run, readOnly: true })).replayed, true);
 });
