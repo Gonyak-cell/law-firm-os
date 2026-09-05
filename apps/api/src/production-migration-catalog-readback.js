@@ -7,6 +7,7 @@ import {
 } from "../../../packages/persistence/src/postgres/migration-catalog-readback.js";
 import { createPostgresPool } from "../../../packages/persistence/src/postgres/pool.js";
 import { resolveAwsJsonSecret } from "./aws-secret-reference.js";
+import { verifyInternalUnsignedInstallationAuthorityReadback } from "../../../packages/email-dms/src/internal-unsigned-installation-authority-readback.js";
 import { postgresUrlFromSecret } from "./persistence-authority.js";
 import {
   loadEmbeddedCatalogReadbackDeploymentManifest,
@@ -19,7 +20,16 @@ const SAFE_READER_ERROR_CODES = new Set([
   "LAWOS_CATALOG_READBACK_DATABASE_ROLE",
   "LAWOS_CATALOG_READBACK_SCHEMA",
   "LAWOS_CATALOG_READBACK_DATABASE",
+  "LAWOS_INTERNAL_INSTALLATION_AUTHORITY_READBACK",
 ]);
+
+export async function readProductionMigrationCatalogWithAuthority(pool) {
+  const catalog = await readPostgresMigrationCatalogReadback(pool);
+  if (catalog.migrations.some(({ id }) => id === "309_client_internal_unsigned_installation_authority")) {
+    await verifyInternalUnsignedInstallationAuthorityReadback(pool);
+  }
+  return catalog;
+}
 
 function fail(code, message) {
   throw Object.assign(new Error(message), { code });
@@ -82,7 +92,7 @@ export async function executeProductionMigrationCatalogReadback({
   deploymentManifest = loadEmbeddedCatalogReadbackDeploymentManifest(),
   resolveSecret = resolveAwsJsonSecret,
   createPool = createPostgresPool,
-  readCatalog = readPostgresMigrationCatalogReadback,
+  readCatalog = readProductionMigrationCatalogWithAuthority,
 } = {}) {
   const stableEnv = runtimeEnvironment(env);
   const validationOptions = {

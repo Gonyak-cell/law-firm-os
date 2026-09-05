@@ -3,7 +3,7 @@ import { hashDomainValue } from "../../../packages/persistence/src/domain-ledger
 export const CLIENT_OPERATIONS_MIGRATION_CATALOG_VERSION =
   "law-firm-os.json-postgres-rehearsal-migration-catalog.v1";
 
-const MIGRATION_COUNT = 79;
+const MIGRATION_COUNT = 80;
 const ASSIGNMENT_MIGRATION_ID =
   "306_client_outlook_desktop_assignment";
 const ASSIGNMENT_SOURCE_MIGRATION_ID =
@@ -12,10 +12,14 @@ const TRUSTED_CURRENT_MIGRATION_ID =
   "307_client_outlook_desktop_trusted_current_read";
 const TRUSTED_CURRENT_SOURCE_MIGRATION_ID =
   "008_outlook_desktop_trusted_current_read";
-const FINAL_MIGRATION_ID =
+const LEGACY_MIGRATION_ID =
   "308_client_outlook_desktop_legacy_windows_compatibility";
-const FINAL_SOURCE_MIGRATION_ID =
+const LEGACY_SOURCE_MIGRATION_ID =
   "009_outlook_desktop_legacy_windows_compatibility";
+const FINAL_MIGRATION_ID = "309_client_internal_unsigned_installation_authority";
+const FINAL_SOURCE_MIGRATION_ID = "010_internal_unsigned_installation_authority";
+const INTERNAL_UNSIGNED_READ_SIGNATURE =
+  "lawos_email_dms.read_current_internal_unsigned_installation(text,text,text)";
 const ASSIGNMENT_STATE_READ_SIGNATURE =
   "lawos_email_dms.read_outlook_desktop_assignment_state(text,text,text)";
 const TRUSTED_CURRENT_READ_SIGNATURE =
@@ -83,7 +87,9 @@ export function normalizeClientOperationsMigrationCatalogMaterial(
           ...MIGRATION_ROW_KEYS,
           "outlook_trusted_current_read_authority",
         ]
-        : MIGRATION_ROW_KEYS;
+        : entry?.id === FINAL_MIGRATION_ID
+          ? [...MIGRATION_ROW_KEYS, "internal_unsigned_installation_authority"]
+          : MIGRATION_ROW_KEYS;
     if (!exactKeys(entry, expectedKeys)
       || typeof entry.id !== "string"
       || (entry.source_migration_id !== null
@@ -98,7 +104,7 @@ export function normalizeClientOperationsMigrationCatalogMaterial(
     !== ledgerEntries.length) {
     throw new TypeError("Client operations migration catalog IDs are invalid");
   }
-  const assignmentSource = migrations.at(-3);
+  const assignmentSource = migrations.at(-4);
   const assignmentBinding =
     assignmentSource.outlook_assignment_authority;
   if (assignmentSource.id !== ASSIGNMENT_MIGRATION_ID
@@ -148,7 +154,8 @@ export function normalizeClientOperationsMigrationCatalogMaterial(
     );
   }
 
-  const trustedCurrentSource = migrations.at(-2);
+  const trustedCurrentSource = migrations.at(-3);
+  const legacySource = migrations.at(-2);
   const finalSource = migrations.at(-1);
   const final = ledgerEntries.at(-1);
   const binding =
@@ -185,13 +192,28 @@ export function normalizeClientOperationsMigrationCatalogMaterial(
       "Client operations Outlook trusted-current-read catalog binding is invalid",
     );
   }
-  if (final.id !== FINAL_MIGRATION_ID
-    || finalSource.source_migration_id !== FINAL_SOURCE_MIGRATION_ID
-    || finalSource.file_name
+  if (legacySource.id !== LEGACY_MIGRATION_ID
+    || legacySource.source_migration_id !== LEGACY_SOURCE_MIGRATION_ID
+    || legacySource.file_name
       !== "./009_outlook_desktop_legacy_windows_compatibility.sql") {
     throw new TypeError(
       "Client operations Outlook legacy Windows compatibility migration is invalid",
     );
+  }
+  const internalBinding = finalSource.internal_unsigned_installation_authority;
+  if (final.id !== FINAL_MIGRATION_ID
+    || finalSource.source_migration_id !== FINAL_SOURCE_MIGRATION_ID
+    || finalSource.file_name !== "./010_internal_unsigned_installation_authority.sql"
+    || !exactKeys(internalBinding, TRUSTED_CURRENT_READ_AUTHORITY_BINDING_KEYS)
+    || internalBinding.source_migration_id !== FINAL_SOURCE_MIGRATION_ID
+    || internalBinding.client_migration_id !== FINAL_MIGRATION_ID
+    || !SHA256.test(internalBinding.authority_catalog_sha256)
+    || internalBinding.exposed_security_definer_function_count !== 5
+    || !SHA256.test(internalBinding.exposed_security_definer_function_catalog_sha256)
+    || !exactKeys(internalBinding.trusted_current_read, ["signature", "transaction_mode"])
+    || internalBinding.trusted_current_read.signature !== INTERNAL_UNSIGNED_READ_SIGNATURE
+    || internalBinding.trusted_current_read.transaction_mode !== "serializable_read_only") {
+    throw new TypeError("Client operations internal unsigned installation authority catalog binding is invalid");
   }
   const catalogSha256 = hashDomainValue(catalog);
   if (!SHA256.test(expectedCatalogSha256 ?? "")

@@ -15,14 +15,15 @@ const TABLES = [
   "outlook_desktop_release_artifacts",
   "outlook_desktop_release_trust_audit_events",
 ];
-test("release-trust 006 stays byte-compatible before additive 007-009", () => {
+test("release-trust 006 stays byte-compatible before additive 007-010", () => {
   const migrations = listEmailDmsPostgresMigrations();
-  assert.deepEqual(migrations.slice(-5).map(({ id }) => id), [
+  assert.deepEqual(migrations.slice(-6).map(({ id }) => id), [
     "005_outlook_desktop_installation",
     "006_outlook_desktop_release_trust",
     "007_outlook_desktop_assignment",
     "008_outlook_desktop_trusted_current_read",
     "009_outlook_desktop_legacy_windows_compatibility",
+    "010_internal_unsigned_installation_authority",
   ]);
   const migration = migrations.find(({ id }) => id === "006_outlook_desktop_release_trust");
   assert.equal(migration.checksum,

@@ -24,6 +24,7 @@ const TRUSTED_CURRENT = Object.freeze({
 
 function authorityPool({
   heartbeatUntrusted = false,
+  installation,
   trustedCurrent = TRUSTED_CURRENT,
   trustedCurrentError = null,
 } = {}) {
@@ -53,6 +54,10 @@ function authorityPool({
                 "read_trusted_current_outlook_desktop_installation") {
             throw trustedCurrentError;
           }
+          if (installation !== undefined && [
+            "read_outlook_desktop_installation",
+            "read_current_outlook_desktop_installation",
+          ].includes(match?.[1])) return { rows: [{ value: installation }] };
           return { rows: match ? [{
             value: match[1] ===
               "read_trusted_current_outlook_desktop_installation"
@@ -126,6 +131,64 @@ test("installation authority adapter uses only exact SECDEF functions and transa
     statement.includes("SELECT lawos_email_dms."));
   assert.equal(functionCalls.length, 7);
   assert.equal(functionCalls.every(({ values }) => values[0] === TENANT), true);
+});
+
+test("installation reads normalize PostgreSQL timezone timestamps without changing other fields", async () => {
+  for (const retiredAt of [null, "2026-09-05T17:11:25.917+09:00"]) {
+    const installation = Object.freeze({
+      installation_id: "odi_authority_adapter_000001",
+      status: retiredAt === null ? "active" : "retired",
+      state_version: 4,
+      lease_expires_at: "2026-09-05T17:11:25.917+09:00",
+      retired_at: retiredAt,
+      source_sha: "a".repeat(40),
+      app_version: "0.1.32",
+      created_at: "2026-09-04T17:11:25.917+09:00",
+    });
+    const fixture = authorityPool({ installation });
+    const service = createPostgresOutlookDesktopInstallationAuthorityService({
+      pool: fixture.pool, tenant_id: TENANT,
+    });
+    const expected = {
+      ...installation,
+      lease_expires_at: "2026-09-05T08:11:25.917Z",
+      retired_at: retiredAt === null ? null : "2026-09-05T08:11:25.917Z",
+    };
+    assert.deepEqual(await service.read({
+      principal: PRINCIPAL, installation_id: installation.installation_id,
+    }), expected);
+    assert.deepEqual(await service.readCurrent({ principal: PRINCIPAL }), expected);
+    assert.equal(installation.lease_expires_at, "2026-09-05T17:11:25.917+09:00");
+    assert.equal(fixture.calls.filter(({ statement }) =>
+      statement.includes("SELECT lawos_email_dms.")).length, 2);
+    assert.deepEqual(fixture.calls.filter(({ statement }) =>
+      statement.startsWith("BEGIN ISOLATION LEVEL")).map(({ statement }) => statement), [
+      "BEGIN ISOLATION LEVEL SERIALIZABLE READ ONLY",
+      "BEGIN ISOLATION LEVEL SERIALIZABLE READ ONLY",
+    ]);
+  }
+});
+
+test("installation reads preserve null and reject invalid timestamp values", async () => {
+  for (const installation of [
+    null,
+    { lease_expires_at: "invalid", retired_at: null },
+    { lease_expires_at: null, retired_at: null },
+    { lease_expires_at: new Date(), retired_at: null },
+    { lease_expires_at: "2026-09-05T17:11:25.917+09:00", retired_at: "invalid" },
+  ]) {
+    const fixture = authorityPool({ installation });
+    const service = createPostgresOutlookDesktopInstallationAuthorityService({
+      pool: fixture.pool, tenant_id: TENANT,
+    });
+    for (const request of [
+      () => service.read({ principal: PRINCIPAL, installation_id: "odi_authority_adapter_000001" }),
+      () => service.readCurrent({ principal: PRINCIPAL }),
+    ]) {
+      if (installation === null) assert.equal(await request(), null);
+      else await assert.rejects(request(), /installation result timestamp is invalid/u);
+    }
+  }
 });
 
 test("trusted-current result snapshots seven primitives and fails closed", async () => {

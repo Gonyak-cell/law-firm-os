@@ -1,5 +1,6 @@
 import { checksumPostgresMigration, listPostgresFoundationMigrations } from "./migration-catalog.js";
 import { sanitizePostgresError } from "./errors.js";
+import { hashDomainValue } from "../domain-ledger.js";
 import {
   closeOutlookAuthorityMigrationCatalog,
   installOutlookAuthorityExpectation,
@@ -25,6 +26,20 @@ export {
 const MIGRATION_LOCK_KEY = 7_260_071_601;
 const COMMIT_UNKNOWN_ERRORS = new WeakSet();
 const ROLE_CONFIGURATION_COMMIT_UNKNOWN_EXPECTATIONS = new WeakMap();
+const INTERNAL_INSTALLATION_HISTORICAL_CATALOG_SHA256 =
+  "43c6a087834d9dd2177be0b63fc94cf723181b93b04f40a65689b6431bd44556";
+
+function isReviewedInternalInstallationAppend(catalog) {
+  const final = catalog.at(-1);
+  return catalog.length === 80
+    && hashDomainValue(catalog.slice(0, -1)) ===
+      "0902c254e384d9a1c70c5b61198babab5f664f2bd999daced3da7c8fee95f3c4"
+    && final.id === "309_client_internal_unsigned_installation_authority"
+    && final.source_migration_id === "010_internal_unsigned_installation_authority"
+    && final.file_name === "./010_internal_unsigned_installation_authority.sql"
+    && final.checksum ===
+      "171ecf90f09903ba802e2693cea65f8b98f0a26a0690292749936d3bcd1569e1";
+}
 
 export function createOutlookPostgresCommitUnknownError() {
   const error = Object.assign(new Error("PostgreSQL COMMIT outcome is unknown"), {
@@ -99,6 +114,7 @@ export async function runPostgresMigrations(pool, {
   onBeforeMigrations,
   onOutlookAuthorityPaused,
   onOutlookAuthorityPostMigration,
+  onInternalUnsignedInstallationAuthorityPostMigration,
 } = {}) {
   if (!pool || typeof pool.connect !== "function") throw new TypeError("PostgreSQL pool is required");
   const ordered = migrations.map(normalizeMigration);
@@ -130,6 +146,20 @@ export async function runPostgresMigrations(pool, {
     throw new TypeError("Outlook authority signed digests are required");
   }
   const callbackCatalog = closeOutlookAuthorityMigrationCatalog(ordered);
+  const reviewedInternalAppend = isReviewedInternalInstallationAppend(callbackCatalog);
+  const internalAuthorityPresent = callbackCatalog.some((migration) =>
+    migration.id === "309_client_internal_unsigned_installation_authority"
+      || migration.id === "010_internal_unsigned_installation_authority"
+      || migration.source_migration_id === "010_internal_unsigned_installation_authority");
+  if (internalAuthorityPresent && !authorityCallbacksEnabled) {
+    throw new TypeError("Internal installation authority callbacks are required");
+  }
+  if ((internalAuthorityPresent
+        || onInternalUnsignedInstallationAuthorityPostMigration !== undefined)
+      && (!authorityCallbacksEnabled || !reviewedInternalAppend
+        || typeof onInternalUnsignedInstallationAuthorityPostMigration !== "function")) {
+    throw new TypeError("Internal installation postflight requires the exact reviewed catalog");
+  }
   const catalogIds = new Set(ordered.map(({ id }) => id));
   const historicalGapIds = new Set();
   for (const value of allowedHistoricalGapIds) {
@@ -231,7 +261,13 @@ export async function runPostgresMigrations(pool, {
       ? history.has(authorityMigration.id)
       : false;
     if (authorityAlreadyApplied) {
-      if (history.size !== ordered.length || beforeMigrationsResult === undefined) {
+      const reviewedAppend = reviewedInternalAppend;
+      if ((history.size !== ordered.length
+            && !(reviewedAppend && history.size === ordered.length - 1))
+          || (reviewedAppend && historyResult.rows.some((row, index) =>
+            row.migration_id !== ordered[index]?.id
+              || row.checksum !== ordered[index]?.checksum))
+          || beforeMigrationsResult === undefined) {
         throw migrationHistoryError(
           "Outlook authority replay requires the exact completed catalog",
         );
@@ -244,8 +280,10 @@ export async function runPostgresMigrations(pool, {
             authorityManifestSha256
           || authorityPauseExpectation.database_target_receipt_sha256 !==
             databaseTargetReceiptSha256
-          || authorityPauseExpectation.migration_catalog_sha256 !==
-            migrationCatalogSha256) {
+          || (authorityPauseExpectation.migration_catalog_sha256 !==
+            migrationCatalogSha256 && !(reviewedAppend
+              && authorityPauseExpectation.migration_catalog_sha256 ===
+                INTERNAL_INSTALLATION_HISTORICAL_CATALOG_SHA256))) {
         throw new TypeError("Outlook authority signed digest mismatch");
       }
       progress.migration_phase = "outlook_authority_replay";
@@ -367,6 +405,25 @@ export async function runPostgresMigrations(pool, {
         throw error;
       }
     }
+    if (onInternalUnsignedInstallationAuthorityPostMigration) {
+      progress.migration_phase = "internal_installation_postflight";
+      await client.query("BEGIN ISOLATION LEVEL SERIALIZABLE READ ONLY");
+      try {
+        authorityPostflight = normalizeOutlookAuthorityPostflight(
+          await onInternalUnsignedInstallationAuthorityPostMigration(client, callbackCatalog),
+        );
+        const postIdentity = await readMigrationIdentity(client);
+        if (JSON.stringify(postIdentity) !== JSON.stringify(databaseIdentity)
+            || authorityPostflight.role_bootstrap_sha256 !==
+              authorityPauseExpectation.role_bootstrap_sha256) {
+          throw new TypeError("Internal installation postflight mismatch");
+        }
+        await client.query("COMMIT");
+      } catch (error) {
+        await client.query("ROLLBACK").catch(() => {});
+        throw error;
+      }
+    }
     progress.migration_phase = "complete";
     return authorityCallbacksEnabled
       ? createOutlookAuthorityMigrationRunReceipt({
@@ -376,6 +433,7 @@ export async function runPostgresMigrations(pool, {
         progress,
         pauseExpectation: authorityPauseExpectation,
         postflight: authorityPostflight,
+        migrationCatalogSha256,
       })
       : Object.freeze(results);
   } catch (error) {

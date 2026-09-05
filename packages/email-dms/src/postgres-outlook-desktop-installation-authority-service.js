@@ -45,6 +45,23 @@ function mapHeartbeatError(error) {
   });
 }
 
+function installationReadResult(value) {
+  if (value === null) return null;
+  const installation = { ...assignmentRecord(value, "installation result") };
+  for (const field of ["lease_expires_at", "retired_at"]) {
+    if (!Object.hasOwn(installation, field)
+        || (field === "retired_at" && installation[field] === null)) continue;
+    const timestamp = typeof installation[field] === "string"
+      ? new Date(installation[field])
+      : new Date(Number.NaN);
+    if (!Number.isFinite(timestamp.getTime())) {
+      throw new TypeError("installation result timestamp is invalid");
+    }
+    installation[field] = timestamp.toISOString();
+  }
+  return installation;
+}
+
 function trustedCurrentResult(value) {
   if (value === null) return null;
   let descriptors;
@@ -158,7 +175,7 @@ export function createPostgresOutlookDesktopInstallationAuthorityService(
     return tx(async (client) => (await client.query(
       `SELECT lawos_email_dms.${OUTLOOK_DESKTOP_INSTALLATION_AUTHORITY_FUNCTIONS.read}($1,$2,$3,$4) AS value`,
       [tenantId, principal.user_id, principal.entra_subject_id, installationId],
-    )).rows[0]?.value ?? null, true);
+    )).rows[0]?.value ?? null, true).then(installationReadResult);
   };
 
   const principalRead = (operation, value = {}, readOnly = true) => {
@@ -176,7 +193,8 @@ export function createPostgresOutlookDesktopInstallationAuthorityService(
     heartbeat: (value) => transition("heartbeat", value),
     retire: (value) => transition("retire", value),
     read,
-    readCurrent: (value) => principalRead("readCurrent", value),
+    readCurrent: (value) => principalRead("readCurrent", value)
+      .then(installationReadResult),
     readTrustedCurrent: (value) => principalRead("readTrustedCurrent", value)
       .then(trustedCurrentResult)
       .catch(() => { throw mapTrustedCurrentError(); }),

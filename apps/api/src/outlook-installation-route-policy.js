@@ -68,6 +68,10 @@ const ROUTES = [
   ["desktop.installations.read", "GET", "/api/desktop/installations/:installation_id", C.desktopLifecycleExempt],
   ["desktop.installations.heartbeat", "POST", "/api/desktop/installations/:installation_id/heartbeat", C.desktopLifecycleExempt],
   ["desktop.installations.retire", "POST", "/api/desktop/installations/:installation_id/retire", C.desktopLifecycleExempt],
+  ["desktop.internal_installations.register", "POST", "/api/desktop/internal-installations", C.desktopLifecycleExempt],
+  ["desktop.internal_installations.heartbeat", "POST", "/api/desktop/internal-installations/:installation_id/heartbeat", C.desktopLifecycleExempt],
+  ["desktop.internal_installations.retire", "POST", "/api/desktop/internal-installations/:installation_id/retire", C.desktopLifecycleExempt],
+  ["desktop.internal_updates.baseline_adoption_attestation", "POST", "/api/desktop/internal-updates/baseline-adoption-attestation", C.desktopLifecycleExempt],
   ["desktop.internal_updates.authorize", "POST", "/api/desktop/internal-updates/authorize", C.protectedOperation],
 ];
 

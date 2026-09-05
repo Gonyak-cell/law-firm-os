@@ -17,7 +17,6 @@ import {
 } from "../../../packages/persistence/test/helpers/disposable-postgres.js";
 import {
   listClientOperationsPostgresMigrations,
-  runClientOperationsPostgresMigrations,
 } from "../src/client-operations-schema.js";
 
 const CORRECTION = "302_client_email_filing_correction";
@@ -245,8 +244,8 @@ test("frozen combined prefix upgrades existing 001-014 plus 100/200/300 history 
   assert.equal(replay.every(({ applied }) => !applied), true);
 });
 
-test("client migration wrapper rejects holes outside the explicit historical allowlist", async (t) => {
-  const catalog = listClientOperationsPostgresMigrations();
+test("frozen combined prefix rejects holes outside the explicit historical allowlist", async (t) => {
+  const catalog = clientOperationsPrefixThrough305();
   const hrxStart = catalog.findIndex(({ id }) => id.startsWith("100_"));
   const clientStart = catalog.findIndex(({ id }) => id === "300_client_m365_connection");
   const row = ({ id, sql }) => ({
@@ -268,7 +267,7 @@ test("client migration wrapper rejects holes outside the explicit historical all
   for (const scenario of scenarios) {
     await t.test(scenario.name, async () => {
       await assert.rejects(
-        runClientOperationsPostgresMigrations(poolWithMigrationHistory(scenario.rows)),
+        runClientOperationsPrefixThrough305(poolWithMigrationHistory(scenario.rows)),
         (error) => error?.code === "LAWOS_POSTGRES_MIGRATION_HISTORY_DIVERGED",
       );
     });

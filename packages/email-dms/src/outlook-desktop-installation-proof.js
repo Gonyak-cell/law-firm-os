@@ -17,8 +17,9 @@ const BASE64_PATTERN = /^[A-Za-z0-9+/]+={0,2}$/u;
 const RFC3339_MILLISECONDS_PATTERN =
   /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/u;
 const INSTALLATION_PATH_PATTERN =
-  /^\/api\/desktop\/installations\/(odi_[A-Za-z0-9_-]{20,128})\/(heartbeat|retire)$/u;
+  /^\/api\/desktop\/(?:installations|internal-installations)\/(odi_[A-Za-z0-9_-]{20,128})\/(heartbeat|retire)$/u;
 const REGISTRATION_PATH = "/api/desktop/installations";
+const INTERNAL_REGISTRATION_PATH = "/api/desktop/internal-installations";
 
 function proofError(code, reason, status = 400) {
   return Object.assign(new Error(reason), {
@@ -152,7 +153,7 @@ function parseRoute(request) {
       "outlook_desktop_proof_method_invalid",
     );
   }
-  if (request.path === REGISTRATION_PATH) {
+  if (request.path === REGISTRATION_PATH || request.path === INTERNAL_REGISTRATION_PATH) {
     if (request.installation_id !== "NEW") {
       invalid(
         "OUTLOOK_DESKTOP_PROOF_INSTALLATION_INVALID",

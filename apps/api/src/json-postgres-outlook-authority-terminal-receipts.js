@@ -55,7 +55,6 @@ function normalizePass(value, postgres) {
   exactRecord(value, PASS_KEYS, "terminal PASS result");
   if (value.outcome !== "PASS" || value.password_returned !== false
       || value.secret_material_returned !== false
-      || value.role_configuration_transaction_committed_count !== 1
       || value.outlook_database_role_count !== 4
       || value.outlook_login_role_count !== 3
       || count(value.outlook_tenant_authority_count,
@@ -127,13 +126,13 @@ export function createTerminal(value) {
   }
   const result = partial ? null : normalizePass(value.result, postgres);
   const failure = partial ? normalizeFailure(value.failure, postgres) : null;
+  const secretWriteCount = postgres?.receipt.outcome === "committed" ? 3 : 0;
   if (!partial && (counts.authorization_claim_write_attempt_count !== 1
       || counts.authorization_claim_write_committed_count !== 1
-      || counts.postgres_mutation_attempt_count < 1
       || counts.postgres_mutation_attempt_count
         !== counts.postgres_mutation_committed_count
-      || counts.secretsmanager_put_secret_value_attempt_count !== 3
-      || counts.secretsmanager_put_secret_value_committed_count !== 3)) {
+      || counts.secretsmanager_put_secret_value_attempt_count !== secretWriteCount
+      || counts.secretsmanager_put_secret_value_committed_count !== secretWriteCount)) {
     bindingFailure("terminal PASS write counts are invalid");
   }
   const terminal = Object.freeze({ schema_version: TERMINAL_SCHEMA_VERSION,

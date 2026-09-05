@@ -5,6 +5,8 @@ import { verifyOutlookAssignmentMigrationPostflight } from "../../../packages/em
 import { configureLawosOutlookDatabaseRoles, verifyLawosOutlookApplicationRolePrecondition, verifyLawosOutlookDatabaseRoles } from "../../../packages/persistence/src/postgres/outlook-authority-roles.js";
 import { assertOutlookAuthorityMigrationFailureReceipt, assertOutlookAuthorityMigrationRunReceipt, createOutlookPostgresRoleConfigurationCommitUnknownError } from "../../../packages/persistence/src/postgres/migration-runner.js";
 import { CLIENT_OPERATIONS_MIGRATION_CATALOG, normalizeClientOperationsMigrationCatalog } from "./client-operations-schema.js";
+import { hashDomainValue } from "../../../packages/persistence/src/domain-ledger.js";
+import { readInternalUnsignedInstallationAuthorityReadback } from "../../../packages/email-dms/src/internal-unsigned-installation-authority-readback.js";
 
 const SHA256 = /^[a-f0-9]{64}$/u;
 const TENANT = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/u;
@@ -23,6 +25,11 @@ const MIGRATION_CATALOG_ROWS = Object.freeze(
     file_name: row.file_name, checksum: row.checksum,
   })),
 );
+const HISTORICAL_MIGRATION_CATALOG_SHA256 = hashDomainValue({
+  ...CLIENT_OPERATIONS_MIGRATION_CATALOG,
+  migration_count: 79,
+  migrations: CLIENT_OPERATIONS_MIGRATION_CATALOG.migrations.slice(0, -1),
+});
 
 function fail(message) {
   throw Object.assign(new Error(message),
@@ -100,6 +107,7 @@ export function createJsonPostgresOutlookAuthorityMigrationAdapter(options = {})
     let pause;
     let readiness;
     let replay = false;
+    let assignmentPostflight;
     let disposed = false;
     const assertCallback = (client, callbackCatalog, expectedPhase) => {
       if (phase !== expectedPhase || !client || typeof client.query !== "function"
@@ -136,7 +144,11 @@ export function createJsonPostgresOutlookAuthorityMigrationAdapter(options = {})
           pause = await readOutlookAssignmentMigrationPauseExpectation(client);
           if (pause.authority_manifest_sha256 !== authoritySha
               || pause.database_target_receipt_sha256 !== targetSha
-              || pause.migration_catalog_sha256 !== migrationSha) {
+              || (pause.migration_catalog_sha256 !== migrationSha
+                && (HISTORICAL_MIGRATION_CATALOG_SHA256 !==
+                  "43c6a087834d9dd2177be0b63fc94cf723181b93b04f40a65689b6431bd44556"
+                  || pause.migration_catalog_sha256 !==
+                    HISTORICAL_MIGRATION_CATALOG_SHA256))) {
             fail("persisted Outlook migration expectation drifted");
           }
           phase = "post";
@@ -197,8 +209,21 @@ export function createJsonPostgresOutlookAuthorityMigrationAdapter(options = {})
           authority_catalog: AUTHORITY,
           transaction_mode: replay ? "read_only" : "write",
         });
-        phase = "complete";
+        assignmentPostflight = result;
+        phase = "internal";
         return result;
+      },
+      async onInternalUnsignedInstallationAuthorityPostMigration(client, callbackCatalog) {
+        assertCallback(client, callbackCatalog, "internal");
+        const internal = await readInternalUnsignedInstallationAuthorityReadback(client);
+        phase = "complete";
+        return Object.freeze({
+          role_bootstrap_sha256: assignmentPostflight.role_bootstrap_sha256,
+          authority_postflight_sha256: hashDomainValue({
+            outlook_assignment: assignmentPostflight,
+            internal_unsigned_installation: internal,
+          }),
+        });
       },
     });
     const expectation = () => ({

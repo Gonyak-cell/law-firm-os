@@ -1,6 +1,8 @@
 import { createHash } from "node:crypto";
 import assert from "node:assert/strict";
 import test from "node:test";
+import { checksumPostgresMigration } from "../../../packages/persistence/src/postgres/migration-catalog.js";
+import { hashDomainValue } from "../../../packages/persistence/src/domain-ledger.js";
 import { createPostgresPool } from "../../../packages/persistence/src/postgres/pool.js";
 import {
   LAWOS_OUTLOOK_ASSIGNMENT_WORKER_ROLE,
@@ -63,9 +65,9 @@ const SOURCE_TREE = "b".repeat(40);
 const PACKET_SHA = "c".repeat(64);
 const ARTIFACT_SHA = "d".repeat(64);
 const KMS = "arn:aws:kms:ap-northeast-2:770880870480:key/75868150-c892-47fc-8bea-17caa1808127";
-const OFFICIAL_MIGRATION_CATALOG_COUNT = 79;
+const OFFICIAL_MIGRATION_CATALOG_COUNT = 80;
 const OFFICIAL_MIGRATION_CATALOG_SHA256 =
-  "43c6a087834d9dd2177be0b63fc94cf723181b93b04f40a65689b6431bd44556";
+  "2ef366427d98ed297ab376c8fc7e6a255cf6a054d0eaa660dc6fb7e13c814f79";
 
 assert.equal(
   CLIENT_OPERATIONS_MIGRATION_CATALOG_SHA256,
@@ -762,12 +764,13 @@ function syntheticFreshOutlookHarness({
   putFailureReadback = "absent",
   credentialOverrides = {},
   clientDriftPhase = null,
+  migrationCatalogSha256 = "9".repeat(64),
 } = {}) {
   const calls = [];
   const authorityCatalog = normalizeLawosOutlookAuthorityCatalog(
     syntheticOutlookAuthorityCatalog(),
   );
-  const migrationCatalog = syntheticOutlookMigrationCatalog();
+  const migrationCatalog = syntheticOutlookMigrationCatalog({ catalogSha256: migrationCatalogSha256 });
   const migration = {
     catalog_id: migrationCatalog.catalog_id,
     schema_version: migrationCatalog.schema_version,
@@ -843,6 +846,7 @@ function syntheticFreshOutlookHarness({
           authorityManifestSha256: input.authorityManifestSha256,
           databaseTargetReceiptSha256: input.databaseTargetReceiptSha256,
           migrationCatalogSha256: input.migrationCatalogSha256,
+          onInternalUnsignedInstallationAuthorityPostMigration: async () => {},
           async onBeforeMigrations(client, closedCatalog) {
             if (callbackPhase !== "before"
               || closedCatalog !== migrationCatalog) throw drift();
@@ -1702,6 +1706,7 @@ test("Outlook fresh commit keeps one client through three phases and publishes o
           authorityManifestSha256: input.authorityManifestSha256,
           databaseTargetReceiptSha256: input.databaseTargetReceiptSha256,
           migrationCatalogSha256: input.migrationCatalogSha256,
+          onInternalUnsignedInstallationAuthorityPostMigration: async () => {},
           async onBeforeMigrations(client) {
             assert.equal(phase, "before");
             assert.equal(client, sameClient);
@@ -1750,6 +1755,7 @@ test("Outlook fresh commit keeps one client through three phases and publishes o
         "databaseTargetReceiptSha256", "migrationCatalogSha256",
         "onBeforeMigrations", "onOutlookAuthorityPaused",
         "onOutlookAuthorityPostMigration",
+        "onInternalUnsignedInstallationAuthorityPostMigration",
       ].sort());
       await options.onBeforeMigrations(sameClient, migrationCatalog);
       await options.onOutlookAuthorityPaused(sameClient, migrationCatalog);
@@ -1877,6 +1883,7 @@ test("Outlook commit delegates only canonical adapter runner options and zeroize
     onBeforeMigrations: async () => {},
     onOutlookAuthorityPaused: async () => {},
     onOutlookAuthorityPostMigration: async () => {},
+    onInternalUnsignedInstallationAuthorityPostMigration: async () => {},
   });
   harness.options.createOutlookMigrationAdapter = (input) => {
     adapterInput = input;
@@ -1916,6 +1923,7 @@ test("Outlook commit delegates only canonical adapter runner options and zeroize
       "onBeforeMigrations",
       "onOutlookAuthorityPaused",
       "onOutlookAuthorityPostMigration",
+      "onInternalUnsignedInstallationAuthorityPostMigration",
     ].sort());
     assert.equal(options.authorityManifestSha256,
       adapterInput.authorityManifestSha256);
@@ -1928,6 +1936,8 @@ test("Outlook commit delegates only canonical adapter runner options and zeroize
       callbacks.onOutlookAuthorityPaused);
     assert.equal(options.onOutlookAuthorityPostMigration,
       callbacks.onOutlookAuthorityPostMigration);
+    assert.equal(options.onInternalUnsignedInstallationAuthorityPostMigration,
+      callbacks.onInternalUnsignedInstallationAuthorityPostMigration);
     return rawRun;
   };
 
@@ -1939,6 +1949,162 @@ test("Outlook commit delegates only canonical adapter runner options and zeroize
   assert.equal(disposeCount, 1);
   assert.ok(Buffer.isBuffer(adapterInput.tenantContextSecret));
   assert.ok(adapterInput.tenantContextSecret.every((byte) => byte === 0));
+});
+
+function retainedOutlookRun(harness, mode) {
+  const applied = mode === "appended" ? 1 : 0;
+  const pauseExpectation = outlookPauseExpectation({
+    authorityCatalogSha256: harness.authorityCatalog.catalog_sha256,
+    databaseTargetReceiptSha256: harness.authorization.database_target_receipt_sha256,
+    migrationCatalogSha256:
+      "43c6a087834d9dd2177be0b63fc94cf723181b93b04f40a65689b6431bd44556",
+    roleBootstrapSha256: harness.readiness.role_bootstrap_sha256,
+  });
+  return createOutlookAuthorityMigrationRunReceipt({
+    identity: OUTLOOK_RECEIPT_IDENTITY,
+    migrations: listClientOperationsPostgresMigrations().map(({ id, sql }) => ({
+      id, checksum: checksumPostgresMigration(sql), applied: applied === 1 && id === "309_client_internal_unsigned_installation_authority",
+    })),
+    progress: {
+      outlook_authority_replay_verified: true,
+      migration_applied_count: applied,
+      postgres_transaction_attempted_count: applied,
+      postgres_transaction_committed_count: applied,
+      role_configuration_transaction_attempted_count: 0,
+      role_configuration_transaction_committed_count: 0,
+      outlook_assignment_transaction_committed: false,
+    },
+    pauseExpectation,
+    migrationCatalogSha256: harness.migrationCatalog.catalog_sha256,
+    postflight: { role_bootstrap_sha256: harness.readiness.role_bootstrap_sha256,
+      authority_postflight_sha256: "a".repeat(64) },
+  });
+}
+
+function retainedOutlookHarness(mode, { forge = null, postflightFailure = false } = {}) {
+  const harness = syntheticFreshOutlookHarness({
+    migrationCatalogSha256: CLIENT_OPERATIONS_MIGRATION_CATALOG_SHA256,
+  });
+  const receipt = retainedOutlookRun(harness, mode);
+  const failure = Object.assign(new Error("synthetic internal installation postflight drift"), {
+    code: "LAWOS_OUTLOOK_MIGRATION_RUN_DRIFT",
+  });
+  const failureReceipt = () => createOutlookAuthorityMigrationFailureSummary({
+    identity: OUTLOOK_RECEIPT_IDENTITY,
+    migrations: receipt.migrations,
+    progress: {
+      migration_phase: "internal_installation_postflight",
+      migration_applied_count: receipt.migration_applied_count,
+      postgres_transaction_attempted_count: receipt.postgres_mutation_attempt_count,
+      postgres_transaction_committed_count: receipt.postgres_mutation_committed_count,
+      role_configuration_transaction_attempted_count: 0,
+      role_configuration_transaction_committed_count: 0,
+      outlook_assignment_transaction_committed: false,
+    },
+    pauseExpectation: outlookPauseExpectation({
+      authorityCatalogSha256: harness.authorityCatalog.catalog_sha256,
+      databaseTargetReceiptSha256: harness.authorization.database_target_receipt_sha256,
+      migrationCatalogSha256: harness.migrationCatalog.catalog_sha256,
+      roleBootstrapSha256: harness.readiness.role_bootstrap_sha256,
+    }),
+    authorityManifestSha256: harness.authorityCatalog.catalog_sha256,
+    databaseTargetReceiptSha256: harness.authorization.database_target_receipt_sha256,
+    migrationCatalogSha256: harness.migrationCatalog.catalog_sha256,
+    safeErrorCode: "OUTLOOK_MIGRATION_RUN_DRIFT",
+  });
+  let inputBuffer;
+  harness.options.createOutlookMigrationAdapter = (input) => {
+    inputBuffer = input.tenantContextSecret;
+    return Object.freeze({
+      runnerOptions: Object.freeze({
+        authorityManifestSha256: input.authorityManifestSha256,
+        databaseTargetReceiptSha256: input.databaseTargetReceiptSha256,
+        migrationCatalogSha256: input.migrationCatalogSha256,
+        onBeforeMigrations: async () => {},
+        onOutlookAuthorityPaused: async () => assert.fail("retained roles must not be configured"),
+        onOutlookAuthorityPostMigration: async () => assert.fail("007 must not run again"),
+        onInternalUnsignedInstallationAuthorityPostMigration: async () => {
+          harness.calls.push("internal-installation:postflight");
+          if (postflightFailure) throw failure;
+          return { role_bootstrap_sha256: harness.readiness.role_bootstrap_sha256,
+            authority_postflight_sha256: receipt.authority_postflight_sha256 };
+        },
+      }),
+      normalizeRunReceipt: (value) => value,
+      normalizeFailureReceipt: () => {
+        if (forge) throw new TypeError("no trustworthy failure receipt after forged run receipt");
+        return failureReceipt();
+      },
+      getRoleReadiness: () => harness.readiness,
+      dispose: () => input.tenantContextSecret.fill(0),
+    });
+  };
+  harness.options.runOutlookAuthorityMigrations = async (_pool, options) => {
+    await options.onBeforeMigrations();
+    await options.onInternalUnsignedInstallationAuthorityPostMigration();
+    if (!forge) return receipt;
+    const { migration_run_receipt_sha256: ignored, ...material } = receipt;
+    const forged = { ...material, ...forge };
+    return { ...forged, migration_run_receipt_sha256: hashDomainValue(forged) };
+  };
+  return { ...harness, receipt, failure, inputBuffer: () => inputBuffer };
+}
+
+for (const mode of ["appended", "verified"]) {
+  test(`Outlook ${mode} migration uses retained role credentials and records zero role-secret writes`, async () => {
+    const harness = retainedOutlookHarness(mode);
+    const result = await bootstrapJsonPostgresProductionDatabase(harness.options);
+    const expectedMigrations = mode === "appended" ? 1 : 0;
+    assert.equal(result.outcome, "PASS");
+    assert.equal(result.postgres_mutation_attempt_count, expectedMigrations);
+    assert.equal(result.postgres_mutation_committed_count, expectedMigrations);
+    assert.equal(result.secretsmanager_put_secret_value_attempt_count, 0);
+    assert.equal(result.secretsmanager_put_secret_value_committed_count, 0);
+    assert.equal(result.production_write_count, expectedMigrations + 1);
+    assert.deepEqual(harness.secretWrites, []);
+    assert.equal(harness.calls.filter((call) => call === "internal-installation:postflight").length, 1);
+    const terminal = harness.terminalWrites[0];
+    assert.equal(terminal.status, "PASS");
+    assert.equal(terminal.result.role_configuration_transaction_committed_count, 0);
+    assert.equal(terminal.postgres_receipt.receipt.outcome, mode);
+    assert.equal(terminal.postgres_receipt.receipt.schema_version,
+      "lawos.outlook-authority-migration-run-receipt.v2");
+    assert.equal(terminal.result.migration_applied_count, expectedMigrations);
+    assert.ok(harness.inputBuffer().every((byte) => byte === 0));
+  });
+}
+
+test("Outlook appended migration rejects rehashed forged role, mutation, and applied counters before secret writes", async () => {
+  for (const forge of [
+    { role_configuration_transaction_committed_count: 1 },
+    { postgres_mutation_attempt_count: 0, postgres_mutation_committed_count: 0 },
+    { migration_applied_count: 0 },
+    { outcome: "verified" },
+  ]) {
+    const harness = retainedOutlookHarness("appended", { forge });
+    await assert.rejects(bootstrapJsonPostgresProductionDatabase(harness.options),
+      (error) => error.code === "LAWOS_OUTLOOK_MIGRATION_RUN_DRIFT");
+    assert.deepEqual(harness.secretWrites, []);
+    assert.deepEqual(harness.terminalWrites, []);
+    assert.ok(harness.inputBuffer().every((byte) => byte === 0));
+  }
+});
+
+test("Outlook internal installation postflight failure preserves truthful appended PostgreSQL counts", async () => {
+  const harness = retainedOutlookHarness("appended", { postflightFailure: true });
+  await assert.rejects(bootstrapJsonPostgresProductionDatabase(harness.options),
+    (error) => error === harness.failure);
+  assert.deepEqual(harness.secretWrites, []);
+  assert.equal(harness.terminalWrites.length, 1);
+  const terminal = harness.terminalWrites[0];
+  assert.equal(terminal.status, "PARTIAL");
+  assert.equal(terminal.failure.failure_phase, "postgres-postflight");
+  assert.equal(terminal.postgres_mutation_attempt_count, 1);
+  assert.equal(terminal.postgres_mutation_committed_count, 1);
+  assert.equal(terminal.secretsmanager_put_secret_value_attempt_count, 0);
+  assert.equal(terminal.production_write_count, 2);
+  assert.equal(terminal.postgres_receipt.receipt.role_configuration_transaction_committed_count, 0);
+  assert.equal(terminal.postgres_receipt.receipt.outlook_assignment_transaction_committed, false);
 });
 
 test("Outlook role COMMIT response loss records an unknown PostgreSQL commit and zeroizes the caller Buffer", async () => {
@@ -1959,6 +2125,7 @@ test("Outlook role COMMIT response loss records an unknown PostgreSQL commit and
         onBeforeMigrations: async () => {},
         onOutlookAuthorityPaused: async () => {},
         onOutlookAuthorityPostMigration: async () => {},
+        onInternalUnsignedInstallationAuthorityPostMigration: async () => {},
       }),
       normalizeRunReceipt: () =>
         assert.fail("COMMIT-unknown run cannot normalize as success"),
@@ -2424,11 +2591,18 @@ test("production schema ledger readback is SELECT-only and authoritative", async
   );
   assert.equal(
     result.final_migration_id,
-    "308_client_outlook_desktop_legacy_windows_compatibility",
+    "309_client_internal_unsigned_installation_authority",
+  );
+  assert.deepEqual(
+    CLIENT_OPERATIONS_SCHEMA_MANIFEST.entries.at(-2),
+    {
+      id: "308_client_outlook_desktop_legacy_windows_compatibility",
+      checksum: "64cbb3e6575e0af33b7b8e315797000ab5597498a0e9e5eed77c1ad19b23a715",
+    },
   );
   assert.equal(
     result.final_migration_checksum,
-    "64cbb3e6575e0af33b7b8e315797000ab5597498a0e9e5eed77c1ad19b23a715",
+    "171ecf90f09903ba802e2693cea65f8b98f0a26a0690292749936d3bcd1569e1",
   );
   for (const key of [
     "production_data_write_count",

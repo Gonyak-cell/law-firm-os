@@ -83,6 +83,10 @@ const EXPECTED = Object.freeze([
   ["GET", "/api/desktop/installations/:installation_id", D],
   ["POST", "/api/desktop/installations/:installation_id/heartbeat", D],
   ["POST", "/api/desktop/installations/:installation_id/retire", D],
+  ["POST", "/api/desktop/internal-installations", D],
+  ["POST", "/api/desktop/internal-installations/:installation_id/heartbeat", D],
+  ["POST", "/api/desktop/internal-installations/:installation_id/retire", D],
+  ["POST", "/api/desktop/internal-updates/baseline-adoption-attestation", D],
   ["POST", "/api/desktop/internal-updates/authorize", O],
 ]);
 
@@ -90,7 +94,7 @@ function samplePath(template, suffix = "sample") {
   return template.replace(/:[a-z_]+/gu, suffix);
 }
 
-test("the Outlook installation policy is one complete non-overlapping 55-route matrix", () => {
+test("the Outlook installation policy is one complete non-overlapping 59-route matrix", () => {
   assert.deepEqual(
     OUTLOOK_INSTALLATION_ROUTE_POLICIES.map(({ method, template, classification }) => (
       [method, template, classification]
@@ -98,7 +102,7 @@ test("the Outlook installation policy is one complete non-overlapping 55-route m
     EXPECTED,
   );
   assert.deepEqual(auditOutlookInstallationRoutePolicies(), {
-    policy_count: 55,
+    policy_count: 59,
     duplicate_id_count: 0,
     duplicate_route_count: 0,
     ambiguous_sample_count: 0,

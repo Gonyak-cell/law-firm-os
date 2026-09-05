@@ -26,6 +26,12 @@ import {
   OUTLOOK_DESKTOP_TRUSTED_CURRENT_READ_SECURITY_DEFINER_FUNCTIONS_SHA256,
 } from "../../../packages/email-dms/src/outlook-desktop-trusted-current-read-authority-catalog.js";
 import {
+  INTERNAL_UNSIGNED_INSTALLATION_AUTHORITY_CATALOG,
+  INTERNAL_UNSIGNED_INSTALLATION_AUTHORITY_CATALOG_SHA256,
+  INTERNAL_UNSIGNED_INSTALLATION_SECURITY_DEFINER_FUNCTIONS,
+  INTERNAL_UNSIGNED_INSTALLATION_SECURITY_DEFINER_FUNCTIONS_SHA256,
+} from "../../../packages/email-dms/src/internal-unsigned-installation-authority-catalog.js";
+import {
   CLIENT_OPERATIONS_MIGRATION_CATALOG_VERSION,
   normalizeClientOperationsMigrationCatalogMaterial,
 } from "./client-operations-migration-catalog.js";
@@ -51,6 +57,13 @@ const OUTLOOK_LEGACY_WINDOWS_COMPATIBILITY_SOURCE_MIGRATION_ID =
 const OUTLOOK_LEGACY_WINDOWS_COMPATIBILITY_CLIENT_MIGRATION_ID =
   "308_client_outlook_desktop_legacy_windows_compatibility";
 
+const INTERNAL_UNSIGNED_SOURCE_MIGRATION_ID =
+  "010_internal_unsigned_installation_authority";
+const INTERNAL_UNSIGNED_CLIENT_MIGRATION_ID =
+  "309_client_internal_unsigned_installation_authority";
+const INTERNAL_UNSIGNED_READ_SIGNATURE =
+  "lawos_email_dms.read_current_internal_unsigned_installation(text,text,text)";
+
 export const CLIENT_OPERATIONS_MIGRATION_ID_MAP = Object.freeze({
   "001_m365_connection": "300_client_m365_connection",
   "002_inquiry_evidence": "301_client_inquiry_evidence",
@@ -66,6 +79,7 @@ export const CLIENT_OPERATIONS_MIGRATION_ID_MAP = Object.freeze({
     OUTLOOK_TRUSTED_CURRENT_READ_CLIENT_MIGRATION_ID,
   [OUTLOOK_LEGACY_WINDOWS_COMPATIBILITY_SOURCE_MIGRATION_ID]:
     OUTLOOK_LEGACY_WINDOWS_COMPATIBILITY_CLIENT_MIGRATION_ID,
+  [INTERNAL_UNSIGNED_SOURCE_MIGRATION_ID]: INTERNAL_UNSIGNED_CLIENT_MIGRATION_ID,
 });
 
 function clientSchemaMigrations() {
@@ -231,6 +245,37 @@ function createOutlookTrustedCurrentReadAuthorityBinding() {
 export const CLIENT_OPERATIONS_OUTLOOK_TRUSTED_CURRENT_READ_AUTHORITY_BINDING =
   createOutlookTrustedCurrentReadAuthorityBinding();
 
+function createInternalUnsignedInstallationAuthorityBinding() {
+  const catalog = INTERNAL_UNSIGNED_INSTALLATION_AUTHORITY_CATALOG;
+  const functions = INTERNAL_UNSIGNED_INSTALLATION_SECURITY_DEFINER_FUNCTIONS;
+  const read = functions.find(({ signature }) => signature === INTERNAL_UNSIGNED_READ_SIGNATURE);
+  if (hashDomainValue(catalog) !== INTERNAL_UNSIGNED_INSTALLATION_AUTHORITY_CATALOG_SHA256
+    || catalog.source_migration_id !== INTERNAL_UNSIGNED_SOURCE_MIGRATION_ID
+    || catalog.source_migration_file_name !== "./010_internal_unsigned_installation_authority.sql"
+    || catalog.security_definer_functions !== functions
+    || catalog.security_definer_functions_sha256 !== INTERNAL_UNSIGNED_INSTALLATION_SECURITY_DEFINER_FUNCTIONS_SHA256
+    || hashDomainValue(functions) !== INTERNAL_UNSIGNED_INSTALLATION_SECURITY_DEFINER_FUNCTIONS_SHA256
+    || catalog.exposed_security_definer_function_count !== 5 || functions.length !== 5
+    || new Set(functions.map(({ signature }) => signature)).size !== 5
+    || catalog.raw_release_binding_table_grants.length !== 0
+    || catalog.temporary_role_membership_persisted !== false
+    || catalog.temporary_schema_create_persisted !== false
+    || read?.transaction_mode !== "serializable_read_only") {
+    throw new Error("Internal unsigned installation authority catalog is not closed");
+  }
+  return Object.freeze({
+    source_migration_id: INTERNAL_UNSIGNED_SOURCE_MIGRATION_ID,
+    client_migration_id: INTERNAL_UNSIGNED_CLIENT_MIGRATION_ID,
+    authority_catalog_sha256: INTERNAL_UNSIGNED_INSTALLATION_AUTHORITY_CATALOG_SHA256,
+    exposed_security_definer_function_count: functions.length,
+    exposed_security_definer_function_catalog_sha256: INTERNAL_UNSIGNED_INSTALLATION_SECURITY_DEFINER_FUNCTIONS_SHA256,
+    trusted_current_read: Object.freeze({ signature: INTERNAL_UNSIGNED_READ_SIGNATURE, transaction_mode: "serializable_read_only" }),
+  });
+}
+
+export const CLIENT_OPERATIONS_INTERNAL_UNSIGNED_INSTALLATION_AUTHORITY_BINDING =
+  createInternalUnsignedInstallationAuthorityBinding();
+
 function packetMigrationCatalogMaterial(migrations) {
   return Object.freeze({
     schema_version: CLIENT_OPERATIONS_MIGRATION_CATALOG_VERSION,
@@ -247,6 +292,9 @@ function packetMigrationCatalogMaterial(migrations) {
           outlook_assignment_authority:
             CLIENT_OPERATIONS_OUTLOOK_ASSIGNMENT_AUTHORITY_BINDING,
         }
+        : {}),
+      ...(migration.id === INTERNAL_UNSIGNED_CLIENT_MIGRATION_ID
+        ? { internal_unsigned_installation_authority: CLIENT_OPERATIONS_INTERNAL_UNSIGNED_INSTALLATION_AUTHORITY_BINDING }
         : {}),
       ...(migration.id
         === OUTLOOK_TRUSTED_CURRENT_READ_CLIENT_MIGRATION_ID
@@ -303,6 +351,7 @@ export function runClientOperationsPostgresMigrations(
     onBeforeMigrations,
     onOutlookAuthorityPaused,
     onOutlookAuthorityPostMigration,
+    onInternalUnsignedInstallationAuthorityPostMigration,
   } = {},
 ) {
   return runPostgresMigrations(pool, {
@@ -314,6 +363,7 @@ export function runClientOperationsPostgresMigrations(
     onBeforeMigrations,
     onOutlookAuthorityPaused,
     onOutlookAuthorityPostMigration,
+    onInternalUnsignedInstallationAuthorityPostMigration,
     allowedHistoricalGapIds: [
       "012_outlook_document_source_identity",
       "013_dms_precedent_search",

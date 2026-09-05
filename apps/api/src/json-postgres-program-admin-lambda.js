@@ -815,6 +815,7 @@ function assertOutlookMigrationAdapter(value, expected) {
       "authorityManifestSha256", "databaseTargetReceiptSha256",
       "migrationCatalogSha256", "onBeforeMigrations",
       "onOutlookAuthorityPaused", "onOutlookAuthorityPostMigration",
+      "onInternalUnsignedInstallationAuthorityPostMigration",
     ])
     || !Object.isFrozen(runner)
     || runner.authorityManifestSha256 !== expected.authorityManifestSha256
@@ -822,7 +823,8 @@ function assertOutlookMigrationAdapter(value, expected) {
       !== expected.databaseTargetReceiptSha256
     || runner.migrationCatalogSha256 !== expected.migrationCatalogSha256
     || [runner.onBeforeMigrations, runner.onOutlookAuthorityPaused,
-      runner.onOutlookAuthorityPostMigration, value.normalizeRunReceipt,
+      runner.onOutlookAuthorityPostMigration,
+      runner.onInternalUnsignedInstallationAuthorityPostMigration, value.normalizeRunReceipt,
       value.normalizeFailureReceipt, value.getRoleReadiness, value.dispose]
       .some((callback) => typeof callback !== "function")) {
     fail(
@@ -840,6 +842,7 @@ const OUTLOOK_FAILURE_PHASES = Object.freeze({
   outlook_authority_paused: "postgres-bootstrap",
   outlook_authority_migration: "postgres-postflight",
   outlook_authority_replay: "postgres-postflight",
+  internal_installation_postflight: "postgres-postflight",
   complete: "postgres-postflight",
 });
 
@@ -878,20 +881,6 @@ function assertOutlookMigrationRunSummary(value, {
     fail(
       "LAWOS_OUTLOOK_MIGRATION_RUN_DRIFT",
       "Outlook authority migration run receipt is invalid or unbound",
-    );
-  }
-  const migrationAppliedCount = receipt.migration_applied_count;
-  const postgresAttempted = receipt.postgres_mutation_attempt_count;
-  const postgresCommitted = receipt.postgres_mutation_committed_count;
-  if (![migrationAppliedCount, postgresAttempted, postgresCommitted]
-    .every((count) => Number.isSafeInteger(count) && count >= 0)
-    || receipt.role_configuration_transaction_committed_count !== 1
-    || postgresCommitted !== migrationAppliedCount + 1
-    || postgresAttempted !== postgresCommitted
-    || receipt.role_bootstrap_sha256 !== readiness.role_bootstrap_sha256) {
-    fail(
-      "LAWOS_OUTLOOK_MIGRATION_RUN_DRIFT",
-      "Outlook authority migration run summary is invalid",
     );
   }
   return receipt;
@@ -1832,11 +1821,13 @@ export async function bootstrapJsonPostgresProductionDatabase({
       ...(versionStage === undefined ? {} : { VersionStage: versionStage }),
     })));
     failurePhase = "secret-publication";
-    for (const [secretId, secret] of [
-      [outlookSecretIds.control, outlookControlSecret],
-      [outlookSecretIds.assignment, outlookAssignmentSecret],
-      [outlookSecretIds.lifecycleVerifier, outlookLifecycleVerifierSecret],
-    ]) {
+    const roleSecretsToPublish =
+      migrationRun.role_configuration_transaction_committed_count === 1 ? [
+        [outlookSecretIds.control, outlookControlSecret],
+        [outlookSecretIds.assignment, outlookAssignmentSecret],
+        [outlookSecretIds.lifecycleVerifier, outlookLifecycleVerifierSecret],
+      ] : [];
+    for (const [secretId, secret] of roleSecretsToPublish) {
       mutation.secretAttempted += 1;
       try {
         await publishJsonPostgresOutlookDatabaseSecret({
@@ -1876,7 +1867,8 @@ export async function bootstrapJsonPostgresProductionDatabase({
       result: {
         outcome: "PASS",
         migration_applied_count: migrationRun.migration_applied_count,
-        role_configuration_transaction_committed_count: 1,
+        role_configuration_transaction_committed_count:
+          migrationRun.role_configuration_transaction_committed_count,
         outlook_database_role_count: roleBootstrap.role_count,
         outlook_login_role_count: roleBootstrap.login_role_count,
         outlook_tenant_authority_count:

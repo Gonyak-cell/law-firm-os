@@ -1,6 +1,9 @@
 import { hashDomainValue } from "../domain-ledger.js";
 
 const RUN_SCHEMA = "lawos.outlook-authority-migration-run-receipt.v1";
+const HISTORICAL_RUN_SCHEMA = "lawos.outlook-authority-migration-run-receipt.v2";
+const INTERNAL_INSTALLATION_HISTORICAL_CATALOG_SHA256 =
+  "43c6a087834d9dd2177be0b63fc94cf723181b93b04f40a65689b6431bd44556";
 const FAILURE_SCHEMA =
   "lawos.outlook-authority-migration-failure-receipt.v1";
 const SHA256 = /^[a-f0-9]{64}$/u;
@@ -115,12 +118,22 @@ function assertMigrationRows(migrations) {
 }
 
 export function assertOutlookAuthorityMigrationRunReceipt(value, expected) {
-  exactRecord(value, RUN_KEYS, "Outlook authority migration run receipt");
+  const historical = value?.schema_version === HISTORICAL_RUN_SCHEMA;
+  exactRecord(value, historical
+    ? [...RUN_KEYS, "historical_migration_catalog_sha256"] : RUN_KEYS,
+  "Outlook authority migration run receipt");
   exactRecord(value.database, ["name", "oid"], "Outlook authority database");
   const { migration_run_receipt_sha256: receiptSha, ...material } = value;
   const committed = value.outcome === "committed";
   const verified = value.outcome === "verified";
-  if (value.schema_version !== RUN_SCHEMA || (!committed && !verified)
+  const appended = value.outcome === "appended";
+  if ((!historical && value.schema_version !== RUN_SCHEMA)
+      || (!committed && !verified && !appended)
+      || (historical && (committed
+        || value.historical_migration_catalog_sha256 !==
+          INTERNAL_INSTALLATION_HISTORICAL_CATALOG_SHA256
+        || value.migration_catalog_sha256 ===
+          value.historical_migration_catalog_sha256))
       || !SHA256.test(receiptSha) || hashDomainValue(material) !== receiptSha
       || value.session_user !== value.current_user
       || !value.session_user || !value.database.name
@@ -130,6 +143,15 @@ export function assertOutlookAuthorityMigrationRunReceipt(value, expected) {
       || !nonnegative(value.migration_applied_count)
       || value.migration_applied_count !==
         value.migrations.filter(({ applied }) => applied === true).length
+      || ((historical || appended) && (
+        value.migrations.length !== 80
+        || hashDomainValue(value.migrations.slice(0, -1).map(
+          ({ id, checksum }) => ({ id, checksum }),
+        )) !== "fe0b9c53de1617361fd607692beb7e462b28159321e7830d507836948fcfdbc3"
+        || value.migrations.at(-1)?.id !==
+          "309_client_internal_unsigned_installation_authority"
+        || value.migrations.at(-1)?.checksum !==
+          "171ecf90f09903ba802e2693cea65f8b98f0a26a0690292749936d3bcd1569e1"))
       || (committed && (
         value.role_configuration_transaction_committed_count !== 1
         || value.postgres_mutation_attempt_count !==
@@ -144,6 +166,17 @@ export function assertOutlookAuthorityMigrationRunReceipt(value, expected) {
         || value.postgres_mutation_committed_count !== 0
         || value.outlook_assignment_transaction_committed !== false
         || value.migrations.some(({ applied }) => applied)))
+      || (appended && (
+        value.migrations.length !== 80
+        || value.migrations.at(-1)?.id !==
+          "309_client_internal_unsigned_installation_authority"
+        || value.migrations.at(-1)?.applied !== true
+        || value.migrations.slice(0, -1).some(({ applied }) => applied)
+        || value.migration_applied_count !== 1
+        || value.role_configuration_transaction_committed_count !== 0
+        || value.postgres_mutation_attempt_count !== 1
+        || value.postgres_mutation_committed_count !== 1
+        || value.outlook_assignment_transaction_committed !== false))
       || ![value.role_bootstrap_sha256,
         value.postflight_role_bootstrap_sha256,
         value.authority_manifest_sha256,
@@ -190,9 +223,15 @@ export function assertOutlookAuthorityMigrationFailureReceipt(value, expected) {
       value.role_configuration_transaction_committed_count,
     )
     : [0, 1].includes(value.role_configuration_transaction_committed_count);
-  const assignmentCommitValid = commitUnknown
+  const assignmentPreviouslyCommitted =
+    value.outlook_assignment_transaction_committed === true
+    && ["migration", "internal_installation_postflight"].includes(value.failure_phase)
+    && value.role_configuration_transaction_committed_count === 1
+    && value.migrations?.some(({ id, applied }) => applied
+      && id === "306_client_outlook_desktop_assignment");
+  const assignmentCommitValid = assignmentPreviouslyCommitted || (commitUnknown
     ? [false, null].includes(value.outlook_assignment_transaction_committed)
-    : value.outlook_assignment_transaction_committed === false;
+    : value.outlook_assignment_transaction_committed === false);
   const unknownAffectsCommit = commitUnknown
     && (value.postgres_mutation_committed_count === null)
     && (value.role_configuration_transaction_committed_count === null
@@ -242,11 +281,15 @@ export function assertOutlookAuthorityMigrationFailureReceipt(value, expected) {
 
 export function createOutlookAuthorityMigrationRunReceipt({
   identity, migrations, progress, pauseExpectation, postflight,
+  migrationCatalogSha256 = pauseExpectation.migration_catalog_sha256,
 }) {
+  const historical = migrationCatalogSha256 !==
+    pauseExpectation.migration_catalog_sha256;
   const material = {
-    schema_version: RUN_SCHEMA,
+    schema_version: historical ? HISTORICAL_RUN_SCHEMA : RUN_SCHEMA,
     outcome: progress.outlook_authority_replay_verified
-      ? "verified" : "committed",
+      ? progress.migration_applied_count === 0 ? "verified" : "appended"
+      : "committed",
     session_user: identity.session_user, current_user: identity.current_user,
     database: { oid: String(identity.database_oid), name: identity.database_name },
     backend_pid: identity.backend_pid,
@@ -263,7 +306,9 @@ export function createOutlookAuthorityMigrationRunReceipt({
     authority_manifest_sha256: pauseExpectation.authority_manifest_sha256,
     database_target_receipt_sha256:
       pauseExpectation.database_target_receipt_sha256,
-    migration_catalog_sha256: pauseExpectation.migration_catalog_sha256,
+    migration_catalog_sha256: migrationCatalogSha256,
+    ...(historical ? { historical_migration_catalog_sha256:
+      pauseExpectation.migration_catalog_sha256 } : {}),
     authority_postflight_sha256: postflight.authority_postflight_sha256,
     outlook_assignment_transaction_committed:
       progress.outlook_assignment_transaction_committed,
