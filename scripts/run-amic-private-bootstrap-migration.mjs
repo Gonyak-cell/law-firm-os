@@ -20,6 +20,7 @@ import {
   verifyAmicPrivateBootstrapExecutionApprovalPayload,
 } from "./lib/amic-private-bootstrap-execution.mjs";
 import {
+  validateAmicPrivateBootstrapDirectoryMigration,
   validateAmicPrivateBootstrapGitState,
   validateAmicPrivateBootstrapPacketInputBinding,
   validateAmicPrivateBootstrapS3Controls,
@@ -314,11 +315,7 @@ try {
   tenantContextSecret = null;
   await pool.query("SELECT 1 AS private_bootstrap_database_ready");
   const migrations = await verifyClientOperationsPostgresMigrations(pool);
-  if (!migrations.some(({ id }) => id === "049_hrx_directory_authority")) {
-    throw Object.assign(new Error("HRX directory authority migration is absent"), {
-      code: "AMIC_PRIVATE_BOOTSTRAP_DATABASE_SCHEMA",
-    });
-  }
+  validateAmicPrivateBootstrapDirectoryMigration(migrations);
   const tenantAuthority = await pool.query(
     "SELECT lawos_security.tenant_context_authority_ready() AS ready",
   );

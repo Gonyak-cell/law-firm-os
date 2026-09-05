@@ -1,4 +1,6 @@
 import { createHash } from "node:crypto";
+import { listHrxPostgresMigrations } from "../../packages/hrx/src/postgres-migrations.js";
+import { checksumPostgresMigration } from "../../packages/persistence/src/postgres/migration-catalog.js";
 import {
   validateAmicPrivateBootstrapExecutionPacket,
   validateAmicPrivateBootstrapProductionTarget,
@@ -18,6 +20,17 @@ const INPUT_KEYS = Object.freeze([
 ]);
 export const AMIC_PRIVATE_BOOTSTRAP_PACKET_INPUT_VERSION =
   "law-firm-os.amic-private-bootstrap-packet-input.v1";
+
+export function validateAmicPrivateBootstrapDirectoryMigration(migrations) {
+  const expected = listHrxPostgresMigrations().find(({ source_migration_id }) =>
+    source_migration_id === "049_hrx_directory_authority");
+  if (!expected || !Array.isArray(migrations)
+      || !migrations.some(({ id, checksum }) =>
+        id === expected.id && checksum === checksumPostgresMigration(expected.sql))) {
+    fail("AMIC_PRIVATE_BOOTSTRAP_DATABASE_SCHEMA", "HRX directory authority migration is absent or drifted");
+  }
+  return true;
+}
 
 function fail(code, message) {
   throw Object.assign(new Error(message), { code });
