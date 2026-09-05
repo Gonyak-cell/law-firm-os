@@ -36,15 +36,19 @@ test("production member photos use their committed prefix with read-only API acc
     Resource: { "Fn::Sub": "${DmsBucket.Arn}/synthetic-member-photos/objects/*" },
   });
   for (const field of ["BUCKET", "EXPECTED_BUCKET_OWNER", "REGION", "KMS_KEY_ID", "CREDENTIAL_REF"]) {
-    assert.deepEqual(stagingEnv[`LAWOS_MEMBER_PHOTO_S3_${field}`], stagingEnv[`LAWOS_DMS_S3_${field}`]);
+    assert.equal(Object.hasOwn(stagingEnv, `LAWOS_MEMBER_PHOTO_S3_${field}`), false);
+    assert.ok(stagingEnv[`LAWOS_DMS_S3_${field}`]);
   }
   const template = buildJsonPostgresProductionTemplate(reference);
   const env = template.Resources.ApiFunction.Properties.Environment.Variables;
   assert.equal(env.LAWOS_DMS_S3_PREFIX, "lawos-dms");
   assert.equal(env.LAWOS_MEMBER_PHOTO_S3_PREFIX, "approved-real-migration/member-photos");
   for (const field of ["BUCKET", "EXPECTED_BUCKET_OWNER", "REGION", "KMS_KEY_ID", "CREDENTIAL_REF"]) {
-    assert.deepEqual(env[`LAWOS_MEMBER_PHOTO_S3_${field}`], env[`LAWOS_DMS_S3_${field}`]);
+    assert.equal(Object.hasOwn(env, `LAWOS_MEMBER_PHOTO_S3_${field}`), false);
+    assert.ok(env[`LAWOS_DMS_S3_${field}`]);
   }
+  const workerEnv = template.Resources.OutlookConversationWorkerFunction.Properties.Environment.Variables;
+  assert.deepEqual(Object.keys(workerEnv).filter((key) => key.startsWith("LAWOS_MEMBER_PHOTO_S3_")), ["LAWOS_MEMBER_PHOTO_S3_PREFIX"]);
   const statements = template.Resources.ApiExecutionRole.Properties.Policies
     .flatMap((policy) => policy.PolicyDocument?.Statement ?? []);
   const photoRead = statements.find(({ Sid }) => Sid === "ReadCommittedMemberPhotos");
@@ -56,7 +60,10 @@ test("production member photos use their committed prefix with read-only API acc
   });
   assert.equal(validateJsonPostgresProductionTemplate(template).verdict, "PASS");
   for (const mutate of [
-    (copy) => { delete copy.Resources.ApiFunction.Properties.Environment.Variables.LAWOS_MEMBER_PHOTO_S3_BUCKET; },
+    (copy) => { delete copy.Resources.ApiFunction.Properties.Environment.Variables.LAWOS_DMS_S3_BUCKET; },
+    (copy) => { copy.Resources.ApiFunction.Properties.Environment.Variables.LAWOS_DMS_S3_EXPECTED_BUCKET_OWNER = "other-owner"; },
+    (copy) => { copy.Resources.ApiFunction.Properties.Environment.Variables.LAWOS_MEMBER_PHOTO_S3_BUCKET = { Ref: "DmsBucket" }; },
+    (copy) => { delete copy.Resources.ApiFunction.Properties.Environment.Variables.LAWOS_MEMBER_PHOTO_S3_PREFIX; },
     (copy) => { copy.Resources.ApiFunction.Properties.Environment.Variables.LAWOS_MEMBER_PHOTO_S3_PREFIX = "lawos-dms"; },
     (copy) => { copy.Resources.S3GatewayEndpoint.Properties.PolicyDocument.Statement.find(({ Sid }) => Sid === "ApiReadsCommittedMemberPhotos").Principal = "*"; },
     (copy) => { copy.Resources.ApiExecutionRole.Properties.Policies[0].PolicyDocument.Statement.find(({ Sid }) => Sid === "ReadCommittedMemberPhotos").Action.push("s3:PutObject"); },
@@ -2124,7 +2131,7 @@ test("W15 rollback tooling disables the worker schedule without an ENI or traffi
   );
   assert.match(
     source,
-    /apiEnvironmentSizeBytes > AWS_LAMBDA_ENVIRONMENT_MAX_BYTES/u,
+    /const apiEnvironmentSizeBytes = assertLambdaEnvironmentBudget\(apiEnvironment\)\.size_bytes/u,
   );
   assert.match(
     source,

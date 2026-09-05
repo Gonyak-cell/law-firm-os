@@ -601,17 +601,20 @@ export function createPostgresMemberPhotoStorageFromEnv(env = process.env, {
   const hasPhotoConfig = Object.keys(env).some((key) => key.startsWith("LAWOS_MEMBER_PHOTO_S3_"));
   if (!hasPhotoConfig && env.LAWOS_DATA_SCOPE === "synthetic-only"
       && dmsStorage && dmsStorage.provider !== "s3") return dmsStorage;
-  const required = (suffix) => {
-    const name = `LAWOS_MEMBER_PHOTO_S3_${suffix}`;
+  if (Object.keys(env).some((key) => key.startsWith("LAWOS_MEMBER_PHOTO_S3_")
+      && key !== "LAWOS_MEMBER_PHOTO_S3_PREFIX")) {
+    throw runtimePreflightError("member photos reuse DMS S3 bindings; only the photo prefix may be configured separately");
+  }
+  const required = (name) => {
     const value = String(env[name] ?? "").trim();
     if (!value) throw runtimePreflightError(`${name} is required for postgres-v2 member photos`);
     return value;
   };
-  const bucket = required("BUCKET");
-  const owner = required("EXPECTED_BUCKET_OWNER");
-  const region = required("REGION");
-  const prefix = required("PREFIX");
-  const kmsKey = required("KMS_KEY_ID");
+  const bucket = required("LAWOS_DMS_S3_BUCKET");
+  const owner = required("LAWOS_DMS_S3_EXPECTED_BUCKET_OWNER");
+  const region = required("LAWOS_DMS_S3_REGION");
+  const prefix = required("LAWOS_MEMBER_PHOTO_S3_PREFIX");
+  const kmsKey = required("LAWOS_DMS_S3_KMS_KEY_ID");
   if (!/^[0-9]{12}$/u.test(owner)
       || !kmsKey.startsWith(`arn:aws:kms:${region}:${owner}:key/`)
       || !/^arn:aws:kms:[a-z0-9-]+:[0-9]{12}:key\/[a-zA-Z0-9-]+$/u.test(kmsKey)) {
@@ -628,7 +631,7 @@ export function createPostgresMemberPhotoStorageFromEnv(env = process.env, {
   }
   return createS3StorageAdapter({
     adapter_id: "lawos-member-photo-s3-production",
-    credential_ref: required("CREDENTIAL_REF"),
+    credential_ref: required("LAWOS_DMS_S3_CREDENTIAL_REF"),
     bucket,
     expected_bucket_owner: owner,
     region,

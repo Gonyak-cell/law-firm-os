@@ -122,6 +122,7 @@ jobs:
             scripts/test/json-postgres-production-controls.test.mjs \
             scripts/test/json-postgres-production-execution.test.mjs \
             scripts/test/json-postgres-production-infrastructure.test.mjs \
+            scripts/test/lambda-environment-budget.test.mjs \
             scripts/test/json-postgres-production-smoke.test.mjs \
             scripts/test/json-postgres-program-files.test.mjs \
             scripts/test/json-postgres-program-receipt.test.mjs \
