@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 import { createHrxMemberPhotoMetadata, assertValidHrxMemberPhotoPng, getHrxMemberPhotoStorageTarget } from "../../packages/hrx/src/member-photo-storage.js";
+import { createHrxDomainRecordId } from "../../packages/hrx/src/postgres-store-v2.js";
 import { createDomainSnapshot, hashDomainValue } from "../../packages/persistence/src/domain-ledger.js";
 import { createPostgresDomainLedger } from "../../packages/persistence/src/postgres/domain-ledger.js";
 import { flushDomainSnapshotToScopedLedger } from "../../packages/persistence/src/record-domain-adapter.js";
@@ -53,15 +54,17 @@ function validateManifest(manifest) {
 function targets(manifest, snapshot) {
   requireCondition(snapshot.tenant_id === manifest.tenant_id && snapshot.domain_id === "hrx", "AMIC_PHOTO_TENANT");
   return manifest.changes.map((change) => {
+    const employeeId = createHrxDomainRecordId("hrx_employees", { tenant_id: manifest.tenant_id, employee_id: change.employee_id });
+    const profileId = createHrxDomainRecordId("hrx_employment_profiles", { tenant_id: manifest.tenant_id, profile_id: change.profile_id });
     const employees = snapshot.records.filter((record) => record.record_type === "hrx_employees"
-      && (record.record_id === change.employee_id || record.payload.employee_id === change.employee_id));
+      && (record.record_id === employeeId || record.payload.employee_id === change.employee_id));
     const profiles = snapshot.records.filter((record) => record.record_type === "hrx_employment_profiles"
-      && (record.record_id === change.profile_id || record.payload.profile_id === change.profile_id));
+      && (record.record_id === profileId || record.payload.profile_id === change.profile_id));
     const employee = employees[0];
     const profile = profiles[0];
     requireCondition(employees.length === 1 && profiles.length === 1
-      && employee.record_id === change.employee_id && employee.payload.employee_id === change.employee_id
-      && profile.record_id === change.profile_id && profile.payload.profile_id === change.profile_id
+      && employee.record_id === employeeId && employee.payload.employee_id === change.employee_id
+      && profile.record_id === profileId && profile.payload.profile_id === change.profile_id
       && profile.payload.employee_id === change.employee_id && profile.payload.legal_entity_id === change.legal_entity_id
       && [employee, profile].every((record) => record.tenant_id === manifest.tenant_id
         && record.payload.tenant_id === manifest.tenant_id && !record.append_only), "AMIC_PHOTO_OWNER_SCOPE");
@@ -198,7 +201,8 @@ export async function executeAmicMemberPhotoReplacement({ pool, manifest, plan, 
       const bytes = Buffer.from(await readPhotoBytes(structuredClone(change)));
       assertValidHrxMemberPhotoPng(bytes);
       requireCondition(sha256(bytes) === change.photo_sha256 && bytes.byteLength === change.photo_byte_size, "AMIC_PHOTO_SOURCE_BYTES_DRIFT");
-      const receipt = { employee_ref_sha256: hashDomainValue(`hrx_employees:${change.employee_id}`),
+      const receipt = { employee_ref_sha256: recordRef({ record_type: "hrx_employees",
+        record_id: createHrxDomainRecordId("hrx_employees", scopeOf(manifest, change)) }),
         photo: createHrxMemberPhotoMetadata({ ...scopeOf(manifest, change), ...change }), state: "commit_outcome_unknown" };
       verifyApproval();
       committed.push(receipt);

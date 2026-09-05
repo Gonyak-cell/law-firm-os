@@ -6,6 +6,7 @@ import { createBoundedS3Client } from "../../packages/dms/src/storage/s3-bounded
 import { createS3StorageAdapter, getS3StorageTarget } from "../../packages/dms/src/storage/s3-storage-adapter.js";
 import { createLocalStorageAdapter } from "../../packages/dms/src/storage/local-storage-adapter.js";
 import { createHrxMemberPhotoStorage, getHrxMemberPhotoStorageTarget } from "../../packages/hrx/src/member-photo-storage.js";
+import { createHrxDomainRecordId } from "../../packages/hrx/src/postgres-store-v2.js";
 import { createDomainSnapshot, hashDomainValue } from "../../packages/persistence/src/domain-ledger.js";
 import { createPostgresDomainLedger } from "../../packages/persistence/src/postgres/domain-ledger.js";
 import { createMigratedPostgresFixture } from "../../packages/persistence/test/helpers/disposable-postgres.js";
@@ -71,18 +72,18 @@ async function fixture(t, { count = 2 } = {}) {
   for (let index = 1; index <= count; index += 1) {
     const scope = { tenant_id: SCOPE.tenant_id, legal_entity_id: "company-synthetic", employee_id: `employee-${index}` };
     const old = index === 1 ? await photos.storePhoto({ ...scope, bytes: PNG, idempotency_key: "old-photo" }) : null;
-    records.push({ ...SCOPE, record_type: "hrx_employees", record_id: scope.employee_id,
+    records.push({ ...SCOPE, record_type: "hrx_employees", record_id: createHrxDomainRecordId("hrx_employees", scope),
       payload: { tenant_id: SCOPE.tenant_id, employee_id: scope.employee_id, name: `Synthetic Person ${index}`,
         work_email: `synthetic${index}@example.invalid`, mobile_phone: "preserved-contact", ...(old ?? {}) } });
-    records.push({ ...SCOPE, record_type: "hrx_employment_profiles", record_id: `profile-${index}`,
+    records.push({ ...SCOPE, record_type: "hrx_employment_profiles", record_id: createHrxDomainRecordId("hrx_employment_profiles", { ...scope, profile_id: `profile-${index}` }),
       payload: { ...scope, profile_id: `profile-${index}`, effective_from: "2023-01-01", start_date: "2022-01-01", status: "active" } });
     changes.push({ ...scope, profile_id: `profile-${index}`, expected_photo: old,
       original_sha256: "e".repeat(64), photo_sha256: digest(NEW_PNG), photo_byte_size: NEW_PNG.length });
     delete changes.at(-1).tenant_id;
   }
-  records.push({ ...SCOPE, record_type: "hrx_employment_profiles", record_id: "historical-profile",
+  records.push({ ...SCOPE, record_type: "hrx_employment_profiles", record_id: createHrxDomainRecordId("hrx_employment_profiles", { ...SCOPE, profile_id: "historical-profile" }),
     payload: { tenant_id: SCOPE.tenant_id, employee_id: "employee-1", profile_id: "historical-profile", legal_entity_id: "company-past", effective_from: "2020-01-01", effective_to: "2022-12-31" } },
-  { ...SCOPE, record_type: "hrx_audit_events", record_id: "historic-audit", append_only: true,
+  { ...SCOPE, record_type: "hrx_audit_events", record_id: createHrxDomainRecordId("hrx_audit_events", { ...SCOPE, event_id: "historic-audit" }), append_only: true,
     payload: { tenant_id: SCOPE.tenant_id, event_id: "historic-audit", preserved_business_history: true } });
   const ledger = createPostgresDomainLedger({ pool: database.appPool });
   await ledger.importSnapshot(createDomainSnapshot({ ...SCOPE, records }));
@@ -117,6 +118,7 @@ test("photo replacement preserves old objects and other HRX facts, atomically ro
     assert.equal(error.recovery_receipt.database_commit_state, "unknown");
     assert.equal(error.recovery_receipt.objects.length, 2);
     assert.ok(error.recovery_receipt.objects.every((item) => item.state === "body_verified"));
+    assert.deepEqual(error.recovery_receipt.objects.map((item) => item.employee_ref_sha256), f.plan.changes.map((item) => item.employee_ref_sha256));
     assert.equal(error.recovery_receipt.committed_objects_deleted, false);
     return true;
   });
@@ -138,6 +140,8 @@ test("photo replacement preserves old objects and other HRX facts, atomically ro
   assert.equal(after.records.length, f.before.records.length);
   assert.equal(after.idempotency_entries.length, f.before.idempotency_entries.length + 1);
   assert.equal(after.audit_events.length, f.before.audit_events.length + 1);
+  assert.deepEqual(result.photos.map((item) => item.employee_ref_sha256), f.plan.changes.map((item) => item.employee_ref_sha256));
+  assert.deepEqual(after.audit_events.at(-1).payload.photos, result.photos);
   for (const old of f.before.records) {
     const current = after.records.find((record) => record.record_id === old.record_id && record.record_type === old.record_type);
     if (old.record_type === "hrx_employees") {
@@ -171,7 +175,8 @@ test("photo replacement rejects wrong tenant/entity/employee, partial old metada
     ["hrx_employment_profiles", "employee_id", "employee-negative"],
   ]) {
     const before = structuredClone(f.before);
-    before.records.find((record) => record.record_type === recordType && ["employee-1", "profile-1"].includes(record.record_id)).payload[field] = value;
+    before.records.find((record) => record.record_type === recordType
+      && (record.payload.employee_id === "employee-1" && record.payload.profile_id !== "historical-profile")).payload[field] = value;
     assert.throws(() => planAmicMemberPhotoReplacement({ ...CONTEXT, manifest: f.manifest, currentSnapshot: before }), { code: "LAWOS_AMIC_PHOTO_OWNER_SCOPE" });
   }
   for (const update of [
@@ -192,6 +197,43 @@ test("photo replacement rejects wrong tenant/entity/employee, partial old metada
   await assert.rejects(executeAmicMemberPhotoReplacement({ ...f.run, readOnly: true }), { code: "LAWOS_AMIC_PHOTO_RECEIPT_MISSING" });
   assert.equal((await f.read()).snapshot_hash, f.before.snapshot_hash);
   assert.equal(f.calls.finalize, 1);
+});
+
+test("canonical HRX ownership rejects forged keys, duplicate payload identities, and version-only drift before storing photos", async (t) => {
+  const f = await fixture(t, { count: 1 });
+  if (!f) return;
+  for (const recordType of ["hrx_employees", "hrx_employment_profiles"]) {
+    for (const mutate of [
+      (record) => { record.record_id = `sha256:${"f".repeat(64)}`; },
+      (record) => { record.record_id = record.payload.profile_id ?? record.payload.employee_id; },
+      (record) => { record.record_id = createHrxDomainRecordId(recordType, { ...record.payload, tenant_id: "tenant-negative" }); },
+      (record) => { record.record_id = createHrxDomainRecordId(recordType === "hrx_employees" ? "hrx_employment_profiles" : "hrx_employees",
+        { ...record.payload, profile_id: "profile-1", employee_id: "employee-1" }); },
+      (record) => { record.record_type = "hrx_documents"; },
+      (record, records) => { records.push({ ...structuredClone(record), record_id: `sha256:${"f".repeat(64)}` }); },
+      (record) => { record.payload[recordType === "hrx_employees" ? "employee_id" : "profile_id"] = "contradictory-payload-id"; },
+    ]) {
+      const before = structuredClone(f.before);
+      mutate(before.records.find((record) => record.record_type === recordType
+        && record.payload.profile_id !== "historical-profile"), before.records);
+      assert.throws(() => planAmicMemberPhotoReplacement({ ...CONTEXT, manifest: f.manifest, currentSnapshot: before }),
+        { code: "LAWOS_AMIC_PHOTO_OWNER_SCOPE" });
+    }
+  }
+  const employee = f.before.records.find((record) => record.record_type === "hrx_employees");
+  await f.ledger.transaction(SCOPE, (tx) => tx.write({ ...employee, expected_version: employee.state_version }));
+  const advanced = await f.read();
+  assert.equal(advanced.records.find((record) => record.record_id === employee.record_id).state_version, employee.state_version + 1);
+  await assert.rejects(executeAmicMemberPhotoReplacement(f.run), { code: "LAWOS_AMIC_PHOTO_BASELINE_DRIFT" });
+  assert.equal((await f.read()).snapshot_hash, advanced.snapshot_hash);
+  await f.ledger.transaction(SCOPE, (tx) => tx.write({ ...employee, record_id: `sha256:${"f".repeat(64)}`, expected_version: 0 }));
+  const duplicated = await f.read();
+  await assert.rejects(executeAmicMemberPhotoReplacement(f.run), { code: "LAWOS_AMIC_PHOTO_OWNER_SCOPE" });
+  assert.equal((await f.read()).snapshot_hash, duplicated.snapshot_hash);
+  assert.equal(duplicated.audit_events.length, f.before.audit_events.length);
+  assert.equal(duplicated.idempotency_entries.length, f.before.idempotency_entries.length);
+  assert.equal(f.calls.finalize, 1);
+  assert.equal(f.calls.deleted, 0);
 });
 
 test("fresh exact replacement approval is mandatory before any storage operation and again before PG commit", async (t) => {
@@ -233,7 +275,7 @@ test("concurrent record edits after object commit cannot be overwritten by a sta
   const photos = { ...f.photos, async storePhoto(input) {
     const photo = await f.photos.storePhoto(input);
     await f.ledger.transaction(SCOPE, async (tx) => {
-      const employee = await tx.read({ record_type: "hrx_employees", record_id: "employee-1" });
+      const employee = await tx.read({ record_type: "hrx_employees", record_id: createHrxDomainRecordId("hrx_employees", { ...SCOPE, employee_id: "employee-1" }) });
       await tx.write({ ...employee, expected_version: employee.state_version, payload: { ...employee.payload, mobile_phone: "concurrent-authoritative-value" } });
     });
     externalUpdated = await f.read();
@@ -246,7 +288,7 @@ test("concurrent record edits after object commit cannot be overwritten by a sta
   });
   assert.equal((await f.read()).snapshot_hash, externalUpdated.snapshot_hash);
   assert.equal(f.calls.deleted, 0);
-  assert.equal((await f.read()).records.find((record) => record.record_id === "employee-1").payload.photo_sha256, digest(PNG));
+  assert.equal((await f.read()).records.find((record) => record.record_type === "hrx_employees" && record.payload.employee_id === "employee-1").payload.photo_sha256, digest(PNG));
 });
 
 test("two simultaneous requests with the same old photo state commit exactly once", async (t) => {
