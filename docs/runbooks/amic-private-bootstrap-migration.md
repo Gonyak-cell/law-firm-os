@@ -216,6 +216,15 @@ connects with TLS `verify-full`, verifies the complete migration catalog and
 authenticated tenant authority, and only then constructs the S3/PostgreSQL
 targets.
 
+The operator also reads the exact photo bucket's Object Lock configuration
+before secret access or storage writes. An enabled lock and a valid positive
+GOVERNANCE or COMPLIANCE default retention are required. The adapter preserves
+retained staging versions through its existing deferred-cleanup path; it does
+not bypass, shorten, or rewrite retention. The operator needs read-only
+`s3:GetBucketObjectLockConfiguration` and `s3:GetObjectRetention` permissions
+for the approved bucket and photo prefix. Retained staging is not permission
+to delete either the staging version or the committed photo.
+
 The commit order is versioned photo storage followed by the idempotent identity
 and HRX migration. Success requires exact database and photo readback,
 idempotency, audit and outbox evidence, and zero negative-tenant visibility.

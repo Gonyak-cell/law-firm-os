@@ -235,6 +235,32 @@ export function validateAmicPrivateBootstrapS3Controls({
   });
 }
 
+export function validateAmicPrivateBootstrapObjectLock(response) {
+  const configuration = response?.ObjectLockConfiguration;
+  const retention = configuration?.Rule?.DefaultRetention;
+  const days = retention?.Days;
+  const years = retention?.Years;
+  const validDays = Number.isInteger(days) && days >= 1 && days <= 36_500;
+  const validYears = Number.isInteger(years) && years >= 1 && years <= 100;
+  if (configuration?.ObjectLockEnabled !== "Enabled"
+      || !["GOVERNANCE", "COMPLIANCE"].includes(retention?.Mode)
+      || !((validDays && years === undefined)
+        || (validYears && days === undefined))) {
+    fail(
+      "AMIC_PRIVATE_BOOTSTRAP_OBJECT_LOCK",
+      "private bootstrap requires verified bucket-default Object Lock retention",
+    );
+  }
+  return Object.freeze({
+    object_lock_enabled: true,
+    default_retention_mode: retention.Mode,
+    default_retention_days: days ?? null,
+    default_retention_years: years ?? null,
+    retention_mutated: false,
+    staged_cleanup_policy: "defer_while_retained",
+  });
+}
+
 export function discoverAmicPrivateBootstrapProductionTarget({
   stack,
   resources,
