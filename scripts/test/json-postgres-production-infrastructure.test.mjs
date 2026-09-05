@@ -24,6 +24,50 @@ import {
 
 const reference = JSON.parse(readFileSync("infra/lawos-private-staging/template.json", "utf8"));
 
+test("production member photos use their committed prefix with read-only API access", () => {
+  const stagingEnv = reference.Resources.ApiFunction.Properties.Environment.Variables;
+  assert.equal(stagingEnv.LAWOS_MEMBER_PHOTO_S3_PREFIX, "synthetic-member-photos");
+  assert.deepEqual(reference.Resources.S3GatewayEndpoint.Properties.PolicyDocument.Statement
+    .find(({ Sid }) => Sid === "ApiReadsCommittedMemberPhotos"), {
+    Sid: "ApiReadsCommittedMemberPhotos",
+    Effect: "Allow",
+    Principal: { AWS: { "Fn::GetAtt": ["ApiExecutionRole", "Arn"] } },
+    Action: ["s3:GetObject", "s3:GetObjectVersion"],
+    Resource: { "Fn::Sub": "${DmsBucket.Arn}/synthetic-member-photos/objects/*" },
+  });
+  for (const field of ["BUCKET", "EXPECTED_BUCKET_OWNER", "REGION", "KMS_KEY_ID", "CREDENTIAL_REF"]) {
+    assert.deepEqual(stagingEnv[`LAWOS_MEMBER_PHOTO_S3_${field}`], stagingEnv[`LAWOS_DMS_S3_${field}`]);
+  }
+  const template = buildJsonPostgresProductionTemplate(reference);
+  const env = template.Resources.ApiFunction.Properties.Environment.Variables;
+  assert.equal(env.LAWOS_DMS_S3_PREFIX, "lawos-dms");
+  assert.equal(env.LAWOS_MEMBER_PHOTO_S3_PREFIX, "approved-real-migration/member-photos");
+  for (const field of ["BUCKET", "EXPECTED_BUCKET_OWNER", "REGION", "KMS_KEY_ID", "CREDENTIAL_REF"]) {
+    assert.deepEqual(env[`LAWOS_MEMBER_PHOTO_S3_${field}`], env[`LAWOS_DMS_S3_${field}`]);
+  }
+  const statements = template.Resources.ApiExecutionRole.Properties.Policies
+    .flatMap((policy) => policy.PolicyDocument?.Statement ?? []);
+  const photoRead = statements.find(({ Sid }) => Sid === "ReadCommittedMemberPhotos");
+  assert.deepEqual(photoRead, {
+    Sid: "ReadCommittedMemberPhotos",
+    Effect: "Allow",
+    Action: ["s3:GetObject", "s3:GetObjectVersion"],
+    Resource: { "Fn::Sub": "${DmsBucket.Arn}/approved-real-migration/member-photos/objects/*" },
+  });
+  assert.equal(validateJsonPostgresProductionTemplate(template).verdict, "PASS");
+  for (const mutate of [
+    (copy) => { delete copy.Resources.ApiFunction.Properties.Environment.Variables.LAWOS_MEMBER_PHOTO_S3_BUCKET; },
+    (copy) => { copy.Resources.ApiFunction.Properties.Environment.Variables.LAWOS_MEMBER_PHOTO_S3_PREFIX = "lawos-dms"; },
+    (copy) => { copy.Resources.S3GatewayEndpoint.Properties.PolicyDocument.Statement.find(({ Sid }) => Sid === "ApiReadsCommittedMemberPhotos").Principal = "*"; },
+    (copy) => { copy.Resources.ApiExecutionRole.Properties.Policies[0].PolicyDocument.Statement.find(({ Sid }) => Sid === "ReadCommittedMemberPhotos").Action.push("s3:PutObject"); },
+    (copy) => { copy.Resources.ApiExecutionRole.Properties.Policies[0].PolicyDocument.Statement.find(({ Sid }) => Sid === "ReadCommittedMemberPhotos").Resource = { "Fn::Sub": "${DmsBucket.Arn}/*" }; },
+  ]) {
+    const changed = structuredClone(template);
+    mutate(changed);
+    assert.throws(() => validateJsonPostgresProductionTemplate(changed), /member photo/u);
+  }
+});
+
 test("production template derives the proven private topology without synthetic or public authority", () => {
   const template = buildJsonPostgresProductionTemplate(reference);
   const result = validateJsonPostgresProductionTemplate(template);

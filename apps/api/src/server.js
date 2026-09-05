@@ -594,6 +594,50 @@ function createPostgresDmsStorageFromEnv(env = process.env) {
   });
 }
 
+export function createPostgresMemberPhotoStorageFromEnv(env = process.env, {
+  dmsStorage,
+  client,
+} = {}) {
+  const hasPhotoConfig = Object.keys(env).some((key) => key.startsWith("LAWOS_MEMBER_PHOTO_S3_"));
+  if (!hasPhotoConfig && env.LAWOS_DATA_SCOPE === "synthetic-only"
+      && dmsStorage && dmsStorage.provider !== "s3") return dmsStorage;
+  const required = (suffix) => {
+    const name = `LAWOS_MEMBER_PHOTO_S3_${suffix}`;
+    const value = String(env[name] ?? "").trim();
+    if (!value) throw runtimePreflightError(`${name} is required for postgres-v2 member photos`);
+    return value;
+  };
+  const bucket = required("BUCKET");
+  const owner = required("EXPECTED_BUCKET_OWNER");
+  const region = required("REGION");
+  const prefix = required("PREFIX");
+  const kmsKey = required("KMS_KEY_ID");
+  if (!/^[0-9]{12}$/u.test(owner)
+      || !kmsKey.startsWith(`arn:aws:kms:${region}:${owner}:key/`)
+      || !/^arn:aws:kms:[a-z0-9-]+:[0-9]{12}:key\/[a-zA-Z0-9-]+$/u.test(kmsKey)) {
+    throw runtimePreflightError("member photo KMS key must match its region and expected bucket owner");
+  }
+  if (prefix.split("/").some((segment) => !segment || segment === "." || segment === "..")
+      || /[\\\u0000-\u0020\u007f]/u.test(prefix)) {
+    throw runtimePreflightError("member photo prefix must be an explicit canonical object prefix");
+  }
+  const photoRoot = `s3://${bucket}/${prefix}/`;
+  const dmsRoot = dmsStorage?.bucket_ref ? `${dmsStorage.bucket_ref.replace(/\/+$/u, "")}/` : null;
+  if (dmsRoot && (photoRoot.startsWith(dmsRoot) || dmsRoot.startsWith(photoRoot))) {
+    throw runtimePreflightError("member photo and DMS object prefixes must not overlap");
+  }
+  return createS3StorageAdapter({
+    adapter_id: "lawos-member-photo-s3-production",
+    credential_ref: required("CREDENTIAL_REF"),
+    bucket,
+    expected_bucket_owner: owner,
+    region,
+    prefix,
+    kms_key_id: kmsKey,
+    ...(client ? { client } : {}),
+  });
+}
+
 async function resolvePayrollArtifactSecret({ env, explicitSecret, secretsClient, resolveSecret = resolveAwsSecretString } = {}) {
   if (typeof explicitSecret === "string" || Buffer.isBuffer(explicitSecret)) {
     if (Buffer.byteLength(explicitSecret) < 32) throw runtimePreflightError("payroll artifact secret must contain at least 32 bytes");
@@ -3660,7 +3704,9 @@ async function startApiServerImplementation({
         authority: dmsConsumerReadAuthority,
       });
       const memberPhotoStorage = createHrxMemberPhotoStorage({
-        storage: resolvedDmsStorage,
+        storage: createPostgresMemberPhotoStorageFromEnv(resolvedPersistenceAuthorityEnv, {
+          dmsStorage: resolvedDmsStorage,
+        }),
       });
       const resolvedPayrollArtifactSecret = await resolvePayrollArtifactSecret({
         env: resolvedPersistenceAuthorityEnv,
