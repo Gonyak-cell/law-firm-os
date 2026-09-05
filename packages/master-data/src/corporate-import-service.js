@@ -41,16 +41,22 @@ export function validateCorporateImportManifest(manifest) {
     && new Set(manifest.documents.map((item) => item.source_id)).size === manifest.documents.length
     && new Set(manifest.operations.map((item) => `${item.model_type}:${item.record_id}`)).size === manifest.operations.length, "DUPLICATE_TARGET");
   for (const binding of manifest.bindings) {
-    requireCondition(["legal_entity_id", "organization_id", "party_id", "permission_ref", "owner_user_id", "matter_id",
+    const corporateScope = binding.scope_type === "legal_entity_administration";
+    requireCondition(["legal_entity_id", "organization_id", "party_id", "permission_ref", "owner_user_id",
       "workspace_id", "permission_envelope_id"].every((field) => text(binding[field]))
-      && (binding.record_matter_id === null || text(binding.record_matter_id)), "BINDING");
+      && (corporateScope ? binding.matter_id === null && binding.record_matter_id === null
+        : (binding.scope_type === undefined || binding.scope_type === "matter") && text(binding.matter_id)
+          && (binding.record_matter_id === null || text(binding.record_matter_id))), "BINDING");
   }
   for (const document of manifest.documents) {
+    const binding = manifest.bindings.find((item) => item.legal_entity_id === document.legal_entity_id);
     requireCondition(["source_id", "legal_entity_id", "document_id", "version_id", "file_object_id", "object_id", "content_type"]
       .every((field) => text(document[field])) && digest(document.sha256)
       && Number.isSafeInteger(document.byte_size) && document.byte_size > 0
       && Number.isSafeInteger(document.page_count) && document.page_count > 0
-      && manifest.bindings.some((item) => item.legal_entity_id === document.legal_entity_id), "DOCUMENT");
+      && binding && (binding.scope_type === "legal_entity_administration"
+        ? document.scope_type === binding.scope_type
+        : document.scope_type === undefined || document.scope_type === "matter"), "DOCUMENT");
   }
   for (const operation of manifest.operations) {
     requireCondition(Object.hasOwn(FIELDS, operation.model_type) && text(operation.record_id)
@@ -129,6 +135,7 @@ export function prepareCorporateMasterDataImport({ manifest, currentSnapshot }) 
         sources: operation.evidence.filter((item) => item.fields.includes(field)
           || (field === "normalized_identifier_key" && item.fields.some((name) => ["identifier_type", "identifier_value"].includes(name)))).map((item) => ({
           ...manifest.documents.find((document) => document.source_id === item.source_id), page: item.page,
+          scope_type: binding.scope_type ?? "matter", legal_entity_id: binding.legal_entity_id,
           matter_id: binding.matter_id, workspace_id: binding.workspace_id, permission_envelope_id: binding.permission_envelope_id,
         })) })) });
   }

@@ -161,7 +161,7 @@
     "DmsWorkspace": {
       "model_type": "DmsWorkspace",
       "owner_module": "legal-workspace-dms",
-      "description": "Matter-scoped DMS workspace descriptor.",
+      "description": "Matter or privately owned legal-entity administration workspace descriptor.",
       "required_fields": [
         "workspace_id",
         "tenant_id",
@@ -174,7 +174,8 @@
       "lifecycle_statuses": [
         "active",
         "archived",
-        "held"
+        "held",
+        "pending_anchor"
       ]
     },
     "DmsFolder": {

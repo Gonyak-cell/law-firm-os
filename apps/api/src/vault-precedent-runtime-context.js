@@ -5,6 +5,7 @@ import {
   hashValue,
 } from "../../../packages/dms/src/search/precedent-common.js";
 import { evaluateRouteDecision } from "./permission-gate.js";
+import { evaluateVaultCorporatePermission, resolveVaultAuthorizationDocument } from "./vault-corporate-permission.js";
 
 const SAFE_ID = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/u;
 
@@ -41,6 +42,19 @@ function runtimeRepository(runtime) {
     && repository?.readiness ? repository : null;
 }
 
+async function corporateDocumentDecision({ context, runtime, tenantId, documentId, action }) {
+  const document = await resolveVaultAuthorizationDocument({ runtime, tenantId, documentId });
+  if (!document) return runtime?.repository?.get || runtime?.upload_runtime?.getDocumentState
+    ? { effect: "deny", action, reason: "document_authority_unavailable" }
+    : null;
+  if (document.matter_id == null && action === "dms:precedent:source:register") {
+    return { effect: "deny", action, reason: "corporate_document_is_not_a_matter_precedent" };
+  }
+  return evaluateVaultCorporatePermission({
+    context, repository: runtime.repository, document, tenantId, action, resourceType: "dms_document",
+  });
+}
+
 export async function handleVaultPrecedentApiRequest({
   pathname, method, query = {}, body = {}, context, requestId, runtime,
 } = {}) {
@@ -58,7 +72,11 @@ export async function handleVaultPrecedentApiRequest({
     const privilege = pathname.match(/^\/api\/vault\/documents\/([^/]+)\/privilege-label$/u);
     if (privilege && method === "POST") {
       const documentId = requiredId(decodeURIComponent(privilege[1]), "document_id");
-      const decision = authorized({ context, action: "dms:document:privilege:classify",
+      const corporateDecision = await corporateDocumentDecision({ context, runtime, tenantId, documentId, action: "dms:document:privilege:classify" });
+      if (corporateDecision && corporateDecision.effect !== "allow") {
+        return blocked(403, requestId, "VAULT_PRECEDENT_PERMISSION_DENIED");
+      }
+      const decision = corporateDecision ?? authorized({ context, action: "dms:document:privilege:classify",
         tenantId, resourceId: documentId, resourceType: "dms_document" });
       if (!decision) return blocked(403, requestId, "VAULT_PRECEDENT_PERMISSION_DENIED");
       const decisionId = actualDecisionId(decision, requestId, documentId);
@@ -75,7 +93,11 @@ export async function handleVaultPrecedentApiRequest({
     if (pathname === "/api/vault/precedent-sources" && method === "POST") {
       const sourceId = requiredId(body.source_id, "source_id");
       const matterId = requiredId(body.matter_id, "matter_id");
-      const decision = authorized({ context, action: "dms:precedent:source:register",
+      const corporateDecision = await corporateDocumentDecision({ context, runtime, tenantId, documentId: body.document_id, action: "dms:precedent:source:register" });
+      if (corporateDecision && corporateDecision.effect !== "allow") {
+        return blocked(403, requestId, "VAULT_PRECEDENT_PERMISSION_DENIED");
+      }
+      const decision = corporateDecision ?? authorized({ context, action: "dms:precedent:source:register",
         tenantId, matterId, resourceId: body.document_id });
       if (!decision) return blocked(403, requestId, "VAULT_PRECEDENT_PERMISSION_DENIED");
       const result = await repository.registerSource({ ...body, tenant_id: tenantId,
@@ -91,7 +113,15 @@ export async function handleVaultPrecedentApiRequest({
     if (transition && method === "POST") {
       const sourceId = requiredId(decodeURIComponent(transition[1]), "source_id");
       const action = `dms:precedent:source:${transition[2]}`;
-      if (!authorized({ context, action, tenantId, resourceId: sourceId })) {
+      let corporateDecision = null;
+      if (typeof repository.listSourceDescriptors === "function") {
+        const source = (await repository.listSourceDescriptors({ tenant_id: tenantId })).find((item) => item.source_id === sourceId);
+        if (source) corporateDecision = await corporateDocumentDecision({ context, runtime, tenantId, documentId: source.document_id, action });
+        if (corporateDecision && corporateDecision.effect !== "allow") {
+          return blocked(403, requestId, "VAULT_PRECEDENT_PERMISSION_DENIED");
+        }
+      }
+      if (!corporateDecision && !authorized({ context, action, tenantId, resourceId: sourceId })) {
         return blocked(403, requestId, "VAULT_PRECEDENT_PERMISSION_DENIED");
       }
       const operation = transition[2] === "disable"

@@ -39,6 +39,22 @@ async function snapshot(tx, tenantId) {
 
 // DMS uses specialized relational authority. This narrow read joins exact committed versions, never immutable domain shadows.
 async function verifyCommittedDocuments(client, manifest) {
+  for (const binding of manifest.bindings.filter((item) => item.scope_type === "legal_entity_administration")) {
+    const result = await client.query(
+      `SELECT tenant_id, payload, payload_hash FROM lawos_domain.records
+        WHERE tenant_id = $1 AND domain_id = 'dms-auxiliary'
+          AND record_type = 'DmsWorkspace' AND record_id = $2`,
+      [manifest.tenant_id, binding.workspace_id]);
+    const observed = result.rows[0];
+    const workspace = observed?.payload;
+    requireCondition(result.rows.length === 1 && observed.tenant_id === manifest.tenant_id
+      && workspace?.tenant_id === manifest.tenant_id && workspace.model_type === "DmsWorkspace"
+      && workspace.matter_id === null && workspace.synthetic_only === false && workspace.client_visible_by_default === false
+      && ["pending_anchor", "active"].includes(workspace.status)
+      && ["workspace_id", "scope_type", "legal_entity_id", "organization_id", "party_id", "owner_user_id", "permission_ref", "permission_envelope_id"]
+        .every((field) => workspace[field] === binding[field])
+      && observed.payload_hash === hashDomainValue(workspace), "WORKSPACE_AUTHORITY");
+  }
   for (const expected of manifest.documents) {
     const binding = manifest.bindings.find((item) => item.legal_entity_id === expected.legal_entity_id);
     const result = await client.query(

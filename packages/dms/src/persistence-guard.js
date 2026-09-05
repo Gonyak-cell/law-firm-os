@@ -31,7 +31,7 @@ function fields(...values) {
 }
 
 const DMS_RECORD_FIELDS = Object.freeze({
-  DmsWorkspace: fields("workspace_id", "name", "status", "root_folder_id", "matter_trace_ref", "client_visible_by_default", "owner_user_id", "registered_account"),
+  DmsWorkspace: fields("workspace_id", "name", "status", "root_folder_id", "matter_trace_ref", "client_visible_by_default", "owner_user_id", "registered_account", "scope_type", "legal_entity_id", "organization_id", "party_id", "permission_ref"),
   DmsFolder: fields("folder_id", "workspace_id", "parent_folder_id", "name", "status"),
   DmsDocument: fields("document_id", "workspace_id", "folder_id", "title", "status", "current_version_id", "retention_label_id", "legal_hold_id", "source_policy", "version_safe_dms", "matter_first_trace_required", "client_visible_candidate", "owner_user_id", "registered_account_email", "registered_account", "account_linkage", "privilege_label_id", "privileged", "confidentiality", "latest_sha256", "mime_type", "filename", "source_email_thread_id", "source_attachment_id"),
   DmsDocumentVersion: fields("version_id", "document_id", "version_number", "status", "file_object_id", "created_by", "hash_algorithm", "sha256", "persisted", "registered_account"),

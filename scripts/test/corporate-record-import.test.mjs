@@ -11,6 +11,7 @@ import { MASTER_DATA_DOMAIN_DESCRIPTOR } from "../../packages/master-data/src/ce
 import { CORPORATE_IMPORT_ACTION, CORPORATE_IMPORT_VERSION, prepareCorporateMasterDataImport } from "../../packages/master-data/src/corporate-import-service.js";
 import { createPostgresDmsUploadRuntime } from "../../packages/dms/src/postgres-upload-runtime.js";
 import { createLocalStorageAdapter } from "../../packages/dms/src/storage/local-storage-adapter.js";
+import { createDmsWorkspace } from "../../packages/dms/src/model.js";
 import { corporateImportApprovalScope, executeCorporateRecordImport, planCorporateRecordImport, verifyCorporateImportApproval } from "../lib/corporate-record-import.mjs";
 
 const tenant = "tenant-corporate-synthetic";
@@ -57,6 +58,13 @@ function fixture() {
     ] };
   return { before, manifest, document };
 }
+function corporateWorkspaceFixture() {
+  const value = fixture();
+  value.manifest.bindings = [{ ...binding, scope_type: "legal_entity_administration", matter_id: null }];
+  value.manifest.actor_id = binding.owner_user_id;
+  value.document.scope_type = "legal_entity_administration";
+  return value;
+}
 const trustedFixtureKeys = generateKeyPairSync("ed25519");
 function approvalFor(plan, receiptPatch = {}, { publicKey, privateKey } = trustedFixtureKeys) {
   const registryBytes = Buffer.from(JSON.stringify({ schema_version: "law-firm-os.runtime-safety.approval-trust-registry.v1",
@@ -101,6 +109,33 @@ test("corporate plan rejects unsupported fields, missing provenance, stale CAS a
   const disconnected = structuredClone(manifest);
   disconnected.operations = disconnected.operations.filter((operation) => operation.model_type !== "Relationship");
   assert.throws(() => prepareCorporateMasterDataImport({ manifest: disconnected, currentSnapshot: before }), { code: "LAWOS_CORPORATE_IMPORT_UNRELATED_RECORD" });
+});
+
+test("null matter requires explicit legal entity administration scope and complete source authority", () => {
+  const { before, manifest } = corporateWorkspaceFixture();
+  const prepared = prepareCorporateMasterDataImport({ manifest, currentSnapshot: before });
+  const source = prepared.evidence[0].fields[0].sources[0];
+  assert.equal(source.scope_type, "legal_entity_administration");
+  assert.equal(source.legal_entity_id, binding.legal_entity_id);
+  assert.equal(source.matter_id, null);
+  assert.equal(source.sha256, sha256(bytes));
+  assert.equal(source.page, 1);
+  for (const mutate of [
+    (m) => { delete m.bindings[0].scope_type; },
+    (m) => { m.bindings[0].scope_type = "matter"; },
+    (m) => { m.bindings[0].scope_type = "unrecognized"; },
+    (m) => { m.bindings[0].matter_id = "invented-matter"; },
+    (m) => { m.bindings[0].record_matter_id = "invented-matter"; },
+    ...["legal_entity_id", "organization_id", "party_id", "owner_user_id", "workspace_id", "permission_envelope_id", "permission_ref"]
+      .map((field) => (m) => { m.bindings[0][field] = null; }),
+  ]) {
+    const changed = structuredClone(manifest); mutate(changed);
+    assert.throws(() => prepareCorporateMasterDataImport({ manifest: changed, currentSnapshot: before }), { code: "LAWOS_CORPORATE_IMPORT_BINDING" });
+  }
+  for (const scope of [undefined, "matter", "unrecognized"]) {
+    const changed = structuredClone(manifest); changed.documents[0].scope_type = scope;
+    assert.throws(() => prepareCorporateMasterDataImport({ manifest: changed, currentSnapshot: before }), { code: "LAWOS_CORPORATE_IMPORT_DOCUMENT" });
+  }
 });
 
 test("production import cannot revive an expired approval by injecting a historical clock", async () => {
@@ -278,4 +313,81 @@ test("actual PostgreSQL corporate import binds committed DMS references, rolls b
   assert.equal(hashDomainValue(await dms.getDocumentState({ tenant_id: tenant, document_id: document.document_id })), hashDomainValue(dmsBefore));
   assert.equal((await ledger.list({ tenant_id: "another-tenant", domain_id: "master-data" })).length, 0);
   await assert.rejects(executeCorporateRecordImport({ ...run, approval: approvalFor(plan, { expires_at: "2026-09-05T00:30:00.000Z" }) }));
+});
+
+test("actual PostgreSQL null-matter import requires canonical private workspace authority and preserves it on replay", async (t) => {
+  const database = await createMigratedPostgresFixture(t);
+  if (!database) return;
+  const { before, manifest, document } = corporateWorkspaceFixture();
+  const corporateBinding = manifest.bindings[0];
+  const ledger = createPostgresDomainLedger({ pool: database.appPool, clock });
+  await ledger.importSnapshot(before);
+  const scope = { tenant_id: tenant, domain_id: "master-data" };
+  const read = () => ledger.transaction(scope, async (tx) => createDomainSnapshot({ ...scope, records: await tx.list(),
+    idempotency_entries: await tx.listIdempotency(), audit_events: await tx.listAudit() }));
+  const baseline = await read();
+  await assert.rejects(planCorporateRecordImport({ pool: database.appPool, manifest }), { code: "LAWOS_CORPORATE_IMPORT_WORKSPACE_AUTHORITY" });
+  const workspace = createDmsWorkspace({ ...corporateBinding, tenant_id: tenant, name: "Synthetic private administration",
+    status: "pending_anchor", synthetic_only: false, audit_trace_id: "audit-corporate-workspace" });
+  await ledger.importSnapshot(createDomainSnapshot({ tenant_id: tenant, domain_id: "dms-auxiliary", records: [
+    { record_type: "DmsWorkspace", record_id: workspace.workspace_id, payload: workspace },
+  ] }));
+  await assert.rejects(planCorporateRecordImport({ pool: database.appPool, manifest }), { code: "LAWOS_CORPORATE_IMPORT_DMS_COMMITTED_REFERENCE" });
+  const dms = createPostgresDmsUploadRuntime({ pool: database.appPool,
+    storage: createLocalStorageAdapter({ adapter_id: "synthetic-corporate-private-docs" }), clock });
+  await dms.uploadDocument({ document: { tenant_id: tenant, document_id: document.document_id, current_version_id: document.version_id,
+    matter_id: null, workspace_id: workspace.workspace_id, permission_envelope_id: workspace.permission_envelope_id,
+    audit_trace_id: "audit-source-corporate-private", title: "Synthetic private source", mime_type: document.content_type }, bytes,
+    actor_id: manifest.actor_id, idempotency_key: "corporate-private-source-upload", object_id: document.object_id });
+  const dmsBefore = await dms.getDocumentState({ tenant_id: tenant, document_id: document.document_id });
+  const plan = await planCorporateRecordImport({ pool: database.appPool, manifest });
+  const approval = approvalFor(plan);
+  const run = { pool: database.appPool, manifest, plan, sourceSha: manifest.source_sha, sourceTree: manifest.source_tree,
+    expectedRegistrySha256: sha256(approval.registryBytes), approval, clock };
+  const setWorkspace = (payload, payloadHash = hashDomainValue(payload)) => database.adminPool.query(
+    `UPDATE lawos_domain.records SET payload = $3::jsonb, payload_hash = $4
+      WHERE tenant_id = $1 AND domain_id = 'dms-auxiliary' AND record_type = 'DmsWorkspace' AND record_id = $2`,
+    [tenant, workspace.workspace_id, JSON.stringify(payload), payloadHash]);
+  // Disposable fixture only: model pre-existing corruption after proving the live DB guard rejects it.
+  const setHistoricalWorkspace = async (...args) => {
+    await database.adminPool.query("ALTER TABLE lawos_domain.records DISABLE TRIGGER dms_corporate_workspace_record_guard");
+    try { await setWorkspace(...args); }
+    finally { await database.adminPool.query("ALTER TABLE lawos_domain.records ENABLE TRIGGER dms_corporate_workspace_record_guard"); }
+  };
+  for (const [field, value] of [
+    ["tenant_id", "other-tenant"], ["model_type", "DmsFolder"], ["workspace_id", "another-workspace"],
+    ["scope_type", "matter"], ["matter_id", "invented-matter"], ["legal_entity_id", "another-entity"],
+    ["organization_id", "another-organization"], ["party_id", "another-party"], ["owner_user_id", "another-owner"],
+    ["permission_ref", "another-master-permission"], ["permission_envelope_id", "another-envelope"],
+    ["status", "archived"], ["synthetic_only", true], ["client_visible_by_default", true],
+  ]) {
+    const changed = { ...workspace, [field]: value };
+    if (field !== "status") await assert.rejects(setWorkspace(changed), { code: "55000" });
+    await setHistoricalWorkspace(changed);
+    try {
+      await assert.rejects(planCorporateRecordImport({ pool: database.appPool, manifest }), { code: "LAWOS_CORPORATE_IMPORT_WORKSPACE_AUTHORITY" });
+      await assert.rejects(executeCorporateRecordImport(run), { code: "LAWOS_CORPORATE_IMPORT_WORKSPACE_AUTHORITY" });
+    } finally { await setHistoricalWorkspace(workspace); }
+  }
+  await setWorkspace(workspace, "0".repeat(64));
+  await assert.rejects(planCorporateRecordImport({ pool: database.appPool, manifest }), { code: "LAWOS_CORPORATE_IMPORT_WORKSPACE_AUTHORITY" });
+  await setWorkspace({ ...workspace, status: "active" });
+  assert.deepEqual(await planCorporateRecordImport({ pool: database.appPool, manifest }), plan);
+  await setWorkspace(workspace);
+  for (const field of ["sha256", "object_id", "file_object_id", "version_id", "document_id", "content_type", "byte_size"]) {
+    const changed = structuredClone(manifest);
+    changed.documents[0][field] = field === "sha256" ? "d".repeat(64) : field === "byte_size" ? 123 : "wrong-reference";
+    await assert.rejects(planCorporateRecordImport({ pool: database.appPool, manifest: changed }), { code: "LAWOS_CORPORATE_IMPORT_DMS_COMMITTED_REFERENCE" });
+  }
+  assert.equal((await read()).snapshot_hash, baseline.snapshot_hash);
+  assert.equal((await executeCorporateRecordImport(run)).outcome, "PASS");
+  const after = await read();
+  assert.equal((await executeCorporateRecordImport({ ...run, readOnly: true })).replayed, true);
+  assert.equal((await read()).snapshot_hash, after.snapshot_hash);
+  assert.equal(hashDomainValue(await dms.getDocumentState({ tenant_id: tenant, document_id: document.document_id })), hashDomainValue(dmsBefore));
+  const observedWorkspace = (await ledger.list({ tenant_id: tenant, domain_id: "dms-auxiliary" }))[0];
+  assert.deepEqual(observedWorkspace.payload, workspace);
+  assert.equal(after.audit_events.at(-1).payload.field_evidence[0].fields[0].sources[0].scope_type, "legal_entity_administration");
+  assert.equal(after.records.filter((record) => record.record_type === "ClientGroup").length, 1);
+  assert.equal((await ledger.list({ tenant_id: tenant, domain_id: "matter" })).length, 0);
 });

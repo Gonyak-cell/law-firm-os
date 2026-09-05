@@ -22,7 +22,10 @@ export function getDmsCoreModelDefinition(modelType) {
 export function missingDmsCoreRequiredFields(modelType, input) {
   const definition = getDmsCoreModelDefinition(modelType);
   if (!definition) return ["model_type"];
-  return definition.required_fields.filter((field) => input?.[field] === undefined || input?.[field] === null || input?.[field] === "");
+  const corporate = modelType === "DmsWorkspace" && input?.scope_type === "legal_entity_administration";
+  const required = corporate ? [...definition.required_fields.filter((field) => field !== "matter_id"),
+    "legal_entity_id", "organization_id", "party_id", "owner_user_id", "permission_ref"] : definition.required_fields;
+  return required.filter((field) => input?.[field] === undefined || input?.[field] === null || input?.[field] === "");
 }
 
 function assertRequiredFields(modelType, input) {
@@ -58,14 +61,21 @@ function baseRecord(modelType, input) {
 
 export function createDmsWorkspace(input) {
   assertAllowed(input.status, DMS_WORKSPACE_STATUSES, "DmsWorkspace status");
+  const corporate = input.scope_type === "legal_entity_administration";
+  if (input.scope_type && !["matter", "legal_entity_administration"].includes(input.scope_type)) throw new TypeError("DmsWorkspace scope_type is invalid");
+  if (corporate && (input.matter_id !== null || input.synthetic_only !== false)) throw new TypeError("Corporate workspace requires null matter and real-data authority");
+  if (!corporate && input.status === "pending_anchor") throw new TypeError("Only corporate workspaces may await an anchor");
   return freezeRecord({
     ...baseRecord("DmsWorkspace", input),
     workspace_id: input.workspace_id,
     name: input.name,
     status: input.status,
-    root_folder_id: input.root_folder_id ?? `folder:${input.workspace_id}:root`,
-    matter_trace_ref: input.matter_trace_ref ?? `matter:${input.matter_id}`,
+    root_folder_id: corporate ? null : input.root_folder_id ?? `folder:${input.workspace_id}:root`,
+    matter_trace_ref: corporate ? null : input.matter_trace_ref ?? `matter:${input.matter_id}`,
     client_visible_by_default: false,
+    ...(corporate ? { scope_type: input.scope_type, legal_entity_id: input.legal_entity_id,
+      organization_id: input.organization_id, party_id: input.party_id,
+      owner_user_id: input.owner_user_id, permission_ref: input.permission_ref } : {}),
   });
 }
 
