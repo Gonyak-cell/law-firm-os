@@ -113,6 +113,8 @@ jobs:
             packages/persistence/test/source-authority-manifest.test.js \
             packages/persistence/test/source-inventory.test.js \
             packages/persistence/test/source-read-contract.test.js \
+            scripts/test/amic-member-photo-replacement.test.mjs \
+            scripts/test/corporate-record-import.test.mjs \
             scripts/test/json-postgres-artifact-reproducibility.test.mjs \
             scripts/test/json-postgres-dr-recovery.test.mjs \
             scripts/test/json-postgres-execution-contract.test.mjs \
