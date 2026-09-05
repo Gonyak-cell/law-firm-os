@@ -137,6 +137,7 @@ export async function executeAmicMemberPhotoReplacement({ pool, manifest, plan, 
   memberPhotoStorage, readPhotoBytes, readOnly = false, clock = () => new Date() }) {
   manifest = structuredClone(manifest);
   plan = structuredClone(plan);
+  if (plan.environment !== "synthetic-test") clock = () => new Date();
   const verifyApproval = () => verifyAmicMemberPhotoReplacementApproval({ ...approval, plan, sourceSha, sourceTree, now: clock() });
   verifyApproval();
   validateManifest(manifest);

@@ -12,7 +12,7 @@ import { createMigratedPostgresFixture } from "../../packages/persistence/test/h
 import { canonicalizeJson } from "../../packages/runtime-auth/src/runtime-safety-approval-contract.js";
 import {
   AMIC_MEMBER_PHOTO_REPLACEMENT_ACTION, AMIC_MEMBER_PHOTO_REPLACEMENT_VERSION,
-  executeAmicMemberPhotoReplacement, memberPhotoReplacementApprovalDataScope, planAmicMemberPhotoReplacement,
+  executeAmicMemberPhotoReplacement, memberPhotoReplacementApprovalDataScope, planAmicMemberPhotoReplacement, verifyAmicMemberPhotoReplacementApproval,
 } from "../lib/amic-member-photo-replacement.mjs";
 
 const PNG = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=", "base64");
@@ -23,13 +23,22 @@ const SCOPE = { tenant_id: "tenant-synthetic-photo", domain_id: "hrx" };
 const NOW = "2026-09-05T01:00:00.000Z";
 const PHOTO_FIELDS = ["photo_object_id", "photo_sha256", "photo_byte_size", "photo_content_type", "photo_version_id"];
 
-function approved(plan, overrides = {}) {
+const PRODUCTION_TARGET = Object.freeze({
+    aws_account: "770880870480", aws_region: "ap-northeast-2",
+    database_secret_ref: "lawos/synthetic/postgres-application", tenant_context_secret_ref: "lawos/synthetic/tenant-context",
+    photo_bucket_name: "synthetic-approved-photos", photo_expected_bucket_owner: "770880870480",
+    photo_kms_key_arn: "arn:aws:kms:ap-northeast-2:770880870480:key/11111111-2222-3333-4444-555555555555",
+    photo_prefix: "approved/member-photos", bucket_versioning_required: true, bucket_owner_enforced: true,
+    public_access_block_required: true, server_side_encryption: "aws:kms",
+});
+
+function approved(plan, overrides = {}, keyOverrides = {}) {
   const { publicKey, privateKey } = generateKeyPairSync("ed25519");
   const registryBytes = Buffer.from(JSON.stringify({ schema_version: "law-firm-os.runtime-safety.approval-trust-registry.v1",
     generated_at: "2026-09-05T00:00:00.000Z", keys: [{ key_id: "synthetic-owner", algorithm: "Ed25519",
       public_key_spki_pem: publicKey.export({ type: "spki", format: "pem" }), roles: ["owner"],
-      actions: [AMIC_MEMBER_PHOTO_REPLACEMENT_ACTION], environments: ["synthetic-test"],
-      valid_from: "2026-09-01T00:00:00.000Z", valid_until: "2026-10-01T00:00:00.000Z", revoked_at: null }] }));
+      actions: [AMIC_MEMBER_PHOTO_REPLACEMENT_ACTION], environments: [plan.environment],
+      valid_from: "2026-09-01T00:00:00.000Z", valid_until: "2026-10-01T00:00:00.000Z", revoked_at: null, ...keyOverrides }] }));
   const receipt = { schema_version: "law-firm-os.runtime-safety.approval.v1", approval_id: "approval.synthetic-photo", key_id: "synthetic-owner",
     role: "owner", decision: "approved", packet_sha256: plan.packet_sha256, source_sha: plan.source_sha, source_tree: plan.source_tree,
     action: plan.action, environment: plan.environment, signed_at: "2026-09-05T00:00:00.000Z", expires_at: "2026-09-06T00:00:00.000Z",
@@ -372,14 +381,7 @@ test("a partial storage failure reports retained and uncertain objects before an
 test("signed photo target binds actual constructed S3 coordinates even when every adapter uses the same ID", async (t) => {
   const f = await fixture(t, { count: 1 });
   if (!f) return;
-  const productionTarget = {
-    aws_account: "770880870480", aws_region: "ap-northeast-2",
-    database_secret_ref: "lawos/synthetic/postgres-application", tenant_context_secret_ref: "lawos/synthetic/tenant-context",
-    photo_bucket_name: "synthetic-approved-photos", photo_expected_bucket_owner: "770880870480",
-    photo_kms_key_arn: "arn:aws:kms:ap-northeast-2:770880870480:key/11111111-2222-3333-4444-555555555555",
-    photo_prefix: "approved/member-photos", bucket_versioning_required: true, bucket_owner_enforced: true,
-    public_access_block_required: true, server_side_encryption: "aws:kms",
-  };
+  const productionTarget = PRODUCTION_TARGET;
   const targetPlan = planAmicMemberPhotoReplacement({ ...CONTEXT, photoStorageAdapterId: "s3-vault", productionTarget,
     manifest: f.manifest, currentSnapshot: f.before });
   const run = { ...f.run, plan: targetPlan, approval: approved(targetPlan), readOnly: true };
@@ -454,4 +456,33 @@ test("default S3 target rejects SDK environment endpoint redirection before HTTP
   assert.equal(client.config.endpoint_mode, "aws-default-guarded");
   await assert.rejects(client.send(createOwnedHeadObjectCommand({ Bucket: "synthetic-approved-photos", Key: "no-photo-body",
     ExpectedBucketOwner: "770880870480" })), { code: "DMS_S3_ENDPOINT_OVERRIDE" });
+});
+
+
+test("production and rehearsal ignore an injected past clock for expired approvals", async (t) => {
+  const f = await fixture(t, { count: 1 });
+  if (!f) return;
+  const actualNow = Date.now();
+  const signedAt = new Date(actualNow - 7_200_000).toISOString();
+  const expiredAt = new Date(actualNow - 3_600_000).toISOString();
+  const past = new Date(actualNow - 5_400_000);
+  let injectedClockCalls = 0;
+  let sourceReads = 0;
+  for (const environment of ["lawos-production", "lawos-private-rehearsal"]) {
+    const plan = planAmicMemberPhotoReplacement({ ...CONTEXT, environment, productionTarget: PRODUCTION_TARGET,
+      manifest: f.manifest, currentSnapshot: f.before });
+    const approval = approved(plan, { signed_at: signedAt, expires_at: expiredAt }, {
+      valid_from: new Date(actualNow - 86_400_000).toISOString(), valid_until: new Date(actualNow + 86_400_000).toISOString(),
+    });
+    assert.equal(verifyAmicMemberPhotoReplacementApproval({ ...approval, plan, sourceSha: CONTEXT.sourceSha,
+      sourceTree: CONTEXT.sourceTree, now: past }).decision, "approved");
+    await assert.rejects(executeAmicMemberPhotoReplacement({ ...f.run, plan, approval,
+      clock: () => { injectedClockCalls += 1; return past; },
+      readPhotoBytes: async () => { sourceReads += 1; return NEW_PNG; },
+    }), /expired/u);
+  }
+  assert.equal(injectedClockCalls, 0);
+  assert.equal(sourceReads, 0);
+  assert.equal(f.calls.finalize, 1);
+  assert.equal((await f.read()).snapshot_hash, f.before.snapshot_hash);
 });
