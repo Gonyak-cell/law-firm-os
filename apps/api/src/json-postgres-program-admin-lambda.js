@@ -100,6 +100,8 @@ import {
   loadJsonPostgresRehearsalRestoreInputs,
   loadJsonPostgresProjectionInputs,
   loadJsonPostgresProgramAuthorization,
+  JSON_POSTGRES_SCHEMA_GOVERNANCE_READBACK_ACTION,
+  readJsonPostgresSchemaGovernance,
   resolveJsonPostgresScheduledProgramEvent,
 } from "./json-postgres-program-inputs.js";
 import {
@@ -3427,6 +3429,9 @@ export async function executeJsonPostgresRetirementSmoke({
 
 export async function handler(event = {}) {
   try {
+    if (event.action === JSON_POSTGRES_SCHEMA_GOVERNANCE_READBACK_ACTION) {
+      return readJsonPostgresSchemaGovernance({ event });
+    }
     event = await resolveJsonPostgresScheduledProgramEvent({
       event,
     });
@@ -3476,6 +3481,7 @@ export async function handler(event = {}) {
         JSON_POSTGRES_W15_INVENTORY_BOOTSTRAP_ACTION,
         JSON_POSTGRES_JSON_RETIREMENT_ACTION,
         CATALOG_READBACK_ACTION,
+        JSON_POSTGRES_SCHEMA_GOVERNANCE_READBACK_ACTION,
       ].includes(event.action)
         ? event.action
         : "unsupported-program-action",

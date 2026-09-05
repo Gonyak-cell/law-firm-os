@@ -18,7 +18,7 @@ import {
 } from "../../../packages/persistence/src/postgres/source-adjudication.js";
 import { canonicalizeJson } from "../../../packages/runtime-auth/src/runtime-safety-approval-contract.js";
 import {
-  verifyProductionTrustedRegistry,
+  verifySchemaGovernanceTrustedRegistry,
 } from "../../../packages/runtime-auth/src/external-release-trust.js";
 import {
   IMMUTABLE_PROGRAM_INPUT_LOCATOR_VERSION,
@@ -83,6 +83,7 @@ export const JSON_POSTGRES_PRODUCTION_BOOTSTRAP_ACTION = "lawos-json-postgres-pr
 export const JSON_POSTGRES_REHEARSAL_BOOTSTRAP_ACTION = "lawos-json-postgres-rehearsal-bootstrap";
 export const JSON_POSTGRES_RELATIONAL_PROJECTION_ACTION = "lawos-json-postgres-relational-projection";
 export const JSON_POSTGRES_JSON_RETIREMENT_ACTION = "lawos-json-postgres-json-retirement-smoke";
+export const JSON_POSTGRES_SCHEMA_GOVERNANCE_READBACK_ACTION = "lawos-json-postgres-schema-governance-readback";
 export { JSON_POSTGRES_W15_INVENTORY_BOOTSTRAP_ACTION };
 
 const SHA1 = /^[0-9a-f]{40}$/u;
@@ -212,6 +213,53 @@ function exactDeployment(event, env) {
   return Object.freeze({ sourceSha, sourceTree, artifactSha256 });
 }
 
+export function readJsonPostgresSchemaGovernance({
+  event,
+  env = process.env,
+  now = Date.now(),
+  verifyRegistry = verifySchemaGovernanceTrustedRegistry,
+} = {}) {
+  assertJsonPostgresProgramDirectInvoke(event, {
+    allowedActions: [JSON_POSTGRES_SCHEMA_GOVERNANCE_READBACK_ACTION],
+  });
+  const keys = ["action", "attempt_ref", "source_sha", "source_tree", "artifact_sha256"];
+  closedObject(event, keys, "schema governance readback");
+  if (Object.keys(event).length !== keys.length
+    || env.LAWOS_AWS_ACCOUNT_ID !== "770880870480"
+    || (env.AWS_REGION ?? env.AWS_DEFAULT_REGION) !== "ap-northeast-2"
+    || !Number.isFinite(now)) fail("LAWOS_SCHEMA_GOVERNANCE_READBACK", "schema governance readback target is invalid");
+  const exact = exactDeployment(event, env);
+  const trust = verifyRegistry();
+  const activeKeys = trust.registry.keys.filter((key) =>
+    key.revoked_at == null && Date.parse(key.valid_from) <= now
+    && Date.parse(key.valid_until) > now
+    && key.allowed_source_shas[0] === exact.sourceSha
+    && key.allowed_source_trees[0] === exact.sourceTree
+    && key.allowed_artifact_sha256s[0] === exact.artifactSha256);
+  if (activeKeys.length !== 1) fail("LAWOS_SCHEMA_GOVERNANCE_READBACK", "schema governance has no unique active leaf for the deployed artifact");
+  return Object.freeze({
+    outcome: "PASS",
+    action: JSON_POSTGRES_SCHEMA_GOVERNANCE_READBACK_ACTION,
+    source_sha: exact.sourceSha,
+    source_tree: exact.sourceTree,
+    artifact_sha256: exact.artifactSha256,
+    installation_sha256: trust.installationSha256,
+    registry_sha256: trust.sha256,
+    registry_signature_sha256: trust.registrySignatureSha256,
+    registry_serial: trust.registrySerial,
+    trust_anchor_sha256: trust.anchorSha256,
+    active_leaf_count: activeKeys.length,
+    database_read_count: 0,
+    database_write_count: 0,
+    secret_read_count: 0,
+    program_input_read_count: 0,
+    approval_claim_write_count: 0,
+    raw_value_returned: false,
+    pii_returned: false,
+    secret_material_returned: false,
+  });
+}
+
 export async function resolveJsonPostgresScheduledProgramEvent({
   event,
   env = process.env,
@@ -299,7 +347,7 @@ export async function loadJsonPostgresProgramAuthorization({
   s3Client = new S3Client({ region: env.AWS_REGION ?? env.AWS_DEFAULT_REGION }),
   readBytes = readImmutableProgramInput,
   now = Date.now(),
-  verifyProductionRegistry = verifyProductionTrustedRegistry,
+  verifyProductionRegistry = verifySchemaGovernanceTrustedRegistry,
   verifyOutlookApproval = verifyJsonPostgresOutlookAuthorityApproval,
 } = {}) {
   assertJsonPostgresProgramDirectInvoke(event);
@@ -346,6 +394,9 @@ export async function loadJsonPostgresProgramAuthorization({
   });
   const externalOutlookApproval = outlookAuthorityOperation
     && packet.target?.database_target_receipt != null;
+  if (outlookAuthorityOperation && !externalOutlookApproval) {
+    fail("LAWOS_OUTLOOK_AUTHORITY_EXTERNAL_APPROVAL", "schema commit requires a fresh database target and the installed governance leaf approval");
+  }
   let approvalVerificationNow = now;
   if (outlookAuthorityOperation) {
     const receipt = parseJson(receiptBytes, "owner approval receipt");

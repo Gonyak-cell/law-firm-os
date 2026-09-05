@@ -1,5 +1,5 @@
 import { createHash, createPublicKey } from "node:crypto";
-import { closeSync, constants, existsSync, fstatSync, lstatSync, openSync, readFileSync, realpathSync, statSync } from "node:fs";
+import { closeSync, constants, existsSync, fstatSync, lstatSync, openSync, readFileSync, readSync, realpathSync, statSync } from "node:fs";
 import path from "node:path";
 import { types as utilTypes } from "node:util";
 
@@ -173,7 +173,8 @@ function fileSnapshotIdentity(metadata, target) {
   return metadata.dev === 0n && metadata.ino === 0n ? `path:${target}` : `inode:${metadata.dev}:${metadata.ino}`;
 }
 
-export function readTrustedFileSnapshot(rootDir, candidate) {
+export function readTrustedFileSnapshot(rootDir, candidate, { maxBytes = null } = {}) {
+  if (maxBytes != null && (!Number.isSafeInteger(maxBytes) || maxBytes < 1)) fail("TRUST_FILE_LIMIT_INVALID", "trusted file byte limit must be a positive safe integer");
   const root = resolveTrustedRoot(rootDir);
   const target = resolveTrustedFile(root, candidate);
   const noFollow = constants.O_NOFOLLOW ?? 0;
@@ -189,7 +190,21 @@ export function readTrustedFileSnapshot(rootDir, candidate) {
     const openedRelative = path.relative(root, openedTarget);
     if (openedRelative.startsWith("..") || path.isAbsolute(openedRelative)) fail("TRUST_PATH_ESCAPE", "opened trusted file descriptor escapes the declared root", { candidate });
     if (!sameFileSnapshot(before, statSync(openedTarget, { bigint: true }))) fail("TRUST_FILE_CHANGED", "trusted file changed identity before its bytes were read", { candidate });
-    const bytes = readFileSync(descriptor);
+    let bytes;
+    if (maxBytes == null) {
+      bytes = readFileSync(descriptor);
+    } else {
+      if (before.size > BigInt(maxBytes)) fail("TRUST_FILE_TOO_LARGE", "trusted file exceeds its byte limit", { candidate });
+      const buffer = Buffer.alloc(maxBytes + 1);
+      let count = 0;
+      while (count < buffer.length) {
+        const read = readSync(descriptor, buffer, count, buffer.length - count, null);
+        if (read === 0) break;
+        count += read;
+      }
+      if (count > maxBytes) fail("TRUST_FILE_TOO_LARGE", "trusted file exceeds its byte limit", { candidate });
+      bytes = buffer.subarray(0, count);
+    }
     const after = fstatSync(descriptor, { bigint: true });
     const closedPath = lstatSync(target, { bigint: true });
     const closedTarget = realpathSync(target);
