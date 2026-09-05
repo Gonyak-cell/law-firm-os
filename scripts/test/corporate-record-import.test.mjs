@@ -62,7 +62,7 @@ function approvalFor(plan, receiptPatch = {}) {
   const registryBytes = Buffer.from(JSON.stringify({ schema_version: "law-firm-os.runtime-safety.approval-trust-registry.v1",
     generated_at: "2026-09-05T00:00:00.000Z", keys: [{ key_id: "corporate-test-owner", algorithm: "Ed25519",
       public_key_spki_pem: publicKey.export({ type: "spki", format: "pem" }), roles: ["owner"], actions: [CORPORATE_IMPORT_ACTION],
-      environments: ["synthetic-test"], valid_from: "2026-09-01T00:00:00.000Z", valid_until: "2026-10-01T00:00:00.000Z", revoked_at: null }] }));
+      environments: [plan.environment], valid_from: "2026-09-01T00:00:00.000Z", valid_until: "2026-10-01T00:00:00.000Z", revoked_at: null }] }));
   const receipt = { schema_version: "law-firm-os.runtime-safety.approval.v1", approval_id: "approval-corporate-test", key_id: "corporate-test-owner",
     role: "owner", decision: "approved", packet_sha256: plan.packet_sha256, source_sha: plan.source_sha, source_tree: plan.source_tree,
     action: plan.action, environment: plan.environment, signed_at: "2026-09-05T00:00:00.000Z", expires_at: "2026-09-06T00:00:00.000Z",
@@ -101,6 +101,16 @@ test("corporate plan rejects unsupported fields, missing provenance, stale CAS a
   const disconnected = structuredClone(manifest);
   disconnected.operations = disconnected.operations.filter((operation) => operation.model_type !== "Relationship");
   assert.throws(() => prepareCorporateMasterDataImport({ manifest: disconnected, currentSnapshot: before }), { code: "LAWOS_CORPORATE_IMPORT_UNRELATED_RECORD" });
+});
+
+test("production import cannot revive an expired approval by injecting a historical clock", async () => {
+  const { before, manifest } = fixture();
+  manifest.environment = "lawos-production";
+  const plan = prepareCorporateMasterDataImport({ manifest, currentSnapshot: before }).plan;
+  const current = Date.now();
+  await assert.rejects(executeCorporateRecordImport({ pool: null, manifest, plan, sourceSha: manifest.source_sha, sourceTree: manifest.source_tree,
+    clock: () => new Date(current - 90_000), approval: approvalFor(plan, { signed_at: new Date(current - 120_000).toISOString(),
+      expires_at: new Date(current - 60_000).toISOString() }) }), { code: "APPROVAL_EXPIRED" });
 });
 
 test("shared representatives do not authorize another company's contacts through indirect graph links", () => {
