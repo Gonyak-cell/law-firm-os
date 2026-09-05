@@ -42,6 +42,39 @@ function objectMetadataHeaders(bytes) {
   };
 }
 
+test("ranged checksum-bearing S3 responses retain transport bounds and approved SHA verification", async (t) => {
+  const approved = Buffer.from("12345678");
+  for (const corrupted of [false, true]) {
+    await t.test(corrupted ? "rejects changed bytes" : "reads approved bytes", async (t) => {
+      const bytes = corrupted ? Buffer.from("87654321") : approved;
+      const requests = [];
+      const server = createHttpServer((request, response) => {
+        requests.push({ method: request.method, mode: request.headers["x-amz-checksum-mode"], range: request.headers.range });
+        const headers = {
+          "content-length": String(bytes.length),
+          "content-type": "text/plain",
+          "x-amz-checksum-sha256": Buffer.from(sha256Hex(bytes), "hex").toString("base64"),
+          ...objectMetadataHeaders(approved),
+        };
+        if (request.method === "HEAD") { response.writeHead(200, headers); response.end(); return; }
+        response.writeHead(206, { ...headers, "content-range": `bytes 0-${bytes.length - 1}/${bytes.length}` });
+        response.end(bytes);
+      });
+      const port = await listen(server);
+      const client = createBoundedS3Client({ endpoint: `http://127.0.0.1:${port}`, region: "us-east-1", forcePathStyle: true,
+        credentials: { accessKeyId: "local-test", secretAccessKey: "local-test" }, responseChecksumValidation: "WHEN_SUPPORTED" });
+      t.after(async () => { client.destroy(); await close(server); });
+      const read = adapter(client).readObjectBounded({ tenant_id: TENANT, object_id: OBJECT, max_bytes: LIMIT });
+      if (corrupted) await assert.rejects(read, { code: "DMS_COMMITTED_DIGEST_MISMATCH" });
+      else assert.deepEqual((await read).bytes, approved);
+      assert.deepEqual(requests, [
+        { method: "HEAD", mode: "ENABLED", range: undefined },
+        { method: "GET", mode: undefined, range: EXPECTED_RANGE },
+      ]);
+    });
+  }
+});
+
 test("production adapter keeps exact dispatch across middleware, prototype, realm, and concurrent attacks", async (t) => {
   const bytes = Buffer.from("12345678");
   let providerBytes = 0;

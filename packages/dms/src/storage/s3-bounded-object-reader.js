@@ -160,7 +160,7 @@ export async function readS3CommittedObjectBounded({
     response = await client.send(createOwnedGetObjectCommand({
       ...common,
       Key: key,
-      ChecksumMode: "ENABLED",
+      // SDK checksum wrappers lose bounded transport identity; this path verifies the full approved SHA-256 itself.
       Range: `bytes=0-${limit}`,
     }), { abortSignal: abortController.signal });
   } catch (error) {
