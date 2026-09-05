@@ -24,6 +24,28 @@ import {
 
 const reference = JSON.parse(readFileSync("infra/lawos-private-staging/template.json", "utf8"));
 
+test("schema governance accepts an immutable local layer only on the direct-invoke admin", () => {
+  const template = buildJsonPostgresProductionTemplate(reference);
+  const parameter = template.Parameters.SchemaGovernanceLayerVersionArn;
+  assert.equal(parameter.Default, "disabled");
+  const pattern = new RegExp(parameter.AllowedPattern, "u");
+  const arn = `arn:aws:lambda:ap-northeast-2:770880870480:layer:lawos-schema-governance-2026090601-${"a".repeat(64)}:1`;
+  assert.equal(pattern.test(arn), true);
+  for (const value of [arn.replace(":1", ":$LATEST"), arn.replace("770880870480", "111111111111"), arn.replace("ap-northeast-2", "us-east-1"), arn.replace("2026090601", "2026090600")]) assert.equal(pattern.test(value), false);
+  assert.deepEqual(template.Resources.AdminFunction.Properties.Layers["Fn::If"][1], [{ Ref: "SchemaGovernanceLayerVersionArn" }]);
+  for (const mutate of [
+    (copy) => { copy.Parameters.SchemaGovernanceLayerVersionArn.Default = arn; },
+    (copy) => { copy.Parameters.SchemaGovernanceLayerVersionArn.AllowedPattern = ".*"; },
+    (copy) => { copy.Resources.AdminFunction.Properties.Layers = [arn]; },
+    (copy) => { copy.Resources.ApiFunction.Properties.Layers = [arn]; },
+    (copy) => { copy.Resources.ProjectionWorkerFunction.Properties.Layers = [arn]; },
+    (copy) => { copy.Resources.ProjectionAuditorFunction.Properties.Layers = [arn]; },
+  ]) {
+    const copy = structuredClone(template); mutate(copy);
+    assert.throws(() => validateJsonPostgresProductionTemplate(copy), /schema governance layer/u);
+  }
+});
+
 test("production member photos use their committed prefix with read-only API access", () => {
   const stagingEnv = reference.Resources.ApiFunction.Properties.Environment.Variables;
   assert.equal(stagingEnv.LAWOS_MEMBER_PHOTO_S3_PREFIX, "synthetic-member-photos");

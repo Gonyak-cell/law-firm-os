@@ -1738,6 +1738,7 @@ if (operation === "preflight"
     SourceSha: sourceSha,
     SourceTree: sourceTree,
     ArtifactSha256: packet.bindings.artifact_sha256,
+    SchemaGovernanceLayerVersionArn: current.SchemaGovernanceLayerVersionArn ?? "disabled",
     OwnerTrustRegistrySha256: registrySha256,
     BootstrapApprovalId: approval.approval_id,
     ExecutionPacketSha256: packet.packet_sha256,

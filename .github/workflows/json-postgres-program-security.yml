@@ -81,6 +81,8 @@ jobs:
             apps/api/test/json-postgres-outlook-authority-operation.test.js \
             apps/api/test/json-postgres-outlook-authority-claim.test.js \
             apps/api/test/json-postgres-outlook-authority-terminal-contract.test.js \
+            apps/api/test/json-postgres-outlook-authority-trust-root.test.js \
+            apps/api/test/json-postgres-schema-governance.test.js \
             apps/api/test/json-postgres-program-admin-lambda.test.js \
             apps/api/test/json-postgres-program-inputs.test.js \
             apps/api/test/json-postgres-source-transform.test.js \

@@ -6,6 +6,7 @@ import {
   assertStrictUtcTimestamp,
   assertValidationClock,
   deepFreeze,
+  externalReleaseAuthorityBindingSha256,
   fail,
   hasExactKeys,
   isRecord,
@@ -37,6 +38,27 @@ export const PRODUCTION_TRUST_ROOT_POLICY = Object.freeze({
   registry_signature_sha256: null,
   registry_serial: null,
   root_signed_registry_required: true,
+});
+export const SCHEMA_GOVERNANCE_INSTALLATION_SCHEMA_VERSION = "law-firm-os.schema-governance-installation.v1";
+export const SCHEMA_GOVERNANCE_TRUST_ANCHOR = Object.freeze({
+  installation_root: "/opt/lawos-schema-governance",
+  root_public_key_spki_sha256: "bee700a24abf39d58644709dcc497bde7fbdcffb28ce0f8cbf995d7c81cfa0da",
+  registry_serial: 2026090601,
+});
+const SCHEMA_GOVERNANCE_FILES = Object.freeze({
+  "root-public-key.spki.pem": 4096,
+  "trust-registry.json": 128 * 1024,
+  "trust-registry.json.sig": 64,
+});
+const SCHEMA_GOVERNANCE_SCOPE = Object.freeze({
+  allowed_receipt_sources: "law-firm-os",
+  allowed_receipt_types: "lawos-json-postgres-production-cutover-owner-approval",
+  allowed_pilot_ids: "amic-os-outlook",
+  allowed_lawos_tenant_ids: "lawos-production",
+  allowed_entra_tenant_ids: "2f10d109-c2ad-43a4-a813-4dea28119e52",
+  allowed_versions: "law-firm-os.json-postgres-execution-packet.v2",
+  allowed_roles: "owner",
+  allowed_operations: "lawos-json-postgres-production-cutover",
 });
 const MODULE_VERIFIED_REGISTRIES = new WeakSet();
 const ROOT_VERIFIED_REGISTRIES = new WeakSet();
@@ -122,9 +144,9 @@ function verifyRootSignedRegistry(policy, now) {
   }
   assertValidationClock(now);
   const installationRoot = resolveTrustedRoot(policy.installation_root);
-  const rootPublicKeySnapshot = readTrustedFileSnapshot(installationRoot, policy.root_public_key_path);
-  const registrySnapshot = readTrustedFileSnapshot(installationRoot, policy.registry_installation_path);
-  const registrySignatureSnapshot = readTrustedFileSnapshot(installationRoot, policy.registry_signature_installation_path);
+  const rootPublicKeySnapshot = readTrustedFileSnapshot(installationRoot, policy.root_public_key_path, { maxBytes: 4096 });
+  const registrySnapshot = readTrustedFileSnapshot(installationRoot, policy.registry_installation_path, { maxBytes: 128 * 1024 });
+  const registrySignatureSnapshot = readTrustedFileSnapshot(installationRoot, policy.registry_signature_installation_path, { maxBytes: 4096 });
   const rootPublicKeyTarget = rootPublicKeySnapshot.target;
   const registryTarget = registrySnapshot.target;
   const registrySignatureTarget = registrySignatureSnapshot.target;
@@ -182,6 +204,90 @@ export function verifyProductionTrustedRegistry(options = {}) {
   const policy = { ...testOnlyPolicy };
   delete policy.test_only;
   return verifyRootSignedRegistry(policy, options.now ?? Date.now());
+}
+
+export function verifySchemaGovernanceTrustedRegistry(options = {}) {
+  let anchor = SCHEMA_GOVERNANCE_TRUST_ANCHOR;
+  let now = Date.now();
+  if (!isRecord(options)) fail("TRUST_ROOT_OVERRIDE_FORBIDDEN", "schema governance accepts no caller-selected trust material");
+  if (Object.keys(options).length > 0) {
+    if (!hasExactKeys(options, ["testOnlyInstallation", "now"])
+      || process.env.NODE_ENV !== "test"
+      || !hasExactKeys(options.testOnlyInstallation, [...Object.keys(anchor), "test_only"])
+      || options.testOnlyInstallation.test_only !== true) {
+      fail("TRUST_ROOT_OVERRIDE_FORBIDDEN", "schema governance accepts no caller-selected trust material");
+    }
+    anchor = options.testOnlyInstallation;
+    now = options.now;
+  }
+  let root;
+  try {
+    root = resolveTrustedRoot(anchor.installation_root);
+  } catch {
+    fail("SCHEMA_GOVERNANCE_NOT_INSTALLED", "the fixed schema governance installation is unavailable");
+  }
+  const manifestSnapshot = readTrustedFileSnapshot(root, "installation.json", { maxBytes: 4096 });
+  let manifest;
+  try {
+    manifest = JSON.parse(manifestSnapshot.bytes.toString("utf8"));
+  } catch {
+    fail("SCHEMA_GOVERNANCE_INSTALLATION_INVALID", "schema governance installation is not valid JSON");
+  }
+  if (!hasExactKeys(manifest, ["schema_version", "registry_serial", "files"])
+    || manifest.schema_version !== SCHEMA_GOVERNANCE_INSTALLATION_SCHEMA_VERSION
+    || manifest.registry_serial !== anchor.registry_serial
+    || !hasExactKeys(manifest.files, Object.keys(SCHEMA_GOVERNANCE_FILES))) {
+    fail("SCHEMA_GOVERNANCE_INSTALLATION_INVALID", "schema governance file table or serial drifted");
+  }
+  const identities = new Set([manifestSnapshot.identity]);
+  for (const [name, maxBytes] of Object.entries(SCHEMA_GOVERNANCE_FILES)) {
+    const entry = manifest.files[name];
+    if (!hasExactKeys(entry, ["sha256", "size_bytes"])
+      || !SHA256_PATTERN.test(entry.sha256 ?? "")
+      || !Number.isSafeInteger(entry.size_bytes) || entry.size_bytes < 1
+      || entry.size_bytes > maxBytes) fail("SCHEMA_GOVERNANCE_INSTALLATION_INVALID", "schema governance file entry is invalid");
+    const snapshot = readTrustedFileSnapshot(root, name, { maxBytes });
+    if (identities.has(snapshot.identity)
+      || snapshot.bytes.length !== entry.size_bytes
+      || sha256Hex(snapshot.bytes) !== entry.sha256) fail("SCHEMA_GOVERNANCE_INSTALLATION_INVALID", "installed schema governance bytes drifted from the file table");
+    identities.add(snapshot.identity);
+  }
+  // The layer is installed after the code artifact is finalized. Its file table
+  // locates bytes; authority still comes from this source-pinned root and serial.
+  const trust = verifyRootSignedRegistry({
+    schema_version: TRUST_ROOT_POLICY_SCHEMA_VERSION,
+    configured: true,
+    installation_root: root,
+    root_public_key_path: path.join(root, "root-public-key.spki.pem"),
+    root_public_key_spki_sha256: anchor.root_public_key_spki_sha256,
+    registry_installation_path: path.join(root, "trust-registry.json"),
+    registry_sha256: manifest.files["trust-registry.json"].sha256,
+    registry_signature_installation_path: path.join(root, "trust-registry.json.sig"),
+    registry_signature_sha256: manifest.files["trust-registry.json.sig"].sha256,
+    registry_serial: anchor.registry_serial,
+    root_signed_registry_required: true,
+  }, now);
+  for (const key of trust.registry.keys) {
+    if (Object.entries(SCHEMA_GOVERNANCE_SCOPE).some(([field, value]) =>
+      key[field].length !== 1 || key[field][0] !== value)) fail("SCHEMA_GOVERNANCE_SCOPE_INVALID", "schema governance leaf exceeds the fixed schema operation scope");
+    for (const field of ["allowed_source_shas", "allowed_source_trees", "allowed_artifact_sha256s", "allowed_binding_sha256s"]) {
+      const pattern = field === "allowed_source_shas" || field === "allowed_source_trees" ? /^[0-9a-f]{40}$/u : SHA256_PATTERN;
+      if (key[field].length !== 1 || !pattern.test(key[field][0])) fail("SCHEMA_GOVERNANCE_SCOPE_INVALID", "schema governance requires one exact source and artifact per leaf");
+    }
+    const binding = externalReleaseAuthorityBindingSha256({
+      pilot_id: key.allowed_pilot_ids[0],
+      lawos_tenant_id: key.allowed_lawos_tenant_ids[0],
+      entra_tenant_id: key.allowed_entra_tenant_ids[0],
+      source_sha: key.allowed_source_shas[0],
+      source_tree: key.allowed_source_trees[0],
+      version: key.allowed_versions[0],
+    });
+    if (key.allowed_binding_sha256s[0] !== binding) fail("SCHEMA_GOVERNANCE_SCOPE_INVALID", "schema governance authority binding drifted");
+  }
+  const installedTrust = Object.freeze({ ...trust, installationSha256: sha256Hex(manifestSnapshot.bytes) });
+  MODULE_VERIFIED_REGISTRIES.add(installedTrust);
+  ROOT_VERIFIED_REGISTRIES.add(installedTrust);
+  return installedTrust;
 }
 
 export function isModuleVerifiedRegistry(value) {

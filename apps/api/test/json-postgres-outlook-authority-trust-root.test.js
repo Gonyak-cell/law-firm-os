@@ -9,7 +9,7 @@ import {
   operationEvent,
 } from "./json-postgres-outlook-authority-fixtures.js";
 
-test("unconfigured production trust root blocks before locator reads", async () => {
+test("absent fixed schema governance blocks before locator reads", async () => {
   const event = operationEvent();
   const env = {
     ...environment(),
@@ -35,7 +35,7 @@ test("unconfigured production trust root blocks before locator reads", async () 
   }
   assert.equal(
     failure?.code,
-    "TRUST_ROOT_NOT_CONFIGURED",
+    "SCHEMA_GOVERNANCE_NOT_INSTALLED",
     `locator read count before trust-root failure: ${readCount}`,
   );
   assert.equal(readCount, 0);

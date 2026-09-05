@@ -426,6 +426,26 @@ test("Outlook CUT-009 commit authorization derives its operation binding before 
   assert.equal(readCount, 0);
 });
 
+test("installed schema trust cannot revive legacy commit approval without a database target receipt", async () => {
+  const fixture = authorizationFixture();
+  delete fixture.value.target.database_target_receipt;
+  delete fixture.value.target.database_target_receipt_sha256;
+  fixture.value.target.database_secret_ref = "secret:lawos-prod-db";
+  const validated = validateJsonPostgresExecutionPacket(fixture.value);
+  fixture.bytes.set("packet", Buffer.from(JSON.stringify(fixture.value)));
+  const request = {
+    ...event(validated.packet_sha256),
+    action: JSON_POSTGRES_PRODUCTION_BOOTSTRAP_ACTION,
+    mode: "commit", stage: "cut-009", operation: "outlook-authority-bootstrap-001-007",
+  };
+  await assert.rejects(loadJsonPostgresProgramAuthorization({
+    event: request, env: env(fixture.registrySha256), s3Client: {},
+    readBytes: async ({ locator }) => fixture.bytes.get(locator.key),
+    now: Date.parse("2026-07-24T00:00:00.000Z"),
+    ...outlookTrustOptions(fixture),
+  }), { code: "LAWOS_OUTLOOK_AUTHORITY_EXTERNAL_APPROVAL" });
+});
+
 test("expired Outlook CUT-009 authorization remains verifiable only for exact claim replay", async () => {
   const fixture = authorizationFixture();
   const request = {

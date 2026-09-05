@@ -4,6 +4,7 @@ export const JSON_POSTGRES_PRODUCTION_INFRASTRUCTURE_VERSION = "law-firm-os.json
 export const JSON_POSTGRES_PRODUCTION_ARTIFACT_STORE_VERSION = "law-firm-os.json-postgres-production-artifact-store.v4";
 export const JSON_POSTGRES_PRODUCTION_COST_CEILING_KRW = 300_000;
 export const JSON_POSTGRES_PRODUCTION_BUDGET_USD = 190;
+export const JSON_POSTGRES_SCHEMA_GOVERNANCE_LAYER_ARN_PATTERN = "^(disabled|arn:aws:lambda:ap-northeast-2:770880870480:layer:lawos-schema-governance-2026090601-[0-9a-f]{64}:[1-9][0-9]*)$";
 export const JSON_POSTGRES_EXTERNAL_READ_PROVIDER_PACK_SECRET_NAME =
   "/lawos/production/external-read/provider-packs";
 export const JSON_POSTGRES_EXTERNAL_READ_CREDENTIAL_SECRET_PREFIX =
@@ -1643,6 +1644,15 @@ export function buildJsonPostgresProductionTemplate(stagingTemplate) {
     Default: 1,
     MinValue: 1,
   };
+  template.Parameters.SchemaGovernanceLayerVersionArn = {
+    Type: "String",
+    Default: "disabled",
+    AllowedPattern: JSON_POSTGRES_SCHEMA_GOVERNANCE_LAYER_ARN_PATTERN,
+    Description: "Exact immutable, public-data-only schema governance layer version; direct-invoke admin only",
+  };
+  template.Conditions.SchemaGovernanceInstalled = {
+    "Fn::Not": [{ "Fn::Equals": [{ Ref: "SchemaGovernanceLayerVersionArn" }, "disabled"] }],
+  };
   template.Parameters.ProjectionWorkerEventJson = {
     Type: "String",
     Default: "{}",
@@ -2175,6 +2185,9 @@ export function buildJsonPostgresProductionTemplate(stagingTemplate) {
   admin.Properties.Handler = "apps/api/src/json-postgres-program-admin-lambda.handler";
   admin.Properties.Timeout = 900;
   admin.Properties.ReservedConcurrentExecutions = 1;
+  admin.Properties.Layers = {
+    "Fn::If": ["SchemaGovernanceInstalled", [{ Ref: "SchemaGovernanceLayerVersionArn" }], { Ref: "AWS::NoValue" }],
+  };
   admin.Properties.Environment.Variables = {
     LAWOS_APPLICATION_DATABASE_SECRET_ID: { Ref: "ApplicationDatabaseSecret" },
     LAWOS_APPROVAL_AUDIT_BUCKET: { Ref: "ProgramInputBucket" },
@@ -3142,6 +3155,18 @@ export function validateJsonPostgresProductionTemplate(template) {
     fail("production safety parameters drifted");
   }
   const resources = template.Resources ?? {};
+  if (template.Parameters?.SchemaGovernanceLayerVersionArn?.Default !== "disabled"
+    || template.Parameters?.SchemaGovernanceLayerVersionArn?.AllowedPattern !== JSON_POSTGRES_SCHEMA_GOVERNANCE_LAYER_ARN_PATTERN
+    || stableJson(template.Conditions?.SchemaGovernanceInstalled) !== stableJson({
+      "Fn::Not": [{ "Fn::Equals": [{ Ref: "SchemaGovernanceLayerVersionArn" }, "disabled"] }],
+    })
+    || stableJson(resources.AdminFunction?.Properties?.Layers) !== stableJson({
+      "Fn::If": ["SchemaGovernanceInstalled", [{ Ref: "SchemaGovernanceLayerVersionArn" }], { Ref: "AWS::NoValue" }],
+    })
+    || Object.entries(resources).some(([id, resource]) => id !== "AdminFunction"
+      && resource.Type === "AWS::Lambda::Function" && resource.Properties?.Layers != null)) {
+    fail("schema governance layer must be disabled by default and bound only to the direct-invoke admin");
+  }
   const apiEnvironment = resources.ApiFunction?.Properties?.Environment
     ?.Variables ?? {};
   const expectedMemberPhotoEnvironment = {
