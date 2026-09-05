@@ -248,6 +248,14 @@ test("CL-P5-W02-T04 수임 현황은 선택·탭·검색·상담 연결과 반�
     assert.equal(new URL(page.url()).searchParams.get("opportunity_id"), "opp-review");
     const selectedAfterHandoff = page.locator('[data-client-opportunity-detail="true"]');
     assert.equal(await selectedAfterHandoff.count(), 1);
+    await page.waitForFunction(
+      (selector) => {
+        const details = document.querySelectorAll(selector);
+        return details.length === 1 && details[0].contains(document.activeElement);
+      },
+      '[data-client-opportunity-detail="true"]',
+      { timeout: 5_000 }
+    );
     assert.equal(await selectedAfterHandoff.evaluate((element) => element.contains(document.activeElement)), true);
     assert.equal(state.handoffBodies.at(-1).requested_scope_summary, "기업 자문");
     assert.equal(state.handoffBodies.at(-1).opportunity_id, undefined);
