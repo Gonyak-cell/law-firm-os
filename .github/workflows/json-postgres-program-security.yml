@@ -82,6 +82,7 @@ jobs:
             apps/api/test/production-lawos-role-registry.test.js \
             apps/api/test/session-auth-api.test.js \
             apps/api/test/vault-corporate-permission.test.js \
+            apps/api/test/vault-corporate-warm-authority.test.js \
             apps/api/test/vault-dms-governance-security.test.js \
             apps/api/test/vault-dms-postgres-runtime.test.js \
             packages/dms/test/central-ledger.test.js \

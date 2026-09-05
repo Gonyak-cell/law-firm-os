@@ -73,7 +73,7 @@ export function createDmsWorkspace(input) {
     root_folder_id: corporate ? null : input.root_folder_id ?? `folder:${input.workspace_id}:root`,
     matter_trace_ref: corporate ? null : input.matter_trace_ref ?? `matter:${input.matter_id}`,
     client_visible_by_default: false,
-    ...(corporate ? { scope_type: input.scope_type, legal_entity_id: input.legal_entity_id,
+    ...(corporate ? { resource_id: input.workspace_id, scope_type: input.scope_type, legal_entity_id: input.legal_entity_id,
       organization_id: input.organization_id, party_id: input.party_id,
       owner_user_id: input.owner_user_id, permission_ref: input.permission_ref } : {}),
   });
