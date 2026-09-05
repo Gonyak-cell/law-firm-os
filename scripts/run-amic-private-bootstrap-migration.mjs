@@ -22,6 +22,7 @@ import {
 import {
   validateAmicPrivateBootstrapDirectoryMigration,
   validateAmicPrivateBootstrapGitState,
+  validateAmicPrivateBootstrapObjectLock,
   validateAmicPrivateBootstrapPacketInputBinding,
   validateAmicPrivateBootstrapS3Controls,
   verifyAmicPrivateBootstrapAwsCaller,
@@ -274,6 +275,11 @@ try {
       "--key-id", target.photo_kms_key_arn,
     ]),
   });
+  const objectLock = validateAmicPrivateBootstrapObjectLock(awsJson(aws, [
+    "s3api", "get-object-lock-configuration",
+    "--bucket", target.photo_bucket_name,
+    "--expected-bucket-owner", target.photo_expected_bucket_owner,
+  ]));
   writePrivateProgramJson(
     join(outputDir, "private-bootstrap-aws-controls.json"),
     {
@@ -281,6 +287,7 @@ try {
       packet_sha256: packet.packet_sha256,
       caller,
       storage: controls,
+      object_lock: objectLock,
       aws_write: false,
       production_ready_claim: false,
     },
@@ -351,6 +358,7 @@ try {
     region: target.aws_region,
     prefix: target.photo_prefix,
     kms_key_id: target.photo_kms_key_arn,
+    object_lock_enabled: objectLock.object_lock_enabled,
   });
   const memberPhotoStorage = createHrxMemberPhotoStorage({ storage });
   let checkpointIndex = 0;
