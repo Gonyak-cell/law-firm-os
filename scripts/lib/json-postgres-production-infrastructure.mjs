@@ -2748,9 +2748,6 @@ export function buildJsonPostgresProductionTemplate(stagingTemplate) {
   api.Properties.Description = "Exact-main LawOS production API with PostgreSQL-only authority";
   apiEnv.LAWOS_DATA_SCOPE = "approved-real-manifest";
   apiEnv.LAWOS_DMS_S3_DEFAULT_RETENTION_DAYS = "365";
-  for (const field of ["BUCKET", "EXPECTED_BUCKET_OWNER", "REGION", "KMS_KEY_ID", "CREDENTIAL_REF"]) {
-    apiEnv[`LAWOS_MEMBER_PHOTO_S3_${field}`] = clone(apiEnv[`LAWOS_DMS_S3_${field}`]);
-  }
   apiEnv.LAWOS_MEMBER_PHOTO_S3_PREFIX = "approved-real-migration/member-photos";
   apiEnv.LAWOS_IDENTITY_TENANT_ID = { Ref: "PrimaryTenantId" };
   apiEnv.LAWOS_GRAPH_NOTIFICATION_URL = configuredOutlookEnvironment({
@@ -3153,14 +3150,15 @@ export function validateJsonPostgresProductionTemplate(template) {
     REGION: { Ref: "AWS::Region" },
     KMS_KEY_ID: { "Fn::GetAtt": ["ProductionKey", "Arn"] },
     CREDENTIAL_REF: { Ref: "ProviderCredentialReferenceSecret" },
-    PREFIX: "approved-real-migration/member-photos",
   };
   const memberPhotoRead = policyStatements(resources.ApiExecutionRole)
     .filter(({ Sid }) => Sid === "ReadCommittedMemberPhotos");
   const memberPhotoEndpointRead = resources.S3GatewayEndpoint?.Properties?.PolicyDocument?.Statement
     ?.filter(({ Sid }) => Sid === "ApiReadsCommittedMemberPhotos");
   if (Object.entries(expectedMemberPhotoEnvironment).some(([field, expected]) =>
-    stableJson(apiEnvironment[`LAWOS_MEMBER_PHOTO_S3_${field}`]) !== stableJson(expected))
+    stableJson(apiEnvironment[`LAWOS_DMS_S3_${field}`]) !== stableJson(expected)
+      || Object.hasOwn(apiEnvironment, `LAWOS_MEMBER_PHOTO_S3_${field}`))
+    || apiEnvironment.LAWOS_MEMBER_PHOTO_S3_PREFIX !== "approved-real-migration/member-photos"
     || stableJson(memberPhotoRead) !== stableJson([{
       Sid: "ReadCommittedMemberPhotos",
       Effect: "Allow",
