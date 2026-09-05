@@ -1255,7 +1255,63 @@ async function assertBaselineScopeIsUninitialized({ aws, bindings, release }) {
   return true;
 }
 
-export async function executeAmicInternalDistributionPublication({
+export async function executeAmicInternalDistributionPublication(options) {
+  return executePublication(options);
+}
+
+export async function executeAmicInternalManagedBootstrapAdoption({
+  aws, bindings, adoption, authority, privateKey, trustedPublicKey,
+  expectedPublicKeySha256, cloudFrontDomain, now = Date.now(),
+} = {}) {
+  const { assertVerifiedAmicInternalBaselineAdoption } = await import("./amic-os-internal-baseline-adoption.mjs");
+  const approved = assertVerifiedAmicInternalBaselineAdoption(adoption, { now });
+  const { readAmicInternalManagedBootstrapArtifacts } = await import("./amic-os-internal-distribution-readback.mjs");
+  assert.equal(bindings.retainUntil, approved.request.retention.controlRetainUntil);
+  const source = await readAmicInternalManagedBootstrapArtifacts({
+    aws, bindings: { ...bindings, retainUntil: approved.request.retention.bootstrapRetainUntil }, bootstrapMarker: approved.request.bootstrapMarker,
+    expectedRelease: approved.request.bootstrapRelease, trustedPublicKey,
+    expectedPublicKeySha256, cloudFrontDomain, now,
+  });
+  assert.equal(source.artifacts.installer.sha256, approved.installation.installer_sha256);
+  assert.equal(source.artifacts.installer.bytes, approved.installation.installer_bytes);
+  assert.equal(source.artifacts.installer.version_id, approved.installation.installer_version_id);
+  const release = {
+    ...approved.request.bootstrapRelease,
+    installationId: approved.installation.installation_id,
+    predecessor: Object.fromEntries(["releaseId", "version", "sourceSha", "sourceTree"]
+      .map((key) => [key, approved.request.bootstrapRelease[key]])),
+  };
+  const signingKey = privateKey?.type === "private" ? privateKey : createPrivateKey(privateKey);
+  assert.equal(digestBytes(createPublicKey(signingKey).export({ type: "spki", format: "der" })),
+    expectedPublicKeySha256, "adoption signing key is not the pinned bootstrap key");
+  // A current server read must agree with the owner-approved lease and state immediately before writing.
+  await approved.assertCurrent(authority);
+  const root = await mkdtemp(join(tmpdir(), "amic-os-bootstrap-adoption-"));
+  try {
+    const names = { installer: `AMIC-OS-internal-${release.version}-win-x64.exe`,
+      build_manifest: "matter-build-manifest.json", sbom: "sbom.cdx.json", provenance: "provenance.json" };
+    const artifactPaths = {};
+    for (const [kind, body] of Object.entries(source.artifactBodies)) {
+      artifactPaths[kind] = join(root, names[kind]);
+      await writeFile(artifactPaths[kind], body, { flag: "wx", mode: 0o600, flush: true });
+    }
+    const receipt = await executePublication({ aws, bindings, release, artifactPaths,
+      privateKey: signingKey, publicationMode: "baseline", now }, source.artifacts, () => approved.assertCurrent(authority));
+    const { receipt_sha256: _originalDigest, ...material } = receipt;
+    const adopted = { ...material, adoption_request_sha256: approved.requestSha256,
+      installation_attestation_sha256: approved.attestationSha256,
+      owner_approval_sha256: approved.ownerApprovalSha256,
+      executor_source_sha: approved.request.executorSourceSha,
+      executor_source_tree: approved.request.executorSourceTree,
+      managed_bootstrap_marker_sha256: approved.request.bootstrapMarker.sha256,
+      reused_artifact_count: 4, new_object_count: 5 };
+    return Object.freeze({ ...adopted, receipt_sha256: digestBytes(canonicalBytes(adopted)) });
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+}
+
+async function executePublication({
   aws,
   bindings,
   release,
@@ -1265,7 +1321,7 @@ export async function executeAmicInternalDistributionPublication({
   privateKey,
   publicationMode = "successor",
   now = Date.now(),
-} = {}) {
+}, adoptedArtifacts = null, assertAdoptionCurrent = null) {
   assert.ok(aws?.inspectGovernance && aws?.putObject && aws?.headObject && aws?.getObject,
     "AWS distribution adapter is incomplete");
   assert.ok(["baseline", "successor", "managed-bootstrap"].includes(publicationMode), "publication mode is invalid");
@@ -1413,14 +1469,19 @@ export async function executeAmicInternalDistributionPublication({
       );
     }
 
+    if (assertAdoptionCurrent) await assertAdoptionCurrent();
     const uploaded = {};
     for (const kind of ["installer", "build_manifest", "sbom", "provenance"]) {
-      uploaded[kind] = await uploadExact({
-        aws,
-        bindings: safeBindings,
-        release: safeRelease,
-        record: sourceRecords[kind],
-      });
+      if (adoptedArtifacts) {
+        const ref = adoptedArtifacts[kind];
+        assert.equal(ref.sha256, sourceRecords[kind].sha256, "adopted artifact body changed");
+        assert.equal(ref.bytes, sourceRecords[kind].bytes, "adopted artifact length changed");
+        uploaded[kind] = { ...ref, filename: sourceRecords[kind].filename };
+      } else {
+        uploaded[kind] = await uploadExact({
+          aws, bindings: safeBindings, release: safeRelease, record: sourceRecords[kind],
+        });
+      }
     }
 
     const releaseManifest = {
@@ -1612,6 +1673,7 @@ export async function executeAmicInternalDistributionPublication({
         canonicalBytes(baselineEnvelope),
       );
       const markerRecord = await materializeGeneratedRecord(generatedRoot, markerSource);
+      if (assertAdoptionCurrent) await assertAdoptionCurrent();
       const baselineMarker = await uploadExact({
         aws,
         bindings: safeBindings,

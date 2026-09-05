@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { execFileSync, spawnSync } from "node:child_process";
 import { createHash, generateKeyPairSync, sign as signBytes } from "node:crypto";
 import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -25,6 +26,7 @@ import {
   AMIC_INTERNAL_MANAGED_BOOTSTRAP_BOUNDARIES,
   AMIC_INTERNAL_MANAGED_BOOTSTRAP_MANIFEST_SCHEMA,
   executeAmicInternalDistributionPublication,
+  executeAmicInternalManagedBootstrapAdoption,
   amicInternalManagedBootstrapScopeKey,
   amicInternalBaselineScopeKey,
   amicInternalChannelScopeKey,
@@ -39,9 +41,18 @@ import {
   AMIC_INTERNAL_BASELINE_READBACK_RECEIPT_SCHEMA,
   AMIC_INTERNAL_READBACK_RECEIPT_SCHEMA,
   verifyAmicInternalBaselineReadback,
+  verifyAmicInternalManagedBootstrapAdoptionReadback,
   verifyAmicInternalDistributionReadback,
   verifyAmicInternalManagedBootstrapReadback,
 } from "../lib/amic-os-internal-distribution-readback.mjs";
+
+import { createSyntheticAmicWindowsState } from "./fixtures/amic-internal-windows-state.mjs";
+import { canonicalizeJson } from "../../packages/runtime-auth/src/runtime-safety-approval-contract.js";
+import {
+  AMIC_INTERNAL_BASELINE_ADOPTION_SCHEMA, AMIC_INTERNAL_BASELINE_ADOPTION_ACTION,
+  amicAdoptionCanonicalBytes, verifyAmicInternalBaselineAdoption,
+  createAmicInternalAdoptionAuthorityReader, readAmicInternalAdoptionInstalledReceipt,
+} from "../lib/amic-os-internal-baseline-adoption.mjs";
 
 const { privateKey, publicKey } = generateKeyPairSync("ed25519");
 const NOW = Date.parse("2026-09-03T11:00:00.000Z");
@@ -1429,4 +1440,289 @@ test("anonymous-access adapter probes only the exact private S3 and CloudFront o
     }),
     /bucket is invalid/u,
   );
+});
+
+function adoptionFixture(bootstrap, target = managedBootstrapRelease(), clock = NOW) {
+  const { privateKey: issuerPrivate, publicKey: issuerPublic } = generateKeyPairSync("ed25519");
+  const { privateKey: ownerPrivate, publicKey: ownerPublic } = generateKeyPairSync("ed25519");
+  const request = { schema_version: AMIC_INTERNAL_BASELINE_ADOPTION_SCHEMA,
+    adoptionId: "amic-adoption-synthetic-001", executorSourceSha: "e".repeat(40), executorSourceTree: "f".repeat(40),
+    bootstrapRelease: target, bootstrapMarker: bootstrap.managed_bootstrap_marker,
+    installationId: "odi_synthetic_12345678901234567890", installedReceiptSha256: "0".repeat(64),
+    canaryId: "amic-canary-synthetic-001", approvalRef: "amic-adoption-owner-001",
+    generatedAt: new Date(clock - 60_000).toISOString(), expiresAt: new Date(clock + 300_000).toISOString(), environment: "synthetic-test",
+    retention: { bootstrapRetainUntil: bindings().retainUntil, controlRetainUntil: new Date(Math.floor(clock / 1000) * 1000 + 366 * 86400000).toISOString() } };
+  const windows = createSyntheticAmicWindowsState({ canaryId: request.canaryId, version: target.version,
+    sourceSha: target.sourceSha, sourceTree: target.sourceTree, installerSha256: bootstrap.objects.installer.sha256 });
+  const installedReceiptBytes = Buffer.from(JSON.stringify(windows.receipt("installed", new Date(clock - 50_000).toISOString())));
+  request.installedReceiptSha256 = sha256(installedReceiptBytes);
+  const installation = { installation_id: request.installationId, tenant_id: target.lawosTenantId,
+    app_id: target.appId, platform: target.platform, architecture: target.architecture,
+    release_id: target.releaseId, release_sequence: target.releaseSequence, version: target.version,
+    source_sha: target.sourceSha, source_tree: target.sourceTree, installer_sha256: bootstrap.objects.installer.sha256,
+    installer_bytes: bootstrap.objects.installer.bytes, installer_version_id: bootstrap.objects.installer.version_id,
+    bootstrap_marker_sha256: request.bootstrapMarker.sha256, installed_receipt_sha256: request.installedReceiptSha256,
+    state_version: 7, lease_expires_at: new Date(clock + 240_000).toISOString(),
+    installation_release_binding_sha256: "8".repeat(64), release_authority_sha256: "9".repeat(64),
+    status: "active", retired_at: null, release_trusted: true, authority_snapshot_at: new Date(clock - 20_000).toISOString() };
+  const attest = (candidate = installation, binding = request) => {
+    const document = { schema_version: "law-firm-os.internal-unsigned-installation-attestation.v1",
+      adoption_id: binding.adoptionId, request_sha256: sha256(amicAdoptionCanonicalBytes(binding)),
+      generated_at: candidate.authority_snapshot_at, expires_at: new Date(clock + 180_000).toISOString(), installation: candidate };
+    const bytes = amicAdoptionCanonicalBytes(document);
+    return { document_base64: bytes.toString("base64"), signature_base64: signBytes(null, bytes, issuerPrivate).toString("base64"), key_id: "amic-installation-issuer-v1" };
+  };
+  const registryBytes = Buffer.from(JSON.stringify({ schema_version: "law-firm-os.runtime-safety.approval-trust-registry.v1",
+    generated_at: new Date(clock - 60_000).toISOString(), keys: [{ key_id: "adoption-owner-v1", algorithm: "Ed25519",
+      public_key_spki_pem: ownerPublic.export({ type: "spki", format: "pem" }), roles: ["owner"],
+      actions: [AMIC_INTERNAL_BASELINE_ADOPTION_ACTION], environments: ["synthetic-test", "lawos-production"],
+      valid_from: new Date(clock - 86_400_000).toISOString(), valid_until: new Date(clock + 86_400_000).toISOString(), revoked_at: null }] }));
+  const makeOptions = (patch = {}) => {
+    const selected = { request, attestation: attest(), installedReceiptBytes, ...patch };
+    const ownerApprovalReceipt = { schema_version: "law-firm-os.runtime-safety.approval.v1", approval_id: selected.request.approvalRef,
+      key_id: "adoption-owner-v1", role: "owner", decision: "approved",
+      packet_sha256: sha256(amicAdoptionCanonicalBytes({ request: selected.request,
+        attestation_sha256: sha256(amicAdoptionCanonicalBytes(selected.attestation)) })),
+      source_sha: selected.request.executorSourceSha, source_tree: selected.request.executorSourceTree,
+      action: AMIC_INTERNAL_BASELINE_ADOPTION_ACTION, environment: selected.request.environment,
+      signed_at: new Date(clock - 10_000).toISOString(), expires_at: new Date(clock + 180_000).toISOString(),
+      data_scope: [`managed-bootstrap:${selected.request.bootstrapMarker.sha256}`, `installation:${selected.request.installationId}`, `installed-receipt:${selected.request.installedReceiptSha256}`], contact_scope: [] };
+    const ownerBytes = Buffer.from(canonicalizeJson(ownerApprovalReceipt));
+    return { ...selected, ownerApprovalReceiptBytes: ownerBytes,
+      ownerApprovalSignatureBytes: signBytes(null, ownerBytes, ownerPrivate), ownerRegistryBytes: registryBytes,
+      ownerRegistrySha256: sha256(registryBytes), authorityPublicKey: issuerPublic,
+      authorityPublicKeySha256: sha256(issuerPublic.export({ type: "spki", format: "der" })),
+      authorityKeyId: "amic-installation-issuer-v1", now: () => clock };
+  };
+  return { request, installation, attest, makeOptions,
+    approved: () => verifyAmicInternalBaselineAdoption(makeOptions()),
+    authority: { readAttestation: async () => attest() } };
+}
+
+async function bootstrapForAdoption(root) {
+  const aws = new FakeAwsDistribution({ rollbackTargetPresent: false });
+  const target = managedBootstrapRelease();
+  const receipt = await executeAmicInternalDistributionPublication({ aws, bindings: bindings(), release: target,
+    artifactPaths: await fixtureArtifacts(root, { target }), privateKey, publicationMode: "managed-bootstrap", now: NOW });
+  return { aws, receipt, fixture: adoptionFixture(receipt, target) };
+}
+
+function adoptionExecution(aws, fixture, patch = {}) {
+  return { aws, bindings: { ...bindings(), retainUntil: fixture.request.retention.controlRetainUntil }, adoption: fixture.approved(), authority: fixture.authority, privateKey,
+    trustedPublicKey: publicKey, expectedPublicKeySha256: sha256(publicKey.export({ type: "spki", format: "der" })),
+    cloudFrontDomain: "d111111abcdef8.cloudfront.net", now: NOW, ...patch };
+}
+
+test("managed bootstrap adoption reuses four exact artifact versions and commits only five controls", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "amic-adoption-reuse-"));
+  try {
+    const { aws, receipt: original, fixture } = await bootstrapForAdoption(root);
+    const adopted = await executeAmicInternalManagedBootstrapAdoption(adoptionExecution(aws, fixture));
+    assert.equal(adopted.object_count, 9);
+    assert.equal(adopted.new_object_count, 5);
+    assert.equal(adopted.reused_artifact_count, 4);
+    assert.equal(adopted.source_sha, original.source_sha);
+    assert.equal(adopted.executor_source_sha, fixture.request.executorSourceSha);
+    assert.notEqual(adopted.executor_source_sha, adopted.source_sha);
+    for (const kind of ["installer", "build_manifest", "sbom", "provenance"]) assert.deepEqual(adopted.objects[kind], original.objects[kind]);
+    assert.deepEqual(aws.puts.slice(7).map(({ kind }) => kind), ["release_manifest", "release_manifest_signature", "update_metadata", "update_metadata_signature", "baseline_marker"]);
+    assert.equal(aws.puts.at(-1).ifNoneMatch, "*");
+    const readback = await verifyAmicInternalBaselineReadback({ ...managedBootstrapReadbackInput(aws, original), bindings: { ...bindings(), retainUntil: fixture.request.retention.controlRetainUntil }, baselineMarker: adopted.baseline_marker });
+    assert.equal(readback.exact_version_read_count, 9);
+    assert.equal(readback.artifact_sha256, original.objects.installer.sha256);
+    const independent = await verifyAmicInternalManagedBootstrapAdoptionReadback({
+      ...managedBootstrapReadbackInput(aws, original), bindings: { ...bindings(), retainUntil: fixture.request.retention.controlRetainUntil }, baselineMarker: adopted.baseline_marker, adoption: fixture.approved(), authority: fixture.authority });
+    assert.equal(independent.original_artifact_versions_reused, true);
+    assert.equal(independent.managed_bootstrap_exact_version_read_count, 7);
+    assert.equal(independent.executor_source_sha, fixture.request.executorSourceSha);
+    await assert.rejects(executeAmicInternalManagedBootstrapAdoption(adoptionExecution(aws, fixture)), /immutable history/u);
+    assert.equal(aws.puts.length, 12);
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
+
+test("adoption requires pinned signed current installation, receipt bytes, owner and exact request", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "amic-adoption-authority-"));
+  try {
+    const { aws, fixture } = await bootstrapForAdoption(root);
+    await assert.rejects(executeAmicInternalManagedBootstrapAdoption(adoptionExecution(aws, fixture, { adoption: { ...fixture.approved() } })), /verified owner approval/u);
+    for (const mutation of [
+      { installation_id: "odi_invented_12345678901234567890" }, { tenant_id: "foreign-tenant" },
+      { app_id: "com.amic.matter.desktop" }, { platform: "darwin" }, { release_id: "invented-release" },
+      { source_sha: "4".repeat(40) }, { release_trusted: false }, { status: "retired" },
+      { retired_at: new Date(NOW).toISOString() }, { lease_expires_at: new Date(NOW - 1).toISOString() },
+    ]) assert.throws(() => verifyAmicInternalBaselineAdoption(fixture.makeOptions({ attestation: fixture.attest({ ...fixture.installation, ...mutation }) })));
+    assert.throws(() => verifyAmicInternalBaselineAdoption({ ...fixture.makeOptions(), installedReceiptBytes: Buffer.from("{}") }), /receipt digest differs/u);
+    assert.throws(() => verifyAmicInternalBaselineAdoption({ ...fixture.makeOptions(), authorityPublicKeySha256: "0".repeat(64) }), /attestation.*invalid/u);
+    assert.throws(() => verifyAmicInternalBaselineAdoption({ ...fixture.makeOptions(), ownerApprovalSignatureBytes: Buffer.alloc(64) }), /signature/u);
+    assert.throws(() => verifyAmicInternalBaselineAdoption({ ...fixture.makeOptions(), now: () => NOW + 180_000 }), /expired|attestation.*invalid/u);
+    const options = fixture.makeOptions();
+    options.request = { ...options.request, arbitrary_source_url: "https://example.com" };
+    assert.throws(() => verifyAmicInternalBaselineAdoption(options), /schema differs/u);
+    assert.equal(aws.puts.length, 7);
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
+
+test("adoption refuses state drift, partial readback, and concurrent marker commit", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "amic-adoption-commit-"));
+  try {
+    for (const failure of ["initial-state", "late-state", "readback", "concurrent"]) {
+      const fixtureRoot = path.join(root, failure); await mkdir(fixtureRoot);
+      const { aws, fixture } = await bootstrapForAdoption(fixtureRoot);
+      let reads = 0;
+      const authority = { readAttestation: async () => {
+        reads += 1;
+        return fixture.attest({ ...fixture.installation, state_version: failure === "initial-state" || (failure === "late-state" && reads === 3) ? 8 : 7 });
+      } };
+      if (failure === "readback") aws.failGetKind = "update_metadata";
+      if (failure === "concurrent") aws.raceControlKind = "baseline_marker";
+      await assert.rejects(executeAmicInternalManagedBootstrapAdoption(adoptionExecution(aws, fixture, { authority })));
+      assert.equal(aws.puts.slice(7).some(({ kind }) => kind === "baseline_marker"), false);
+      assert.equal(aws.puts.slice(7).some(({ kind }) => ["installer", "build_manifest", "sbom", "provenance"].includes(kind)), false);
+      if (failure === "initial-state") assert.equal(aws.puts.length, 7);
+    }
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
+
+test("adoption CLI preflight binds protected executor and approval without invoking AWS", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "amic-adoption-cli-"));
+  try {
+    const artifacts = path.join(root, "artifacts"); await mkdir(artifacts);
+    const seeded = await bootstrapForAdoption(artifacts);
+    const liveNow = Date.now();
+    const fixture = adoptionFixture(seeded.receipt, { ...managedBootstrapRelease(),
+      generatedAt: new Date(liveNow - 60_000).toISOString(), expiresAt: new Date(liveNow + 3_600_000).toISOString() }, liveNow);
+    const checkout = path.join(root, "checkout"); await mkdir(checkout);
+    const git = (...args) => execFileSync("git", args, { cwd: checkout, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] }).trim();
+    git("init", "-b", "main"); git("config", "user.name", "Synthetic Test"); git("config", "user.email", "synthetic@example.invalid");
+    await writeFile(path.join(checkout, "source.txt"), "synthetic executor\n");
+    git("add", "source.txt"); git("commit", "-m", "synthetic executor");
+    fixture.request.executorSourceSha = git("rev-parse", "HEAD");
+    fixture.request.executorSourceTree = git("rev-parse", "HEAD^{tree}");
+    fixture.request.environment = "lawos-production";
+    fixture.request.retention.bootstrapRetainUntil = fixture.request.retention.controlRetainUntil;
+    const options = fixture.makeOptions();
+    const installedRef = { kind: "windows_installed_receipt",
+      key: `internal-unsigned/baseline/adoption-inputs/${sha256(amicAdoptionCanonicalBytes(options.request))}/installed.json`,
+      version_id: "installed-receipt-version", sha256: fixture.request.installedReceiptSha256, bytes: options.installedReceiptBytes.length };
+    const bundle = { request: options.request, attestation: options.attestation,
+      ownerApprovalReceipt: JSON.parse(options.ownerApprovalReceiptBytes), ownerApprovalSignatureBase64: options.ownerApprovalSignatureBytes.toString("base64"),
+      installedReceiptRef: installedRef, retainUntil: fixture.request.retention.controlRetainUntil };
+    const env = { ...process.env, GITHUB_ACTIONS: "true", GITHUB_REPOSITORY: "Gonyak-cell/law-firm-os", GITHUB_REF: "refs/heads/main",
+      RUNNER_ENVIRONMENT: "github-hosted", GITHUB_SHA: fixture.request.executorSourceSha,
+      GITHUB_WORKFLOW_REF: "Gonyak-cell/law-firm-os/.github/workflows/amic-os-internal-unsigned-publish.yml@refs/heads/main",
+      AMIC_INTERNAL_ADOPTION_BUNDLE_B64: Buffer.from(JSON.stringify(bundle)).toString("base64"),
+      AMIC_INTERNAL_OWNER_REGISTRY_B64: options.ownerRegistryBytes.toString("base64"), AMIC_INTERNAL_OWNER_REGISTRY_SHA256: options.ownerRegistrySha256,
+      AMIC_INTERNAL_AUTHORITY_PUBLIC_KEY_SPKI_B64: options.authorityPublicKey.export({ type: "spki", format: "der" }).toString("base64"),
+      AMIC_INTERNAL_AUTHORITY_PUBLIC_KEY_SHA256: options.authorityPublicKeySha256, AMIC_INTERNAL_AUTHORITY_KEY_ID: options.authorityKeyId,
+      APPROVAL_REF: fixture.request.approvalRef, ARTIFACT_BUCKET: bindings().bucket, ACCESS_LOG_BUCKET: bindings().accessLogBucket,
+      ARTIFACT_KMS_KEY_ARN: bindings().kmsKeyArn, METADATA_PUBLIC_KEY_SPKI_B64: publicKey.export({ type: "spki", format: "der" }).toString("base64"),
+      METADATA_PUBLIC_KEY_SHA256: sha256(publicKey.export({ type: "spki", format: "der" })), CLOUDFRONT_DOMAIN: "d111111abcdef8.cloudfront.net" };
+    const cli = path.resolve(import.meta.dirname, "../adopt-amic-os-internal-baseline.mjs");
+    const result = spawnSync(process.execPath, [cli, "--preflight"], { cwd: checkout, env, encoding: "utf8" });
+    assert.equal(result.status, 0, result.stderr);
+    const prepared = JSON.parse(result.stdout);
+    assert.equal(prepared.state, "PASS");
+    assert.equal(prepared.adoption, true);
+    assert.equal(prepared.source_sha, managedBootstrapRelease().sourceSha);
+    assert.equal(prepared.executor_source_sha, fixture.request.executorSourceSha);
+    assert.notEqual(prepared.source_sha, prepared.executor_source_sha);
+    const wrongSource = spawnSync(process.execPath, [cli, "--preflight"], { cwd: checkout, env: { ...env, GITHUB_SHA: "0".repeat(40) }, encoding: "utf8" });
+    assert.notEqual(wrongSource.status, 0); assert.match(wrongSource.stderr, /not exact event main/u);
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
+
+test("current adoption authority sends session only to canonical API and bounds signed response", async () => {
+  const url = "https://9mg4liadm6.execute-api.ap-northeast-2.amazonaws.com";
+  const token = "synthetic-session-1234567890123456";
+  let call;
+  const response = { request_id: "synthetic-request", outcome: "attested", attestation: { synthetic: true }, safe_error_codes: [], token_material_returned: false, production_ready_claim: false };
+  const reader = createAmicInternalAdoptionAuthorityReader({ apiBaseUrl: url, sessionToken: token, fetch: async (...args) => {
+    call = args; return new Response(JSON.stringify(response), { status: 200, headers: { "content-type": "application/json" } });
+  } });
+  const input = { adoption_id: "synthetic-adoption", request_sha256: "a".repeat(64), installation_id: "odi_synthetic_12345678901234567890" };
+  assert.deepEqual(await reader.readAttestation(input), response.attestation);
+  assert.equal(call[0], `${url}/api/desktop/internal-updates/baseline-adoption-attestation`);
+  assert.equal(call[1].redirect, "error"); assert.ok(call[1].signal instanceof AbortSignal);
+  assert.equal(call[1].headers.Authorization, `Bearer ${token}`);
+  assert.deepEqual(JSON.parse(call[1].body), input);
+  assert.throws(() => createAmicInternalAdoptionAuthorityReader({ apiBaseUrl: "https://example.invalid", sessionToken: token }));
+  for (const reply of [new Response("x".repeat(33 * 1024), { headers: { "content-type": "application/json" } }),
+    new Response(JSON.stringify({ ...response, token_material_returned: true }), { headers: { "content-type": "application/json" } }),
+    new Response("{}", { status: 403 })]) {
+    const invalid = createAmicInternalAdoptionAuthorityReader({ apiBaseUrl: url, sessionToken: token, fetch: async () => reply });
+    await assert.rejects(invalid.readAttestation(input));
+  }
+});
+
+test("adoption preserves older artifact retention while new controls remain protected for a full year", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "amic-adoption-retention-"));
+  try {
+    const { aws, receipt } = await bootstrapForAdoption(root);
+    const later = NOW + 48 * 3_600_000;
+    const fixture = adoptionFixture(receipt, managedBootstrapRelease(), later);
+    const input = adoptionExecution(aws, fixture, { now: later });
+    assert.notEqual(input.bindings.retainUntil, bindings().retainUntil);
+    const result = await executeAmicInternalManagedBootstrapAdoption(input);
+    for (const kind of ["installer", "build_manifest", "sbom", "provenance"]) {
+      assert.deepEqual(result.objects[kind], receipt.objects[kind]);
+      const original = await aws.headObject({ key: result.objects[kind].key, versionId: result.objects[kind].version_id });
+      assert.equal(original.ObjectLockRetainUntilDate, bindings().retainUntil);
+    }
+    const options = { ...managedBootstrapReadbackInput(aws, receipt), bindings: input.bindings,
+      baselineMarker: result.baseline_marker, adoption: fixture.approved(), authority: fixture.authority, now: later };
+    assert.equal((await verifyAmicInternalManagedBootstrapAdoptionReadback(options)).original_artifact_versions_reused, true);
+    let reads = 0;
+    const revoked = { readAttestation: async () => {
+      reads += 1;
+      return fixture.attest({ ...fixture.installation, state_version: reads >= 2 ? 8 : 7 });
+    } };
+    await assert.rejects(verifyAmicInternalManagedBootstrapAdoptionReadback({ ...options, authority: revoked }), /state or release authority changed/u);
+    assert.equal(reads, 2, "completion rechecks state after all original and adopted object reads");
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
+
+test("adoption readback rejects a separately valid baseline that reuploaded the same installer bytes", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "amic-adoption-version-reuse-"));
+  try {
+    const { aws, receipt: bootstrap, fixture } = await bootstrapForAdoption(root);
+    const source = managedBootstrapRelease();
+    const baseline = { ...source, installationId: fixture.request.installationId,
+      predecessor: Object.fromEntries(["releaseId", "version", "sourceSha", "sourceTree"].map((key) => [key, source[key]])) };
+    const artifactRoot = path.join(root, "reuploaded"); await mkdir(artifactRoot);
+    const replacement = await executeAmicInternalDistributionPublication({ aws, bindings: bindings(), release: baseline,
+      artifactPaths: await fixtureArtifacts(artifactRoot, { target: baseline }), privateKey, publicationMode: "baseline", now: NOW });
+    assert.equal(replacement.objects.installer.sha256, bootstrap.objects.installer.sha256);
+    assert.notEqual(replacement.objects.installer.version_id, bootstrap.objects.installer.version_id);
+    const options = { ...managedBootstrapReadbackInput(aws, bootstrap), baselineMarker: replacement.baseline_marker };
+    assert.equal((await verifyAmicInternalBaselineReadback(options)).state, "PASS");
+    await assert.rejects(verifyAmicInternalManagedBootstrapAdoptionReadback({ ...options, adoption: fixture.approved(), authority: fixture.authority }),
+      /changed an original artifact key, VersionId, hash, or size/u);
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
+
+test("private installed-receipt read requires exact immutable size, digest, encryption and retention before its body", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "amic-adoption-installed-read-"));
+  try {
+    const { aws, fixture } = await bootstrapForAdoption(root);
+    const bytes = fixture.makeOptions().installedReceiptBytes;
+    const key = `internal-unsigned/baseline/adoption-inputs/${sha256(amicAdoptionCanonicalBytes(fixture.request))}/installed.json`;
+    const ref = aws.seedObject({ key, versionId: "installed-receipt-1", kind: "windows_installed_receipt", bytes, target: managedBootstrapRelease() });
+    const bundle = { installedReceiptRef: ref, retainUntil: bindings().retainUntil };
+    assert.deepEqual(await readAmicInternalAdoptionInstalledReceipt({ aws, bindings: bindings(), bundle }), bytes);
+    const head = aws.headObject.bind(aws);
+    let bodyCalls = 0;
+    for (const patch of [{ VersionId: "null" }, { ContentLength: bytes.length + 1 }, { ServerSideEncryption: "AES256" },
+      { SSEKMSKeyId: "foreign-key" }, { ChecksumSHA256: Buffer.alloc(32).toString("base64") },
+      { ObjectLockMode: "GOVERNANCE" }, { ObjectLockRetainUntilDate: "2027-09-04T10:00:00.000Z" }, { Metadata: {} }]) {
+      await assert.rejects(readAmicInternalAdoptionInstalledReceipt({
+        aws: { headObject: async (input) => ({ ...await head(input), ...patch }),
+          getObjectBody: async () => { bodyCalls += 1; throw new Error("unexpected receipt body read"); } },
+        bindings: bindings(), bundle,
+      }));
+    }
+    assert.equal(bodyCalls, 0);
+    const body = aws.getObjectBody.bind(aws);
+    await assert.rejects(readAmicInternalAdoptionInstalledReceipt({ aws: { headObject: head,
+      getObjectBody: async (input) => ({ ...await body(input), body: Buffer.alloc(bytes.length) }) }, bindings: bindings(), bundle }), /body differs/u);
+  } finally { await rm(root, { recursive: true, force: true }); }
 });

@@ -10,7 +10,10 @@ on:
         required: true
         type: string
       release_document_base64:
-        required: true
+        required: false
+        type: string
+      adoption_document_base64:
+        required: false
         type: string
       revocations_document_base64:
         required: false
@@ -23,6 +26,12 @@ on:
         value: ${{ jobs.publish-private-internal-unsigned.outputs.source_sha }}
       source_tree:
         value: ${{ jobs.publish-private-internal-unsigned.outputs.source_tree }}
+      executor_source_sha:
+        value: ${{ jobs.publish-private-internal-unsigned.outputs.executor_source_sha }}
+      executor_source_tree:
+        value: ${{ jobs.publish-private-internal-unsigned.outputs.executor_source_tree }}
+      adoption:
+        value: ${{ jobs.publish-private-internal-unsigned.outputs.adoption }}
       retain_until:
         value: ${{ jobs.publish-private-internal-unsigned.outputs.retain_until }}
       publication_mode:
@@ -35,7 +44,7 @@ on:
 permissions: {}
 jobs:
   publish-private-internal-unsigned:
-    name: Build and publish private NotSigned installer
+    name: Publish private NotSigned installer or adopt its verified bootstrap
     if: >-
       ${{
         github.repository == 'Gonyak-cell/law-firm-os' &&
@@ -55,7 +64,10 @@ jobs:
       source_sha: ${{ steps.source.outputs.source_sha }}
       source_tree: ${{ steps.source.outputs.source_tree }}
       retain_until: ${{ steps.source.outputs.retain_until }}
-      publication_mode: ${{ inputs.publication_mode }}
+      executor_source_sha: ${{ steps.source.outputs.executor_source_sha }}
+      executor_source_tree: ${{ steps.source.outputs.executor_source_tree }}
+      adoption: ${{ steps.source.outputs.adoption }}
+      publication_mode: ${{ steps.source.outputs.publication_mode }}
       readback_locator_base64: ${{ steps.publish.outputs.readback_locator_base64 }}
       publication_receipt_sha256: ${{ steps.publish.outputs.publication_receipt_sha256 }}
     steps:
@@ -89,6 +101,16 @@ jobs:
         env:
           APPROVAL_REF: ${{ inputs.approval_ref }}
           PUBLICATION_MODE: ${{ inputs.publication_mode }}
+          AMIC_INTERNAL_ADOPTION_BUNDLE_B64: ${{ inputs.adoption_document_base64 }}
+          AMIC_INTERNAL_RELEASE_DOCUMENT_B64: ${{ inputs.release_document_base64 }}
+          AMIC_INTERNAL_REVOCATIONS_DOCUMENT_B64: ${{ inputs.revocations_document_base64 }}
+          AMIC_INTERNAL_ROLLBACK_DOCUMENT_B64: ${{ inputs.rollback_document_base64 }}
+          AMIC_INTERNAL_AUTHORITY_PUBLIC_KEY_SPKI_B64: ${{ vars.AMIC_INTERNAL_AUTHORITY_PUBLIC_KEY_SPKI_B64 }}
+          AMIC_INTERNAL_AUTHORITY_PUBLIC_KEY_SHA256: ${{ vars.AMIC_INTERNAL_AUTHORITY_PUBLIC_KEY_SHA256 }}
+          AMIC_INTERNAL_AUTHORITY_KEY_ID: ${{ vars.AMIC_INTERNAL_AUTHORITY_KEY_ID }}
+          AMIC_INTERNAL_OWNER_REGISTRY_B64: ${{ vars.AMIC_INTERNAL_OWNER_REGISTRY_B64 }}
+          AMIC_INTERNAL_OWNER_REGISTRY_SHA256: ${{ vars.AMIC_INTERNAL_OWNER_REGISTRY_SHA256 }}
+          AMIC_INTERNAL_CANONICAL_API_BASE_URL: ${{ vars.AMIC_INTERNAL_CANONICAL_API_BASE_URL }}
           PUBLISHER_ROLE_ARN: ${{ vars.AMIC_INTERNAL_PUBLISHER_ROLE_ARN }}
           ARTIFACT_BUCKET: ${{ vars.AMIC_INTERNAL_ARTIFACT_BUCKET }}
           ACCESS_LOG_BUCKET: ${{ vars.AMIC_INTERNAL_ACCESS_LOG_BUCKET }}
@@ -100,7 +122,7 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
           if ($env:APPROVAL_REF -notmatch '\A[A-Za-z0-9][A-Za-z0-9._:-]{0,199}\z') { throw 'approval_ref is invalid' }
-          if ($env:PUBLICATION_MODE -notin @('baseline', 'successor', 'managed-bootstrap')) { throw 'publication_mode is invalid' }
+          if ($env:PUBLICATION_MODE -notin @('baseline', 'successor', 'managed-bootstrap', 'adopt-managed-bootstrap')) { throw 'publication_mode is invalid' }
           if ($env:PUBLISHER_ROLE_ARN -notmatch '\Aarn:aws:iam::770880870480:role/[A-Za-z0-9+=,.@_/-]+\z') { throw 'publisher role ARN is invalid' }
           if ($env:ARTIFACT_BUCKET -notmatch '\A[a-z0-9](?:[a-z0-9-]{1,61}[a-z0-9])\z') { throw 'artifact bucket is invalid' }
           if ($env:ACCESS_LOG_BUCKET -notmatch '\A[a-z0-9](?:[a-z0-9-]{1,61}[a-z0-9])\z') { throw 'access-log bucket is invalid' }
@@ -120,7 +142,27 @@ jobs:
             throw 'exact source identity is invalid'
           }
           if (git status --porcelain) { throw 'source checkout is dirty' }
-          $retainUntil = [DateTimeOffset]::UtcNow.AddDays(366).AddSeconds(1).ToString('yyyy-MM-ddTHH:mm:ss.000Z')
+          $executorSha = $sourceSha
+          $executorTree = $sourceTree
+          $adoption = $env:PUBLICATION_MODE -ceq 'adopt-managed-bootstrap'
+          $publicationMode = $env:PUBLICATION_MODE
+          if ($adoption) {
+            if ($env:AMIC_INTERNAL_RELEASE_DOCUMENT_B64 -or $env:AMIC_INTERNAL_REVOCATIONS_DOCUMENT_B64 -or $env:AMIC_INTERNAL_ROLLBACK_DOCUMENT_B64) { throw 'adoption forbids ordinary publication documents' }
+            $output = & node scripts/adopt-amic-os-internal-baseline.mjs --preflight
+            if ($LASTEXITCODE -ne 0) { throw 'managed-bootstrap adoption preflight failed' }
+            $result = ($output -join "`n") | ConvertFrom-Json -AsHashtable
+            $result.retain_until = [System.Text.Json.JsonDocument]::Parse(($output -join "`n")).RootElement.GetProperty('retain_until').GetString()
+            if ($result.state -cne 'PASS' -or $result.adoption -ne $true -or $result.publication_mode -cne 'baseline' -or $result.executor_source_sha -cne $executorSha -or $result.executor_source_tree -cne $executorTree) { throw 'adoption executor preflight binding differs' }
+            if ($result.source_sha -notmatch '\A[0-9a-f]{40}\z' -or $result.source_tree -notmatch '\A[0-9a-f]{40}\z' -or $result.retain_until -notmatch '\A[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{3}Z\z') { throw 'adoption artifact binding is invalid' }
+            $sourceSha = $result.source_sha
+            $sourceTree = $result.source_tree
+            $retainUntil = $result.retain_until
+            $publicationMode = 'baseline'
+          } else {
+            if ($env:AMIC_INTERNAL_ADOPTION_BUNDLE_B64) { throw 'ordinary publication forbids adoption evidence' }
+            if (-not $env:AMIC_INTERNAL_RELEASE_DOCUMENT_B64) { throw 'ordinary publication requires its release document' }
+            $retainUntil = [DateTimeOffset]::UtcNow.AddDays(366).AddSeconds(1).ToString('yyyy-MM-ddTHH:mm:ss.000Z')
+          }
           $runRoot = Join-Path $env:RUNNER_TEMP "amic-os-internal-unsigned-$env:GITHUB_RUN_ID-$env:GITHUB_RUN_ATTEMPT"
           if (Test-Path -LiteralPath $runRoot) { throw 'run-owned output root already exists' }
           New-Item -ItemType Directory -Path $runRoot | Out-Null
@@ -128,25 +170,35 @@ jobs:
           "MATTER_DESKTOP_EXPECTED_SOURCE_TREE=$sourceTree" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
           "AMIC_INTERNAL_RUN_ROOT=$runRoot" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
           "AMIC_INTERNAL_RETAIN_UNTIL=$retainUntil" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          "AMIC_INTERNAL_ARTIFACT_SOURCE_SHA=$sourceSha" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          "AMIC_INTERNAL_ARTIFACT_SOURCE_TREE=$sourceTree" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          "executor_source_sha=$executorSha" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "executor_source_tree=$executorTree" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "adoption=$($adoption.ToString().ToLowerInvariant())" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "publication_mode=$publicationMode" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
           "source_sha=$sourceSha" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
           "source_tree=$sourceTree" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
           "retain_until=$retainUntil" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
 
       - name: Install exact locked dependencies
+        if: ${{ inputs.publication_mode != 'adopt-managed-bootstrap' }}
         run: npm ci
 
       - name: Run Windows publication and host-state regressions before packaging or AWS credentials
+        if: ${{ inputs.publication_mode != 'adopt-managed-bootstrap' }}
         run: >-
           node --test --test-concurrency=1
           scripts/test/amic-os-internal-distribution-publication.test.mjs
           scripts/test/amic-os-internal-windows-state.test.mjs
 
       - name: Prepare packaged renderer
+        if: ${{ inputs.publication_mode != 'adopt-managed-bootstrap' }}
         env:
           MATTER_DESKTOP_BUILD_RECEIPT: "0"
         run: npm --workspace apps/desktop run prepare:web-renderer
 
       - name: Build privacy-gated internal-unsigned Windows NSIS installer
+        if: ${{ inputs.publication_mode != 'adopt-managed-bootstrap' }}
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: "false"
           MATTER_DESKTOP_DISTRIBUTION_PROFILE: internal-unsigned
@@ -157,6 +209,7 @@ jobs:
         run: npm --workspace apps/desktop run build:win:installer
 
       - name: Generate dependency SBOM outside the source worktree
+        if: ${{ inputs.publication_mode != 'adopt-managed-bootstrap' }}
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
@@ -166,6 +219,7 @@ jobs:
           [IO.File]::WriteAllText($target, (($lines -join "`n") + "`n"), [Text.UTF8Encoding]::new($false))
 
       - name: Validate package, no-seed boundary, lineage, SBOM, and rollback before AWS credential configuration
+        if: ${{ inputs.publication_mode != 'adopt-managed-bootstrap' }}
         shell: pwsh
         env:
           PUBLICATION_MODE: ${{ inputs.publication_mode }}
@@ -211,45 +265,66 @@ jobs:
           APPROVAL_REF: ${{ inputs.approval_ref }}
           PUBLICATION_MODE: ${{ inputs.publication_mode }}
           METADATA_SIGNING_SECRET_ARN: ${{ vars.AMIC_INTERNAL_METADATA_SIGNING_SECRET_ARN }}
+          AMIC_INTERNAL_ADOPTION_BUNDLE_B64: ${{ inputs.adoption_document_base64 }}
+          AMIC_INTERNAL_AUTHORITY_PUBLIC_KEY_SPKI_B64: ${{ vars.AMIC_INTERNAL_AUTHORITY_PUBLIC_KEY_SPKI_B64 }}
+          AMIC_INTERNAL_AUTHORITY_PUBLIC_KEY_SHA256: ${{ vars.AMIC_INTERNAL_AUTHORITY_PUBLIC_KEY_SHA256 }}
+          AMIC_INTERNAL_AUTHORITY_KEY_ID: ${{ vars.AMIC_INTERNAL_AUTHORITY_KEY_ID }}
+          AMIC_INTERNAL_OWNER_REGISTRY_B64: ${{ vars.AMIC_INTERNAL_OWNER_REGISTRY_B64 }}
+          AMIC_INTERNAL_OWNER_REGISTRY_SHA256: ${{ vars.AMIC_INTERNAL_OWNER_REGISTRY_SHA256 }}
+          AMIC_INTERNAL_CANONICAL_API_BASE_URL: ${{ vars.AMIC_INTERNAL_CANONICAL_API_BASE_URL }}
+          AMIC_INTERNAL_ADOPTION_SESSION_TOKEN: ${{ inputs.publication_mode == 'adopt-managed-bootstrap' && secrets.AMIC_INTERNAL_ADOPTION_SESSION_TOKEN || '' }}
+          ARTIFACT_BUCKET: ${{ vars.AMIC_INTERNAL_ARTIFACT_BUCKET }}
+          ACCESS_LOG_BUCKET: ${{ vars.AMIC_INTERNAL_ACCESS_LOG_BUCKET }}
+          ARTIFACT_KMS_KEY_ARN: ${{ vars.AMIC_INTERNAL_ARTIFACT_KMS_KEY_ARN }}
+          METADATA_PUBLIC_KEY_SPKI_B64: ${{ vars.AMIC_INTERNAL_METADATA_PUBLIC_KEY_SPKI_B64 }}
+          METADATA_PUBLIC_KEY_SHA256: ${{ vars.AMIC_INTERNAL_METADATA_PUBLIC_KEY_SHA256 }}
+          CLOUDFRONT_DOMAIN: ${{ vars.AMIC_INTERNAL_CLOUDFRONT_DOMAIN }}
         run: |
           $ErrorActionPreference = 'Stop'
           $prepared = Join-Path $env:AMIC_INTERNAL_RUN_ROOT 'prepared'
           $privateReceipt = Join-Path $env:AMIC_INTERNAL_RUN_ROOT 'private-publication-receipt.json'
           $publicReceipt = Join-Path $env:AMIC_INTERNAL_RUN_ROOT 'public-publication-receipt.json'
-          $release = Get-Content -Raw (Join-Path $prepared 'release.json') | ConvertFrom-Json
-          $publishArgs = @(
-            'scripts/publish-amic-os-internal-unsigned.mjs', '--execute',
-            '--publication-mode', $env:PUBLICATION_MODE,
-            '--approval-ref', $env:APPROVAL_REF,
-            '--bindings', (Join-Path $prepared 'bindings.json'),
-            '--release', (Join-Path $prepared 'release.json'),
-            '--installer', (Join-Path $PWD "apps/desktop/dist/AMIC-OS-internal-$($release.version)-win-x64.exe"),
-            '--build-manifest', (Join-Path $prepared 'matter-build-manifest.json'),
-            '--sbom', (Join-Path $prepared 'sbom.cdx.json'),
-            '--provenance', (Join-Path $prepared 'provenance.json'),
-            '--metadata-signing-secret-arn', $env:METADATA_SIGNING_SECRET_ARN,
-            '--private-receipt', $privateReceipt,
-            '--public-receipt', $publicReceipt
-          )
-          if ($env:PUBLICATION_MODE -ceq 'successor') {
-            $publishArgs += @(
-              '--revocations', (Join-Path $prepared 'revocations.json'),
-              '--rollback', (Join-Path $prepared 'rollback.json')
+          $adoption = $env:PUBLICATION_MODE -ceq 'adopt-managed-bootstrap'
+          $expectedMode = if ($adoption) { 'baseline' } else { $env:PUBLICATION_MODE }
+          if ($adoption) {
+            $output = & node scripts/adopt-amic-os-internal-baseline.mjs --execute --private-receipt $privateReceipt --public-receipt $publicReceipt
+          } else {
+            $release = Get-Content -Raw (Join-Path $prepared 'release.json') | ConvertFrom-Json
+            $publishArgs = @(
+              'scripts/publish-amic-os-internal-unsigned.mjs', '--execute',
+              '--publication-mode', $env:PUBLICATION_MODE,
+              '--approval-ref', $env:APPROVAL_REF,
+              '--bindings', (Join-Path $prepared 'bindings.json'),
+              '--release', (Join-Path $prepared 'release.json'),
+              '--installer', (Join-Path $PWD "apps/desktop/dist/AMIC-OS-internal-$($release.version)-win-x64.exe"),
+              '--build-manifest', (Join-Path $prepared 'matter-build-manifest.json'),
+              '--sbom', (Join-Path $prepared 'sbom.cdx.json'),
+              '--provenance', (Join-Path $prepared 'provenance.json'),
+              '--metadata-signing-secret-arn', $env:METADATA_SIGNING_SECRET_ARN,
+              '--private-receipt', $privateReceipt,
+              '--public-receipt', $publicReceipt
             )
+            if ($env:PUBLICATION_MODE -ceq 'successor') {
+              $publishArgs += @(
+                '--revocations', (Join-Path $prepared 'revocations.json'),
+                '--rollback', (Join-Path $prepared 'rollback.json')
+              )
+            }
+            $output = & node @publishArgs
           }
-          $output = & node @publishArgs
           if ($LASTEXITCODE -ne 0) { throw 'internal-unsigned publication failed' }
           $result = ($output -join "`n") | ConvertFrom-Json -AsHashtable
-          if ($result.state -cne 'PASS' -or $result.publication_mode -cne $env:PUBLICATION_MODE -or $result.source_sha -cne $env:GITHUB_SHA -or $result.raw_object_key_included -ne $false -or $result.raw_secret_included -ne $false) {
+          if ($result.state -cne 'PASS' -or $result.publication_mode -cne $expectedMode -or $result.source_sha -cne $env:AMIC_INTERNAL_ARTIFACT_SOURCE_SHA -or $result.source_tree -cne $env:AMIC_INTERNAL_ARTIFACT_SOURCE_TREE -or $result.raw_object_key_included -ne $false -or $result.raw_secret_included -ne $false) {
             throw 'public publication receipt is invalid'
           }
+          if ($adoption -and ($result.adoption -ne $true -or $result.executor_source_sha -cne $env:GITHUB_SHA -or $result.executor_source_tree -cne (git rev-parse 'HEAD^{tree}').Trim())) { throw 'adoption publication executor binding differs' }
           $private = Get-Content -Raw -LiteralPath $privateReceipt | ConvertFrom-Json -AsHashtable
           if ($private.state -cne 'PASS' -or $private.receipt_sha256 -cne $result.private_receipt_sha256) {
             throw 'private publication receipt differs from public receipt binding'
           }
           $locator = if ($env:PUBLICATION_MODE -ceq 'managed-bootstrap') {
             $private.managed_bootstrap_marker
-          } elseif ($env:PUBLICATION_MODE -ceq 'baseline') {
+          } elseif ($expectedMode -ceq 'baseline') {
             $private.baseline_marker
           } else {
             $private.channel_pointer

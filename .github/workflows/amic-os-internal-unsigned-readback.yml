@@ -15,6 +15,19 @@ on:
       source_tree:
         required: true
         type: string
+      executor_source_sha:
+        required: false
+        type: string
+      executor_source_tree:
+        required: false
+        type: string
+      adoption:
+        required: false
+        type: boolean
+        default: false
+      adoption_document_base64:
+        required: false
+        type: string
       retain_until:
         required: true
         type: string
@@ -52,7 +65,7 @@ jobs:
       - name: Checkout exact reviewed readback source
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          ref: ${{ inputs.source_sha }}
+          ref: ${{ inputs.executor_source_sha || inputs.source_sha }}
           fetch-depth: 1
           persist-credentials: false
           clean: true
@@ -72,6 +85,10 @@ jobs:
         env:
           INPUT_SOURCE_SHA: ${{ inputs.source_sha }}
           INPUT_SOURCE_TREE: ${{ inputs.source_tree }}
+          INPUT_EXECUTOR_SOURCE_SHA: ${{ inputs.executor_source_sha || inputs.source_sha }}
+          INPUT_EXECUTOR_SOURCE_TREE: ${{ inputs.executor_source_tree || inputs.source_tree }}
+          INPUT_ADOPTION: ${{ inputs.adoption }}
+          AMIC_INTERNAL_ADOPTION_BUNDLE_B64: ${{ inputs.adoption_document_base64 }}
           INPUT_APPROVAL_REF: ${{ inputs.approval_ref }}
           INPUT_PUBLICATION_MODE: ${{ inputs.publication_mode }}
           INPUT_RETAIN_UNTIL: ${{ inputs.retain_until }}
@@ -90,8 +107,21 @@ jobs:
           test "$GITHUB_REPOSITORY" = "Gonyak-cell/law-firm-os"
           test "$GITHUB_REF" = "refs/heads/main"
           test "$RUNNER_ENVIRONMENT" = "github-hosted"
-          test "$(git rev-parse HEAD)" = "$INPUT_SOURCE_SHA"
-          test "$(git rev-parse 'HEAD^{tree}')" = "$INPUT_SOURCE_TREE"
+          test "$(git rev-parse HEAD)" = "$INPUT_EXECUTOR_SOURCE_SHA"
+          test "$(git rev-parse 'HEAD^{tree}')" = "$INPUT_EXECUTOR_SOURCE_TREE"
+          test "$INPUT_EXECUTOR_SOURCE_SHA" = "$GITHUB_SHA"
+          [[ "$INPUT_EXECUTOR_SOURCE_SHA" =~ ^[0-9a-f]{40}$ ]]
+          [[ "$INPUT_EXECUTOR_SOURCE_TREE" =~ ^[0-9a-f]{40}$ ]]
+          if [[ "$INPUT_ADOPTION" == "true" ]]; then
+            test "$INPUT_PUBLICATION_MODE" = "baseline"
+            test -n "$AMIC_INTERNAL_ADOPTION_BUNDLE_B64"
+            test -z "$INPUT_RELEASE_DOCUMENT_B64"
+          else
+            test "$INPUT_ADOPTION" = "false"
+            test -z "$AMIC_INTERNAL_ADOPTION_BUNDLE_B64"
+            test "$INPUT_SOURCE_SHA" = "$INPUT_EXECUTOR_SOURCE_SHA"
+            test "$INPUT_SOURCE_TREE" = "$INPUT_EXECUTOR_SOURCE_TREE"
+          fi
           test -z "$(git status --porcelain)"
           [[ "$INPUT_SOURCE_SHA" =~ ^[0-9a-f]{40}$ ]]
           [[ "$INPUT_SOURCE_TREE" =~ ^[0-9a-f]{40}$ ]]
@@ -118,6 +148,26 @@ jobs:
             if (!bytes.length || bytes.toString("base64") !== value) throw new Error(`${name} is not canonical base64`);
             return bytes;
           };
+          if (process.env.INPUT_ADOPTION === "true") {
+            const bytes = canonical("AMIC_INTERNAL_ADOPTION_BUNDLE_B64");
+            if (bytes.byteLength > 256 * 1024) throw new Error("adoption bundle exceeds input limit");
+            const bundle = JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(bytes));
+            const request = bundle?.request;
+            const canonicalDate = (value) => typeof value === "string"
+              && /^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{3}Z$/.test(value)
+              && Number.isFinite(Date.parse(value)) && new Date(value).toISOString() === value;
+            if (!request || request.executorSourceSha !== process.env.INPUT_EXECUTOR_SOURCE_SHA
+                || request.executorSourceTree !== process.env.INPUT_EXECUTOR_SOURCE_TREE
+                || request.bootstrapRelease?.sourceSha !== process.env.INPUT_SOURCE_SHA
+                || request.bootstrapRelease?.sourceTree !== process.env.INPUT_SOURCE_TREE
+                || request.approvalRef !== process.env.INPUT_APPROVAL_REF
+                || !canonicalDate(request.retention?.bootstrapRetainUntil)
+                || !canonicalDate(request.retention?.controlRetainUntil)
+                || request.retention.controlRetainUntil !== bundle.retainUntil
+                || bundle.retainUntil !== process.env.INPUT_RETAIN_UNTIL) {
+              throw new Error("adoption source handoff differs");
+            }
+          }
           const locatorBytes = canonical("INPUT_READBACK_LOCATOR_B64");
           const locator = JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(locatorBytes));
           const expectedPrefix = {
@@ -177,11 +227,27 @@ jobs:
           CLOUDFRONT_DOMAIN: ${{ vars.AMIC_INTERNAL_CLOUDFRONT_DOMAIN }}
           APPROVAL_REF: ${{ inputs.approval_ref }}
           PUBLICATION_MODE: ${{ inputs.publication_mode }}
+          INPUT_SOURCE_SHA: ${{ inputs.source_sha }}
+          INPUT_SOURCE_TREE: ${{ inputs.source_tree }}
+          INPUT_EXECUTOR_SOURCE_SHA: ${{ inputs.executor_source_sha || inputs.source_sha }}
+          INPUT_EXECUTOR_SOURCE_TREE: ${{ inputs.executor_source_tree || inputs.source_tree }}
+          INPUT_ADOPTION: ${{ inputs.adoption }}
+          AMIC_INTERNAL_ADOPTION_BUNDLE_B64: ${{ inputs.adoption_document_base64 }}
+          AMIC_INTERNAL_AUTHORITY_PUBLIC_KEY_SPKI_B64: ${{ vars.AMIC_INTERNAL_AUTHORITY_PUBLIC_KEY_SPKI_B64 }}
+          AMIC_INTERNAL_AUTHORITY_PUBLIC_KEY_SHA256: ${{ vars.AMIC_INTERNAL_AUTHORITY_PUBLIC_KEY_SHA256 }}
+          AMIC_INTERNAL_AUTHORITY_KEY_ID: ${{ vars.AMIC_INTERNAL_AUTHORITY_KEY_ID }}
+          AMIC_INTERNAL_OWNER_REGISTRY_B64: ${{ vars.AMIC_INTERNAL_OWNER_REGISTRY_B64 }}
+          AMIC_INTERNAL_OWNER_REGISTRY_SHA256: ${{ vars.AMIC_INTERNAL_OWNER_REGISTRY_SHA256 }}
+          AMIC_INTERNAL_CANONICAL_API_BASE_URL: ${{ vars.AMIC_INTERNAL_CANONICAL_API_BASE_URL }}
+          AMIC_INTERNAL_ADOPTION_SESSION_TOKEN: ${{ inputs.adoption && secrets.AMIC_INTERNAL_ADOPTION_SESSION_TOKEN || '' }}
         run: |
           set -euo pipefail
           release_args=()
           if [[ "$PUBLICATION_MODE" == "managed-bootstrap" ]]; then
             release_args=(--release "$AMIC_INTERNAL_READBACK_ROOT/release.json")
+          fi
+          if [[ "$INPUT_ADOPTION" == "true" ]]; then
+            release_args=(--adoption)
           fi
           node scripts/readback-amic-os-internal-unsigned.mjs --execute \
             --approval-ref "$APPROVAL_REF" \
@@ -202,8 +268,14 @@ jobs:
           if (receipt.state !== "PASS" || receipt.publication_mode !== process.env.PUBLICATION_MODE
               || receipt.exact_version_read_count !== expectedCount
               || receipt.anonymous_s3_denied !== true || receipt.unsigned_cloudfront_denied !== true
-              || receipt.public_installer_available !== false || receipt.source_sha !== process.env.GITHUB_SHA) {
+              || receipt.public_installer_available !== false || receipt.source_sha !== process.env.INPUT_SOURCE_SHA
+              || receipt.source_tree !== process.env.INPUT_SOURCE_TREE) {
             throw new Error("independent readback receipt is invalid");
+          }
+          if (process.env.INPUT_ADOPTION === "true" && (receipt.adoption !== true
+              || receipt.executor_source_sha !== process.env.INPUT_EXECUTOR_SOURCE_SHA
+              || receipt.executor_source_tree !== process.env.INPUT_EXECUTOR_SOURCE_TREE)) {
+            throw new Error("independent adoption executor receipt is invalid");
           }
           NODE
 
