@@ -10,6 +10,11 @@ import { upsertVaultSearchIndex } from "../../../packages/dms/src/search/index-r
 import { searchMatterVault } from "../../../packages/dms/src/search/search-service.js";
 import { evaluateRouteDecision, trimItemsByPermission } from "./permission-gate.js";
 import {
+  evaluateVaultCorporatePermission,
+  filterVaultCorporateDocuments,
+  resolveVaultAuthorizationDocument,
+} from "./vault-corporate-permission.js";
+import {
   MATTER_VAULT_ACCOUNT_REGISTRY_SOURCE,
   MATTER_VAULT_REGISTERED_TENANT_ID,
   findRegisteredAccountByUserId,
@@ -255,7 +260,10 @@ function routeGate({ context, query, requestId, action, resource, repository }) 
   const invalid = validateCommonQuery(query, requestId);
   if (invalid) return invalid;
   const decision = evaluateRouteDecision({
-    context,
+    context: resource.resource_id || !context ? context : {
+      ...context,
+      object_acl: (context.object_acl ?? []).filter((entry) => entry.resource_id == null),
+    },
     resource: {
       tenant_id: query.tenant_id,
       resource_type: resource.resource_type,
@@ -266,6 +274,19 @@ function routeGate({ context, query, requestId, action, resource, repository }) 
   });
   const response = gateDecisionResponse(decision, requestId, query.audit_hint_ref);
   if (response) appendVaultRouteAudit({ repository, context, query, action, resource, decision });
+  return response;
+}
+
+function documentRouteGate({ context, query, requestId, action, document, runtime }) {
+  const invalid = validateCommonQuery(query, requestId);
+  if (invalid) return invalid;
+  const decision = evaluateVaultCorporatePermission({
+    context, repository: runtime.repository, document, tenantId: query.tenant_id, action,
+  });
+  const resource = { resource_type: "vault_document", resource_id: document.document_id, matter_id: document.matter_id };
+  if (decision == null) return routeGate({ context, query, requestId, action, resource, repository: runtime.repository });
+  const response = gateDecisionResponse(decision, requestId, query.audit_hint_ref);
+  if (response) appendVaultRouteAudit({ repository: runtime.repository, context, query, action, resource, decision });
   return response;
 }
 
@@ -481,7 +502,8 @@ function normalizeUploadDocumentBody(body = {}) {
       ...document,
       document_id: documentId,
       tenant_id: document.tenant_id ?? body.tenant_id ?? MATTER_VAULT_REGISTERED_TENANT_ID,
-      matter_id: document.matter_id ?? body.matter_id ?? "matter_rp05_synthetic_opening",
+      matter_id: Object.hasOwn(document, "matter_id") ? document.matter_id
+        : Object.hasOwn(body, "matter_id") ? body.matter_id : "matter_rp05_synthetic_opening",
       workspace_id: document.workspace_id ?? body.workspace_id ?? "workspace_rp07_synthetic",
       title: document.title ?? body.title ?? fileName,
       status: document.status ?? body.status ?? "active",
@@ -519,7 +541,9 @@ export async function handleVaultDocumentList({ query, context, requestId, runti
       matter_id: matterId,
       actor_id: context?.principal?.user_id ?? context?.principal?.actor_id ?? "unknown_actor",
     });
-    const serialized = documents.map(serializePostgresDocument);
+    const serialized = filterVaultCorporateDocuments({
+      context, runtime, documents, tenantId: query.tenant_id, action: "dms:document:read",
+    }).map(serializePostgresDocument);
     const { allowed } = trimItemsByPermission({
       context,
       items: serialized,
@@ -546,8 +570,10 @@ export async function handleVaultDocumentList({ query, context, requestId, runti
       },
     };
   }
-  const serialized = runtime.repository
-    .list({ tenant_id: query.tenant_id, model_type: "DmsDocument", matter_id: matterId })
+  const serialized = filterVaultCorporateDocuments({
+    context, runtime, tenantId: query.tenant_id, action: "dms:document:read",
+    documents: runtime.repository.list({ tenant_id: query.tenant_id, model_type: "DmsDocument", matter_id: matterId }),
+  })
     .map((document) => serializeLocalDocumentWithExactVersion(runtime, document));
   const { allowed } = trimItemsByPermission({
     context,
@@ -590,7 +616,27 @@ export async function handleVaultDocumentUpload({ body, context, requestId, runt
     permission_ref: normalizedBody.permission_ref,
     audit_hint_ref: normalizedBody.audit_hint_ref,
   };
-  const gated = routeGate({
+  const suppliedDocument = parseObjectField(body.document);
+  const workspace = runtime.repository?.get({
+    tenant_id: query.tenant_id, model_type: "DmsWorkspace", workspace_id: normalizedBody.document.workspace_id,
+  });
+  if ([body, suppliedDocument].some((value) => ["scope_type", "legal_entity_id"].some((field) => Object.hasOwn(value, field)))) {
+    return errorResponse(403, requestId, [VAULT_DMS_API_ERROR_CODES.unauthorized_omission], { audit_hint_ref: query.audit_hint_ref });
+  }
+  if (workspace?.scope_type === "legal_entity_administration") {
+    if ([body, suppliedDocument].some((value) => value.matter_id != null
+        || Object.hasOwn(value, "owner_user_id") || Object.hasOwn(value, "registered_account"))
+        || (suppliedDocument.permission_envelope_id != null && suppliedDocument.permission_envelope_id !== workspace.permission_envelope_id)
+        || (body.permission_envelope_id != null && body.permission_envelope_id !== workspace.permission_envelope_id)) {
+      return errorResponse(403, requestId, [VAULT_DMS_API_ERROR_CODES.unauthorized_omission], { audit_hint_ref: query.audit_hint_ref });
+    }
+    normalizedBody.document.matter_id = null;
+    normalizedBody.document.permission_envelope_id = workspace.permission_envelope_id;
+    normalizedBody.document.audit_trace_id = workspace.audit_trace_id;
+  }
+  const gated = workspace?.scope_type === "legal_entity_administration" || normalizedBody.document.matter_id == null
+    ? documentRouteGate({ context, query, requestId, action: "dms:document:write", document: normalizedBody.document, runtime })
+    : routeGate({
     context,
     query,
     requestId,
@@ -724,7 +770,15 @@ export async function handleVaultDocumentUpload({ body, context, requestId, runt
 }
 
 export async function handleVaultDocumentDownload({ documentId, query, context, requestId, runtime = DEFAULT_RUNTIME } = {}) {
-  const gated = routeGate({
+  const invalid = validateCommonQuery(query, requestId);
+  if (invalid) return invalid;
+  const document = await resolveVaultAuthorizationDocument({ runtime, tenantId: query.tenant_id, documentId });
+  if (!document && isPostgresDmsRuntime(runtime)) {
+    return errorResponse(403, requestId, [VAULT_DMS_API_ERROR_CODES.unauthorized_omission], { audit_hint_ref: query.audit_hint_ref });
+  }
+  const gated = document
+    ? documentRouteGate({ context, query, requestId, action: "dms:document:download", document, runtime })
+    : routeGate({
     context,
     query,
     requestId,
@@ -867,7 +921,11 @@ export async function handleVaultDocumentGovernance({ documentId, operation, bod
         safe_error_code: "DMS_CANONICAL_MATTER_MISMATCH",
       });
     }
-    const gated = routeGate({
+    const document = await resolveVaultAuthorizationDocument({ runtime, tenantId: query.tenant_id, documentId });
+    if (!document && (canonical.matter_id == null || typeof runtime.upload_runtime.getDocumentState === "function")) {
+      return errorResponse(403, requestId, [VAULT_DMS_API_ERROR_CODES.unauthorized_omission], { audit_hint_ref: query.audit_hint_ref });
+    }
+    const gated = document ? documentRouteGate({ context, query, requestId, action, document, runtime }) : routeGate({
       context,
       query,
       requestId,
@@ -971,7 +1029,9 @@ export async function handleVaultSearch({ query, context, requestId, runtime = D
       matter_id: matterId,
       actor_id: context?.principal?.user_id ?? context?.principal?.actor_id ?? "unknown_actor",
     });
-    const serialized = entries.map(serializePostgresDocument);
+    const serialized = filterVaultCorporateDocuments({
+      context, runtime, documents: entries, tenantId: query.tenant_id, action: "dms:document:read",
+    }).map(serializePostgresDocument);
     const { allowed } = trimItemsByPermission({
       context,
       items: serialized,
@@ -1024,7 +1084,10 @@ export async function handleVaultSearch({ query, context, requestId, runtime = D
       },
     };
   }
-  const documents = runtime.repository.list({ tenant_id: query.tenant_id, model_type: "DmsDocument", matter_id: matterId });
+  const documents = filterVaultCorporateDocuments({
+    context, runtime, tenantId: query.tenant_id, action: "dms:document:read",
+    documents: runtime.repository.list({ tenant_id: query.tenant_id, model_type: "DmsDocument", matter_id: matterId }),
+  });
   const serialized = documents.map((document) => serializeLocalDocumentWithExactVersion(runtime, document));
   const { allowed } = trimItemsByPermission({
     context,
@@ -1329,7 +1392,10 @@ export async function handleVaultAudit({ query, context, requestId, runtime = DE
       body: {
         request_id: requestId,
         outcome: "passed",
-        items: await runtime.upload_runtime.listAuditEvents({ tenant_id: query.tenant_id, matter_id: matterId }),
+        items: await filterVaultAuditEvents({
+          events: await runtime.upload_runtime.listAuditEvents({ tenant_id: query.tenant_id, matter_id: matterId }),
+          context, runtime, tenantId: query.tenant_id,
+        }),
         safe_error_codes: [],
         audit_hint_ref: query.audit_hint_ref,
         production_ready_claim: false,
@@ -1352,12 +1418,65 @@ export async function handleVaultAudit({ query, context, requestId, runtime = DE
     body: {
       request_id: requestId,
       outcome: "passed",
-      items: events,
+      items: await filterVaultAuditEvents({ events, context, runtime, tenantId: query.tenant_id }),
       safe_error_codes: [],
       audit_hint_ref: query.audit_hint_ref,
       production_ready_claim: false,
     },
   };
+}
+
+async function filterVaultAuditEvents({ events, context, runtime, tenantId }) {
+  const documents = new Map();
+  const allowed = [];
+  for (const event of events) {
+    if (event.tenant_id === tenantId
+        && event.actor_id === (context?.principal?.user_id ?? context?.principal?.actor_id)
+        && /^vault_sensitive_read_[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/u.test(event.event_id)
+        && event.decision === "allow" && event.metadata?.sensitive_read_audit_required === true
+        && event.authorization_document_id == null && event.authorization_workspace_id == null
+        && event.object_id === event.object_type
+        && ((event.action === "dms:document:read" && event.object_type === "vault_document")
+          || (event.action === "dms:search" && event.object_type === "vault_search"))) {
+      allowed.push({ event_id: event.event_id, tenant_id: tenantId, actor_id: event.actor_id,
+        action: event.action, object_type: event.object_type, object_id: event.object_type,
+        decision: "allow", reason: "vault_sensitive_read_allowed_after_permission_gate",
+        occurred_at: event.occurred_at,
+        metadata: { permission_ref: null, audit_hint_ref: null, returned_count: null,
+          sensitive_read_audit_required: true, raw_payload_included: false, raw_text_included: false,
+          document_bytes_included: false, storage_pointer_ref_included: false } });
+      continue;
+    }
+    const documentId = event.authorization_document_id ?? event.payload?.document_id
+      ?? event.after?.document_id
+      ?? (["DmsDocument", "vault_document", "dms_document"].includes(event.object_type) ? event.object_id : null);
+    let document = null;
+    if (documentId) {
+      if (!documents.has(documentId)) documents.set(documentId, await resolveVaultAuthorizationDocument({ runtime, tenantId, documentId }));
+      document = documents.get(documentId);
+    }
+    const workspaceId = document?.workspace_id ?? event.authorization_workspace_id
+      ?? (["DmsWorkspace", "vault_workspace"].includes(event.object_type) ? event.object_id : null);
+    const workspace = workspaceId && runtime.repository?.get({ tenant_id: tenantId, model_type: "DmsWorkspace", workspace_id: workspaceId });
+    if ((documentId && !document) || (workspaceId && !workspace && !document?.matter_id)) continue;
+    if (!document && workspace) document = {
+      tenant_id: tenantId, workspace_id: workspace.workspace_id,
+      matter_id: workspace.matter_id, permission_envelope_id: workspace.permission_envelope_id,
+    };
+    if (document) {
+      const decision = evaluateVaultCorporatePermission({
+        context, repository: runtime.repository, document, tenantId, action: "dms:audit:read", resourceType: "vault_audit",
+      });
+      if (decision && decision.effect !== "allow") continue;
+    } else if (!(event.matter_id ?? event.metadata?.matter_id ?? event.payload?.matter_id)) {
+      // A tenant-wide event with no canonical object cannot disclose corporate
+      // object identifiers or counts, including upload-session events.
+      continue;
+    }
+    const { authorization_document_id: _document, authorization_workspace_id: _workspace, ...safe } = event;
+    allowed.push(safe);
+  }
+  return allowed;
 }
 
 export async function handleVaultDmsApiRequest({

@@ -17,6 +17,7 @@ const PHASE = "w13-production-cutover";
 const MODE = "commit";
 const DOMAIN_V2 = "law-firm-os/json-postgres/outlook-authority-operation-binding/v2";
 const DOMAIN_V3 = "law-firm-os/json-postgres/outlook-authority-operation-binding/v3";
+const DOMAIN_V4 = "law-firm-os/json-postgres/outlook-authority-operation-binding/v4";
 const SHA1 = /^[0-9a-f]{40}$/u;
 const SHA256 = /^[0-9a-f]{64}$/u;
 const TOKEN = /^[A-Za-z0-9._:/+-]{1,240}$/u;
@@ -178,9 +179,19 @@ export function createJsonPostgresOutlookAuthorityOperationBinding({
     fail("Outlook authority operation drifted from the signed W13 packet");
   }
   const legacy = databaseTargetBinding == null;
+  const historicalBootstrap = target.historical_outlook_bootstrap_sha256;
+  const hasHistoricalBootstrap = Object.hasOwn(target, "historical_outlook_bootstrap_sha256");
+  if (hasHistoricalBootstrap && (legacy || !SHA256.test(historicalBootstrap ?? "")
+      || !["2ef366427d98ed297ab376c8fc7e6a255cf6a054d0eaa660dc6fb7e13c814f79",
+        "8de3211a545ebb7c50813990d15f6abc215ffd23a7d09ba2149d9b37fd96e8c7"]
+        .includes(bindings.migration_catalog_sha256))) {
+    fail("historical Outlook bootstrap is not bound to a reviewed current target");
+  }
   const material = Object.freeze({
     schema_version:
-      legacy
+      hasHistoricalBootstrap
+        ? "law-firm-os.json-postgres-outlook-authority-operation-binding.v4"
+        : legacy
         ? JSON_POSTGRES_OUTLOOK_AUTHORITY_LEGACY_OPERATION_BINDING_VERSION
         : JSON_POSTGRES_OUTLOOK_AUTHORITY_OPERATION_BINDING_VERSION,
     event_tuple: Object.freeze({
@@ -198,12 +209,13 @@ export function createJsonPostgresOutlookAuthorityOperationBinding({
     program_input_kms_key_ref: target.program_input_kms_key_ref,
     program_input_kms_key: kmsKey,
     ...(legacy ? {} : databaseTargetBinding),
+    ...(hasHistoricalBootstrap ? { historical_outlook_bootstrap_sha256: historicalBootstrap } : {}),
     aws_account: account,
     aws_region: region,
     approved_tenant_ids: Object.freeze([...approvedTenantIds].sort()),
   });
   return Object.freeze({
     ...material,
-    operation_binding_sha256: digest(legacy ? DOMAIN_V2 : DOMAIN_V3, material),
+    operation_binding_sha256: digest(hasHistoricalBootstrap ? DOMAIN_V4 : legacy ? DOMAIN_V2 : DOMAIN_V3, material),
   });
 }

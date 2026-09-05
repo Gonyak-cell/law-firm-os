@@ -3,8 +3,13 @@ import {
   createPostgresPool,
 } from "../../../packages/persistence/src/postgres/pool.js";
 import {
+  CLIENT_OPERATIONS_SCHEMA_MANIFEST,
+  listClientOperationsPostgresMigrations,
   verifyClientOperationsPostgresMigrations,
 } from "./client-operations-schema.js";
+import { hashDomainValue } from "../../../packages/persistence/src/domain-ledger.js";
+import { verifyPostgresMigrationState } from "../../../packages/persistence/src/postgres/migration-runner.js";
+import { sanitizePostgresError } from "../../../packages/persistence/src/postgres/errors.js";
 import { resolveAwsSecretString } from "./aws-secret-reference.js";
 import { runtimePreflightError } from "./runtime-profile.js";
 
@@ -19,6 +24,7 @@ const POSTGRES_PREFLIGHT_REASONS = new Map([
   ["LAWOS_POSTGRES_MIGRATION_HISTORY_DIVERGED", "MIGRATION_HISTORY_DIVERGED"],
   ["LAWOS_POSTGRES_MIGRATION_CHECKSUM_MISMATCH", "MIGRATION_CHECKSUM_MISMATCH"],
   ["LAWOS_POSTGRES_ACCESS_DENIED", "ACCESS_DENIED"],
+  ["LAWOS_INTERNAL_INSTALLATION_SCHEMA_REQUIRED", "INTERNAL_INSTALLATION_SCHEMA_REQUIRED"],
 ]);
 export const LAWOS_PERSISTENCE_AUTHORITIES = Object.freeze({
   fileCurrent: "file-current",
@@ -37,6 +43,59 @@ export const LAWOS_OFFLINE_REJECTED_POLICY = Object.freeze({
 
 export function verifyOperationalPostgresMigrationState(pool) {
   return verifyClientOperationsPostgresMigrations(pool);
+}
+
+export async function verifyOperationalPostgresBridgeMigrationState(pool) {
+  const migrations = listClientOperationsPostgresMigrations();
+  const entries = CLIENT_OPERATIONS_SCHEMA_MANIFEST.entries;
+  const historyError = () => Object.assign(new Error("PostgreSQL schema bridge requires an exact reviewed catalog"), {
+    code: "LAWOS_POSTGRES_MIGRATION_HISTORY_DIVERGED",
+    safe_error_code: "POSTGRES_MIGRATION_HISTORY_DIVERGED", status: 500,
+  });
+  const authorityMigrations = migrations.filter(({ id }) => id !== "016_dms_corporate_workspace");
+  const historicalMigrations = authorityMigrations.filter(({ id }) =>
+    id !== "309_client_internal_unsigned_installation_authority");
+  const authorityEntries = entries.filter(({ id }) => id !== "016_dms_corporate_workspace");
+  const historicalEntries = authorityEntries.filter(({ id }) =>
+    id !== "309_client_internal_unsigned_installation_authority");
+  if (migrations.length !== 81 || entries.length !== 81
+      || hashDomainValue(entries) !==
+        "29530ec602b720deeb1e26625c85a3dcc1268e2bfc116b6b86bfada761cb38a7"
+      || authorityEntries.length !== 80
+      || hashDomainValue(authorityEntries) !==
+        "4d2b71686f05f483fee882b742e363ee4ce24e95879dce267a81083adc47287f"
+      || historicalEntries.length !== 79
+      || hashDomainValue(historicalEntries) !==
+        "fe0b9c53de1617361fd607692beb7e462b28159321e7830d507836948fcfdbc3") {
+    throw historyError();
+  }
+  if (!pool || typeof pool.connect !== "function") {
+    throw new TypeError("PostgreSQL schema bridge requires a transaction-capable pool");
+  }
+  let client;
+  let releaseError;
+  try {
+    client = await pool.connect();
+    if (!client || typeof client.query !== "function" || typeof client.release !== "function") {
+      throw new TypeError("PostgreSQL schema bridge requires a transaction-capable client");
+    }
+    await client.query("BEGIN ISOLATION LEVEL SERIALIZABLE READ ONLY");
+    const rows = (await client.query(
+      "SELECT count(*)::integer AS migration_count FROM lawos_meta.schema_migrations",
+    )).rows;
+    const count = rows.length === 1 ? rows[0].migration_count : null;
+    if (![79, 80, 81].includes(count)) throw historyError();
+    const verified = await verifyPostgresMigrationState(client, {
+      migrations: count === 79 ? historicalMigrations : count === 80 ? authorityMigrations : migrations,
+    });
+    await client.query("COMMIT");
+    return verified;
+  } catch (error) {
+    if (client) {
+      try { await client.query("ROLLBACK"); } catch { releaseError = error; }
+    }
+    throw sanitizePostgresError(error);
+  } finally { client?.release?.(releaseError); }
 }
 
 export function resolvePersistenceAuthority({ value, env = process.env } = {}) {
@@ -215,8 +274,14 @@ export async function preparePersistenceAuthority({
     await connection.query("SELECT 1 AS authority_ready");
     stage = "migration-catalog";
     const migrations = typeof connection.connect === "function"
-      ? await verifyOperationalPostgresMigrationState(connection)
+      ? await verifyOperationalPostgresBridgeMigrationState(connection)
       : [];
+    if (![80, 81].includes(migrations.length)
+        && String(env.LAWOS_INTERNAL_INSTALLATION_ATTESTATION_SECRET_ID ?? "").trim()) {
+      throw Object.assign(new Error("Internal installation signing requires an exact schema containing installation authority"), {
+        code: "LAWOS_INTERNAL_INSTALLATION_SCHEMA_REQUIRED",
+      });
+    }
     if (typeof connection.connect === "function") {
       stage = "tenant-authority";
       const tenantAuthority = await connection.query(

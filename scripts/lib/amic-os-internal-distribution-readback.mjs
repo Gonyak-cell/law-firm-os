@@ -237,7 +237,7 @@ async function listExactControlHistory({ aws, bindings, key, label }) {
   return Object.freeze({ versions, deleteMarkers });
 }
 
-export async function verifyAmicInternalManagedBootstrapReadback({
+async function readManagedBootstrap({
   aws, bindings, bootstrapMarker, expectedRelease, trustedPublicKey,
   expectedPublicKeySha256, cloudFrontDomain, now = Date.now(),
 } = {}) {
@@ -326,8 +326,10 @@ export async function verifyAmicInternalManagedBootstrapReadback({
   assert.equal(history.Versions[0].VersionId, bootstrapMarker.version_id);
   assert.equal(history.Versions[0].IsLatest, true);
   let sourceArtifactByteCount = 0;
+  const artifactBodies = {};
   for (const kind of ARTIFACT_KINDS) {
     const bytes = await readExactObject({ aws, bindings, ref: manifest.artifacts[kind], label: kind });
+    artifactBodies[kind] = bytes;
     sourceArtifactByteCount += bytes.byteLength;
     assert.ok(Number.isSafeInteger(sourceArtifactByteCount));
   }
@@ -363,10 +365,23 @@ export async function verifyAmicInternalManagedBootstrapReadback({
     raw_secret_included: false,
     source_artifact_byte_count: sourceArtifactByteCount,
   };
-  return Object.freeze({ ...receipt, receipt_sha256: sha256(canonicalBytes(receipt)) });
+  return Object.freeze({
+    receipt: Object.freeze({ ...receipt, receipt_sha256: sha256(canonicalBytes(receipt)) }),
+    artifacts: Object.freeze(manifest.artifacts),
+    artifactBodies: Object.freeze(artifactBodies),
+  });
 }
 
-export async function verifyAmicInternalBaselineReadback({
+export async function verifyAmicInternalManagedBootstrapReadback(options) {
+  return (await readManagedBootstrap(options)).receipt;
+}
+
+// The adoption writer consumes these exact verified versions; ordinary receipts omit locators and bytes.
+export async function readAmicInternalManagedBootstrapArtifacts(options) {
+  return readManagedBootstrap(options);
+}
+
+async function readBaseline({
   aws,
   bindings,
   baselineMarker,
@@ -374,7 +389,7 @@ export async function verifyAmicInternalBaselineReadback({
   expectedPublicKeySha256,
   cloudFrontDomain,
   now = Date.now(),
-} = {}) {
+} = {}, sourceArtifactRetainUntil = bindings?.retainUntil) {
   assert.ok(aws?.getObjectBody && aws?.listObjectVersions && aws?.probeAnonymousAccess,
     "baseline independent readback adapter is incomplete");
   validateBindings(bindings);
@@ -551,7 +566,7 @@ export async function verifyAmicInternalBaselineReadback({
   for (const kind of ARTIFACT_KINDS) {
     const artifact = await readExactObject({
       aws,
-      bindings,
+      bindings: { ...bindings, retainUntil: sourceArtifactRetainUntil },
       ref: manifest.artifacts[kind],
       label: `${kind} artifact`,
     });
@@ -629,9 +644,48 @@ export async function verifyAmicInternalBaselineReadback({
     source_artifact_byte_count: sourceArtifactByteCount,
   };
   return Object.freeze({
-    ...receipt,
-    receipt_sha256: sha256(canonicalBytes(receipt)),
+    receipt: Object.freeze({ ...receipt, receipt_sha256: sha256(canonicalBytes(receipt)) }),
+    baseline, manifest,
   });
+}
+
+export async function verifyAmicInternalBaselineReadback(options) {
+  return (await readBaseline(options)).receipt;
+}
+
+export async function verifyAmicInternalManagedBootstrapAdoptionReadback({ adoption, authority, ...options }) {
+  const { assertVerifiedAmicInternalBaselineAdoption } = await import("./amic-os-internal-baseline-adoption.mjs");
+  const approved = assertVerifiedAmicInternalBaselineAdoption(adoption, { now: options.now ?? Date.now() });
+  await approved.assertCurrent(authority);
+  assert.equal(options.bindings.retainUntil, approved.request.retention.controlRetainUntil);
+  const original = await readManagedBootstrap({ ...options,
+    bindings: { ...options.bindings, retainUntil: approved.request.retention.bootstrapRetainUntil },
+    bootstrapMarker: approved.request.bootstrapMarker,
+    expectedRelease: approved.request.bootstrapRelease });
+  const current = await readBaseline(options, approved.request.retention.bootstrapRetainUntil);
+  assert.deepEqual(current.manifest.artifacts, original.artifacts,
+    "adopted baseline changed an original artifact key, VersionId, hash, or size");
+  for (const [field, expected] of Object.entries({
+    installation_id: approved.installation.installation_id,
+    lawos_tenant_id: approved.installation.tenant_id, app_id: approved.installation.app_id,
+    platform: approved.installation.platform, architecture: approved.installation.architecture,
+    release_id: approved.installation.release_id, release_sequence: approved.installation.release_sequence,
+    version: approved.installation.version, source_sha: approved.installation.source_sha,
+    source_tree: approved.installation.source_tree,
+  })) assert.equal(current.baseline[field], expected, `adopted baseline authority differs: ${field}`);
+  assert.equal(current.manifest.artifacts.installer.sha256, approved.installation.installer_sha256);
+  assert.equal(current.manifest.artifacts.installer.bytes, approved.installation.installer_bytes);
+  assert.equal(current.manifest.artifacts.installer.version_id, approved.installation.installer_version_id);
+  assert.deepEqual(current.manifest.predecessor, Object.fromEntries(
+    ["release_id", "version", "source_sha", "source_tree"].map((field) => [field, current.baseline[field]])),
+  "adoption invented a predecessor");
+  await approved.assertCurrent(authority);
+  const { receipt_sha256: _oldDigest, ...receipt } = current.receipt;
+  const material = { ...receipt, adoption: true, managed_bootstrap_exact_version_read_count: 7,
+    original_artifact_versions_reused: true, installed_receipt_sha256: approved.request.installedReceiptSha256,
+    adoption_request_sha256: approved.requestSha256, executor_source_sha: approved.request.executorSourceSha,
+    executor_source_tree: approved.request.executorSourceTree };
+  return Object.freeze({ ...material, receipt_sha256: sha256(canonicalBytes(material)) });
 }
 
 export async function verifyAmicInternalDistributionReadback({

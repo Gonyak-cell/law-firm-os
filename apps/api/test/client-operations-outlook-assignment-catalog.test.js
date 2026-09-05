@@ -19,6 +19,7 @@ import {
   listClientOperationsPostgresMigrations,
   normalizeClientOperationsMigrationCatalog,
   runClientOperationsPostgresMigrations,
+  selectClientOperationsMigrationTarget,
 } from "../src/client-operations-schema.js";
 
 test("combined migration 306 binds the exact Outlook assignment authority catalogs", () => {
@@ -50,7 +51,7 @@ test("combined migration 306 binds the exact Outlook assignment authority catalo
     hashDomainValue(OUTLOOK_DESKTOP_ASSIGNMENT_AUTHORITY_CATALOG),
   );
 
-  assert.equal(CLIENT_OPERATIONS_MIGRATION_CATALOG.migration_count, 79);
+  assert.equal(CLIENT_OPERATIONS_MIGRATION_CATALOG.migration_count, 81);
   assert.equal(Object.isFrozen(CLIENT_OPERATIONS_MIGRATION_CATALOG), true);
   assert.equal(
     Object.isFrozen(CLIENT_OPERATIONS_MIGRATION_CATALOG.migrations),
@@ -62,7 +63,7 @@ test("combined migration 306 binds the exact Outlook assignment authority catalo
   );
   assert.equal(
     CLIENT_OPERATIONS_MIGRATION_CATALOG_SHA256,
-    "43c6a087834d9dd2177be0b63fc94cf723181b93b04f40a65689b6431bd44556",
+    "8de3211a545ebb7c50813990d15f6abc215ffd23a7d09ba2149d9b37fd96e8c7",
   );
   const normalizedCatalog = normalizeClientOperationsMigrationCatalog();
   assert.equal(
@@ -79,21 +80,25 @@ test("combined migration 306 binds the exact Outlook assignment authority catalo
   );
   assert.equal(
     normalizedCatalog.ledger_sha256,
+    "29530ec602b720deeb1e26625c85a3dcc1268e2bfc116b6b86bfada761cb38a7",
+  );
+  assert.equal(
+    hashDomainValue(CLIENT_OPERATIONS_SCHEMA_MANIFEST.entries.filter(({ id }) => id !== "016_dms_corporate_workspace").slice(0, -1)),
     "fe0b9c53de1617361fd607692beb7e462b28159321e7830d507836948fcfdbc3",
   );
   const assignmentCatalogRow =
-    CLIENT_OPERATIONS_MIGRATION_CATALOG.migrations.at(-3);
+    CLIENT_OPERATIONS_MIGRATION_CATALOG.migrations.at(-4);
   const assignmentSchemaRow =
-    CLIENT_OPERATIONS_SCHEMA_MANIFEST.entries.at(-3);
+    CLIENT_OPERATIONS_SCHEMA_MANIFEST.entries.at(-4);
   assert.equal(
-    hashDomainValue(CLIENT_OPERATIONS_SCHEMA_MANIFEST.entries.slice(0, -3)),
+    hashDomainValue(CLIENT_OPERATIONS_SCHEMA_MANIFEST.entries.filter(({ id }) => id !== "016_dms_corporate_workspace").slice(0, -4)),
     "ae6b2ffa029916bb364772dfa64bb507a6aafc4627aabe49127957c55381421b",
   );
   assert.equal(
-    hashDomainValue(CLIENT_OPERATIONS_SCHEMA_MANIFEST.entries.slice(0, -2)),
+    hashDomainValue(CLIENT_OPERATIONS_SCHEMA_MANIFEST.entries.filter(({ id }) => id !== "016_dms_corporate_workspace").slice(0, -3)),
     "65da3dccd4e9f0079abbbe9d4176776624df697dccb52923bdf9f889e3553c91",
   );
-  assert.deepEqual(CLIENT_OPERATIONS_SCHEMA_MANIFEST.entries.at(-4), {
+  assert.deepEqual(CLIENT_OPERATIONS_SCHEMA_MANIFEST.entries.at(-5), {
     id: "305_client_outlook_desktop_release_trust",
     checksum:
       "86921d4c43544858ae67a95c2c6cc8fb5deeef2731693285fcb4ffa22fd115c7",
@@ -133,7 +138,7 @@ test("combined migration 306 binds the exact Outlook assignment authority catalo
   assert.equal(Object.isFrozen(assignmentCatalogRow), true);
   assert.equal(
     CLIENT_OPERATIONS_MIGRATION_CATALOG.migrations
-      .slice(0, -3)
+      .slice(0, -4)
       .some(({ outlook_assignment_authority: authority }) => authority),
     false,
   );
@@ -191,11 +196,43 @@ test("combined migration 306 rejects dynamic authority facts and a read-only ass
     },
   ]) {
     const catalog = structuredClone(CLIENT_OPERATIONS_MIGRATION_CATALOG);
-    mutate(catalog.migrations.at(-3).outlook_assignment_authority);
+    mutate(catalog.migrations.at(-4).outlook_assignment_authority);
     assert.throws(
       () => normalizeClientOperationsMigrationCatalog(catalog),
       /Outlook assignment catalog binding is invalid/u,
     );
+  }
+});
+
+test("final source selects only the exact authority80 and combined81 target catalogs", () => {
+  const authority = selectClientOperationsMigrationTarget(
+    "2ef366427d98ed297ab376c8fc7e6a255cf6a054d0eaa660dc6fb7e13c814f79",
+  );
+  const combined = selectClientOperationsMigrationTarget();
+  assert.equal(authority.normalized.migration_catalog_count, 80);
+  assert.equal(authority.normalized.ledger_sha256,
+    "4d2b71686f05f483fee882b742e363ee4ce24e95879dce267a81083adc47287f");
+  assert.equal(combined.normalized.migration_catalog_count, 81);
+  assert.equal(combined.normalized.ledger_sha256,
+    "29530ec602b720deeb1e26625c85a3dcc1268e2bfc116b6b86bfada761cb38a7");
+  assert.deepEqual(combined.normalized.ledger_entries.filter(({ id }) => id !== "016_dms_corporate_workspace"),
+    authority.normalized.ledger_entries);
+  assert.deepEqual(normalizeClientOperationsMigrationCatalog(authority.catalog), authority.normalized);
+  for (const digest of ["0".repeat(64),
+    "43c6a087834d9dd2177be0b63fc94cf723181b93b04f40a65689b6431bd44556",
+    "b9e0dabe9df63e4001c566676ac9a7829b61f58ad67cf29968a49bf98442770d",
+    authority.normalized.ledger_sha256, combined.normalized.ledger_sha256]) {
+    assert.throws(() => selectClientOperationsMigrationTarget(digest), /catalog/u);
+  }
+  for (const mutate of [
+    (catalog) => { catalog.migrations = catalog.migrations.filter(({ id }) => id !== "309_client_internal_unsigned_installation_authority"); catalog.migration_count = 80; },
+    (catalog) => { catalog.migrations[15].checksum = "0".repeat(64); },
+    (catalog) => { catalog.migrations.push(catalog.migrations[15]); catalog.migration_count += 1; },
+    (catalog) => { [catalog.migrations[15], catalog.migrations[16]] = [catalog.migrations[16], catalog.migrations[15]]; },
+  ]) {
+    const catalog = structuredClone(combined.catalog);
+    mutate(catalog);
+    assert.throws(() => normalizeClientOperationsMigrationCatalog(catalog), /catalog/iu);
   }
 });
 
@@ -214,9 +251,18 @@ test("combined migration wrapper forwards the three signed digests with the auth
     onBeforeMigrations: async () => {},
     onOutlookAuthorityPaused: async () => {},
     onOutlookAuthorityPostMigration: async () => {},
+    onInternalUnsignedInstallationAuthorityPostMigration: async () => {},
   };
   await assert.rejects(
     runClientOperationsPostgresMigrations(pool, callbacks),
+    /signed digests are required/u,
+  );
+  await assert.rejects(
+    runClientOperationsPostgresMigrations(pool, {
+      ...callbacks,
+      authorityManifestSha256: OUTLOOK_DESKTOP_ASSIGNMENT_AUTHORITY_CATALOG_SHA256,
+      databaseTargetReceiptSha256: "d".repeat(64),
+    }),
     /signed digests are required/u,
   );
   await assert.rejects(

@@ -8,9 +8,6 @@ import {
   createLocalStorageAdapter,
 } from "../../../packages/dms/src/storage/local-storage-adapter.js";
 import {
-  runHrxPostgresMigrations,
-} from "../../../packages/hrx/src/postgres-migrations.js";
-import {
   hashDomainValue,
 } from "../../../packages/persistence/src/domain-ledger.js";
 import {
@@ -41,6 +38,7 @@ import {
 import { apiSessionHeaders } from "./helpers/session.js";
 import {
   createOutlookAuthorityPostgresFixture,
+  runHistoricalHrxPostgresMigrations,
   runOutlookAuthorityPostgresMigrations,
 } from "./support/outlook-authority-postgres-fixture.js";
 
@@ -282,7 +280,7 @@ test("operational Client providers preserve parity, drift safety, and rollback d
     /selected PostgreSQL authority failed initialization/u,
   );
   assert.equal(forgedVerifierCalls, 0);
-  await runHrxPostgresMigrations(fixture.adminPool);
+  await runHistoricalHrxPostgresMigrations(fixture.adminPool);
   await runOutlookAuthorityPostgresMigrations(fixture);
   const migrated = await runClientOperationsMigration({
     ledger,

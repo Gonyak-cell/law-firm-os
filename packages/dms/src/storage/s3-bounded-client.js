@@ -6,12 +6,12 @@ const apply = Reflect.apply;
 const boundedClients = new WeakMap();
 const dispatch = S3Client.prototype.send;
 
-function boundedFacade(client, handler) {
+function boundedFacade(client, handler, region, endpointMode) {
   const handle = handler.handle;
   const send = (command, ...args) => apply(dispatch, client, [takeOwnedS3Command(command), ...args]);
   const destroy = client.destroy.bind(client);
   Object.freeze(handler);
-  const config = Object.freeze({ requestHandler: handler });
+  const config = Object.freeze({ requestHandler: handler, region, endpoint_mode: endpointMode });
   const facade = Object.create(null);
   Object.defineProperties(facade, {
     config: { enumerable: true, value: config },
@@ -28,8 +28,24 @@ export function createBoundedS3Client(options = {}, requestHandlerOptions) {
     throw new TypeError("bounded S3 client owns its HTTP request handler");
   }
   const handler = new BoundedS3NodeHttpHandler(requestHandlerOptions);
-  const client = new S3Client({ ...options, requestHandler: handler, responseChecksumValidation: "WHEN_REQUIRED" });
-  return boundedFacade(client, handler);
+  const supplied = { ...options };
+  const nativeOptions = new Set(["region", "credentials", "maxAttempts", "retryMode"]);
+  const customEndpoint = requestHandlerOptions !== undefined
+    || Object.keys(supplied).some((field) => !nativeOptions.has(field));
+  const configured = { ...supplied, requestHandler: handler, responseChecksumValidation: "WHEN_REQUIRED" };
+  const client = new S3Client(configured);
+  if (!customEndpoint) {
+    const resolveEndpoint = client.config.endpointProvider;
+    Object.defineProperty(client.config, "endpointProvider", { enumerable: true, configurable: false, writable: false,
+      value(parameters, context) {
+        if (parameters.Endpoint != null) {
+          throw Object.assign(new Error("configured S3 endpoint overrides are not allowed"), { code: "DMS_S3_ENDPOINT_OVERRIDE" });
+        }
+        return resolveEndpoint(parameters, context);
+      } });
+  }
+  return boundedFacade(client, handler, typeof configured.region === "string" ? configured.region : null,
+    customEndpoint ? "custom" : "aws-default-guarded");
 }
 
 export function assertBoundedS3Client(client) {

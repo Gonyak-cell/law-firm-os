@@ -174,6 +174,48 @@ test("Outlook V6 operation digest remains stable for historical replay", () => {
   );
 });
 
+test("reviewed continuation binds the historical bootstrap separately from the fresh target and preserves expiry checks", () => {
+  const bind = (approved) => createJsonPostgresOutlookAuthorityOperationBinding({
+    event: operationEvent({ packet_sha256: approved.packet.packet_sha256 }),
+    authorization: approved, env: environment(),
+  });
+  const approved = authorization();
+  approved.packet.bindings.migration_catalog_sha256 =
+    "2ef366427d98ed297ab376c8fc7e6a255cf6a054d0eaa660dc6fb7e13c814f79";
+  approved.packet.target.historical_outlook_bootstrap_sha256 = "b".repeat(64);
+  refreshAuthorizationPacketSha256(approved);
+  const first = bind(approved);
+  assert.equal(first.schema_version, "law-firm-os.json-postgres-outlook-authority-operation-binding.v4");
+  assert.equal(first.historical_outlook_bootstrap_sha256, "b".repeat(64));
+  assert.equal(first.database_target_receipt_sha256, approved.packet.target.database_target_receipt_sha256);
+  for (const mutate of [
+    (value) => { value.packet.target.historical_outlook_bootstrap_sha256 = "c".repeat(64); },
+    (value) => {
+      value.packet.target.database_target_receipt.observed_at = "2026-08-17T00:01:00.000Z";
+      value.packet.target.database_target_receipt_sha256 = databaseTargetReceiptSha256(value.packet.target.database_target_receipt);
+    },
+  ]) {
+    const changed = structuredClone(approved);
+    mutate(changed);
+    refreshAuthorizationPacketSha256(changed);
+    assert.notEqual(bind(changed).operation_binding_sha256, first.operation_binding_sha256);
+  }
+  for (const mutate of [
+    (value) => { value.packet.target.historical_outlook_bootstrap_sha256 = null; },
+    (value) => { value.packet.bindings.migration_catalog_sha256 = "e".repeat(64); },
+    (value) => {
+      delete value.packet.target.database_target_receipt;
+      delete value.packet.target.database_target_receipt_sha256;
+    },
+    (value) => { value.approval.signed_at = "2026-08-17T00:15:00.000Z"; },
+  ]) {
+    const changed = structuredClone(approved);
+    mutate(changed);
+    refreshAuthorizationPacketSha256(changed);
+    assert.throws(() => bind(changed), { code: "LAWOS_OUTLOOK_AUTHORITY_OPERATION_BINDING" });
+  }
+});
+
 for (const [label, kmsRef] of [
   ["opaque ref", "alias/lawos-prod-program-input"],
   ["alias ARN", "arn:aws:kms:ap-northeast-2:770880870480:alias/lawos"],

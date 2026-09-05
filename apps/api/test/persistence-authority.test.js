@@ -24,11 +24,9 @@ import {
 } from "../src/client-operations-schema.js";
 import {
   createOutlookAuthorityPostgresFixture,
+  runHistoricalHrxPostgresMigrations,
   runOutlookAuthorityPostgresMigrations,
 } from "./support/outlook-authority-postgres-fixture.js";
-import {
-  runHrxPostgresMigrations,
-} from "../../../packages/hrx/src/postgres-migrations.js";
 
 const TENANT_CONTEXT_SECRET = "test-only-postgres-tenant-context-secret-material";
 
@@ -45,7 +43,7 @@ test("operational migration verification requires the exact additive Client cata
       error?.code
         === "LAWOS_POSTGRES_MIGRATION_HISTORY_DIVERGED",
   );
-  await runHrxPostgresMigrations(fixture.adminPool);
+  await runHistoricalHrxPostgresMigrations(fixture.adminPool);
   const mixedHistory = await fixture.adminPool.query(
     `SELECT migration_id, checksum
        FROM lawos_meta.schema_migrations
@@ -343,8 +341,11 @@ test("PostgreSQL preflight reports only fixed stages and reasons while closing f
         });
       };
       const pool = {
-        connect() {},
+        async connect() {
+          return { query: this.query.bind(this), release() {} };
+        },
         async query(sql) {
+          if (sql.startsWith("BEGIN") || sql === "COMMIT" || sql === "ROLLBACK") return { rows: [] };
           const stage = sql.includes("schema_migrations") ? "migration-catalog"
             : sql.includes("tenant_context_authority_ready") ? "tenant-authority" : "health-query";
           if (stage === failureStage && !["missing", "checksum", "inactive"].includes(variant)) failure();
@@ -352,8 +353,9 @@ test("PostgreSQL preflight reports only fixed stages and reasons while closing f
             const rows = CLIENT_OPERATIONS_SCHEMA_MANIFEST.entries.map((entry) => ({
               migration_id: entry.id, checksum: entry.checksum,
             }));
-            if (variant === "missing") rows.pop();
+            if (variant === "missing") rows.splice(0, 1);
             if (variant === "checksum") rows[0].checksum = "0".repeat(64);
+            if (sql.startsWith("SELECT count(*)")) return { rows: [{ migration_count: rows.length }] };
             return { rows };
           }
           return { rows: [{ ready: variant !== "inactive", authority_ready: 1 }] };
@@ -500,7 +502,7 @@ test("API startup activates the transaction-capable PostgreSQL authority without
   t.after(() => rmSync(parent, { recursive: true, force: true }));
   const fixture = await createOutlookAuthorityPostgresFixture(t);
   if (!fixture) return;
-  await runHrxPostgresMigrations(fixture.adminPool);
+  await runHistoricalHrxPostgresMigrations(fixture.adminPool);
   await runOutlookAuthorityPostgresMigrations(fixture);
   let closed = false;
   const pool = {

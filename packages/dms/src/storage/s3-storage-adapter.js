@@ -16,6 +16,14 @@ import { createS3ObjectGovernance } from "./s3-object-governance.js";
 import { isS3NotFound, readS3ResponseBody } from "./s3-provider-response.js";
 import { createS3StagedObjectLifecycle } from "./s3-staged-object-lifecycle.js";
 export { createS3StorageAdapterPlaceholder } from "./s3-storage-adapter-placeholder.js";
+const storageTargets = new WeakMap();
+
+export function getS3StorageTarget(storage) {
+  const target = storageTargets.get(storage);
+  if (!target) throw new TypeError("S3 storage target requires the constructed adapter");
+  return target;
+}
+
 const SECRET_FIELD = /(access.?key|authorization|client.?secret|credential(?!_ref)|password|secret.?key|session.?token)/iu;
 function codedError(message, code) {
   const error = new Error(message);
@@ -194,8 +202,17 @@ function createS3StorageAdapterInternal(config = {}) {
     getObjectRetention,
   } = governance;
 
-  return Object.freeze({
+  const storageTarget = Object.freeze({
+    bucket_ref: `s3://${bucket}/${prefix}`,
+    expected_bucket_owner: expectedBucketOwner,
+    region: client.config.region,
+    endpoint_mode: client.config.endpoint_mode,
+    kms_key_ref: encryption.SSEKMSKeyId ?? null,
+    server_side_encryption: encryption.ServerSideEncryption,
+  });
+  const adapter = Object.freeze({
     adapter_id,
+    storage_target: storageTarget,
     contract_version: DMS_STORAGE_ADAPTER_CONTRACT_VERSION,
     capabilities,
     provider: "s3",
@@ -240,6 +257,8 @@ function createS3StorageAdapterInternal(config = {}) {
     setObjectRetention,
     getObjectRetention,
   });
+  storageTargets.set(adapter, storageTarget);
+  return adapter;
 }
 export function createS3StorageAdapter(config) {
   return createS3StorageAdapterInternal(config);

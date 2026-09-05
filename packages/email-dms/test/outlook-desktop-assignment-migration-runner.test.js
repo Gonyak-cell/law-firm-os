@@ -55,7 +55,9 @@ const CLIENT_IDS = Object.freeze({
 function combinedCatalog() {
   return Object.freeze([
     ...listPostgresFoundationMigrations(),
-    ...listEmailDmsPostgresMigrations().map((migration) => Object.freeze({
+    ...listEmailDmsPostgresMigrations()
+      .filter(({ id }) => id !== "010_internal_unsigned_installation_authority")
+      .map((migration) => Object.freeze({
       ...migration,
       id: CLIENT_IDS[migration.id],
       source_migration_id: migration.id,

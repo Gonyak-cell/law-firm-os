@@ -77,6 +77,27 @@ function signAndVerify(request, pair, publicKeySpki = pair.publicKeySpki) {
   });
 }
 
+test("internal installation proof binds its own path and cannot replay as a legacy request", () => {
+  const pair = keyPair();
+  for (const operation of ["register", "heartbeat", "retire"]) {
+    const request = operation === "register"
+      ? registrationRequest(pair.publicKeySpki, {
+        path: "/api/desktop/internal-installations",
+        body: { release_authorization_id: "internal-release-001",
+          device_public_key: pair.publicKeySpki, installed_receipt_sha256: "a".repeat(64) },
+      })
+      : lifecycleRequest(operation, {
+        path: `/api/desktop/internal-installations/${INSTALLATION_ID}/${operation}`,
+      });
+    const signature = signOutlookDesktopLifecycleRequest(request, pair.privateKey);
+    assert.equal(signAndVerify(request, pair).operation, operation);
+    assert.throws(() => verifyOutlookDesktopLifecycleProof({
+      request: { ...request, path: request.path.replace("/internal-installations", "/installations") },
+      signature, public_key: pair.publicKeySpki, now: NOW,
+    }), { safe_error_code: "OUTLOOK_DESKTOP_PROOF_SIGNATURE_INVALID" });
+  }
+});
+
 test("candidate Ed25519 key self-signs a canonical registration request", () => {
   const pair = keyPair();
   const request = registrationRequest(pair.publicKeySpki);

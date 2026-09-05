@@ -45,6 +45,11 @@ function references(record) {
     });
   };
   add("matter", "Matter", record.matter_id, { target_domain_id: "matter" });
+  if (record.model_type === "DmsWorkspace" && record.scope_type === "legal_entity_administration" && record.status === "active") {
+    add("legal_entity", "Entity", record.legal_entity_id, { target_domain_id: "master-data", required: true });
+    add("organization", "Organization", record.organization_id, { target_domain_id: "master-data", required: true });
+    add("party", "Party", record.party_id, { target_domain_id: "master-data", required: true });
+  }
   if (record.model_type !== "DmsWorkspace") add("workspace", "DmsWorkspace", record.workspace_id);
   if (record.model_type === "DmsFolder") add("parent_folder", "DmsFolder", record.parent_folder_id);
   if (record.model_type === "DmsDocument") {
@@ -76,6 +81,9 @@ function references(record) {
 }
 
 function uniqueKey(record) {
+  if (record.model_type === "DmsWorkspace" && record.scope_type === "legal_entity_administration") {
+    return `legal-entity-administration:${record.legal_entity_id}`;
+  }
   if (record.model_type === "DmsWorkspace" && record.status === "active" && record.matter_id) {
     return `active-workspace:${record.matter_id}`;
   }

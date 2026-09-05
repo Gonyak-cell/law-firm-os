@@ -3,6 +3,7 @@ import test from "node:test";
 import { claimJsonPostgresProgramInvocation } from "../src/json-postgres-program-inputs.js";
 import {
   ACCOUNT,
+  authorization,
   boundAuthorization,
   environment,
   firstStoredClaim,
@@ -10,6 +11,7 @@ import {
   mutateStoredClaim,
   NOW,
   operationEvent,
+  refreshAuthorizationPacketSha256,
 } from "./json-postgres-outlook-authority-fixtures.js";
 async function writeClaim({
   client,
@@ -44,6 +46,33 @@ test("Outlook claim rejects event and binding drift before S3 access", async () 
     (error) => error?.code === "LAWOS_PROGRAM_AUTHORIZATION_CLAIM_BINDING",
   );
   assert.deepEqual(client.operations, []);
+});
+
+test("historical bootstrap continuation uses a fresh durable claim and rejects expired or changed approval bindings", async () => {
+  const base = authorization();
+  base.packet.bindings.migration_catalog_sha256 = "2ef366427d98ed297ab376c8fc7e6a255cf6a054d0eaa660dc6fb7e13c814f79";
+  base.packet.target.historical_outlook_bootstrap_sha256 = "b".repeat(64);
+  refreshAuthorizationPacketSha256(base);
+  base.approval.packet_sha256 = base.packet.packet_sha256;
+  const event = operationEvent({ packet_sha256: base.packet.packet_sha256 });
+  const approved = boundAuthorization(event, base);
+  const client = memoryS3();
+  const first = await writeClaim({ client, event, authorization: approved });
+  assert.equal(first.outcome, "claimed");
+  const replay = await writeClaim({ client, event, authorization: approved, now: NOW + 1000 });
+  assert.equal(replay.outcome, "replayed");
+  assert.deepEqual(replay.receipt, first.receipt);
+  for (const changed of [
+    { authorization: approved, now: Date.parse(base.approval.expires_at) },
+    { authorization: { ...approved, packet: { ...approved.packet, target: {
+      ...approved.packet.target, historical_outlook_bootstrap_sha256: "c".repeat(64),
+    } } }, now: NOW },
+  ]) {
+    const deniedClient = memoryS3();
+    await assert.rejects(writeClaim({ client: deniedClient, event, ...changed }));
+    assert.deepEqual(deniedClient.operations.map((command) => command.constructor.name),
+      changed.now === NOW ? [] : ["GetObjectCommand"]);
+  }
 });
 
 test("Outlook claim writes its closed durable request and result", async () => {

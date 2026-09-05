@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { execFileSync } from "node:child_process";
 import { createHash, createPublicKey } from "node:crypto";
 import {
   chmodSync,
@@ -13,9 +14,13 @@ import { dirname, relative, resolve, sep } from "node:path";
 import { createAmicInternalDistributionAwsCliAdapter } from "./lib/amic-os-internal-distribution-publication.mjs";
 import {
   verifyAmicInternalBaselineReadback,
+  verifyAmicInternalManagedBootstrapAdoptionReadback,
   verifyAmicInternalDistributionReadback,
   verifyAmicInternalManagedBootstrapReadback,
 } from "./lib/amic-os-internal-distribution-readback.mjs";
+
+import { createAmicInternalAdoptionAuthorityReader, parseAmicInternalAdoptionBundle, readAmicInternalAdoptionInstalledReceipt,
+  verifyAmicInternalBaselineAdoption } from "./lib/amic-os-internal-baseline-adoption.mjs";
 
 function option(name) {
   const index = process.argv.indexOf(name);
@@ -95,7 +100,29 @@ const common = {
   expectedPublicKeySha256,
   cloudFrontDomain: option("--cloudfront-domain"),
 };
-const receipt = publicationMode === "managed-bootstrap"
+const isAdoption = process.argv.includes("--adoption");
+let adoption;
+let adoptionAuthority;
+if (isAdoption) {
+  if (publicationMode !== "baseline") throw new Error("adoption readback requires baseline mode");
+  const prepared = parseAmicInternalAdoptionBundle(process.env.AMIC_INTERNAL_ADOPTION_BUNDLE_B64, { ...process.env, APPROVAL_REF: approvalRef });
+  const git = (args) => execFileSync("git", args, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] }).trim();
+  if (prepared.approved.request.executorSourceSha !== process.env.GITHUB_SHA
+      || git(["rev-parse", "HEAD"]) !== process.env.GITHUB_SHA
+      || git(["rev-parse", "HEAD^{tree}"]) !== prepared.approved.request.executorSourceTree
+      || git(["status", "--porcelain"]) !== ""
+      || bindings.retainUntil !== prepared.bundle.retainUntil) {
+    throw new Error("adoption readback executor or retention differs");
+  }
+  adoptionAuthority = createAmicInternalAdoptionAuthorityReader({ apiBaseUrl: process.env.AMIC_INTERNAL_CANONICAL_API_BASE_URL, sessionToken: process.env.AMIC_INTERNAL_ADOPTION_SESSION_TOKEN });
+  const installedReceiptBytes = await readAmicInternalAdoptionInstalledReceipt({ aws, bindings, bundle: prepared.bundle });
+  adoption = verifyAmicInternalBaselineAdoption({ ...prepared.options, installedReceiptBytes });
+} else if (process.env.AMIC_INTERNAL_ADOPTION_BUNDLE_B64) {
+  throw new Error("ordinary readback cannot include adoption authority");
+}
+const receipt = isAdoption
+  ? await verifyAmicInternalManagedBootstrapAdoptionReadback({ ...common, baselineMarker: locator, adoption, authority: adoptionAuthority })
+  : publicationMode === "managed-bootstrap"
   ? await verifyAmicInternalManagedBootstrapReadback({
     ...common, bootstrapMarker: locator,
     expectedRelease: readJson(option("--release"), "approved managed bootstrap release"),

@@ -25,11 +25,11 @@ function testExecutor() {
   return (input) => executeProductionMigrationCatalogReadback(input);
 }
 
-test("the action binds the full closed 79-row schema ledger", () => {
-  assert.equal(CLIENT_OPERATIONS_SCHEMA_MANIFEST.schema_migration_count, 79);
+test("the action binds the full closed 81-row schema ledger", () => {
+  assert.equal(CLIENT_OPERATIONS_SCHEMA_MANIFEST.schema_migration_count, 81);
   assert.equal(
     CLIENT_OPERATIONS_SCHEMA_MANIFEST.schema_sha256,
-    "fe0b9c53de1617361fd607692beb7e462b28159321e7830d507836948fcfdbc3",
+    "29530ec602b720deeb1e26625c85a3dcc1268e2bfc116b6b86bfada761cb38a7",
   );
   assert.equal(
     packet().packet.source_catalog.catalog_sha256,

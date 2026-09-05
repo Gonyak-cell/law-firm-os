@@ -1122,7 +1122,7 @@ export const DMS_LIFECYCLE_STATUSES = Object.freeze([
 ]);
 
 export const DMS_VERSION_STATUSES = Object.freeze(["current", "superseded", "locked", "held"]);
-export const DMS_WORKSPACE_STATUSES = Object.freeze(["active", "archived", "held"]);
+export const DMS_WORKSPACE_STATUSES = Object.freeze(["active", "archived", "held", "pending_anchor"]);
 export const DMS_REVIEW_STATUSES = Object.freeze(["not_reviewed", "under_review", "approved", "blocked"]);
 export const DMS_SOURCE_POLICIES = Object.freeze(["source_required", "uncited_internal_note", "reserved_for_rp07_search"]);
 
@@ -1130,7 +1130,7 @@ export const DMS_CORE_MODEL_DEFINITIONS = Object.freeze({
   DmsWorkspace: Object.freeze({
     model_type: "DmsWorkspace",
     owner_module: "legal-workspace-dms",
-    description: "Matter-scoped DMS workspace descriptor.",
+    description: "Matter or privately owned legal-entity administration workspace descriptor.",
     required_fields: Object.freeze([
       "workspace_id",
       "tenant_id",
@@ -1316,7 +1316,7 @@ export const DMS_CORE_PROGRAM_CONTRACT = Object.freeze({
 });
 
 export const DMS_CORE_OPTIONAL_FIELD_REGISTRY = Object.freeze({
-  DmsWorkspace: Object.freeze(["root_folder_id", "matter_trace_ref", "client_visible_by_default"]),
+  DmsWorkspace: Object.freeze(["root_folder_id", "matter_trace_ref", "client_visible_by_default", "scope_type", "legal_entity_id", "organization_id", "party_id", "owner_user_id", "permission_ref"]),
   DmsFolder: Object.freeze(["parent_folder_id"]),
   DmsDocument: Object.freeze(["folder_id", "retention_label_id", "legal_hold_id", "source_policy", "client_visible_candidate"]),
   DmsDocumentVersion: Object.freeze(["created_by", "created_at", "hash_algorithm"]),
@@ -1348,6 +1348,7 @@ export const DMS_CORE_REFERENCE_RELATIONSHIP_MAP = Object.freeze({
 });
 
 export const DMS_CORE_STATE_TRANSITION_MAP = Object.freeze({
+  pending_anchor: Object.freeze(["active"]),
   active: Object.freeze(["archived", "held", "superseded"]),
   draft: Object.freeze(["active", "archived"]),
   current: Object.freeze(["superseded", "locked", "held"]),

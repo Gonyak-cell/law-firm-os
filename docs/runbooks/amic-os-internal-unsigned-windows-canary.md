@@ -274,3 +274,66 @@ over `C:\Program Files\matter`.
 | Date | Run by | Notes |
 | --- | --- | --- |
 | 2026-09-04 | Codex local implementation | Collector and cross-receipt validator added; current-candidate host run remains pending |
+
+## Adopt an already installed managed bootstrap
+
+`adopt-managed-bootstrap` is an owner-approved control operation on an existing
+private build. It keeps the original release ID, sequence, version, source SHA,
+source tree and all four artifact object references, including their VersionIds.
+It creates five control objects and a nine-reference baseline. It performs no
+Windows build, installer upload, channel publication or rollback authorization.
+The existing successor and desktop signature checks still apply after adoption.
+
+Before dispatch, complete the dedicated internal-unsigned installation authority
+registration using the signed-in principal and device proof. A Windows `installed`
+receipt alone, an invented `odi_` identifier, or a caller-provided trust flag cannot
+establish this authority. Preserve any previous installation/device binding; use
+its explicit retirement and fresh enrollment procedure if the principal already
+has one. Do not modify the formal/macOS or legacy Windows compatibility policy.
+
+Prepare the closed request accepted by
+`scripts/lib/amic-os-internal-baseline-adoption.mjs`. It binds the current reviewed
+executor SHA/tree, original managed-bootstrap release and exact marker, real
+installation ID, canary ID, exact installed-receipt hash, approval reference,
+operation window, and separate original/artifact and new/control retention dates.
+The original objects retain their existing retention dates. The new controls
+require 365–3650 days from execution; retainUntil is never rounded down.
+
+Request a server-signed attestation from
+`POST /api/desktop/internal-updates/baseline-adoption-attestation` with
+`{adoption_id, request_sha256, installation_id}` through the current signed
+session. Its maximum lifetime is five minutes and it binds the exact active
+installation state version, lease, release authorization and installed receipt.
+After that snapshot, obtain the owner signature for action
+`lawos-amic-internal-baseline-adopt`, the current executor SHA/tree, and the SHA-256
+of canonical `{request, attestation_sha256}`. The exact data scope is the bootstrap
+marker hash, installation ID and installed-receipt hash; contact scope is empty.
+A changed heartbeat state, revoked release, retired installation or expired
+snapshot requires refreshed evidence and a new approval.
+
+Stage the exact installed receipt privately at
+`internal-unsigned/baseline/adoption-inputs/<request-sha256>/installed.json`.
+Record its immutable VersionId, SHA-256 and byte count. Require the distribution
+bucket's KMS encryption, compliance retention equal to the new control retention,
+and metadata `artifact-kind=windows_installed_receipt` plus `artifact-sha256`.
+This preparation input is outside the five publication control objects. Keep the
+raw Windows receipt, local paths and session token out of workflow input values.
+
+The dispatch bundle contains exactly `request`, `attestation`,
+`ownerApprovalReceipt`, `ownerApprovalSignatureBase64`, `installedReceiptRef` and
+`retainUntil` (the new control retention). Set `publication_mode` to
+`adopt-managed-bootstrap` and supply only this bundle in
+`adoption_document_base64`; ordinary release/revocation/rollback documents stay
+empty. Both existing protected environments must pin the issuer public key/ID
+and owner registry independently of the bundle. They also require a fresh signed
+session secret for the narrow current-state read. The canonical API origin is
+fixed in the reader; a dispatch input cannot redirect its bearer token.
+
+The publisher rechecks current authority before writing and immediately before
+its conditional baseline marker commit. The isolated AWS readback job reads the
+seven original versions and nine baseline references, compares all four original
+artifact references, and rechecks current authority before and after those reads.
+A PASS proves this adoption only. Login/data access, successor update, rollback,
+uninstall and hosted-data preservation still need their separate real-host
+receipts. Preserve partially written controls and failed receipts; a marker
+conflict or existing baseline/channel history requires read-only diagnosis.

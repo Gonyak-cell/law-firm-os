@@ -47,6 +47,8 @@ function rowRecordId(table, row) {
   return `sha256:${hashDomainValue(identity)}`;
 }
 
+export { rowRecordId as createHrxDomainRecordId };
+
 function rowUniqueKey(table, row) {
   const fields = (HRX_TABLE_UNIQUE_CONSTRAINTS[table] ?? []).find((constraint) =>
     constraint.every((field) => row[field] !== undefined && row[field] !== null && row[field] !== ""));

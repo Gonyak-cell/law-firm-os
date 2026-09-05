@@ -94,6 +94,7 @@ export async function startDisposablePostgres(t, {
 
 export async function createMigratedPostgresFixture(t, {
   appPoolMax = 10,
+  foundationMigrations,
   outlookAuthorityAdmin = false,
 } = {}) {
   const baseInstance = await startDisposablePostgres(t, {
@@ -146,7 +147,9 @@ export async function createMigratedPostgresFixture(t, {
   let appPool;
   const tenantContextSecret = randomBytes(32).toString("base64url");
   try {
-    await runPostgresMigrations(adminPool, { appliedBy: "disposable-contract-test" });
+    await runPostgresMigrations(adminPool, {
+      appliedBy: "disposable-contract-test", migrations: foundationMigrations,
+    });
     await adminPool.query(outlookAuthorityAdmin
       ? `CREATE ROLE lawos_app LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE
            NOINHERIT NOREPLICATION NOBYPASSRLS CONNECTION LIMIT 64`

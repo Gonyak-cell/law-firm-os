@@ -4,7 +4,9 @@ import { verifyOutlookAssignmentMigrationPreflight } from "../../../packages/ema
 import { verifyOutlookAssignmentMigrationPostflight } from "../../../packages/email-dms/src/outlook-desktop-assignment-migration-postflight.js";
 import { configureLawosOutlookDatabaseRoles, verifyLawosOutlookApplicationRolePrecondition, verifyLawosOutlookDatabaseRoles } from "../../../packages/persistence/src/postgres/outlook-authority-roles.js";
 import { assertOutlookAuthorityMigrationFailureReceipt, assertOutlookAuthorityMigrationRunReceipt, createOutlookPostgresRoleConfigurationCommitUnknownError } from "../../../packages/persistence/src/postgres/migration-runner.js";
-import { CLIENT_OPERATIONS_MIGRATION_CATALOG, normalizeClientOperationsMigrationCatalog } from "./client-operations-schema.js";
+import { CLIENT_OPERATIONS_MIGRATION_CATALOG, selectClientOperationsMigrationTarget } from "./client-operations-schema.js";
+import { hashDomainValue } from "../../../packages/persistence/src/domain-ledger.js";
+import { readInternalUnsignedInstallationAuthorityReadback } from "../../../packages/email-dms/src/internal-unsigned-installation-authority-readback.js";
 
 const SHA256 = /^[a-f0-9]{64}$/u;
 const TENANT = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/u;
@@ -14,15 +16,13 @@ const OPTION_KEYS = Object.freeze(["approvedTenantIds", "assignmentPassword",
 const MIGRATION = Object.freeze({ catalog_id: AUTHORITY.bootstrap_receipt.migration_catalog_id,
   schema_version: AUTHORITY.bootstrap_receipt.migration_schema_version,
   target_schema: AUTHORITY.schema.name });
-const NORMALIZED_MIGRATION_CATALOG = normalizeClientOperationsMigrationCatalog(
-  CLIENT_OPERATIONS_MIGRATION_CATALOG,
-);
-const MIGRATION_CATALOG_ROWS = Object.freeze(
-  CLIENT_OPERATIONS_MIGRATION_CATALOG.migrations.map((row) => Object.freeze({
-    id: row.id, source_migration_id: row.source_migration_id,
-    file_name: row.file_name, checksum: row.checksum,
-  })),
-);
+const HISTORICAL_MIGRATION_CATALOG_SHA256 = hashDomainValue({
+  ...CLIENT_OPERATIONS_MIGRATION_CATALOG,
+  migration_count: 79,
+  migrations: CLIENT_OPERATIONS_MIGRATION_CATALOG.migrations.filter(({ id }) =>
+    id !== "016_dms_corporate_workspace"
+      && id !== "309_client_internal_unsigned_installation_authority"),
+});
 
 function fail(message) {
   throw Object.assign(new Error(message),
@@ -63,7 +63,13 @@ export function createJsonPostgresOutlookAuthorityMigrationAdapter(options = {})
   const callerSecret = Buffer.isBuffer(options?.tenantContextSecret)
     ? options.tenantContextSecret : null;
   try {
-    exactRecord(options, OPTION_KEYS, "Outlook migration adapter options");
+    const hasHistoricalBootstrap = options != null && Object.hasOwn(options, "historicalOutlookBootstrapSha256");
+    exactRecord(options, hasHistoricalBootstrap
+      ? [...OPTION_KEYS, "historicalOutlookBootstrapSha256"] : OPTION_KEYS,
+    "Outlook migration adapter options");
+    const historicalBootstrapSha = hasHistoricalBootstrap
+      ? digest(options.historicalOutlookBootstrapSha256, "historical Outlook bootstrap SHA-256")
+      : undefined;
     const authoritySha = digest(options.authorityManifestSha256,
       "authority manifest SHA-256");
     const targetSha = digest(options.databaseTargetReceiptSha256,
@@ -73,10 +79,17 @@ export function createJsonPostgresOutlookAuthorityMigrationAdapter(options = {})
     if (authoritySha !== OUTLOOK_DESKTOP_ASSIGNMENT_AUTHORITY_CATALOG_SHA256) {
       fail("authority manifest does not match the reviewed catalog");
     }
-    if (migrationSha !== NORMALIZED_MIGRATION_CATALOG.migration_catalog_sha256) {
+    let target;
+    try { target = selectClientOperationsMigrationTarget(migrationSha); } catch {
       fail("migration manifest does not match the reviewed catalog");
     }
-    const catalog = MIGRATION_CATALOG_ROWS;
+    if (hasHistoricalBootstrap && ![80, 81].includes(target.catalog.migration_count)) {
+      fail("historical Outlook bootstrap requires a reviewed append target");
+    }
+    const catalog = Object.freeze(target.catalog.migrations.map((row) => Object.freeze({
+      id: row.id, source_migration_id: row.source_migration_id,
+      file_name: row.file_name, checksum: row.checksum,
+    })));
     const tenants = options.approvedTenantIds;
     const passwords = [options.controlPassword, options.assignmentPassword,
       options.lifecycleVerifierPassword];
@@ -100,6 +113,7 @@ export function createJsonPostgresOutlookAuthorityMigrationAdapter(options = {})
     let pause;
     let readiness;
     let replay = false;
+    let assignmentPostflight;
     let disposed = false;
     const assertCallback = (client, callbackCatalog, expectedPhase) => {
       if (phase !== expectedPhase || !client || typeof client.query !== "function"
@@ -113,6 +127,7 @@ export function createJsonPostgresOutlookAuthorityMigrationAdapter(options = {})
       authorityManifestSha256: authoritySha,
       databaseTargetReceiptSha256: targetSha,
       migrationCatalogSha256: migrationSha,
+      ...(hasHistoricalBootstrap ? { historicalOutlookBootstrapSha256: historicalBootstrapSha } : {}),
       async onBeforeMigrations(client, callbackCatalog) {
         assertCallback(client, callbackCatalog, "before");
         const applied = (await client.query(
@@ -135,13 +150,21 @@ export function createJsonPostgresOutlookAuthorityMigrationAdapter(options = {})
         if (replay) {
           pause = await readOutlookAssignmentMigrationPauseExpectation(client);
           if (pause.authority_manifest_sha256 !== authoritySha
-              || pause.database_target_receipt_sha256 !== targetSha
-              || pause.migration_catalog_sha256 !== migrationSha) {
+              || (hasHistoricalBootstrap
+                ? hashDomainValue(pause) !== historicalBootstrapSha
+                  || pause.migration_catalog_sha256 !== HISTORICAL_MIGRATION_CATALOG_SHA256
+                : pause.database_target_receipt_sha256 !== targetSha)
+              || (pause.migration_catalog_sha256 !== migrationSha
+                && (HISTORICAL_MIGRATION_CATALOG_SHA256 !==
+                  "43c6a087834d9dd2177be0b63fc94cf723181b93b04f40a65689b6431bd44556"
+                  || pause.migration_catalog_sha256 !==
+                    HISTORICAL_MIGRATION_CATALOG_SHA256))) {
             fail("persisted Outlook migration expectation drifted");
           }
           phase = "post";
           return pause;
         }
+        if (hasHistoricalBootstrap) fail("historical Outlook bootstrap requires an existing protected receipt");
         phase = "paused";
         return undefined;
       },
@@ -197,8 +220,21 @@ export function createJsonPostgresOutlookAuthorityMigrationAdapter(options = {})
           authority_catalog: AUTHORITY,
           transaction_mode: replay ? "read_only" : "write",
         });
-        phase = "complete";
+        assignmentPostflight = result;
+        phase = "internal";
         return result;
+      },
+      async onInternalUnsignedInstallationAuthorityPostMigration(client, callbackCatalog) {
+        assertCallback(client, callbackCatalog, "internal");
+        const internal = await readInternalUnsignedInstallationAuthorityReadback(client);
+        phase = "complete";
+        return Object.freeze({
+          role_bootstrap_sha256: assignmentPostflight.role_bootstrap_sha256,
+          authority_postflight_sha256: hashDomainValue({
+            outlook_assignment: assignmentPostflight,
+            internal_unsigned_installation: internal,
+          }),
+        });
       },
     });
     const expectation = () => ({
@@ -207,6 +243,7 @@ export function createJsonPostgresOutlookAuthorityMigrationAdapter(options = {})
       database_target_receipt_sha256: targetSha,
       migration_catalog: catalog,
       migration_catalog_sha256: migrationSha,
+      ...(hasHistoricalBootstrap ? { historical_outlook_bootstrap_sha256: historicalBootstrapSha } : {}),
       ...(pause ? { role_bootstrap_sha256: pause.role_bootstrap_sha256 } : {}),
       session_user: AUTHORITY.migration_admin,
     });

@@ -8,6 +8,7 @@ on:
       - "apps/api/**"
       - "infra/lawos-production/**"
       - "packages/dms/**"
+      - "packages/email-dms/**"
       - "packages/hrx/**"
       - "packages/persistence/**"
       - "packages/runtime-auth/**"
@@ -21,6 +22,7 @@ on:
       - "apps/api/**"
       - "infra/lawos-production/**"
       - "packages/dms/**"
+      - "packages/email-dms/**"
       - "packages/hrx/**"
       - "packages/persistence/**"
       - "packages/runtime-auth/**"
@@ -71,22 +73,43 @@ jobs:
             apps/api/test/break-glass-postgres.test.js \
             apps/api/test/finance-postgres-adapter.test.js \
             apps/api/test/immutable-program-input.test.js \
+            apps/api/test/client-operations-internal-installation-catalog.test.js \
+            apps/api/test/client-operations-outlook-assignment-catalog.test.js \
+            apps/api/test/internal-unsigned-installation-api.test.js \
+            apps/api/test/internal-unsigned-legacy-client-http.test.js \
+            apps/api/test/json-postgres-outlook-authority-migration-adapter.test.js \
+            apps/api/test/json-postgres-outlook-authority-operation.test.js \
+            apps/api/test/json-postgres-outlook-authority-claim.test.js \
+            apps/api/test/json-postgres-outlook-authority-terminal-contract.test.js \
             apps/api/test/json-postgres-program-admin-lambda.test.js \
             apps/api/test/json-postgres-program-inputs.test.js \
             apps/api/test/json-postgres-source-transform.test.js \
             apps/api/test/member-photo-storage-composition.test.js \
             apps/api/test/persistence-authority.test.js \
+            apps/api/test/persistence-authority-schema-bridge.test.js \
+            apps/api/test/persistence-authority-schema-transition-postgres.test.js \
             apps/api/test/postgres-api-runtime-authority.test.js \
             apps/api/test/postgres-vault-dms-api.test.js \
             apps/api/test/private-staging-cut006.test.js \
             apps/api/test/production-lawos-role-registry.test.js \
             apps/api/test/session-auth-api.test.js \
+            apps/api/test/vault-corporate-permission.test.js \
+            apps/api/test/vault-corporate-warm-authority.test.js \
             apps/api/test/vault-dms-governance-security.test.js \
             apps/api/test/vault-dms-postgres-runtime.test.js \
             packages/dms/test/central-ledger.test.js \
             packages/dms/test/json-postgres-dms-migration.test.js \
+            packages/dms/test/postgres-corporate-upload.test.js \
+            packages/dms/test/postgres-corporate-workspace.test.js \
             packages/dms/test/postgres-security-regressions.test.js \
             packages/dms/test/upload-reconciliation.test.js \
+            packages/email-dms/test/internal-unsigned-installation-authority-readback.test.js \
+            packages/email-dms/test/outlook-desktop-installation-proof.test.js \
+            packages/email-dms/test/postgres-internal-unsigned-installation-authority.test.js \
+            packages/email-dms/test/postgres-internal-unsigned-installation-legacy-bridge.test.js \
+            packages/email-dms/test/postgres-internal-unsigned-installation-service.test.js \
+            packages/email-dms/test/postgres-outlook-desktop-installation-authority-service.test.js \
+            packages/email-dms/test/postgres-outlook-desktop-legacy-windows-compatibility.test.js \
             packages/hrx/test/postgres-migrations.test.js \
             packages/hrx/test/postgres-projection-role.test.js \
             packages/hrx/test/postgres-store-v2.test.js \
@@ -99,9 +122,11 @@ jobs:
             packages/persistence/test/json-postgres-migration.test.js \
             packages/persistence/test/migration-executor.test.js \
             packages/persistence/test/migration-reconciliation.test.js \
+            packages/persistence/test/outlook-authority-corporate-workspace-receipts.test.js \
             packages/persistence/test/performance-acceptance.test.js \
             packages/persistence/test/postgres-application-role.test.js \
             packages/persistence/test/postgres-repository-contract.test.js \
+            packages/persistence/test/postgres-reviewed-corporate-transition.test.js \
             packages/persistence/test/postgres-transaction.test.js \
             packages/persistence/test/private-staging-cut005.test.js \
             packages/persistence/test/program-stage-gates.test.js \
@@ -113,6 +138,10 @@ jobs:
             packages/persistence/test/source-authority-manifest.test.js \
             packages/persistence/test/source-inventory.test.js \
             packages/persistence/test/source-read-contract.test.js \
+            scripts/test/amic-member-photo-replacement.test.mjs \
+            scripts/test/corporate-record-import.test.mjs \
+            packages/runtime-auth/test/internal-unsigned-installation-attestation.test.js \
+            scripts/test/internal-unsigned-installation-release-authorization.test.mjs \
             scripts/test/json-postgres-artifact-reproducibility.test.mjs \
             scripts/test/json-postgres-dr-recovery.test.mjs \
             scripts/test/json-postgres-execution-contract.test.mjs \

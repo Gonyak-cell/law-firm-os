@@ -244,6 +244,12 @@ import {
   mapOutlookDesktopInstallationRequestBodyError,
 } from "./outlook-desktop-installation-runtime-context.js";
 import {
+  composeInternalUnsignedInstallationRuntime,
+  createInternalUnsignedInstallationRuntimeFromEnv,
+  handleInternalUnsignedInstallationApiRequest,
+  isInternalUnsignedInstallationApiPath,
+} from "./internal-unsigned-installation-runtime-context.js";
+import {
   OUTLOOK_DESKTOP_ACTIVATION_BOUNDED_CONTEXT,
   OUTLOOK_DESKTOP_ACTIVATION_MAX_BODY_BYTES,
   handleOutlookDesktopActivationApiRequest,
@@ -1286,7 +1292,8 @@ function requestUsesProductRuntime(req) {
   const pathname = new URL(req.url || "/", `http://${HOST}`).pathname.replace(/\/+$/, "") || "/";
   return !["/api/health", "/health"].includes(pathname)
     && !pathname.startsWith("/api/auth")
-    && !isOutlookDesktopInstallationApiPath(pathname);
+    && !isOutlookDesktopInstallationApiPath(pathname)
+    && !isInternalUnsignedInstallationApiPath(pathname);
 }
 
 function clientOutlookCallbackRuntimeTenant(req, m365GraphConfig) {
@@ -1926,11 +1933,14 @@ async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, mast
     && isOutlookDesktopActivationApiPath(pathname);
   const isOutlookDesktopInstallationPath =
     isOutlookDesktopInstallationApiPath(pathname);
+  const isInternalUnsignedInstallationPath =
+    isInternalUnsignedInstallationApiPath(pathname);
   const isInternalUnsignedUpdatePath =
     pathname === INTERNAL_UNSIGNED_UPDATE_AUTHORIZE_PATH;
   const isOutlookDesktopPath =
     isOutlookDesktopActivationPath
     || isOutlookDesktopInstallationPath
+    || isInternalUnsignedInstallationPath
     || isInternalUnsignedUpdatePath;
   const isUiReadinessPath = pathname.startsWith("/api/ui");
   const isHomeDashboardPath = pathname.startsWith("/home") || pathname.startsWith("/api/home");
@@ -2344,6 +2354,28 @@ async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, mast
       context: requestPermissionContext(),
       requestId,
       runtime: outlookDesktopRuntime,
+    });
+    sendJson(req, res, result.status, result.body);
+    return;
+  }
+
+  if (isInternalUnsignedInstallationPath) {
+    let body = {};
+    if (req.method === "POST") {
+      try {
+        body = await readRequestBody(req, {
+          maxBytes: OUTLOOK_DESKTOP_INSTALLATION_MAX_BODY_BYTES,
+          injectAuthenticatedActor: false,
+        });
+      } catch (error) {
+        const result = mapOutlookDesktopInstallationRequestBodyError(error, requestId);
+        sendJson(req, res, result.status, result.body);
+        return;
+      }
+    }
+    const result = await handleInternalUnsignedInstallationApiRequest({
+      pathname, method: req.method, body, principal: sessionContext.principal,
+      context: requestPermissionContext(), requestId, runtime: outlookDesktopRuntime,
     });
     sendJson(req, res, result.status, result.body);
     return;
@@ -3796,24 +3828,34 @@ async function startApiServerImplementation({
                 ] === "true",
             })
           : null;
-      const operationalOutlookDesktopRuntime =
-        createPostgresOutlookDesktopOperationalRuntime({
+      const internalUnsignedInstallationService =
+        await createInternalUnsignedInstallationRuntimeFromEnv({
+          env: resolvedPersistenceAuthorityEnv,
           pool: postgresPool,
           tenant_id: startupAuthorityTenantId,
-          entra_tenant_id: m365GraphConfig?.entra_tenant_id ?? null,
-          entitlement_roster: resolveOutlookDesktopAutoconnectRoster(
-            outlookDesktopAutoconnectRoster
-              ?? resolvedPersistenceAuthorityEnv[
-                LAWOS_OUTLOOK_DESKTOP_AUTOCONNECT_ROSTER_ENV
-              ],
-          ),
-          ...(outlookDesktopEntitlementEnabled
-            ? {
-                outlookDesktopActivationControlPort,
-                outlookDesktopLifecycleControlPort,
-              }
-            : {}),
+          schema_migration_count: persistenceAuthorityState.migration_count,
         });
+      const operationalOutlookDesktopRuntime =
+        composeInternalUnsignedInstallationRuntime(
+          createPostgresOutlookDesktopOperationalRuntime({
+            pool: postgresPool,
+            tenant_id: startupAuthorityTenantId,
+            entra_tenant_id: m365GraphConfig?.entra_tenant_id ?? null,
+            entitlement_roster: resolveOutlookDesktopAutoconnectRoster(
+              outlookDesktopAutoconnectRoster
+                ?? resolvedPersistenceAuthorityEnv[
+                  LAWOS_OUTLOOK_DESKTOP_AUTOCONNECT_ROSTER_ENV
+                ],
+            ),
+            ...(outlookDesktopEntitlementEnabled
+              ? {
+                  outlookDesktopActivationControlPort,
+                  outlookDesktopLifecycleControlPort,
+                }
+              : {}),
+          }),
+          internalUnsignedInstallationService,
+        );
       const operationalM365GraphConfig = outlookConversationRuntime
         ? Object.freeze({
             ...m365GraphConfig,

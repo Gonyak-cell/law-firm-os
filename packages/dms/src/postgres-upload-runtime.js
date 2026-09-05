@@ -30,6 +30,7 @@ const COMPLETION_AUTHORITY_QUARANTINE_SCHEMA = "law-firm-os.dms-completion-autho
 const COMPLETION_AUTHORITY_CONTRACT_SCHEMA = "law-firm-os.dms-completion-authority-contract.v1";
 const EXTERNAL_METADATA_GUARD_SCHEMA = "law-firm-os.dms-external-metadata-guard.v1";
 const EXTERNAL_METADATA_RECOVERY_SCHEMA = "law-firm-os.dms-external-metadata-guard-recovery.v1";
+const CORPORATE_UPLOAD_RECOVERY_SCHEMA = "law-firm-os.dms-corporate-upload-recovery.v1";
 const INTAKE_METADATA_GUARD_FIELDS = Object.freeze([
   "actor_id",
   "claim_id",
@@ -545,6 +546,7 @@ export function createPostgresDmsUploadRuntime({
   );
 
   async function quarantineCompletionAuthorityUpload(session, error) {
+    if (session.workspace_authority_sha256) return preserveCorporateUpload(session, error);
     const quarantinedAt = timestamp(clock);
     const safeCode = safeErrorCode(error, "DMS_COMPLETION_AUTHORITY_REJECTED");
     const deny = storage.armCommittedObjectQuarantine;
@@ -980,7 +982,7 @@ export function createPostgresDmsUploadRuntime({
     return Object.freeze({
       tenant_id: requiredText(input.tenant_id, "tenant_id"),
       idempotency_key: requiredText(input.idempotency_key, "idempotency_key"),
-      matter_id: requiredText(input.matter_id, "matter_id"),
+      matter_id: input.matter_id == null ? null : requiredText(input.matter_id, "matter_id"),
       workspace_id: requiredText(input.workspace_id, "workspace_id"),
       document_id: requiredText(input.document_id, "document_id"),
       version_id: requiredText(input.version_id, "version_id"),
@@ -1000,8 +1002,83 @@ export function createPostgresDmsUploadRuntime({
     });
   }
 
+  async function corporateWorkspaceAuthority(client, session, { input = null, finalizedReplay = false } = {}) {
+    const result = await client.query(
+      `SELECT tenant_id, payload, payload_hash FROM lawos_domain.records
+        WHERE tenant_id = $1 AND domain_id = 'dms-auxiliary'
+          AND record_type = 'DmsWorkspace' AND record_id = $2 FOR SHARE`,
+      [session.tenant_id, session.workspace_id],
+    );
+    const row = result.rows[0];
+    const workspace = row?.payload;
+    const reject = () => { throw codedError("DMS corporate workspace authority changed or is invalid", "DMS_CORPORATE_WORKSPACE_AUTHORITY_REJECTED"); };
+    if (workspace?.scope_type !== "legal_entity_administration") {
+      if (session.workspace_authority_sha256 || session.matter_id === null
+        || (row && (workspace.tenant_id !== session.tenant_id || workspace.matter_id !== session.matter_id))) reject();
+      return null;
+    }
+    if (row.tenant_id !== session.tenant_id || workspace.tenant_id !== session.tenant_id || workspace.model_type !== "DmsWorkspace"
+      || workspace.workspace_id !== session.workspace_id || workspace.matter_id !== null
+      || workspace.synthetic_only !== false || workspace.client_visible_by_default !== false || !["pending_anchor", "active"].includes(workspace.status)
+      || session.matter_id !== null || session.actor_id !== workspace.owner_user_id
+      || session.completion_authority != null || session.provider_receipt?.completion_authority != null
+      || session.permission_envelope_id !== workspace.permission_envelope_id
+      || !["legal_entity_id", "organization_id", "party_id", "owner_user_id", "permission_envelope_id", "permission_ref"].every((key) => typeof workspace[key] === "string" && workspace[key].trim() === workspace[key] && workspace[key] !== "")
+      || row.payload_hash !== hashValue(workspace)
+      || (!finalizedReplay && session.workspace_authority_sha256 && session.workspace_authority_sha256 !== row.payload_hash)) reject();
+    if (input && ["scope_type", "owner_user_id", "legal_entity_id", "organization_id", "party_id", "permission_ref"].some((key) => input[key] != null && input[key] !== workspace[key])) reject();
+    return row.payload_hash;
+  }
+
+  async function preserveCorporateUpload(session, error) {
+    if (!session.workspace_authority_sha256 || session.state === "finalized") return session;
+    const preservedAt = timestamp(clock);
+    const safeCode = safeErrorCode(error, "DMS_CORPORATE_UPLOAD_MANUAL_RECOVERY_REQUIRED");
+    return transact(session.tenant_id, async (client) => {
+      const locked = await selectSession(client, session.tenant_id, session.session_id, { lock: true });
+      if (locked.state === "finalized" || locked.dead_letter_receipt?.schema_version === CORPORATE_UPLOAD_RECOVERY_SCHEMA) return locked;
+      const receipt = {
+        schema_version: CORPORATE_UPLOAD_RECOVERY_SCHEMA,
+        session_id: locked.session_id,
+        object_id: locked.object_id,
+        workspace_authority_sha256: locked.workspace_authority_sha256,
+        safe_error_code: safeCode,
+        recovery_state: "manual_recovery_required",
+        automatic_cleanup_allowed: false,
+        uploaded_bytes_preserved: true,
+        provider_bytes_committed: locked.provider_finalized_at ? true : locked.state === "provider_finalizing" ? null : false,
+        recorded_at: preservedAt,
+      };
+      const updated = await client.query(
+        `UPDATE lawos_dms.upload_sessions SET state = 'failed_terminal', retryable = false,
+          last_error_code = $3, dead_letter_receipt = $4::jsonb, failed_terminal_at = $5::timestamptz,
+          stage_lease_owner = NULL, stage_lease_token = NULL, stage_lease_expires_at = NULL,
+          provider_finalize_owner = NULL, provider_finalize_token = NULL, provider_finalize_lease_expires_at = NULL,
+          reconcile_owner = NULL, reconcile_lease_expires_at = NULL, updated_at = $5::timestamptz
+          WHERE tenant_id = $1 AND session_id = $2 RETURNING *`,
+        [locked.tenant_id, locked.session_id, safeCode, JSON.stringify(receipt), preservedAt],
+      );
+      await appendAudit(client, {
+        tenant_id: locked.tenant_id, event_id: `audit:${locked.session_id}:corporate-manual-recovery`,
+        event_type: "dms.upload_session.corporate_manual_recovery", actor_id: locked.actor_id,
+        object_type: "DmsUploadSession", object_id: locked.session_id, payload: receipt, created_at: preservedAt,
+      });
+      return rowToSession(updated.rows[0]);
+    });
+  }
+
+  async function checkCorporateUploadAuthority(session) {
+    if (!session.workspace_authority_sha256) return;
+    try {
+      await transact(session.tenant_id, (client) => corporateWorkspaceAuthority(client, session));
+    } catch (error) {
+      await preserveCorporateUpload(session, error);
+      throw error;
+    }
+  }
+
   async function createUploadSession(input = {}) {
-    const normalized = normalizedUploadRequest(input);
+    let normalized = normalizedUploadRequest(input);
     const tenantId = normalized.tenant_id;
     const idempotencyKey = normalized.idempotency_key;
     const sessionId = input.session_id ? requiredText(input.session_id, "session_id") : `dms-upload:${idFactory()}`;
@@ -1011,7 +1088,6 @@ export function createPostgresDmsUploadRuntime({
         : null,
       { ...normalized, session_id: sessionId },
     );
-    const requestHash = uploadRequestHash(normalized);
     const createdAt = timestamp(clock);
     const initialNextAttemptAt = input.initial_next_attempt_at == null
       ? createdAt
@@ -1020,16 +1096,28 @@ export function createPostgresDmsUploadRuntime({
       throw new TypeError("initial_next_attempt_at must equal expires_at");
     }
     return transact(tenantId, async (client) => {
+      const prior = await client.query(
+        "SELECT * FROM lawos_dms.upload_sessions WHERE tenant_id = $1 AND idempotency_key = $2",
+        [tenantId, idempotencyKey],
+      );
+      const finalizedReplay = prior.rows[0]?.state === "finalized" && prior.rows[0].workspace_authority_sha256;
+      const workspaceHash = await corporateWorkspaceAuthority(client, normalized, { input, finalizedReplay: Boolean(finalizedReplay) });
+      if (workspaceHash) normalized = Object.freeze({ ...normalized, workspace_authority_sha256: finalizedReplay ? prior.rows[0].workspace_authority_sha256 : workspaceHash });
+      const requestHash = uploadRequestHash(normalized);
+      if (finalizedReplay) {
+        if (prior.rows[0].request_hash !== requestHash) throw codedError("DMS upload idempotency key was reused with a different request", "DMS_IDEMPOTENCY_CONFLICT");
+        return Object.freeze({ session: rowToSession(prior.rows[0]), replayed: true });
+      }
       const inserted = await client.query(
         `INSERT INTO lawos_dms.upload_sessions
            (tenant_id, session_id, idempotency_key, request_hash, matter_id, workspace_id,
             document_id, version_id, version_number, object_id, adapter_id, title, content_type,
             expected_sha256, expected_byte_size, permission_envelope_id, audit_trace_id, actor_id,
             source_email_thread_id, source_attachment_id, state, expires_at, next_attempt_at,
-            created_at, updated_at, provider_receipt)
+            created_at, updated_at, provider_receipt${workspaceHash ? ", workspace_authority_sha256" : ""})
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15,
                  $16, $17, $18, $19, $20, 'pending', $21::timestamptz, $22::timestamptz,
-                 $23::timestamptz, $23::timestamptz, $24::jsonb)
+                 $23::timestamptz, $23::timestamptz, $24::jsonb${workspaceHash ? ", $25" : ""})
          ON CONFLICT DO NOTHING
          RETURNING *`,
         [
@@ -1054,9 +1142,10 @@ export function createPostgresDmsUploadRuntime({
           normalized.source_email_thread_id ?? null,
           normalized.source_attachment_id ?? null,
           normalized.expires_at,
-          initialNextAttemptAt,
+          workspaceHash ? normalized.expires_at : initialNextAttemptAt,
           createdAt,
           normalized.completion_authority ? JSON.stringify({ completion_authority: normalized.completion_authority }) : null,
+          ...(workspaceHash ? [normalized.workspace_authority_sha256] : []),
         ],
       );
       if (inserted.rowCount === 0) {
@@ -1314,11 +1403,12 @@ export function createPostgresDmsUploadRuntime({
             SET state = 'bytes_stored', staged_sha256 = $3, staged_byte_size = $4,
                 retryable = true, attempt_count = attempt_count + 1,
                 stage_lease_owner = NULL, stage_lease_token = NULL, stage_lease_expires_at = NULL,
-                last_error_code = NULL, next_attempt_at = $5::timestamptz, updated_at = $5::timestamptz
+                last_error_code = NULL, next_attempt_at = $7::timestamptz, updated_at = $5::timestamptz
           WHERE tenant_id = $1 AND session_id = $2
             AND ($6::text IS NULL OR stage_lease_token = $6)
           RETURNING *`,
-        [session.tenant_id, session.session_id, receipt.sha256, receipt.byte_size, updatedAt, leaseToken],
+        [session.tenant_id, session.session_id, receipt.sha256, receipt.byte_size, updatedAt, leaseToken,
+          locked.workspace_authority_sha256 ? locked.expires_at : updatedAt],
       );
       if (!result.rows[0]) throw codedError("DMS upload stage compare-and-swap failed", "DMS_UPLOAD_STAGE_LEASE_LOST");
       await appendAudit(client, {
@@ -1336,6 +1426,7 @@ export function createPostgresDmsUploadRuntime({
   }
 
   async function recordStageFailure(session, leaseToken, error) {
+    if (session.workspace_authority_sha256) return preserveCorporateUpload(session, error);
     const updatedAt = timestamp(clock);
     await transact(session.tenant_id, (client) => client.query(
       `UPDATE lawos_dms.upload_sessions
@@ -1352,6 +1443,8 @@ export function createPostgresDmsUploadRuntime({
   async function stageUpload({ tenant_id, session_id, bytes, beforePersist } = {}) {
     const tenantId = requiredText(tenant_id, "tenant_id");
     const sessionId = requiredText(session_id, "session_id");
+    const initialSession = await getUploadSession({ tenant_id: tenantId, session_id: sessionId });
+    if (initialSession.state !== "finalized") await checkCorporateUploadAuthority(initialSession);
     const buffer = Buffer.isBuffer(bytes) ? Buffer.from(bytes) : Buffer.from(bytes ?? []);
     const stageStartedAt = timestamp(clock);
     const leaseToken = `stage-lease:${idFactory()}`;
@@ -1369,6 +1462,7 @@ export function createPostgresDmsUploadRuntime({
         throw codedError("DMS upload stage lease is already active", "DMS_UPLOAD_STAGE_LEASE_ACTIVE");
       }
       if (typeof beforePersist === "function") await beforePersist({ phase: "before_stage", session: locked, bytes: buffer });
+      if (locked.workspace_authority_sha256) await corporateWorkspaceAuthority(client, locked);
       const result = await client.query(
         `UPDATE lawos_dms.upload_sessions
             SET stage_lease_owner = $3, stage_lease_token = $4,
@@ -1379,6 +1473,9 @@ export function createPostgresDmsUploadRuntime({
         [tenantId, sessionId, runtimeWorkerId, leaseToken, leaseExpiresAt, stageStartedAt],
       );
       return rowToSession(result.rows[0]);
+    }).catch(async (error) => {
+      await preserveCorporateUpload(initialSession, error);
+      throw error;
     });
     if (session.replayed_before_io) return Object.freeze({ session: rowToSession(session), replayed: true });
     if (sha256Hex(buffer) !== session.expected_sha256 || buffer.byteLength !== session.expected_byte_size) {
@@ -1389,6 +1486,7 @@ export function createPostgresDmsUploadRuntime({
     let replayed = false;
     try {
       if (typeof beforePersist === "function") await beforePersist({ phase: "before_storage", session });
+      await checkCorporateUploadAuthority(session);
       receipt = await storage.statStagedObject({ tenant_id: session.tenant_id, session_id: session.session_id, object_id: session.object_id });
       if (!receipt) {
         receipt = await storage.stageObject({
@@ -1409,7 +1507,7 @@ export function createPostgresDmsUploadRuntime({
       return Object.freeze({ session: updated, receipt, replayed });
     } catch (error) {
       await recordStageFailure(session, leaseToken, error);
-      if (["DMS_UPLOAD_STAGE_LEASE_LOST", "DMS_UPLOAD_SESSION_EXPIRED"].includes(error?.safe_error_code)) {
+      if (!session.workspace_authority_sha256 && ["DMS_UPLOAD_STAGE_LEASE_LOST", "DMS_UPLOAD_SESSION_EXPIRED"].includes(error?.safe_error_code)) {
         await storage.deleteOrphan({ tenant_id: session.tenant_id, session_id: session.session_id, object_id: session.object_id });
       }
       throw error;
@@ -1439,6 +1537,7 @@ export function createPostgresDmsUploadRuntime({
       if (locked.state !== "provider_finalized") {
         throw codedError("DMS metadata publication requires finalized provider bytes", "DMS_UPLOAD_INVALID_STATE");
       }
+      if (locked.workspace_authority_sha256) await corporateWorkspaceAuthority(client, locked);
       if (locked.staged_sha256 !== locked.expected_sha256 || locked.staged_byte_size !== locked.expected_byte_size) {
         throw codedError("DMS staged receipt changed before metadata commit", "DMS_STAGED_DIGEST_MISMATCH");
       }
@@ -1452,6 +1551,7 @@ export function createPostgresDmsUploadRuntime({
         });
       }
       stage = "PRECOMMIT";
+      if (locked.workspace_authority_sha256) await corporateWorkspaceAuthority(client, locked);
       faultInjector?.("before_metadata_commit", { session_id: locked.session_id });
       stage = "DOCUMENT_UPSERT";
       await client.query(
@@ -1631,6 +1731,7 @@ export function createPostgresDmsUploadRuntime({
   }
 
   async function recordFinalizeFailure(session, leaseToken, error) {
+    if (session.workspace_authority_sha256) return preserveCorporateUpload(session, error);
     const updatedAt = timestamp(clock);
     await transact(session.tenant_id, (client) => client.query(
       `UPDATE lawos_dms.upload_sessions
@@ -1651,6 +1752,7 @@ export function createPostgresDmsUploadRuntime({
     const claimed = await transact(session.tenant_id, async (client) => {
       const locked = await selectSession(client, session.tenant_id, session.session_id, { lock: true });
       if (["provider_finalized", "finalized"].includes(locked.state)) return locked;
+      if (locked.workspace_authority_sha256) await corporateWorkspaceAuthority(client, locked);
       if (locked.state !== "bytes_stored" && locked.state !== "provider_finalizing") {
         throw codedError("DMS provider finalize requires verified staged bytes", "DMS_UPLOAD_INVALID_STATE");
       }
@@ -1706,61 +1808,67 @@ export function createPostgresDmsUploadRuntime({
         replayed: true,
       });
     }
-    if (["expired", "failed_terminal"].includes(session.state)) throw codedError("DMS upload session is expired", "DMS_UPLOAD_SESSION_EXPIRED");
-    // Completion sessions carry a durable contract marker. A restart worker has
-    // no approved-Document resolver, so it must never publish their metadata
-    // through the callback-free reconciliation path.
-    const docusignAuthority = completionAuthorityContract(session);
-    const intakeMetadataGuard = intakeMetadataGuardContract(session);
-    assertIntakeMetadataGuardMatchesSession(intakeMetadataGuard, session);
-    if ((docusignAuthority || intakeMetadataGuard) && typeof beforePersist !== "function") {
-      throw codedError(
-        intakeMetadataGuard
-          ? "DMS Intake metadata checkpoint is required before publication"
-          : "DMS completion authority must be revalidated before metadata publication",
-        intakeMetadataGuard
-          ? "DMS_EXTERNAL_METADATA_CHECKPOINT_REQUIRED"
-          : "DMS_COMPLETION_AUTHORITY_REVALIDATION_REQUIRED",
-      );
-    }
-    session = await ensureBytesStored(session);
-    let receipt;
-    let replayed = session.state === "provider_finalized";
-    if (session.state !== "provider_finalized") {
-      if (docusignAuthority) {
-        if (completionDenyAuthority) {
-          await completionDenyAuthority.assertDenied({
-            tenant_id: session.tenant_id,
-            object_id: session.object_id,
-            adapter_id: storage.adapter_id,
-          });
-        }
-        await beforePersist({ phase: "before_provider_finalize", session });
+    try {
+      if (["expired", "failed_terminal"].includes(session.state)) throw codedError("DMS upload session is expired", "DMS_UPLOAD_SESSION_EXPIRED");
+      await checkCorporateUploadAuthority(session);
+      // Completion sessions carry a durable contract marker. A restart worker has
+      // no approved-Document resolver, so it must never publish their metadata
+      // through the callback-free reconciliation path.
+      const docusignAuthority = completionAuthorityContract(session);
+      const intakeMetadataGuard = intakeMetadataGuardContract(session);
+      assertIntakeMetadataGuardMatchesSession(intakeMetadataGuard, session);
+      if ((docusignAuthority || intakeMetadataGuard) && typeof beforePersist !== "function") {
+        throw codedError(
+          intakeMetadataGuard
+            ? "DMS Intake metadata checkpoint is required before publication"
+            : "DMS completion authority must be revalidated before metadata publication",
+          intakeMetadataGuard
+            ? "DMS_EXTERNAL_METADATA_CHECKPOINT_REQUIRED"
+            : "DMS_COMPLETION_AUTHORITY_REVALIDATION_REQUIRED",
+        );
       }
-      const claim = await claimProviderFinalize(session);
-      session = claim.session;
-      if (session.state !== "provider_finalized" && session.state !== "finalized") {
-        try {
-          const committed = await storage.statObject({ tenant_id: session.tenant_id, object_id: session.object_id });
-          if (committed) {
-            assertReceiptMatchesSession(committed, session);
-            await assertIndependentDigest(session, { staged: false });
-            replayed = true;
+      session = await ensureBytesStored(session);
+      let receipt;
+      let replayed = session.state === "provider_finalized";
+      if (session.state !== "provider_finalized") {
+        if (docusignAuthority) {
+          if (completionDenyAuthority) {
+            await completionDenyAuthority.assertDenied({
+              tenant_id: session.tenant_id,
+              object_id: session.object_id,
+              adapter_id: storage.adapter_id,
+            });
           }
-          receipt = await storage.finalizeObject({ tenant_id: session.tenant_id, session_id: session.session_id, object_id: session.object_id });
-          assertReceiptMatchesSession(receipt, session);
-          await assertIndependentDigest(session, { staged: false });
-          faultInjector?.("after_provider_finalize_before_receipt_persist", { session_id: session.session_id });
-          session = await persistProviderFinalized(session, claim.leaseToken, receipt);
-        } catch (error) {
-          await recordFinalizeFailure(session, claim.leaseToken, error);
-          throw error;
+          await beforePersist({ phase: "before_provider_finalize", session });
+        }
+        const claim = await claimProviderFinalize(session);
+        session = claim.session;
+        if (session.state !== "provider_finalized" && session.state !== "finalized") {
+          try {
+            const committed = await storage.statObject({ tenant_id: session.tenant_id, object_id: session.object_id });
+            if (committed) {
+              assertReceiptMatchesSession(committed, session);
+              await assertIndependentDigest(session, { staged: false });
+              replayed = true;
+            }
+            receipt = await storage.finalizeObject({ tenant_id: session.tenant_id, session_id: session.session_id, object_id: session.object_id });
+            assertReceiptMatchesSession(receipt, session);
+            await assertIndependentDigest(session, { staged: false });
+            faultInjector?.("after_provider_finalize_before_receipt_persist", { session_id: session.session_id });
+            session = await persistProviderFinalized(session, claim.leaseToken, receipt);
+          } catch (error) {
+            await recordFinalizeFailure(session, claim.leaseToken, error);
+            throw error;
+          }
         }
       }
+      faultInjector?.("after_storage_finalize_before_session_finalized", { session_id: session.session_id });
+      const finalized = await commitMetadata(session, beforePersist);
+      return Object.freeze({ session: finalized, receipt: safeProviderReceipt(receipt ?? session.provider_receipt, session), replayed });
+    } catch (error) {
+      await preserveCorporateUpload(session, error);
+      throw error;
     }
-    faultInjector?.("after_storage_finalize_before_session_finalized", { session_id: session.session_id });
-    const finalized = await commitMetadata(session, beforePersist);
-    return Object.freeze({ session: finalized, receipt: safeProviderReceipt(receipt ?? session.provider_receipt, session), replayed });
   }
 
   async function uploadDocument({
@@ -1788,7 +1896,7 @@ export function createPostgresDmsUploadRuntime({
       tenant_id: tenantId,
       session_id: session_id ?? `dms-upload:${idFactory()}`,
       idempotency_key: requiredText(idempotency_key, "idempotency_key"),
-      matter_id: requiredText(document.matter_id, "document.matter_id"),
+      matter_id: document.matter_id == null ? null : requiredText(document.matter_id, "document.matter_id"),
       workspace_id: requiredText(document.workspace_id, "document.workspace_id"),
       document_id: documentId,
       version_id: versionId,
@@ -1804,6 +1912,12 @@ export function createPostgresDmsUploadRuntime({
       source_email_thread_id: document.source_email_thread_id ?? null,
       source_attachment_id: document.source_attachment_id ?? null,
       actor_id: actorId,
+      owner_user_id: document.owner_user_id,
+      scope_type: document.scope_type,
+      legal_entity_id: document.legal_entity_id,
+      organization_id: document.organization_id,
+      party_id: document.party_id,
+      permission_ref: document.permission_ref,
       completion_authority,
       expires_at: expires_at ?? nextUploadExpiry(),
     });
@@ -1831,11 +1945,11 @@ export function createPostgresDmsUploadRuntime({
       return Object.freeze({
         outcome: created.replayed || finalized.replayed ? "idempotent_replay" : "created",
         document: Object.freeze({
-          ...document,
+          ...(created.session.workspace_authority_sha256 ? {} : document),
           ...state.document,
           current_version_id: versionId,
           latest_sha256: version.sha256,
-          owner_user_id: document.owner_user_id ?? actorId,
+          owner_user_id: created.session.workspace_authority_sha256 ? created.session.actor_id : document.owner_user_id ?? actorId,
         }),
         version,
         file_object: Object.freeze({
@@ -1855,6 +1969,7 @@ export function createPostgresDmsUploadRuntime({
         independent_digest_readback: true,
       });
     } catch (error) {
+      await preserveCorporateUpload(created.session, error);
       if (completionAuthorityContract(created.session) && isCompletionAuthorityRejection(error)) {
         await quarantineCompletionAuthorityUpload(created.session, error);
       }
@@ -1894,6 +2009,12 @@ export function createPostgresDmsUploadRuntime({
   async function cleanupOrphan({ tenant_id, session_id } = {}) {
     const tenantId = requiredText(tenant_id, "tenant_id");
     const sessionId = requiredText(session_id, "session_id");
+    const initialSession = await getUploadSession({ tenant_id: tenantId, session_id: sessionId });
+    if (initialSession.workspace_authority_sha256) {
+      const error = codedError("Corporate upload bytes require manual recovery and cannot be orphan-cleaned", "DMS_CORPORATE_UPLOAD_CLEANUP_BLOCKED");
+      await preserveCorporateUpload(initialSession, error);
+      throw error;
+    }
     const cleanupAt = timestamp(clock);
     const session = await transact(tenantId, async (client) => {
       const locked = await selectSession(client, tenantId, sessionId, { lock: true });
@@ -2204,6 +2325,16 @@ export function createPostgresDmsUploadRuntime({
     const outcomes = [];
     for (const session of sessions) {
       try {
+        if (session.workspace_authority_sha256) {
+          if (Date.parse(session.expires_at) > Date.parse(now) && !session.last_error_code) {
+            await releaseReconciliationClaim(tenantId, session.session_id, { next_attempt_at: session.expires_at });
+            outcomes.push(Object.freeze({ session_id: session.session_id, action: "awaiting_corporate_upload", state: session.state }));
+            continue;
+          }
+          const preserved = await preserveCorporateUpload(session);
+          outcomes.push(Object.freeze({ session_id: session.session_id, action: "corporate_manual_recovery", state: preserved.state }));
+          continue;
+        }
         const sessionExpired = Date.parse(session.expires_at) <= Date.parse(now);
         const intakeMetadataGuard = intakeMetadataGuardContract(session);
         if (intakeMetadataGuard) {
@@ -3067,7 +3198,7 @@ export function createPostgresDmsUploadRuntime({
       actor_id: actorId,
       object_type: "DmsDocumentCollection",
       object_id: "vault-documents",
-      payload: { matter_id: matterId, returned_count: documents.length, raw_payload_included: false },
+      payload: { matter_id: matterId, returned_count: matterId === null ? null : documents.length, ...(matterId === null ? { permission_filter_pending: true } : {}), raw_payload_included: false },
       created_at: occurredAt,
     }));
     return Object.freeze(documents);
@@ -3125,7 +3256,9 @@ export function createPostgresDmsUploadRuntime({
       const result = await client.query(
         `SELECT a.tenant_id, a.event_id, a.event_type, a.actor_id, a.object_type,
                 a.object_id, a.payload, a.created_at,
-                COALESCE(d.matter_id, s.matter_id, NULLIF(a.payload->>'matter_id', '')) AS matter_id
+                COALESCE(d.matter_id, s.matter_id, NULLIF(a.payload->>'matter_id', '')) AS matter_id,
+                COALESCE(d.document_id, s.document_id) AS authorization_document_id,
+                COALESCE(d.workspace_id, s.workspace_id) AS authorization_workspace_id
            FROM lawos_dms.audit_events a
            LEFT JOIN lawos_dms.documents d
              ON d.tenant_id = a.tenant_id

@@ -15,9 +15,6 @@ import {
   CLIENT_OPERATIONS_READINESS_KEY,
 } from "../src/client-operations-readiness.js";
 import {
-  runHrxPostgresMigrations,
-} from "../../../packages/hrx/src/postgres-migrations.js";
-import {
   createDomainSnapshot,
   hashDomainValue,
 } from "../../../packages/persistence/src/domain-ledger.js";
@@ -32,6 +29,7 @@ import {
 } from "./helpers/client-operations-migration-fixture.js";
 import {
   createOutlookAuthorityPostgresFixture,
+  runHistoricalHrxPostgresMigrations,
   runOutlookAuthorityPostgresMigrations,
 } from "./support/outlook-authority-postgres-fixture.js";
 
@@ -85,7 +83,7 @@ test("invalid inputs do not write and partial migration recovers idempotently", 
   const fixture = await createOutlookAuthorityPostgresFixture(t);
   if (!fixture) return;
   const readbackPool = fixture.bootstrapPool;
-  await runHrxPostgresMigrations(fixture.adminPool);
+  await runHistoricalHrxPostgresMigrations(fixture.adminPool);
   await runOutlookAuthorityPostgresMigrations(fixture);
   const ledger = createPostgresDomainLedger({
     pool: fixture.appPool,

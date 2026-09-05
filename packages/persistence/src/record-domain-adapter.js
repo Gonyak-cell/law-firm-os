@@ -258,6 +258,22 @@ export function createRecordRepositoryDomainSnapshot({
     throw new TypeError("record domain descriptor is required");
   }
   const sources = normalizeSources(repositories);
+  // Existing PostgreSQL foreign-key references survive materialization; descriptors alone cannot create external authority.
+  const canonicalExternalReferences = new Map();
+  for (const { repository } of sources) {
+    for (const record of materializedBaselines.get(repository)?.records ?? []) {
+      if (record.tenant_id !== tenantId || record.domain_id !== descriptor.domain_id) continue;
+      const key = recordIdentity(descriptor.domain_id, record.record_type, record.record_id);
+      const references = record.references.filter((reference) => reference.target_domain_id !== descriptor.domain_id);
+      if (canonicalExternalReferences.has(key)
+        && hashDomainValue(canonicalExternalReferences.get(key)) !== hashDomainValue(references)) {
+        throw Object.assign(new Error(`conflicting canonical external references: ${record.record_type}`), {
+          code: "LAWOS_DOMAIN_SOURCE_CONFLICT", safe_error_code: "DOMAIN_SOURCE_CONFLICT", status: 409,
+        });
+      }
+      canonicalExternalReferences.set(key, references);
+    }
+  }
   const sourceStates = sources.map(({ source_id, repository }) => {
     const state = repository.snapshot();
     return Object.freeze({
@@ -324,7 +340,7 @@ export function createRecordRepositoryDomainSnapshot({
   const records = [...rawRecords.entries()].map(([identity, record]) => {
     const recordType = record.model_type;
     const recordId = descriptor.resolve_record_id(record);
-    const normalizedReferences = [];
+    const normalizedReferences = clone(canonicalExternalReferences.get(identity) ?? []);
     for (const reference of descriptor.references(record) ?? []) {
       const targetDomainId = requireDomainId(reference.target_domain_id ?? descriptor.domain_id);
       const targetRecordType = requiredText(reference.target_record_type, "target_record_type");

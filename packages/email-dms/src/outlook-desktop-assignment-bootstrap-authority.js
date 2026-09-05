@@ -55,7 +55,7 @@ export async function readOutlookAssignmentMigrationPauseExpectation(client) {
   if (rows.length !== 1) {
     throw new TypeError("Outlook authority persisted pause expectation is invalid");
   }
-  return createOutlookAssignmentMigrationPauseExpectation(rows[0]);
+  return normalizeOutlookAuthorityMigrationPauseExpectation(rows[0]);
 }
 
 function bool(value) {

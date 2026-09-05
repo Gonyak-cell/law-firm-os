@@ -33,7 +33,7 @@ const REGISTRATION_PATH = "/api/desktop/installations";
 const INSTALLATION_STATES = new Set(["active", "expired", "retired"]);
 const POSTGRES_UTC_TIMESTAMP =
   /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.(\d{1,6}))?(?:Z|\+00:00)$/u;
-const PUBLIC_ERROR_CODE_PATTERN = /^(?:AUTH_SESSION_REQUIRED|OUTLOOK_DESKTOP_[A-Z0-9_]+|POSTGRES_[A-Z0-9_]+)$/u;
+const PUBLIC_ERROR_CODE_PATTERN = /^(?:AUTH_SESSION_REQUIRED|OUTLOOK_DESKTOP_[A-Z0-9_]+|INTERNAL_INSTALLATION_[A-Z0-9_]+|POSTGRES_[A-Z0-9_]+)$/u;
 const PUBLIC_ERROR_STATUSES = new Set([400, 401, 403, 404, 409, 413, 503]);
 const LEGACY_PROOF_FIELDS = Object.freeze([
   "idempotency_key",
@@ -266,7 +266,7 @@ export function projectOutlookDesktopRegistrationAuthorityResult(
   });
 }
 
-function projectOutlookDesktopLegacyServiceResult(
+export function projectOutlookDesktopLegacyServiceResult(
   envelope,
   operation,
   expectedInstallationId = null,

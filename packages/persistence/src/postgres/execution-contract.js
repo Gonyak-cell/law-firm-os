@@ -202,6 +202,7 @@ function validateTarget(value, contract) {
     "database_secret_ref",
     "database_target_receipt",
     "database_target_receipt_sha256",
+    "historical_outlook_bootstrap_sha256",
     "tenant_context_secret_ref",
     "dms_bucket_ref",
     "dms_bucket_name",
@@ -228,6 +229,12 @@ function validateTarget(value, contract) {
     "monthly_cost_ceiling_krw",
   ];
   closedObject(value, keys, "execution target");
+  if (Object.hasOwn(value, "historical_outlook_bootstrap_sha256")
+      && (contract.environment !== "lawos-production"
+        || !SHA256.test(value.historical_outlook_bootstrap_sha256 ?? "")
+        || value.database_target_receipt == null)) {
+    fail("JSON_POSTGRES_EXECUTION_TARGET", "historical Outlook bootstrap requires a signed current production database target");
+  }
   for (const key of [
     "target_ref",
     "aws_region",
