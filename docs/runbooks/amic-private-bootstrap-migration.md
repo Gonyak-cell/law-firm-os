@@ -236,8 +236,9 @@ idempotency, audit and outbox evidence, and zero negative-tenant visibility.
   packet while its approval remains valid.
 - A failure after a photo version was committed returns `repair_required=true`.
   Preserve every receipt. Do not delete the photo or source manually. Repair
-  the failed boundary and replay the same packet; its packet hash is also the
-  storage idempotency key.
+  the failed boundary before replay; its packet hash is also the storage
+  idempotency key. A nonempty HRX baseline conflict is not fixed by replay:
+  use the separately approved enrichment path below.
 - If the approval expired, issue a new approval for the unchanged packet. Do
   not edit the packet or receipt.
 - Any source, mapping, target, SHA/tree, account, role, bucket, key, secret,
@@ -252,3 +253,52 @@ Preserve the private start, AWS-control, database-readiness, checkpoint,
 execution-result, and execution-summary receipts. A successful bootstrap alone
 does not prove client cutover, installer privacy, Windows installation,
 distribution publication, release, source retirement, or production readiness.
+
+## 8. Existing-tenant forward repair
+
+The generic snapshot importer deliberately requires a whole-domain match.
+Do not remove existing payroll, employment, attendance, schema, audit, or
+idempotency records to make a small roster snapshot match a populated tenant.
+The original failed import receipt remains failed; a forward-repair receipt
+records its resolution separately.
+
+`scripts/lib/amic-private-bootstrap-enrichment.mjs` handles this case using
+the existing authenticated PostgreSQL ledger and unit-of-work flusher:
+
+1. Independently read the directory, existing HRX snapshot, and immutable photo
+   versions. Recompile the approved mapping and bind the already committed
+   photo versions without uploading them again.
+2. Run `planAmicPrivateBootstrapEnrichment` in a read-only transaction. Its
+   safe plan binds the complete current snapshot, executor SHA/tree, original
+   import packet, mapping, committed corpus, and exact changed record hashes.
+   Required roster records and user links must already exist and agree on
+   identity. A missing or conflicting identity is not an implicit upsert.
+3. Preserve every existing fact and all dates, statuses, source provenance,
+   records, and audit entries. Fill only absent approved contact/photo fields
+   and directory fields. The owner's legal-entity mapping covers every
+   employment profile of an approved employee, including historical profiles;
+   an existing different legal entity or photo value blocks the operation.
+   Historical employment dates are not replaced by seed defaults.
+4. Seal the exact plan through `seal-json-postgres-execution-approval.mjs` with
+   a current owner approval for `lawos-amic-private-bootstrap-enrich`. Execute
+   `executeAmicPrivateBootstrapEnrichment` only from the verified exact-main
+   source with the approved application DB role, tenant context, and TLS.
+   No master credential, directory write, photo write, or deletion is needed.
+5. The existing serializable transaction/CAS path compares the signed
+   baseline, adds one idempotency record and one audit/outbox pair, applies
+   only planned changes, and verifies the complete record hash. Any failed
+   outbox/audit write rolls the transaction back. A changed baseline requires
+   a new read-only plan and approval; it must not be force-applied.
+6. Run the same function with `readOnly: true` using a server-enforced
+   read-only connection. Collect the exact record hash/count, untouched-record
+   preservation, one audit/outbox pair, duplicate replay, negative-tenant
+   checks, directory hash and credential-status aggregates, and five photo
+   body/version/hash checks. Never output raw identities or password hashes.
+
+S3 ranged reads use the owned bounded HTTP response plus full-object SHA-256
+verification. SDK checksum-stream wrapping is omitted only for this ranged
+command, because it replaces the transport identity used by the framing
+guard. Other commands that explicitly request checksum validation retain it.
+Tests must cover checksum-bearing responses, changed bytes, size/framing
+violations, cleanup, timeouts, and forged clients; do not accept a generic
+stream merely because it has a `read` method.

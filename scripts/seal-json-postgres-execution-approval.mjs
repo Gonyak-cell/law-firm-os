@@ -28,6 +28,11 @@ import {
   validateAmicPrivateBootstrapExecutionPacket,
 } from "./lib/amic-private-bootstrap-execution.mjs";
 import {
+  AMIC_BOOTSTRAP_ENRICHMENT_VERSION,
+  enrichmentApprovalDataScope,
+  validateAmicPrivateBootstrapEnrichmentPlan,
+} from "./lib/amic-private-bootstrap-enrichment.mjs";
+import {
   createPrivateProgramOutputDirectory,
   readPrivateProgramBytes,
   readPrivateProgramJson,
@@ -68,7 +73,10 @@ const w15Bootstrap =
     === JSON_POSTGRES_W15_INVENTORY_BOOTSTRAP_PACKET_VERSION;
 const amicPrivateBootstrap =
   packet.schema_version === AMIC_PRIVATE_BOOTSTRAP_EXECUTION_PACKET_VERSION;
-const validated = sourceRead
+const amicEnrichment = packet.schema_version === AMIC_BOOTSTRAP_ENRICHMENT_VERSION;
+const validated = amicEnrichment
+  ? validateAmicPrivateBootstrapEnrichmentPlan(packet, { sourceSha, sourceTree })
+  : sourceRead
   ? validateJsonPostgresSourceReadPacket(packet, {
       sourceSha,
       sourceTree,
@@ -131,7 +139,9 @@ const registry = {
       }
     : key),
 };
-const dataScope = sourceRead
+const dataScope = amicEnrichment
+  ? enrichmentApprovalDataScope(packet)
+  : sourceRead
   ? packet.data_scope
   : w15Bootstrap
     ? [
@@ -147,8 +157,8 @@ const dataScope = sourceRead
           `inventory:${packet.bindings.inventory_content_sha256}`,
           `inventory-delta-policy:${packet.bindings.inventory_delta_policy_sha256}`,
         ];
-const contactScope = amicPrivateBootstrap ? [] : packet.contact_scope;
-const approvalPhase = sourceRead
+const contactScope = amicPrivateBootstrap || amicEnrichment ? [] : packet.contact_scope;
+const approvalPhase = amicEnrichment ? "amic-private-bootstrap-enrichment" : sourceRead
   ? "source-read"
   : amicPrivateBootstrap
     ? "amic-private-bootstrap"

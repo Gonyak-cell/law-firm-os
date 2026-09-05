@@ -28,7 +28,7 @@ export function createBoundedS3Client(options = {}, requestHandlerOptions) {
     throw new TypeError("bounded S3 client owns its HTTP request handler");
   }
   const handler = new BoundedS3NodeHttpHandler(requestHandlerOptions);
-  const client = new S3Client({ ...options, requestHandler: handler });
+  const client = new S3Client({ ...options, requestHandler: handler, responseChecksumValidation: "WHEN_REQUIRED" });
   return boundedFacade(client, handler);
 }
 

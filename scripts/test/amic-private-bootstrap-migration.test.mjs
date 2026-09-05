@@ -12,6 +12,14 @@ import { createLocalStorageAdapter } from "../../packages/dms/src/storage/local-
 import { createHrxMemberPhotoStorage } from "../../packages/hrx/src/member-photo-storage.js";
 import { canonicalizeJson } from "../../packages/runtime-auth/src/runtime-safety-approval-contract.js";
 import { createMigratedPostgresFixture } from "../../packages/persistence/test/helpers/disposable-postgres.js";
+import { createDomainSnapshot, hashDomainValue } from "../../packages/persistence/src/domain-ledger.js";
+import { createPostgresDomainLedger } from "../../packages/persistence/src/postgres/domain-ledger.js";
+import {
+  AMIC_BOOTSTRAP_ENRICHMENT_ACTION,
+  enrichmentApprovalDataScope,
+  executeAmicPrivateBootstrapEnrichment,
+  planAmicPrivateBootstrapEnrichment,
+} from "../lib/amic-private-bootstrap-enrichment.mjs";
 import {
   createAmicPrivateBootstrapLegalEntityMappingTemplate,
 } from "../lib/amic-private-bootstrap-inventory.mjs";
@@ -261,6 +269,97 @@ async function fixture({
   }
   return { sourceOptions, mapping };
 }
+
+function enrichmentApproval(plan) {
+  const { publicKey, privateKey } = generateKeyPairSync("ed25519");
+  const registryBytes = Buffer.from(JSON.stringify({ schema_version: "law-firm-os.runtime-safety.approval-trust-registry.v1",
+    generated_at: "2026-09-05T00:00:00.000Z", keys: [{ key_id: "synthetic-owner", algorithm: "Ed25519",
+      public_key_spki_pem: publicKey.export({ type: "spki", format: "pem" }), roles: ["owner"], actions: [AMIC_BOOTSTRAP_ENRICHMENT_ACTION],
+      environments: ["synthetic-test"], valid_from: "2026-09-01T00:00:00.000Z", valid_until: "2026-10-01T00:00:00.000Z", revoked_at: null }] }));
+  const receipt = { schema_version: "law-firm-os.runtime-safety.approval.v1", approval_id: "approval.synthetic-enrichment", key_id: "synthetic-owner",
+    role: "owner", decision: "approved", packet_sha256: plan.packet_sha256, source_sha: plan.source_sha, source_tree: plan.source_tree,
+    action: plan.action, environment: plan.environment, signed_at: "2026-09-05T00:00:00.000Z", expires_at: "2026-09-06T00:00:00.000Z",
+    data_scope: enrichmentApprovalDataScope(plan), contact_scope: [] };
+  return { registryBytes, registrySha256: sha256(registryBytes), receiptBytes: Buffer.from(JSON.stringify(receipt)),
+    signatureBytes: sign(null, Buffer.from(canonicalizeJson(receipt)), privateKey) };
+}
+
+test("existing tenant enrichment preserves business history and atomically records replayable scoped additions", async (t) => {
+  const database = await createMigratedPostgresFixture(t);
+  if (!database) return;
+  const { sourceOptions, mapping } = await fixture();
+  const compiled = await compileAmicPrivateBootstrapMigration({ ...sourceOptions, mapping });
+  const corpus = structuredClone(compiled.corpus);
+  delete corpus.manifest_sha256;
+  corpus.domains[0].records.find((record) => record.record_type === "hrx_employees").payload.photo_version_id = "immutable-version-1";
+  const records = structuredClone(corpus.domains[0].records);
+  for (const record of records) {
+    for (const field of Object.keys(record.payload)) if (field.startsWith("photo_") || field === "legal_entity_id") delete record.payload[field];
+    record.payload.source_ref = "preserved-existing-provenance";
+    if (record.record_type === "hrx_employment_profiles") {
+      record.payload.effective_from = "2023-01-01";
+      record.payload.start_date = "2022-01-01";
+      record.payload.department = "Existing department";
+    }
+  }
+  const historical = structuredClone(records.find((record) => record.record_type === "hrx_employment_profiles"));
+  historical.record_id = "historical-profile";
+  historical.unique_key = null;
+  historical.payload.profile_id = "historical-profile";
+  historical.payload.effective_from = "2021-01-01";
+  records.push(historical, { tenant_id: corpus.tenant_id, domain_id: "hrx", record_type: "hrx_audit_events", record_id: "existing-business-audit",
+    append_only: true, payload: { event_id: "existing-business-audit", business_record_preserved: true } });
+  const ledger = createPostgresDomainLedger({ pool: database.appPool });
+  const baseline = createDomainSnapshot({ tenant_id: corpus.tenant_id, domain_id: "hrx", records });
+  await ledger.importSnapshot(baseline);
+  const scope = { tenant_id: corpus.tenant_id, domain_id: "hrx" };
+  const read = () => ledger.transaction(scope, async (tx) => createDomainSnapshot({ ...scope, records: await tx.list(),
+    idempotency_entries: await tx.listIdempotency(), audit_events: await tx.listAudit() }));
+  const before = await read();
+  const context = { sourceSha: "a".repeat(40), sourceTree: "b".repeat(40), importPacketSha256: "c".repeat(64), mappingSha256: "d".repeat(64), environment: "synthetic-test" };
+  const plan = planAmicPrivateBootstrapEnrichment({ ...context, corpus, currentSnapshot: before });
+  assert.equal(plan.changed_record_count, 3);
+  assert.equal(plan.employment_profile_coverage_count, 2);
+  assert.equal(plan.record_count, 5);
+  assert.equal(plan.dates_and_existing_facts_preserved, true);
+  assert.doesNotMatch(JSON.stringify(plan), /Linked Person|linked@example|employee-linked|Existing department|2021-01-01/);
+  const run = { pool: database.appPool, corpus, plan, sourceSha: context.sourceSha, sourceTree: context.sourceTree,
+    approval: enrichmentApproval(plan), clock: () => new Date("2026-09-05T01:00:00.000Z") };
+  await assert.rejects(executeAmicPrivateBootstrapEnrichment({ ...run, plan: { ...plan, changed_record_count: 99 } }), { code: "AMIC_ENRICHMENT_PLAN_DRIFT" });
+  const wrongScope = structuredClone(corpus);
+  wrongScope.tenant_id = "tenant-negative";
+  await assert.rejects(executeAmicPrivateBootstrapEnrichment({ ...run, corpus: wrongScope }), { code: "AMIC_ENRICHMENT_TENANT" });
+  const conflicted = structuredClone(before);
+  conflicted.records.find((record) => record.record_type === "hrx_employment_profiles").payload.legal_entity_id = "other-company";
+  assert.throws(() => planAmicPrivateBootstrapEnrichment({ ...context, corpus, currentSnapshot: conflicted }), { code: "AMIC_ENRICHMENT_FIELD_CONFLICT" });
+  const faultPool = Object.create(database.appPool);
+  faultPool.connect = async () => {
+    const client = await database.appPool.connect();
+    return { release: (...args) => client.release(...args), query: (sql, ...args) => {
+      if (String(sql).includes("INSERT INTO lawos_domain.outbox_events")) throw Object.assign(new Error("synthetic outbox failure"), { code: "SIMULATED_OUTBOX_FAILURE" });
+      return client.query(sql, ...args);
+    } };
+  };
+  await assert.rejects(executeAmicPrivateBootstrapEnrichment({ ...run, pool: faultPool }));
+  assert.equal((await read()).snapshot_hash, before.snapshot_hash);
+  const result = await executeAmicPrivateBootstrapEnrichment(run);
+  assert.equal(result.outcome, "PASS");
+  assert.equal(result.replayed, false);
+  assert.equal((await executeAmicPrivateBootstrapEnrichment(run)).replayed, true);
+  assert.equal((await executeAmicPrivateBootstrapEnrichment({ ...run, readOnly: true })).read_only, true);
+  const after = await read();
+  assert.equal(after.records.length, before.records.length);
+  assert.equal(after.audit_events.length, before.audit_events.length + 1);
+  assert.equal(after.idempotency_entries.length, before.idempotency_entries.length + 1);
+  for (const prior of before.records) {
+    const current = after.records.find((record) => record.record_id === prior.record_id && record.record_type === prior.record_type);
+    for (const [key, value] of Object.entries(prior.payload)) assert.deepEqual(current.payload[key], value);
+    if (prior.record_type === "hrx_employment_profiles") assert.equal(current.payload.legal_entity_id, "company-synthetic");
+  }
+  assert.equal((await ledger.list({ tenant_id: "tenant-negative", domain_id: "hrx" })).length, 0);
+  assert.equal(hashDomainValue(after.records.find((record) => record.record_id === "existing-business-audit")),
+    hashDomainValue(before.records.find((record) => record.record_id === "existing-business-audit")));
+});
 
 test("private bootstrap compiler creates a scoped real-data corpus without photo bytes", async () => {
   const { sourceOptions, mapping } = await fixture();
