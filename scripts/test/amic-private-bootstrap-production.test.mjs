@@ -4,11 +4,30 @@ import {
   AMIC_PRIVATE_BOOTSTRAP_PACKET_INPUT_VERSION,
   createAmicPrivateBootstrapPhotoStorageAdapterId,
   discoverAmicPrivateBootstrapProductionTarget,
+  validateAmicPrivateBootstrapDirectoryMigration,
   validateAmicPrivateBootstrapGitState,
   validateAmicPrivateBootstrapS3Controls,
   validateAmicPrivateBootstrapPacketInput,
   verifyAmicPrivateBootstrapAwsCaller,
 } from "../lib/amic-private-bootstrap-production.mjs";
+import { CLIENT_OPERATIONS_SCHEMA_MANIFEST } from "../../apps/api/src/client-operations-schema.js";
+
+test("private bootstrap checks the canonical PostgreSQL directory migration rather than its source ID", () => {
+  const migrations = CLIENT_OPERATIONS_SCHEMA_MANIFEST.entries;
+  const directory = migrations.find(({ id }) => id === "149_hrx_049_hrx_directory_authority");
+  assert.ok(directory);
+  assert.equal(validateAmicPrivateBootstrapDirectoryMigration(migrations), true);
+  for (const candidate of [
+    [],
+    migrations.filter(({ id }) => id !== directory.id),
+    migrations.map((entry) => entry.id === directory.id ? { ...entry, id: "049_hrx_directory_authority" } : entry),
+    migrations.map((entry) => entry.id === directory.id ? { ...entry, checksum: "0".repeat(64) } : entry),
+  ]) {
+    assert.throws(() => validateAmicPrivateBootstrapDirectoryMigration(candidate), {
+      code: "AMIC_PRIVATE_BOOTSTRAP_DATABASE_SCHEMA",
+    });
+  }
+});
 
 function discovery() {
   const account = "770880870480";

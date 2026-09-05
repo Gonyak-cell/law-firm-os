@@ -15,6 +15,11 @@ export const LAWOS_POSTGRES_TENANT_CONTEXT_SECRET_ENV = "LAWOS_POSTGRES_TENANT_C
 export const LAWOS_POSTGRES_TENANT_CONTEXT_SECRET_ID_ENV = "LAWOS_POSTGRES_TENANT_CONTEXT_SECRET_ID";
 export const LAWOS_POSTGRES_SSL_MODE_ENV = "LAWOS_POSTGRES_SSL_MODE";
 export const LAWOS_POSTGRES_API_POOL_MAX = 1;
+const POSTGRES_PREFLIGHT_REASONS = new Map([
+  ["LAWOS_POSTGRES_MIGRATION_HISTORY_DIVERGED", "MIGRATION_HISTORY_DIVERGED"],
+  ["LAWOS_POSTGRES_MIGRATION_CHECKSUM_MISMATCH", "MIGRATION_CHECKSUM_MISMATCH"],
+  ["LAWOS_POSTGRES_ACCESS_DENIED", "ACCESS_DENIED"],
+]);
 export const LAWOS_PERSISTENCE_AUTHORITIES = Object.freeze({
   fileCurrent: "file-current",
   postgresV2: "postgres-v2",
@@ -187,27 +192,33 @@ export async function preparePersistenceAuthority({
 
   const sslMode = resolvePostgresSslMode(env);
   let connection;
+  let stage = "database-credential";
   try {
     const connectionString = await resolvePostgresConnectionString({
       env,
       secretsClient,
       resolveSecret: resolvePostgresSecret,
     });
+    stage = "tenant-context-credential";
     const tenantContextSecret = await resolvePostgresTenantContextSecret({
       env,
       secretsClient,
       resolveSecret: resolvePostgresSecret,
     });
+    stage = "connection";
     connection = await connectPostgres({ connectionString, sslMode, tenantContextSecret });
     if (!connection || typeof connection.query !== "function") {
       throw new TypeError("PostgreSQL authority connector returned an invalid connection");
     }
     attachPostgresTenantContextSecret(connection, tenantContextSecret);
+    stage = "health-query";
     await connection.query("SELECT 1 AS authority_ready");
+    stage = "migration-catalog";
     const migrations = typeof connection.connect === "function"
       ? await verifyOperationalPostgresMigrationState(connection)
       : [];
     if (typeof connection.connect === "function") {
+      stage = "tenant-authority";
       const tenantAuthority = await connection.query(
         "SELECT lawos_security.tenant_context_authority_ready() AS ready",
       );
@@ -228,8 +239,11 @@ export async function preparePersistenceAuthority({
       pool: connection,
       close: async () => connection.end?.(),
     });
-  } catch {
+  } catch (error) {
     if (connection?.end) await connection.end().catch(() => {});
-    throw runtimePreflightError("selected PostgreSQL authority failed initialization; file fallback is disabled");
+    const reason = POSTGRES_PREFLIGHT_REASONS.get(error?.code) ?? "INITIALIZATION_FAILED";
+    throw Object.assign(runtimePreflightError(
+      `selected PostgreSQL authority failed initialization [${stage}:${reason}]; file fallback is disabled`,
+    ), { persistence_stage: stage, persistence_reason: reason });
   }
 }
