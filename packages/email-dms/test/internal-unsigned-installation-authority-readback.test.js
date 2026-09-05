@@ -55,7 +55,7 @@ test("actual application-role metadata readback verifies five installed definiti
       AWS_REGION: "ap-northeast-2",
       LAWOS_INTERNAL_INSTALLATION_ATTESTATION_SECRET_ID: "synthetic/internal-attestation",
     },
-    pool: fixture.appPool, tenant_id: fixture.tenantId,
+    pool: fixture.appPool, tenant_id: fixture.tenantId, schema_migration_count: 80,
     resolveSecret: async () => ({
       key_id: "synthetic-key-1",
       private_key_pem: privateKey.export({ type: "pkcs8", format: "pem" }),

@@ -3833,6 +3833,7 @@ async function startApiServerImplementation({
           env: resolvedPersistenceAuthorityEnv,
           pool: postgresPool,
           tenant_id: startupAuthorityTenantId,
+          schema_migration_count: persistenceAuthorityState.migration_count,
         });
       const operationalOutlookDesktopRuntime =
         composeInternalUnsignedInstallationRuntime(

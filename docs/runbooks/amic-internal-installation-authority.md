@@ -37,17 +37,47 @@ JSON environment map. A representative 109-character ARN adds 164 bytes; a
 deployment measurements. Recompute the complete live environment with the
 actual ARN using the existing deployment budget guard before CloudFormation.
 
-The old runtime requires exactly 79 catalog rows and the candidate requires 80.
-Applying 309 before switching code can therefore fail an old runtime cold start
-or readiness check; starting the candidate before 309 also fails its catalog
-check. Additive DDL and unchanged 007/009 definitions do not establish rollout
-compatibility. Coordinate the migration and candidate switch within an explicit
-deployment procedure that accounts for this interval. Do not relax the generic
-catalog verifier or claim uninterrupted old-runtime behavior. After both are
-verified, grant the approved device and verify its real enrollment. In the
-candidate, no internal binding leaves ordinary legacy behavior available.
-Database errors and invalid internal bindings never permit fallback. The new
-internal endpoints fail closed while the authority is disabled.
+The original runtime requires exactly 79 catalog rows, so it is not a rollback
+target after 309. Use the API composition bridge, which selects only the pinned
+historical 79-row catalog or the exact target 80-row catalog and passes that
+choice to the unchanged strict verifier in one read-only snapshot. Other counts,
+missing rows, and mismatched checksums fail. The 79-row mode prohibits the signer
+secret reference; the signing service also verifies its SQL authority before
+fetching its key.
+
+Deploy in this order:
+
+1. Record the bridge source SHA, artifact hash, and exact rollback artifact.
+   Deploy the bridge with the signer reference absent, and verify the actual
+   79-row catalog and application behavior.
+2. Apply 309 through the reviewed append adapter and read back all 80 rows and
+   the new authority. Preserve the 79-row ledger and historical pause evidence.
+3. Activate the exact signer secret reference after the full environment budget
+   check. Verify startup, signing authority, and the independently pinned issuer.
+4. Grant the approved device and verify its real enrollment.
+
+After step 2, rollback only to the pinned config-off bridge artifact that
+supports the exact 80-row catalog. Do not roll back to the original 79-only
+runtime or remove migration history to make it start. In the bridge, no internal
+binding leaves ordinary legacy behavior available. Database errors and invalid
+internal bindings never permit fallback. The new internal endpoints fail closed
+while the authority is disabled.
+
+At 80 rows, removing the signer reference disables attestation and the dedicated
+new endpoints while retaining the internal SQL checks on existing lifecycle and
+trusted-current routes. A revoked internal grant cannot become legacy-trusted
+when the signing configuration is removed.
+
+Check the exact live `LAWOS_CLIENT_OPERATIONS_V2_ENABLED` setting before rollout.
+It controls `client_dashboard_v2`; absence resolves to false. If enabled, inspect
+the existing analytics ledger idempotency entry
+`client_operations_v2_schema_bound_readiness` through `ledger.listIdempotency`.
+Its readiness attestation binds the actual schema count and hash. The current
+client migration runner rejects a conflicting historical attestation and does
+not provide schema-only rebinding. An enabled deployment therefore needs a
+separate readiness transition before this rollout; do not delete the old receipt,
+claim 79 rows when 80 exist, or treat rerunning the importer as a refresh. This
+bridge does not change that client feature or its readiness validation.
 
 ## Authorize and enroll one device
 

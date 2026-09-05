@@ -343,8 +343,11 @@ test("PostgreSQL preflight reports only fixed stages and reasons while closing f
         });
       };
       const pool = {
-        connect() {},
+        async connect() {
+          return { query: this.query.bind(this), release() {} };
+        },
         async query(sql) {
+          if (sql.startsWith("BEGIN") || sql === "COMMIT" || sql === "ROLLBACK") return { rows: [] };
           const stage = sql.includes("schema_migrations") ? "migration-catalog"
             : sql.includes("tenant_context_authority_ready") ? "tenant-authority" : "health-query";
           if (stage === failureStage && !["missing", "checksum", "inactive"].includes(variant)) failure();
@@ -352,8 +355,9 @@ test("PostgreSQL preflight reports only fixed stages and reasons while closing f
             const rows = CLIENT_OPERATIONS_SCHEMA_MANIFEST.entries.map((entry) => ({
               migration_id: entry.id, checksum: entry.checksum,
             }));
-            if (variant === "missing") rows.pop();
+            if (variant === "missing") rows.splice(0, 1);
             if (variant === "checksum") rows[0].checksum = "0".repeat(64);
+            if (sql.startsWith("SELECT count(*)")) return { rows: [{ migration_count: rows.length }] };
             return { rows };
           }
           return { rows: [{ ready: variant !== "inactive", authority_ready: 1 }] };

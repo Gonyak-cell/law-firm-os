@@ -34,7 +34,7 @@ function call(overrides = {}, service = {}) {
   return handleInternalUnsignedInstallationApiRequest({
     pathname: attestationPath, method: "POST", body: attestationBody,
     principal, context, requestId: "request-synthetic-1",
-    runtime: { entitlement_roster: roster, internal_unsigned_installation_service: service },
+    runtime: { entitlement_roster: roster, internal_unsigned_installation_service: { attestation_configured: true, ...service } },
     ...overrides,
   });
 }
@@ -108,6 +108,30 @@ test("disabled authority, malformed signer output and unsafe database errors rem
   const denied = await call({}, { attest: async () => { throw Object.assign(new Error("private detail"), { safe_error_code: "INTERNAL_INSTALLATION_RELEASE_UNTRUSTED", status: 403 }); } });
   assert.equal(denied.status, 403);
   assert.deepEqual(denied.body.safe_error_codes, ["INTERNAL_INSTALLATION_RELEASE_UNTRUSTED"]);
+});
+
+test("dedicated internal routes require an explicitly configured attestation signer", async () => {
+  let calls = 0;
+  for (const configured of [false, undefined, null, "true"]) {
+    const service = {
+      attestation_configured: configured,
+      ...Object.fromEntries(["register", "heartbeat", "retire", "attest"].map((operation) =>
+        [operation, async () => { calls += 1; throw new Error("disabled route reached service"); }])),
+    };
+    for (const [pathname, body] of [
+      [attestationPath, attestationBody],
+      ["/api/desktop/internal-installations", { release_authorization_id: "internal-release-1", device_public_key: "synthetic-key", installed_receipt_sha256: "b".repeat(64), ...proof }],
+      [`/api/desktop/internal-installations/${installationId}/heartbeat`, { expected_state_version: 1, ...proof }],
+      [`/api/desktop/internal-installations/${installationId}/retire`, { expected_state_version: 1, retire_reason: "uninstall", ...proof }],
+    ]) {
+      const result = await call({ pathname, body,
+        runtime: { entitlement_roster: roster, internal_unsigned_installation_service: service },
+      });
+      assert.equal(result.status, 503);
+      assert.deepEqual(result.body.safe_error_codes, ["OUTLOOK_DESKTOP_INSTALLATION_RUNTIME_UNAVAILABLE"]);
+    }
+  }
+  assert.equal(calls, 0);
 });
 
 test("strict internal installation read precedes existing read and only null permits fallback", async () => {
@@ -188,17 +212,62 @@ test("old lifecycle HTTP projection preserves a bounded internal authority denia
   assert.equal(calls, 1);
 });
 
+test("verified schema determines unsigned guard activation without fetching an absent signer", async () => {
+  let metadataReads = 0;
+  let secretCalls = 0;
+  let oldReads = 0;
+  const options = {
+    env: {},
+    pool: { connect: async () => { throw new Error("database unavailable"); } },
+    tenant_id: principal.tenant_id,
+    verifyAuthority: async () => { metadataReads += 1; },
+    resolveSecret: async () => { secretCalls += 1; throw new Error("unexpected secret lookup"); },
+  };
+  assert.equal(await createInternalUnsignedInstallationRuntimeFromEnv({ ...options, schema_migration_count: 79 }), null);
+  await assert.rejects(createInternalUnsignedInstallationRuntimeFromEnv({ ...options, schema_migration_count: 79,
+    env: { AWS_REGION: "ap-northeast-2", LAWOS_INTERNAL_INSTALLATION_ATTESTATION_SECRET_ID: "synthetic/attestation" },
+  }), /requires migration 80/u);
+  for (const count of [undefined, null, 0, 78, 81, "80", true]) {
+    await assert.rejects(createInternalUnsignedInstallationRuntimeFromEnv({ ...options, schema_migration_count: count }), /verified migration count/u);
+  }
+  assert.equal(metadataReads, 0);
+  assert.equal(secretCalls, 0);
+  const service = await createInternalUnsignedInstallationRuntimeFromEnv({ ...options, schema_migration_count: 80 });
+  assert.equal(metadataReads, 1);
+  assert.equal(secretCalls, 0);
+  assert.equal(service.configured, true);
+  assert.equal(service.attestation_configured, false);
+  await assert.rejects(service.attest(), (error) => error.status === 503);
+  const old = {
+    installation_service: { readTrustedCurrent: async () => { oldReads += 1; return "legacy trusted"; } },
+    legacy_installation_service: { register: async () => "legacy registered" },
+  };
+  const runtime = composeInternalUnsignedInstallationRuntime(old, service);
+  assert.equal(runtime.internal_unsigned_installation_service, null);
+  assert.notEqual(runtime.installation_service.readTrustedCurrent, old.installation_service.readTrustedCurrent);
+  assert.notEqual(runtime.legacy_installation_service.register, old.legacy_installation_service.register);
+  await assert.rejects(runtime.installation_service.readTrustedCurrent({ principal: {
+    tenant_id: principal.tenant_id, user_id: principal.user_id, entra_subject_id: principal.entra_subject_id,
+  } }));
+  assert.equal(oldReads, 0);
+  assert.equal(secretCalls, 0);
+});
+
 test("signer configuration is opt-in, closed and secret-reference only with pinned key material", async () => {
   let secretCalls = 0;
   let metadataReads = 0;
+  const startupOrder = [];
   const { publicKey, privateKey } = generateKeyPairSync("ed25519");
   const publicHash = createHash("sha256").update(publicKey.export({ type: "spki", format: "der" })).digest("hex");
   const env = { AWS_REGION: "ap-northeast-2", LAWOS_INTERNAL_INSTALLATION_ATTESTATION_SECRET_ID: "synthetic/attestation" };
   const secret = { key_id: "synthetic-attestation-1", private_key_pem: privateKey.export({ type: "pkcs8", format: "pem" }), public_key_sha256: publicHash };
-  const options = { env, pool: { connect: async () => { throw new Error("unit fixture requires metadata reader"); } }, tenant_id: principal.tenant_id,
-    verifyAuthority: async () => { metadataReads += 1; },
-    resolveSecret: async (input) => { secretCalls += 1; assert.deepEqual(input, { secretId: "synthetic/attestation", region: "ap-northeast-2" }); return secret; } };
-  assert.equal(await createInternalUnsignedInstallationRuntimeFromEnv({ ...options, env: {} }), null);
+  const options = { env, pool: { connect: async () => { throw new Error("unit fixture requires metadata reader"); } }, tenant_id: principal.tenant_id, schema_migration_count: 80,
+    verifyAuthority: async () => { metadataReads += 1; startupOrder.push("verify"); },
+    resolveSecret: async (input) => { secretCalls += 1; startupOrder.push("secret"); assert.deepEqual(input, { secretId: "synthetic/attestation", region: "ap-northeast-2" }); return secret; } };
+  assert.equal(await createInternalUnsignedInstallationRuntimeFromEnv({ ...options, env: {}, schema_migration_count: 79 }), null);
+  assert.equal(secretCalls, 0);
+  assert.equal(metadataReads, 0);
+  assert.deepEqual(startupOrder, []);
   await assert.rejects(createInternalUnsignedInstallationRuntimeFromEnv({ ...options, env: { LAWOS_INTERNAL_INSTALLATION_ATTESTATION_SECRET_ID: "partial" } }), /incomplete/u);
   for (const field of ["KEY_ID", "PUBLIC_KEY_SHA256", "PRIVATE_KEY", "PRIVATE_KEY_PEM"]) {
     for (const value of ["obsolete-or-inline", ""]) {
@@ -209,6 +278,12 @@ test("signer configuration is opt-in, closed and secret-reference only with pinn
   }
   assert.equal(secretCalls, 0);
   assert.equal(metadataReads, 0);
+  const service = await createInternalUnsignedInstallationRuntimeFromEnv(options);
+  assert.equal(typeof service.attest, "function");
+  assert.equal(service.attestation_configured, true);
+  assert.equal(metadataReads, 1);
+  assert.equal(secretCalls, 1);
+  assert.deepEqual(startupOrder, ["verify", "secret"]);
   for (const invalidSecret of [
     { ...secret, arbitrary: true },
     { key_id: secret.key_id, private_key_pem: secret.private_key_pem },
@@ -217,18 +292,46 @@ test("signer configuration is opt-in, closed and secret-reference only with pinn
     { ...secret, public_key_sha256: "INVALID" },
     { ...secret, public_key_sha256: undefined },
   ]) {
+    const readsBefore = metadataReads;
     await assert.rejects(createInternalUnsignedInstallationRuntimeFromEnv({ ...options,
       resolveSecret: async () => invalidSecret,
     }), /secret is invalid/u);
+    assert.equal(metadataReads, readsBefore + 1);
   }
-  const service = await createInternalUnsignedInstallationRuntimeFromEnv(options);
-  assert.equal(typeof service.attest, "function");
-  assert.equal(metadataReads, 1);
+  const readsBeforeMismatch = metadataReads;
   await assert.rejects(createInternalUnsignedInstallationRuntimeFromEnv({ ...options,
     resolveSecret: async () => ({ ...secret, public_key_sha256: "f".repeat(64) }),
   }));
+  assert.equal(metadataReads, readsBeforeMismatch + 1);
+});
+
+test("configured signer rejects authority metadata drift before fetching any secret", async () => {
+  let metadataReads = 0;
+  let secretCalls = 0;
+  const pool = { connect: async () => { throw new Error("unexpected unit database access"); } };
+  const drift = Object.assign(new Error("authority metadata drift"), {
+    code: "LAWOS_INTERNAL_INSTALLATION_AUTHORITY_READBACK",
+  });
+  await assert.rejects(createInternalUnsignedInstallationRuntimeFromEnv({
+    env: {
+      AWS_REGION: "ap-northeast-2",
+      LAWOS_INTERNAL_INSTALLATION_ATTESTATION_SECRET_ID: "synthetic/attestation",
+    },
+    pool,
+    tenant_id: principal.tenant_id,
+    schema_migration_count: 80,
+    verifyAuthority: async (input) => {
+      metadataReads += 1;
+      assert.equal(input, pool);
+      throw drift;
+    },
+    resolveSecret: async () => {
+      secretCalls += 1;
+      throw new Error("secret must not be fetched after authority rejection");
+    },
+  }), (error) => error === drift);
   assert.equal(metadataReads, 1);
-  await assert.rejects(createInternalUnsignedInstallationRuntimeFromEnv({ ...options, verifyAuthority: async () => { throw new Error("authority metadata drift"); } }), /authority metadata drift/u);
+  assert.equal(secretCalls, 0);
 });
 
 test("HTTP dispatch retains session and permission checks while reaching the internal attestation authority", async () => {
@@ -248,7 +351,7 @@ test("HTTP dispatch retains session and permission checks while reaching the int
     outlookDesktopRuntime: {
       entitlement_roster: roster,
       installation_service: { readTrustedCurrent: async () => { throw new Error("old installation must not gate attestation"); } },
-      internal_unsigned_installation_service: { attest: async () => { calls += 1; return attestation; } },
+      internal_unsigned_installation_service: { attestation_configured: true, attest: async () => { calls += 1; return attestation; } },
     },
   });
   await new Promise((resolve, reject) => { server.once("error", reject); server.listen(0, "127.0.0.1", resolve); });

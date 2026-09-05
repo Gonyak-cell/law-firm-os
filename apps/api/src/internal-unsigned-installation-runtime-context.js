@@ -29,19 +29,27 @@ function exactFields(value, fields) {
 }
 
 export async function createInternalUnsignedInstallationRuntimeFromEnv({
-  env = process.env, pool, tenant_id, resolveSecret = resolveAwsJsonSecret,
+  env = process.env, pool, tenant_id, schema_migration_count, resolveSecret = resolveAwsJsonSecret,
   verifyAuthority = verifyInternalUnsignedInstallationAuthorityReadback,
 } = {}) {
+  if (![79, 80].includes(schema_migration_count)) {
+    throw new TypeError("Internal installation authority requires a verified migration count");
+  }
   const secretId = String(env[`${CONFIG_PREFIX}SECRET_ID`] ?? "").trim();
   if (["KEY_ID", "PUBLIC_KEY_SHA256", "PRIVATE_KEY", "PRIVATE_KEY_PEM"]
     .some((key) => Object.hasOwn(env, `${CONFIG_PREFIX}${key}`))) {
     throw new TypeError("Internal installation signer requires only a Secrets Manager reference");
   }
-  if (!secretId) return null;
+  if (schema_migration_count === 79) {
+    if (secretId) throw new TypeError("Internal installation signer requires migration 80");
+    return null;
+  }
   const region = String(env.AWS_REGION ?? env.AWS_DEFAULT_REGION ?? "").trim();
-  if (!region) {
+  if (secretId && !region) {
     throw new TypeError("Internal installation signer configuration is incomplete");
   }
+  await verifyAuthority(pool);
+  if (!secretId) return createPostgresInternalUnsignedInstallationAuthority({ pool, tenant_id });
   const secret = await resolveSecret({ secretId, region });
   if (!exactFields(secret, ["key_id", "private_key_pem", "public_key_sha256"])
     || typeof secret.key_id !== "string" || !ID.test(secret.key_id)
@@ -55,7 +63,6 @@ export async function createInternalUnsignedInstallationRuntimeFromEnv({
     attestation_private_key: secret.private_key_pem,
     expected_attestation_public_key_sha256: secret.public_key_sha256,
   });
-  await verifyAuthority(pool);
   return service;
 }
 
@@ -63,7 +70,7 @@ export function composeInternalUnsignedInstallationRuntime(runtime, service) {
   if (!service) return runtime;
   return Object.freeze({
     ...runtime,
-    internal_unsigned_installation_service: service,
+    internal_unsigned_installation_service: service.attestation_configured === true ? service : null,
     legacy_installation_service: Object.freeze({
       ...runtime.legacy_installation_service,
       ...Object.fromEntries(["register", "heartbeat", "retire"].map((operation) => [operation,
@@ -135,7 +142,8 @@ export async function handleInternalUnsignedInstallationApiRequest({
   });
   if (!authority.allowed) return failure(authority.status, requestId, authority.safe_error_code);
   const service = runtime?.internal_unsigned_installation_service;
-  if (typeof service?.[matched.operation] !== "function") return failure(503, requestId, "OUTLOOK_DESKTOP_INSTALLATION_RUNTIME_UNAVAILABLE");
+  if (service?.attestation_configured !== true
+    || typeof service[matched.operation] !== "function") return failure(503, requestId, "OUTLOOK_DESKTOP_INSTALLATION_RUNTIME_UNAVAILABLE");
   const signedPrincipal = Object.freeze({ tenant_id: principal.tenant_id, user_id: principal.user_id, entra_subject_id: principal.entra_subject_id });
   try {
     if (matched.operation === "attest") {

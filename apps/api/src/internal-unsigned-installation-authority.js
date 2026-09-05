@@ -80,9 +80,10 @@ export function createPostgresInternalUnsignedInstallationAuthority({
   if (!pool?.connect || typeof tenantId !== "string" || !ID.test(tenantId)) {
     throw new TypeError("Internal installation PostgreSQL authority configuration is invalid");
   }
-  const signAttestation = createInternalUnsignedInstallationAttestationSigner({
-    privateKey, keyId, expectedPublicKeySha256,
-  });
+  const signAttestation = [privateKey, keyId, expectedPublicKeySha256].every((value) => value === undefined)
+    ? null : createInternalUnsignedInstallationAttestationSigner({
+      privateKey, keyId, expectedPublicKeySha256,
+    });
   const principal = (value) => {
     const bound = normalizeAssignmentPrincipal(exact(value, ["tenant_id", "user_id", "entra_subject_id"]));
     if (bound.tenant_id !== tenantId) throw failure("INTERNAL_INSTALLATION_BINDING_MISMATCH", 403);
@@ -174,12 +175,18 @@ export function createPostgresInternalUnsignedInstallationAuthority({
     });
   }, true);
 
+  const dedicatedTransition = async (operation, input) => {
+    if (!signAttestation) throw failure();
+    return transition(operation, input);
+  };
+
   return Object.freeze({
     authority: "postgres-internal-unsigned-installation-authority",
     configured: true,
-    register: (input) => transition("register", input),
-    heartbeat: (input) => transition("heartbeat", input),
-    retire: (input) => transition("retire", input),
+    attestation_configured: signAttestation !== null,
+    register: (input) => dedicatedTransition("register", input),
+    heartbeat: (input) => dedicatedTransition("heartbeat", input),
+    retire: (input) => dedicatedTransition("retire", input),
     registerLegacy: (input, { authorize } = {}) => transition("register", input, { legacy: true, authorize }),
     heartbeatLegacy: (input, { authorize } = {}) => transition("heartbeat", input, { legacy: true, authorize }),
     retireLegacy: (input, { authorize } = {}) => transition("retire", input, { legacy: true, authorize }),
@@ -194,6 +201,7 @@ export function createPostgresInternalUnsignedInstallationAuthority({
       ].map((field) => [field, result.installation[field]])));
     },
     async attest(input) {
+      if (!signAttestation) throw failure();
       const value = exact(input, ["principal", "adoption_id", "request_sha256", "installation_id"]);
       const actor = principal(value.principal);
       if (typeof value.adoption_id !== "string" || !ID.test(value.adoption_id)

@@ -174,7 +174,7 @@ async function oldProtocolFixture(t, suffix) {
     pool: authority.appPool, tenant_id: actor.tenant_id, entitlement_roster: roster,
   });
   const fallbackCalls = { register: 0, heartbeat: 0, retire: 0, read: 0 };
-  const runtime = composeInternalUnsignedInstallationRuntime({
+  const monitoredRuntime = {
     ...original,
     legacy_installation_service: {
       ...original.legacy_installation_service,
@@ -191,7 +191,8 @@ async function oldProtocolFixture(t, suffix) {
         return original.installation_service.readTrustedCurrent(input);
       },
     },
-  }, internal);
+  };
+  const runtime = composeInternalUnsignedInstallationRuntime(monitoredRuntime, internal);
   let sequence = 0;
   const command = (operation, {
     installationId = "NEW", stateVersion = 1, tuple = WINDOWS_0132_REQUEST,
@@ -253,7 +254,7 @@ async function oldProtocolFixture(t, suffix) {
   const generic = createPostgresOutlookDesktopInstallationAuthorityService({
     pool: authority.appPool, tenant_id: actor.tenant_id,
   });
-  return { authority, actor, signer, signingPin, internal, original, runtime, generic,
+  return { authority, actor, device, signer, signingPin, internal, original, monitoredRuntime, runtime, generic,
     fallbackCalls, command, authorize, authorizeCalls, grant, revoke, suffix };
 }
 
@@ -367,11 +368,69 @@ test("revoked internal 0.1.29 and expired internal 0.1.32 grants cannot downgrad
   const installationId = installation.body.installation.installation_id;
   assert.equal((await revoked.original.installation_service.readTrustedCurrent({ principal: revoked.actor })).release_trusted, true,
     "the existing 009 compatibility path would otherwise trust this exact legacy tuple");
+  const signerDisabled = createPostgresInternalUnsignedInstallationAuthority({
+    pool: revoked.authority.appPool, tenant_id: revoked.actor.tenant_id,
+  });
+  assert.equal(signerDisabled.attestation_configured, false);
+  const signerDisabledRuntime = composeInternalUnsignedInstallationRuntime(revoked.monitoredRuntime, signerDisabled);
+  const boundPrincipal = { principal: revoked.actor };
+  assert.equal((await signerDisabledRuntime.installation_service.readTrustedCurrent(boundPrincipal)).release_trusted, true);
+  for (const partial of [
+    { attestation_key_id: "partial-signer" },
+    { attestation_private_key: revoked.signer.privateKey },
+    { expected_attestation_public_key_sha256: revoked.signingPin },
+  ]) {
+    assert.throws(() => createPostgresInternalUnsignedInstallationAuthority({
+      pool: revoked.authority.appPool, tenant_id: revoked.actor.tenant_id, ...partial,
+    }));
+  }
+  const originalRows = async () => (await revoked.authority.observerPool.query(
+    `SELECT 'installation' AS kind,to_jsonb(row) AS data FROM lawos_email_dms.outlook_desktop_installations AS row WHERE tenant_id=$1
+     UNION ALL SELECT 'nonce',to_jsonb(row) FROM lawos_email_dms.outlook_desktop_installation_nonces AS row WHERE tenant_id=$1
+     UNION ALL SELECT 'idempotency',to_jsonb(row) FROM lawos_email_dms.outlook_desktop_installation_idempotency AS row WHERE tenant_id=$1
+     UNION ALL SELECT 'audit',to_jsonb(row) FROM lawos_email_dms.outlook_desktop_installation_audit_events AS row WHERE tenant_id=$1
+     ORDER BY kind,data`, [revoked.actor.tenant_id],
+  )).rows;
+  const beforeDedicatedCalls = await originalRows();
+  const unavailable = (error) => error?.safe_error_code === "INTERNAL_INSTALLATION_AUTHORITY_UNAVAILABLE"
+    && error.status === 503;
+  for (const operation of ["register", "heartbeat", "retire"]) {
+    const command = revoked.command(operation, { installationId: operation === "register" ? "NEW" : installationId });
+    command.request = {
+      ...command.request,
+      path: operation === "register" ? "/api/desktop/internal-installations"
+        : `/api/desktop/internal-installations/${installationId}/${operation}`,
+      body: operation === "register" ? {
+        release_authorization_id: grant.authorization_id,
+        installed_receipt_sha256: grant.installed_receipt_sha256,
+        device_public_key: command.request.body.device_public_key,
+      } : command.request.body,
+    };
+    command.signature = signOutlookDesktopLifecycleRequest(command.request, revoked.device.privateKey);
+    await assert.rejects(signerDisabled[operation](command), unavailable);
+  }
+  await assert.rejects(signerDisabled.attest({ ...boundPrincipal, installation_id: installationId,
+    adoption_id: "signer-disabled-adoption", request_sha256: digest("signer disabled adoption") }), unavailable);
+  assert.deepEqual(await originalRows(), beforeDedicatedCalls, "disabled dedicated calls must not mutate lifecycle records");
+  assert.equal((await signerDisabledRuntime.legacy_installation_service.heartbeat(
+    revoked.command("heartbeat", { installationId }), { authorize: revoked.authorize })).body.installation.state_version, 2);
+  assert.deepEqual(revoked.authorizeCalls.at(-1), { operation: "heartbeat",
+    principal: revoked.actor, installation_id: installationId });
   await revoked.revoke(grant);
+  await assert.rejects(signerDisabledRuntime.installation_service.readTrustedCurrent(boundPrincipal),
+    safeCode("INTERNAL_INSTALLATION_RETIRED_OR_REVOKED"));
+  await assert.rejects(signerDisabledRuntime.legacy_installation_service.heartbeat(
+    revoked.command("heartbeat", { installationId, stateVersion: 2 }), { authorize: revoked.authorize }),
+  safeCode("INTERNAL_INSTALLATION_RETIRED_OR_REVOKED"));
   await assert.rejects(revoked.runtime.installation_service.readTrustedCurrent({ principal: revoked.actor }),
     safeCode("INTERNAL_INSTALLATION_RETIRED_OR_REVOKED"));
   assert.equal(revoked.fallbackCalls.read, 0);
   assert.equal((await revoked.generic.read({ principal: revoked.actor, installation_id: installationId })).status, "active");
+  assert.equal((await signerDisabledRuntime.legacy_installation_service.retire(
+    revoked.command("retire", { installationId, stateVersion: 2 }), { authorize: revoked.authorize })).body.installation.status, "retired");
+  assert.deepEqual(revoked.authorizeCalls.at(-1), { operation: "retire",
+    principal: revoked.actor, installation_id: installationId });
+  assert.deepEqual(revoked.fallbackCalls, { register: 0, heartbeat: 0, retire: 0, read: 0 });
 
   const expired = await oldProtocolFixture(t, "expired0132");
   const expiring = await expired.grant({ lifetime: 2000 });
