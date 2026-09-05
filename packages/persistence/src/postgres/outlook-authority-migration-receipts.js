@@ -203,8 +203,8 @@ export function assertOutlookAuthorityMigrationRunReceipt(value, expected) {
   if ((!historical && value.schema_version !== RUN_SCHEMA)
       || (!committed && !verified && !appended)
       || (historical && (committed
-        || value.historical_migration_catalog_sha256 !==
-          INTERNAL_INSTALLATION_HISTORICAL_CATALOG_SHA256
+        || (!currentTarget && value.historical_migration_catalog_sha256 !==
+          INTERNAL_INSTALLATION_HISTORICAL_CATALOG_SHA256)
         || value.migration_catalog_sha256 ===
           value.historical_migration_catalog_sha256))
       || !SHA256.test(receiptSha) || hashDomainValue(material) !== receiptSha
