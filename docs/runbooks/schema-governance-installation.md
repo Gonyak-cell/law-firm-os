@@ -55,6 +55,23 @@ cannot activate a new schema commit.
    Preserve old rows and receipts and verify replay through the existing
    migration claim/terminal receipt path.
 
+The RDS-managed master secret is read from the exact ARN in that signed target
+receipt. Its native closed shape is `username` and `password`; connection host,
+port and database come from the receipt and must also match the deployed runtime.
+A secret with target fields must supply the complete matching target. Partial
+target fields, URL-only aliases and a different master username are rejected.
+Do not add connection fields to, rotate or replace the RDS-managed secret to
+prepare a schema transition.
+
+Execution also requires the three existing Outlook role-secret references in
+the admin environment and `s3:GetObject` for the claim and terminal paths.
+Distinguishing an absent terminal from access denial requires `s3:ListBucket`
+on the program-input bucket in both IAM and the S3 gateway endpoint policy.
+For gateway endpoints, set `Principal` to `*` and constrain the exact role with
+`aws:PrincipalArn`. Preserve existing statements and remove temporary grants
+and environment overrides after verification. Never treat `AccessDenied` as
+an absent terminal, delete a failed claim, or reuse a claim with a PARTIAL result.
+
 Before a schema commit, recovery can detach the layer and restore the retained
 pre-change artifact. After a schema commit, preserve a runtime compatible with
 the new catalog and detach the signing layer to stop further commits; never

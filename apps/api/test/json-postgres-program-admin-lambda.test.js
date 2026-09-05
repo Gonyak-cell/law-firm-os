@@ -1352,6 +1352,56 @@ test("Outlook commit binds resolved master host, port, database, and username be
   }
 });
 
+test("Outlook commit accepts native RDS managed credentials and connects only to the signed target", async () => {
+  const harness = syntheticFreshOutlookHarness();
+  const resolve = harness.options.resolveSecret;
+  const masterRef = harness.authorization.packet.target.database_secret_ref;
+  harness.options.resolveSecret = async (input) => {
+    const value = await resolve(input);
+    return input.secretId === masterRef
+      ? { username: value.username, password: value.password } : value;
+  };
+  const result = await bootstrapJsonPostgresProductionDatabase(harness.options);
+  assert.equal(result.outcome, "PASS");
+  const target = harness.authorization.databaseTargetReceipt;
+  const connection = new URL(harness.poolOptions().connectionString);
+  assert.equal(connection.hostname, target.endpoint_host);
+  assert.equal(connection.port, String(target.endpoint_port));
+  assert.equal(connection.pathname, `/${target.database_name}`);
+  assert.equal(connection.username, target.master_username);
+  assert.equal(connection.password, "master-value");
+  assert.equal(harness.poolOptions().sslMode, "verify-full");
+  assert.equal(harness.secretWrites.some(({ secretId }) => secretId === masterRef), false);
+});
+
+test("Outlook native RDS credentials reject extra target fields and credential drift before database access", async () => {
+  for (const override of [
+    { username: "wrong_admin" },
+    { password: "" },
+    { host: outlookCommitEnv().LAWOS_DATABASE_HOST },
+    { port: 5432 },
+    { dbname: "lawos" },
+    { database: "lawos" },
+    { url: "postgresql://wrong:wrong@attacker.invalid/wrong" },
+  ]) {
+    const harness = syntheticFreshOutlookHarness();
+    const resolve = harness.options.resolveSecret;
+    const masterRef = harness.authorization.packet.target.database_secret_ref;
+    harness.options.resolveSecret = async (input) => {
+      const value = await resolve(input);
+      return input.secretId === masterRef
+        ? { username: value.username, password: value.password, ...override } : value;
+    };
+    await assert.rejects(bootstrapJsonPostgresProductionDatabase(harness.options),
+      (error) => ["LAWOS_OUTLOOK_DATABASE_TARGET", "LAWOS_OUTLOOK_DATABASE_MASTER_ROLE"].includes(error?.code));
+    assert.equal(harness.poolOptions(), undefined);
+    assert.equal(harness.secretWrites.length, 0);
+    assert.equal(harness.terminalWrites.length, 1);
+    assert.equal(harness.terminalWrites[0].failure.failure_phase, "credential-input");
+    assert.equal(harness.terminalWrites[0].postgres_mutation_attempt_count, 0);
+  }
+});
+
 test("Outlook exact claim replay returns immutable PASS with zero database or secret mutation", async () => {
   const calls = [];
   const authorityCatalog = normalizeLawosOutlookAuthorityCatalog(
