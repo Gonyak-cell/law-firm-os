@@ -7,24 +7,30 @@ make a production-readiness claim.
 
 ## API photo read configuration
 
-The PostgreSQL API uses a separate S3 adapter for member photos. Configure all
-six values from the approved migration target and deployed reader role:
+The PostgreSQL API uses a separate S3 prefix for member photos within the
+existing DMS bucket. Configure only `LAWOS_MEMBER_PHOTO_S3_PREFIX` from the
+approved `photo_prefix`. The reader reuses these existing DMS bindings:
 
 | Environment variable | Value source |
 | --- | --- |
-| `LAWOS_MEMBER_PHOTO_S3_BUCKET` | Approved `photo_bucket_name` |
-| `LAWOS_MEMBER_PHOTO_S3_EXPECTED_BUCKET_OWNER` | Approved `photo_expected_bucket_owner` |
-| `LAWOS_MEMBER_PHOTO_S3_REGION` | Approved `aws_region` |
-| `LAWOS_MEMBER_PHOTO_S3_PREFIX` | Approved `photo_prefix` |
-| `LAWOS_MEMBER_PHOTO_S3_KMS_KEY_ID` | Approved `photo_kms_key_arn` |
-| `LAWOS_MEMBER_PHOTO_S3_CREDENTIAL_REF` | Deployed API reader role reference, never credentials |
+| `LAWOS_DMS_S3_BUCKET` | Must equal approved `photo_bucket_name` |
+| `LAWOS_DMS_S3_EXPECTED_BUCKET_OWNER` | Must equal approved `photo_expected_bucket_owner` |
+| `LAWOS_DMS_S3_REGION` | Must equal approved `aws_region` |
+| `LAWOS_DMS_S3_KMS_KEY_ID` | Must equal approved `photo_kms_key_arn` |
+| `LAWOS_DMS_S3_CREDENTIAL_REF` | Existing deployed API reader role reference, never credentials |
 
 The photo prefix must be canonical and must not overlap the common DMS prefix
 in the same bucket. The KMS key ARN must match the photo region and expected
-bucket owner. Missing or partial configuration fails startup; the API does not
+bucket owner. Duplicate `LAWOS_MEMBER_PHOTO_S3_*` bindings other than the prefix
+are rejected. Missing or partial configuration fails startup; the API does not
 fall back to the Vault prefix for real data. Explicit non-S3 storage injection
 is retained only for `LAWOS_DATA_SCOPE=synthetic-only` tests with no photo S3
-configuration. `LAWOS_DMS_S3_*` continues to configure Vault and other DMS users.
+configuration. `LAWOS_DMS_S3_PREFIX` continues to configure Vault and other DMS
+users. Before creating a change set, resolve the complete Lambda environment
+and validate its compact JSON UTF-8 size against the 4,096-byte limit. This
+includes the variable names, values and serialization overhead measured by
+the service; template string lengths and key-plus-value sums alone are not a
+passing deployment check.
 
 Grant the deployed API role only the required photo object reads and KMS decrypt
 scope. This configuration does not authorize photo writes or repeat the import.

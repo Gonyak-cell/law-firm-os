@@ -8,12 +8,12 @@ import { createHrxMemberPhotoMetadata, createHrxMemberPhotoStorage } from "../..
 import { createPostgresMemberPhotoStorageFromEnv } from "../src/server.js";
 
 const PHOTO_ENV = Object.freeze({
-  LAWOS_MEMBER_PHOTO_S3_BUCKET: "private-photos-test",
-  LAWOS_MEMBER_PHOTO_S3_EXPECTED_BUCKET_OWNER: "123456789012",
-  LAWOS_MEMBER_PHOTO_S3_REGION: "ap-northeast-2",
+  LAWOS_DMS_S3_BUCKET: "private-photos-test",
+  LAWOS_DMS_S3_EXPECTED_BUCKET_OWNER: "123456789012",
+  LAWOS_DMS_S3_REGION: "ap-northeast-2",
   LAWOS_MEMBER_PHOTO_S3_PREFIX: "approved-test/member-photos",
-  LAWOS_MEMBER_PHOTO_S3_KMS_KEY_ID: "arn:aws:kms:ap-northeast-2:123456789012:key/test-key",
-  LAWOS_MEMBER_PHOTO_S3_CREDENTIAL_REF: "aws-role:test-photo-reader",
+  LAWOS_DMS_S3_KMS_KEY_ID: "arn:aws:kms:ap-northeast-2:123456789012:key/test-key",
+  LAWOS_DMS_S3_CREDENTIAL_REF: "aws-role:test-photo-reader",
 });
 const DMS_STORAGE = Object.freeze({
   provider: "s3",
@@ -27,6 +27,11 @@ test("member photo S3 configuration fails closed instead of using common DMS sto
     const env = { ...PHOTO_ENV };
     delete env[key];
     assert.throws(() => createPostgresMemberPhotoStorageFromEnv(env, { dmsStorage: DMS_STORAGE }), preflightError);
+  }
+  for (const field of ["BUCKET", "EXPECTED_BUCKET_OWNER", "REGION", "KMS_KEY_ID", "CREDENTIAL_REF"]) {
+    assert.throws(() => createPostgresMemberPhotoStorageFromEnv({
+      ...PHOTO_ENV, [`LAWOS_MEMBER_PHOTO_S3_${field}`]: PHOTO_ENV[`LAWOS_DMS_S3_${field}`],
+    }, { dmsStorage: DMS_STORAGE }), preflightError);
   }
   const syntheticStorage = createLocalStorageAdapter();
   assert.equal(createPostgresMemberPhotoStorageFromEnv({
@@ -53,11 +58,11 @@ test("member photo configuration rejects ambiguous prefixes and mismatched KMS o
     ...PHOTO_ENV, LAWOS_MEMBER_PHOTO_S3_PREFIX: "shared",
   }, { dmsStorage: { ...DMS_STORAGE, bucket_ref: "s3://private-photos-test/shared/vault" } }), preflightError);
   for (const override of [
-    { LAWOS_MEMBER_PHOTO_S3_EXPECTED_BUCKET_OWNER: "invalid-owner" },
-    { LAWOS_MEMBER_PHOTO_S3_EXPECTED_BUCKET_OWNER: "000000000000" },
-    { LAWOS_MEMBER_PHOTO_S3_REGION: "us-east-1" },
-    { LAWOS_MEMBER_PHOTO_S3_KMS_KEY_ID: "alias/photos" },
-    { LAWOS_MEMBER_PHOTO_S3_KMS_KEY_ID: "arn:aws:kms:ap-northeast-2:123456789012:key/" },
+    { LAWOS_DMS_S3_EXPECTED_BUCKET_OWNER: "invalid-owner" },
+    { LAWOS_DMS_S3_EXPECTED_BUCKET_OWNER: "000000000000" },
+    { LAWOS_DMS_S3_REGION: "us-east-1" },
+    { LAWOS_DMS_S3_KMS_KEY_ID: "alias/photos" },
+    { LAWOS_DMS_S3_KMS_KEY_ID: "arn:aws:kms:ap-northeast-2:123456789012:key/" },
   ]) {
     assert.throws(() => createPostgresMemberPhotoStorageFromEnv({
       ...PHOTO_ENV, ...override,
@@ -72,11 +77,11 @@ test("composed member photo reader uses its own S3 prefix, owner and bounded bod
     ...scope, photo_sha256: sha256Hex(bytes), photo_byte_size: bytes.length, photo_version_id: "photo-version-1",
   });
   const objectKey = createOpaqueStorageKey({ tenant_id: scope.tenant_id, object_id: photo.photo_object_id });
-  const expectedPath = `/${PHOTO_ENV.LAWOS_MEMBER_PHOTO_S3_BUCKET}/${PHOTO_ENV.LAWOS_MEMBER_PHOTO_S3_PREFIX}/objects/${objectKey}`;
+  const expectedPath = `/${PHOTO_ENV.LAWOS_DMS_S3_BUCKET}/${PHOTO_ENV.LAWOS_MEMBER_PHOTO_S3_PREFIX}/objects/${objectKey}`;
   const requests = [];
   const server = createServer((req, res) => {
     requests.push({ method: req.method, path: req.url, owner: req.headers["x-amz-expected-bucket-owner"], range: req.headers.range });
-    if (req.headers["x-amz-expected-bucket-owner"] !== PHOTO_ENV.LAWOS_MEMBER_PHOTO_S3_EXPECTED_BUCKET_OWNER) {
+    if (req.headers["x-amz-expected-bucket-owner"] !== PHOTO_ENV.LAWOS_DMS_S3_EXPECTED_BUCKET_OWNER) {
       res.writeHead(403, { "content-length": "0" }); res.end(); return;
     }
     if (new URL(req.url, "http://localhost").pathname !== expectedPath) {
@@ -99,7 +104,7 @@ test("composed member photo reader uses its own S3 prefix, owner and bounded bod
   await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
   const client = createBoundedS3Client({
     endpoint: `http://127.0.0.1:${server.address().port}`,
-    region: PHOTO_ENV.LAWOS_MEMBER_PHOTO_S3_REGION,
+    region: PHOTO_ENV.LAWOS_DMS_S3_REGION,
     forcePathStyle: true,
     credentials: { accessKeyId: "synthetic-test", secretAccessKey: "synthetic-test" },
   });
@@ -109,13 +114,13 @@ test("composed member photo reader uses its own S3 prefix, owner and bounded bod
   });
   const storage = createPostgresMemberPhotoStorageFromEnv(PHOTO_ENV, { dmsStorage: DMS_STORAGE, client });
   assert.equal(storage.bucket_ref, "s3://private-photos-test/approved-test/member-photos");
-  assert.equal(storage.kms_key_ref, PHOTO_ENV.LAWOS_MEMBER_PHOTO_S3_KMS_KEY_ID);
+  assert.equal(storage.kms_key_ref, PHOTO_ENV.LAWOS_DMS_S3_KMS_KEY_ID);
   assert.equal(DMS_STORAGE.bucket_ref, "s3://private-photos-test/lawos-dms");
   const reader = createHrxMemberPhotoStorage({ storage });
   assert.deepEqual((await reader.readPhoto({ ...scope, photo })).bytes, bytes);
   assert.equal(requests.length, 3);
   assert.equal(requests.every((request) => new URL(request.path, "http://localhost").pathname === expectedPath), true);
-  assert.equal(requests.every((request) => request.owner === PHOTO_ENV.LAWOS_MEMBER_PHOTO_S3_EXPECTED_BUCKET_OWNER), true);
+  assert.equal(requests.every((request) => request.owner === PHOTO_ENV.LAWOS_DMS_S3_EXPECTED_BUCKET_OWNER), true);
   assert.equal(requests.at(-1).range, "bytes=0-5242880");
   for (const field of Object.keys(scope)) {
     await assert.rejects(reader.readPhoto({ ...scope, [field]: "other-scope", photo }),
@@ -132,8 +137,8 @@ test("composed member photo reader uses its own S3 prefix, owner and bounded bod
     (error) => error?.safe_error_code === "HRX_MEMBER_PHOTO_NOT_FOUND");
   const wrongOwner = createHrxMemberPhotoStorage({ storage: createPostgresMemberPhotoStorageFromEnv({
     ...PHOTO_ENV,
-    LAWOS_MEMBER_PHOTO_S3_EXPECTED_BUCKET_OWNER: "000000000000",
-    LAWOS_MEMBER_PHOTO_S3_KMS_KEY_ID: "arn:aws:kms:ap-northeast-2:000000000000:key/test-key",
+    LAWOS_DMS_S3_EXPECTED_BUCKET_OWNER: "000000000000",
+    LAWOS_DMS_S3_KMS_KEY_ID: "arn:aws:kms:ap-northeast-2:000000000000:key/test-key",
   }, { dmsStorage: DMS_STORAGE, client }) });
   await assert.rejects(wrongOwner.readPhoto({ ...scope, photo }),
     (error) => error?.$metadata?.httpStatusCode === 403);

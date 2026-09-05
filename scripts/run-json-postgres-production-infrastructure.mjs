@@ -90,6 +90,11 @@ import {
   sha256ProgramBytes,
   writePrivateProgramJson,
 } from "./lib/json-postgres-program-files.mjs";
+import {
+  AWS_LAMBDA_ENVIRONMENT_MAX_BYTES,
+  assertLambdaEnvironmentBudget,
+  resolveW15ApiEnvironment,
+} from "./lib/lambda-environment-budget.mjs";
 
 const OPERATIONS = new Set([
   "preflight",
@@ -128,7 +133,6 @@ const OPERATIONS = new Set([
 ]);
 const INPUT_VERSION = "law-firm-os.json-postgres-production-infrastructure-input.v1";
 const SHA256 = /^[a-f0-9]{64}$/u;
-const AWS_LAMBDA_ENVIRONMENT_MAX_BYTES = 4096;
 
 function option(name, fallback = null) {
   const index = process.argv.indexOf(name);
@@ -1757,6 +1761,38 @@ if (operation === "preflight"
       JSON_POSTGRES_DISABLED_HRX_VALIDATION_OBJECT_KEY,
     ProjectionWorkerLagThresholdMs: "24",
   };
+  const apiConfiguration = awsJson([
+    "lambda", "get-function-configuration",
+    "--function-name", "lawos-production-api",
+  ]);
+  if (apiConfiguration.FunctionName !== "lawos-production-api"
+    || apiConfiguration.Environment?.Error
+    || apiConfiguration.Environment?.Variables?.LAWOS_DEPLOYMENT_COMMIT !== current.SourceSha
+    || apiConfiguration.Environment?.Variables?.LAWOS_DEPLOYMENT_TREE !== current.SourceTree
+    || apiConfiguration.Environment?.Variables?.LAWOS_DEPLOYMENT_ARTIFACT_SHA256 !== current.ArtifactSha256) {
+    throw new Error("W15 API environment readback is unavailable");
+  }
+  let deployedTemplate = awsJson([
+    "cloudformation", "get-template",
+    "--stack-name", JSON_POSTGRES_PRODUCTION_STACK,
+    "--template-stage", "Original",
+  ]).TemplateBody;
+  if (typeof deployedTemplate === "string") {
+    try {
+      deployedTemplate = JSON.parse(deployedTemplate);
+    } catch {
+      throw new Error("W15 deployed template is not JSON");
+    }
+  }
+  const apiEnvironmentBudget = assertLambdaEnvironmentBudget(resolveW15ApiEnvironment({
+    variables: productionTemplate.Resources.ApiFunction.Properties.Environment.Variables,
+    deployedVariables: deployedTemplate?.Resources?.ApiFunction?.Properties?.Environment?.Variables,
+    liveVariables: apiConfiguration.Environment?.Variables,
+    parameters,
+    outputs: outputMap(stack),
+    accountId: JSON_POSTGRES_PRODUCTION_ACCOUNT,
+    region: JSON_POSTGRES_PRODUCTION_REGION,
+  }));
   const review = createChangeSet({
     stackName: JSON_POSTGRES_PRODUCTION_STACK,
     type: "UPDATE",
@@ -1781,6 +1817,7 @@ if (operation === "preflight"
     production_traffic_enabled: true,
     projection_worker_enabled: false,
     inventory_bootstrap_only: w15BootstrapOperation,
+    api_environment_budget: apiEnvironmentBudget,
     aws_mutation_count: 1,
     production_write_count: 0,
   };
@@ -2269,11 +2306,7 @@ if (operation === "preflight"
   };
   delete apiEnvironment.LAWOS_HRX_RELATIONAL_PROJECTION_MAPPING_OBJECT_KEY;
   delete apiEnvironment.LAWOS_HRX_RELATIONAL_PROJECTION_VALIDATION_OBJECT_KEY;
-  const apiEnvironmentSizeBytes =
-    Buffer.byteLength(JSON.stringify(apiEnvironment));
-  if (apiEnvironmentSizeBytes > AWS_LAMBDA_ENVIRONMENT_MAX_BYTES) {
-    throw new Error("W15 projection API environment exceeds the AWS Lambda limit");
-  }
+  const apiEnvironmentSizeBytes = assertLambdaEnvironmentBudget(apiEnvironment).size_bytes;
   const parameters = {
     ...current,
     EnableExternalReadProviders: "false",
