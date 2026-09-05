@@ -74,6 +74,7 @@ jobs:
             apps/api/test/json-postgres-program-admin-lambda.test.js \
             apps/api/test/json-postgres-program-inputs.test.js \
             apps/api/test/json-postgres-source-transform.test.js \
+            apps/api/test/member-photo-storage-composition.test.js \
             apps/api/test/persistence-authority.test.js \
             apps/api/test/postgres-api-runtime-authority.test.js \
             apps/api/test/postgres-vault-dms-api.test.js \

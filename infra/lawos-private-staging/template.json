@@ -312,6 +312,13 @@
                 { "Fn::Sub": "${DmsBucket.Arn}/lawos-dms/*" },
                 { "Fn::Sub": "${DmsBucket.Arn}/approval-audit/*" }
               ]
+            },
+            {
+              "Sid": "ApiReadsCommittedMemberPhotos",
+              "Effect": "Allow",
+              "Principal": { "AWS": { "Fn::GetAtt": ["ApiExecutionRole", "Arn"] } },
+              "Action": ["s3:GetObject", "s3:GetObjectVersion"],
+              "Resource": { "Fn::Sub": "${DmsBucket.Arn}/synthetic-member-photos/objects/*" }
             }
           ]
         },
@@ -986,6 +993,12 @@
                   "Resource": { "Fn::Sub": "${DmsBucket.Arn}/lawos-dms/*" }
                 },
                 {
+                  "Sid": "ReadCommittedMemberPhotos",
+                  "Effect": "Allow",
+                  "Action": ["s3:GetObject", "s3:GetObjectVersion"],
+                  "Resource": { "Fn::Sub": "${DmsBucket.Arn}/synthetic-member-photos/objects/*" }
+                },
+                {
                   "Sid": "DenyFunctionCodeEc2Networking",
                   "Effect": "Deny",
                   "Action": ["ec2:CreateNetworkInterface", "ec2:DescribeNetworkInterfaces", "ec2:DescribeSubnets", "ec2:DeleteNetworkInterface", "ec2:DetachNetworkInterface", "ec2:AssignPrivateIpAddresses", "ec2:UnassignPrivateIpAddresses"],
@@ -1158,6 +1171,12 @@
             "LAWOS_DMS_S3_OBJECT_LOCK_ENABLED": "true",
             "LAWOS_DMS_S3_PREFIX": "lawos-dms",
             "LAWOS_DMS_S3_REGION": { "Ref": "AWS::Region" },
+            "LAWOS_MEMBER_PHOTO_S3_BUCKET": { "Ref": "DmsBucket" },
+            "LAWOS_MEMBER_PHOTO_S3_CREDENTIAL_REF": { "Ref": "ProviderCredentialReferenceSecret" },
+            "LAWOS_MEMBER_PHOTO_S3_EXPECTED_BUCKET_OWNER": { "Ref": "AWS::AccountId" },
+            "LAWOS_MEMBER_PHOTO_S3_KMS_KEY_ID": { "Fn::GetAtt": ["StagingKey", "Arn"] },
+            "LAWOS_MEMBER_PHOTO_S3_PREFIX": "synthetic-member-photos",
+            "LAWOS_MEMBER_PHOTO_S3_REGION": { "Ref": "AWS::Region" },
             "LAWOS_AUTH_PASSWORD_RESET_BASE_URL": { "Fn::Sub": "${HttpApi.ApiEndpoint}/api/auth/password-reset/confirm" },
             "LAWOS_AUTH_PASSWORD_RESET_EMAIL_DELIVERY": "sesv2",
             "LAWOS_AUTH_PASSWORD_RESET_EMAIL_FROM": { "Ref": "PasswordResetFromEmail" },
