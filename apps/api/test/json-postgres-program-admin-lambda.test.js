@@ -41,6 +41,7 @@ import {
 import {
   CLIENT_OPERATIONS_MIGRATION_CATALOG_SHA256,
   CLIENT_OPERATIONS_SCHEMA_MANIFEST,
+  selectClientOperationsMigrationReadback,
   selectClientOperationsMigrationTarget,
   listClientOperationsPostgresMigrations,
 } from "../src/client-operations-schema.js";
@@ -2217,6 +2218,20 @@ test("production bootstrap preflight stays SELECT-only with or without Outlook I
   for (const localEnv of [env(), outlookEnv()]) {
     const calls = [];
     const pool = {
+      async connect() { calls.push("pool:connect"); return this; },
+      release() { calls.push("client:release"); },
+      async query(sql) {
+        if (/^(?:BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY|COMMIT)$/u.test(sql)) {
+          calls.push(sql);
+          return { rows: [] };
+        }
+        assert.match(sql, /^\s*SELECT\b/iu);
+        assert.ok(sql.includes("FROM lawos_meta.outlook_authority_bootstrap_receipts"));
+        calls.push("bootstrap:read");
+        return { rows: [outlookPauseExpectation({ authorityCatalogSha256: "a".repeat(64),
+          databaseTargetReceiptSha256: "b".repeat(64), migrationCatalogSha256: "c".repeat(64),
+          roleBootstrapSha256: "d".repeat(64) })] };
+      },
       async end() { calls.push("pool:end"); },
     };
     const result = await bootstrapJsonPostgresProductionDatabase({
@@ -2256,7 +2271,12 @@ test("production bootstrap preflight stays SELECT-only with or without Outlook I
       "authorize",
       "read:lawos/master",
       "pool:create",
+      "pool:connect",
+      "BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY",
       "migrations:read",
+      "bootstrap:read",
+      "COMMIT",
+      "client:release",
       "pool:end",
     ]);
     assert.equal(result.mode, "preflight");
@@ -2581,10 +2601,17 @@ test("production schema ledger readback is SELECT-only and authoritative", async
   const queries = [];
   const secretReads = [];
   let poolOptions;
+  const bootstrap = outlookPauseExpectation({ authorityCatalogSha256: "a".repeat(64),
+    databaseTargetReceiptSha256: "b".repeat(64), migrationCatalogSha256: "43c6a087834d9dd2177be0b63fc94cf723181b93b04f40a65689b6431bd44556",
+    roleBootstrapSha256: "c".repeat(64) });
   const pool = {
+    async connect() { return this; },
+    release() {},
     async query(statement) {
       queries.push(String(statement));
+      if (/^(?:BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY|COMMIT|ROLLBACK)$/u.test(String(statement))) return { rows: [] };
       assert.match(String(statement), /^\s*SELECT\b/iu);
+      if (String(statement).includes("FROM lawos_meta.outlook_authority_bootstrap_receipts")) return { rows: [bootstrap] };
       return {
         rows: CLIENT_OPERATIONS_SCHEMA_MANIFEST.entries.map(
           ({ id, checksum }) => ({ migration_id: id, checksum }),
@@ -2614,7 +2641,12 @@ test("production schema ledger readback is SELECT-only and authoritative", async
     },
   });
   assert.deepEqual(secretReads, ["lawos/master"]);
-  assert.equal(queries.length, 1);
+  assert.equal(queries.length, 4);
+  assert.equal(queries[0], "BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY");
+  assert.equal(queries.at(-1), "COMMIT");
+  assert.deepEqual(result.historical_outlook_bootstrap_receipt, bootstrap);
+  assert.equal(result.historical_outlook_bootstrap_sha256, hashDomainValue(bootstrap));
+  assert.equal(result.server_enforced_read_only, true);
   const connection = new URL(poolOptions.connectionString);
   assert.equal(connection.hostname, env().LAWOS_DATABASE_HOST);
   assert.equal(connection.port, env().LAWOS_DATABASE_PORT);
@@ -2671,6 +2703,7 @@ test("production schema ledger readback rejects a catalog mismatch before any wr
       authorize: async () => authorization(),
       resolveSecret: async () => ({ username: "master", password: "master-value" }),
       createPool: () => ({
+        async connect() { return this; }, release() {},
         async query() { return { rows: [] }; },
         async end() { poolEnded = true; },
       }),
@@ -2684,12 +2717,45 @@ test("production schema ledger readback rejects a catalog mismatch before any wr
   assert.equal(poolEnded, true);
 });
 
+test("protected bootstrap readback rolls back and closes on missing, duplicate, or malformed persisted rows", async () => {
+  const bootstrap = outlookPauseExpectation({ authorityCatalogSha256: "a".repeat(64),
+    databaseTargetReceiptSha256: "b".repeat(64), migrationCatalogSha256: "c".repeat(64),
+    roleBootstrapSha256: "d".repeat(64) });
+  for (const rows of [[], [bootstrap, bootstrap],
+    [{ ...bootstrap, schema_version: "unexpected-schema" }],
+    [{ ...bootstrap, schema_version: undefined }],
+    [{ ...bootstrap, database_target_receipt_sha256: "invalid" }]]) {
+    const calls = [];
+    await assert.rejects(readJsonPostgresProductionSchemaLedger({
+      event: { action: JSON_POSTGRES_PRODUCTION_BOOTSTRAP_ACTION, mode: "readback" },
+      env: env(), authorize: async () => authorization(),
+      resolveSecret: async () => ({ username: "master", password: "synthetic-value" }),
+      createPool: () => ({
+        async connect() { return this; },
+        release() { calls.push("release"); },
+        async end() { calls.push("end"); },
+        async query(sql) {
+          calls.push(sql);
+          if (/^(?:BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY|ROLLBACK)$/u.test(sql)) return { rows: [] };
+          assert.ok(sql.includes("FROM lawos_meta.outlook_authority_bootstrap_receipts"));
+          return { rows };
+        },
+      }),
+      verifyMigrations: async () => CLIENT_OPERATIONS_SCHEMA_MANIFEST.entries,
+    }), TypeError);
+    assert.equal(calls[0], "BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY");
+    assert.deepEqual(calls.slice(-3), ["ROLLBACK", "release", "end"]);
+    assert.equal(calls.includes("COMMIT"), false);
+  }
+});
+
 test("final-source schema readback binds each signed target to its complete exact ledger", async () => {
   for (const targetSha of [
+    "43c6a087834d9dd2177be0b63fc94cf723181b93b04f40a65689b6431bd44556",
     "2ef366427d98ed297ab376c8fc7e6a255cf6a054d0eaa660dc6fb7e13c814f79",
     "8de3211a545ebb7c50813990d15f6abc215ffd23a7d09ba2149d9b37fd96e8c7",
   ]) {
-    const target = selectClientOperationsMigrationTarget(targetSha);
+    const target = selectClientOperationsMigrationReadback(targetSha);
     const signed = authorization();
     signed.packet.bindings.migration_catalog_sha256 = targetSha;
     let selectedRows = target.normalized.ledger_entries;
@@ -2698,8 +2764,14 @@ test("final-source schema readback binds each signed target to its complete exac
       env: env(), authorize: async () => signed,
       resolveSecret: async () => ({ username: "master", password: "synthetic-value" }),
       createPool: () => ({
+        async connect() { return this; }, release() {},
         async query(sql) {
+          if (/^(?:BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY|COMMIT|ROLLBACK)$/u.test(sql)) return { rows: [] };
           assert.match(sql, /^\s*SELECT\b/iu);
+          if (sql.includes("FROM lawos_meta.outlook_authority_bootstrap_receipts")) return { rows: [outlookPauseExpectation({
+            authorityCatalogSha256: "a".repeat(64), databaseTargetReceiptSha256: "b".repeat(64),
+            migrationCatalogSha256: "43c6a087834d9dd2177be0b63fc94cf723181b93b04f40a65689b6431bd44556", roleBootstrapSha256: "c".repeat(64),
+          })] };
           return { rows: selectedRows.map(({ id, checksum }) => ({ migration_id: id, checksum })) };
         },
         async end() {},
@@ -2710,7 +2782,10 @@ test("final-source schema readback binds each signed target to its complete exac
     assert.equal(result.migration_catalog_sha256, targetSha);
     assert.equal(result.migration_count, target.normalized.migration_catalog_count);
     assert.equal(result.production_write_count, 0);
-    selectedRows = targetSha.startsWith("2ef")
+    if (target.normalized.migration_catalog_count === 79) {
+      assert.throws(() => selectClientOperationsMigrationTarget(targetSha), TypeError);
+    }
+    selectedRows = target.normalized.migration_catalog_count < 81
       ? CLIENT_OPERATIONS_SCHEMA_MANIFEST.entries
       : CLIENT_OPERATIONS_SCHEMA_MANIFEST.entries.filter(({ id }) => id !== "016_dms_corporate_workspace");
     await assert.rejects(readJsonPostgresProductionSchemaLedger(options),

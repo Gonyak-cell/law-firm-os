@@ -63,9 +63,10 @@ import {
 } from "../../../packages/persistence/src/postgres/migration-runner.js";
 import {
   normalizeClientOperationsMigrationCatalog,
+  selectClientOperationsMigrationReadback,
   selectClientOperationsMigrationTarget,
   runClientOperationsPostgresMigrations,
-  verifyClientOperationsMigrationTarget,
+  verifyClientOperationsMigrationReadback,
   verifyClientOperationsPostgresMigrations,
 } from "./client-operations-schema.js";
 import { createPostgresPool } from "../../../packages/persistence/src/postgres/pool.js";
@@ -117,6 +118,7 @@ import {
 import {
   createJsonPostgresOutlookAuthorityMigrationAdapter,
 } from "./json-postgres-outlook-authority-migration-adapter.js";
+import { readOutlookAssignmentMigrationPauseExpectation } from "../../../packages/email-dms/src/outlook-desktop-assignment-bootstrap-authority.js";
 import {
   CATALOG_READBACK_ACTION,
   executeProductionMigrationCatalogReadback,
@@ -276,11 +278,11 @@ function isPreconditionFailed(error) {
     || error?.$metadata?.httpStatusCode === 412;
 }
 
-function assertClientOperationsPacketCatalogBinding(packet) {
+function assertClientOperationsPacketCatalogBinding(packet, { readOnly = false } = {}) {
   const packetSha256 = packet?.bindings?.migration_catalog_sha256;
   try {
     if (typeof packetSha256 !== "string" || !SHA256.test(packetSha256)) throw new TypeError();
-    selectClientOperationsMigrationTarget(packetSha256);
+    (readOnly ? selectClientOperationsMigrationReadback : selectClientOperationsMigrationTarget)(packetSha256);
   } catch {
     fail(
       "LAWOS_PROGRAM_MIGRATION_CATALOG",
@@ -1255,8 +1257,8 @@ function authoritativeClientOperationsCatalog(verified, { packet } = {}) {
     );
   }
   const entries = suppliedEntries;
-  const packetSha256 = assertClientOperationsPacketCatalogBinding(packet);
-  const target = selectClientOperationsMigrationTarget(packetSha256).normalized;
+  const packetSha256 = assertClientOperationsPacketCatalogBinding(packet, { readOnly: true });
+  const target = selectClientOperationsMigrationReadback(packetSha256).normalized;
   const expected = target.ledger_entries;
   if (entries.length !== expected.length) {
     fail(
@@ -1307,7 +1309,7 @@ export async function readJsonPostgresProductionSchemaLedger({
   authorize = loadJsonPostgresProgramAuthorization,
   resolveSecret = resolveAwsJsonSecret,
   createPool = createPostgresPool,
-  verifyMigrations = verifyClientOperationsMigrationTarget,
+  verifyMigrations = verifyClientOperationsMigrationReadback,
 } = {}) {
   if (event.action !== JSON_POSTGRES_PRODUCTION_BOOTSTRAP_ACTION
     || !["preflight", "readback"].includes(event.mode)) {
@@ -1326,7 +1328,7 @@ export async function readJsonPostgresProductionSchemaLedger({
       "production schema ledger readback requires a W13 packet",
     );
   }
-  assertClientOperationsPacketCatalogBinding(authorization.packet);
+  assertClientOperationsPacketCatalogBinding(authorization.packet, { readOnly: true });
   const region = requiredText(
     env.AWS_REGION ?? env.AWS_DEFAULT_REGION,
     "AWS region",
@@ -1373,17 +1375,25 @@ export async function readJsonPostgresProductionSchemaLedger({
     statementTimeoutMillis: 120_000,
     max: 1,
   });
-  let verified;
+  let catalog;
+  let bootstrap;
+  let client;
   try {
-    verified = await verifyMigrations(pool, {
+    client = await pool.connect();
+    await client.query("BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY");
+    const verified = await verifyMigrations(client, {
       migrationCatalogSha256: authorization.packet.bindings.migration_catalog_sha256,
     });
+    catalog = authoritativeClientOperationsCatalog(verified, { packet: authorization.packet });
+    bootstrap = await readOutlookAssignmentMigrationPauseExpectation(client);
+    await client.query("COMMIT");
+  } catch (error) {
+    await client?.query("ROLLBACK").catch(() => {});
+    throw error;
   } finally {
+    client?.release();
     await pool.end();
   }
-  const catalog = authoritativeClientOperationsCatalog(verified, {
-    packet: authorization.packet,
-  });
   return Object.freeze({
     outcome: "PASS",
     action: JSON_POSTGRES_PRODUCTION_BOOTSTRAP_ACTION,
@@ -1395,6 +1405,9 @@ export async function readJsonPostgresProductionSchemaLedger({
     migration_count: catalog.migration_catalog_count,
     migration_applied_count: 0,
     ...catalog,
+    historical_outlook_bootstrap_receipt: bootstrap,
+    historical_outlook_bootstrap_sha256: hashDomainValue(bootstrap),
+    server_enforced_read_only: true,
     json_fallback_count: 0,
     json_writer_count: 0,
     dual_write_count: 0,
@@ -1430,7 +1443,7 @@ export async function bootstrapJsonPostgresProductionDatabase({
   putSecret,
   getSecret,
   createPool = createPostgresPool,
-  verifyMigrations = verifyClientOperationsMigrationTarget,
+  verifyMigrations = verifyClientOperationsMigrationReadback,
   outlookAuthorityManifestSha256 =
     OUTLOOK_DESKTOP_ASSIGNMENT_AUTHORITY_CATALOG_SHA256,
   outlookMigrationCatalog,

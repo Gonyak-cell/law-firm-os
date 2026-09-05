@@ -102,6 +102,33 @@ test("broad Vault permission hides private documents and audit counts while ordi
   assert.equal(runtime.storageReads(), 0);
 });
 
+test("own aggregate read audits remain visible with object references and counts removed", async () => {
+  const observed = target();
+  const ownRead = { event_id: "vault_sensitive_read_16d80f4a-94c9-44c2-bbe5-efc1cd34b3af",
+    tenant_id: TENANT, actor_id: READER, action: "dms:search", object_type: "vault_search",
+    object_id: "vault_search", decision: "allow", occurred_at: "2026-09-05T00:00:00.000Z",
+    metadata: { sensitive_read_audit_required: true, returned_count: 123,
+      audit_hint_ref: DOCUMENT, permission_ref: WORKSPACE },
+    payload: { corporate_document_id: DOCUMENT }, extra_object_ref: WORKSPACE };
+  observed.runtime.upload_runtime.listAuditEvents = async () => [
+    ownRead, { ...ownRead, actor_id: OWNER }, { ...ownRead, tenant_id: "other-tenant" },
+    { ...ownRead, object_id: DOCUMENT },
+    { ...ownRead, authorization_document_id: DOCUMENT, authorization_workspace_id: WORKSPACE },
+  ];
+  const result = await request(observed, "/api/vault/audit", context());
+  assert.equal(result.status, 200);
+  assert.equal(result.body.items.length, 1);
+  const [event] = result.body.items;
+  assert.equal(event.action, "dms:search");
+  assert.equal(event.metadata.sensitive_read_audit_required, true);
+  assert.equal(event.metadata.returned_count, null);
+  assert.equal(event.metadata.audit_hint_ref, null);
+  assert.equal(event.metadata.permission_ref, null);
+  assert.equal(JSON.stringify(event).includes(DOCUMENT), false);
+  assert.equal(JSON.stringify(event).includes(WORKSPACE), false);
+  assert.equal(JSON.stringify(event).includes("123"), false);
+});
+
 test("active owner and exact authoritative workspace/document grants can read; unrelated ACL cannot", async () => {
   for (const ctx of [context(OWNER), context(READER, [acl()]), context(READER, [acl(DOCUMENT)])]) {
     const runtime = target();

@@ -100,6 +100,16 @@ target receipt before DDL. The v3 run receipt records the current target hash
 and the complete historical bootstrap receipt separately. Do not replace the
 protected 007 row or reuse an expired approval to make those hashes equal.
 
+Use the same protected action with a fresh owner-signed `preflight` or `readback`
+packet bound to the exact observed 79, 80, or 81 catalog to obtain
+`historical_outlook_bootstrap_receipt` and `historical_outlook_bootstrap_sha256`.
+The schema ledger and protected receipt are read in one server-enforced,
+repeatable-read, read-only transaction. A missing, duplicate, malformed, or
+schema-drifted row aborts the readback. Historical79 is accepted only by this
+read-only selector; the migration runner continues to accept only the two
+reviewed write targets. Sign each subsequent commit packet with the returned
+historical pin and a fresh RDS target receipt.
+
 The protected entry remains `bootstrapJsonPostgresProductionDatabase` in
 `apps/api/src/json-postgres-program-admin-lambda.js`, with action
 `lawos-json-postgres-production-bootstrap` and mode `commit`. There is no

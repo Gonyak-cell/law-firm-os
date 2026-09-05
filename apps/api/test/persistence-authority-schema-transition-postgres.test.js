@@ -21,6 +21,7 @@ import { createInternalUnsignedInstallationRuntimeFromEnv, composeInternalUnsign
 import { createPostgresOutlookDesktopOperationalRuntime } from "../src/outlook-desktop-operational-runtime.js";
 import { parseOutlookDesktopAutoconnectRoster } from "../src/outlook-desktop-entitlement.js";
 import { verifyOperationalPostgresBridgeMigrationState } from "../src/persistence-authority.js";
+import { readJsonPostgresProductionSchemaLedger } from "../src/json-postgres-program-admin-lambda.js";
 
 const INTERNAL = "309_client_internal_unsigned_installation_authority";
 const CORPORATE = "016_dms_corporate_workspace";
@@ -133,6 +134,33 @@ async function migrate(state, catalogSha, options = {}) {
     });
     return adapter.normalizeRunReceipt(result);
   } finally { adapter.dispose(); }
+}
+
+async function readProtectedBootstrap(state, catalogSha) {
+  let readOnlyObserved = false;
+  const receipt = await readJsonPostgresProductionSchemaLedger({
+    event: { action: "lawos-json-postgres-production-bootstrap", mode: "readback" },
+    env: { AWS_REGION: "ap-northeast-2", LAWOS_MASTER_DATABASE_SECRET_ID: "synthetic/master",
+      LAWOS_DATABASE_HOST: "localhost", LAWOS_DATABASE_PORT: "5432", LAWOS_DATABASE_NAME: "lawos" },
+    authorize: async () => ({ packet: { phase: "w13-production-cutover", packet_sha256: "f".repeat(64),
+      bindings: { migration_catalog_sha256: catalogSha } }, exact: { sourceSha: "a".repeat(40), sourceTree: "b".repeat(40) },
+      approval: { receipt_sha256: "e".repeat(64) } }),
+    resolveSecret: async () => ({ username: "lawos_admin", password: "synthetic-password" }),
+    createPool: () => ({ async connect() {
+      const client = await state.admin.connect();
+      return { async query(sql, parameters) {
+        if (String(sql).includes("FROM lawos_meta.outlook_authority_bootstrap_receipts")) {
+          assert.equal((await client.query("SHOW transaction_read_only")).rows[0].transaction_read_only, "on");
+          readOnlyObserved = true;
+        }
+        return client.query(sql, parameters);
+      }, release: () => client.release() };
+    }, async end() {} }),
+  });
+  assert.equal(readOnlyObserved, true);
+  assert.equal(receipt.server_enforced_read_only, true);
+  assert.equal(receipt.production_write_count, 0);
+  return receipt;
 }
 
 async function schemaSnapshot(state) {
@@ -294,6 +322,10 @@ test("fresh target receipts require the signed immutable bootstrap pin for each 
   const before = await schemaSnapshot(state);
   const bootstrap = await readOutlookAssignmentMigrationPauseExpectation(state.admin);
   const pin = hashDomainValue(bootstrap);
+  const readback = await readProtectedBootstrap(state, HISTORICAL_SHA);
+  assert.deepEqual(readback.historical_outlook_bootstrap_receipt, bootstrap);
+  assert.equal(readback.historical_outlook_bootstrap_sha256, pin);
+  assert.deepEqual(await schemaSnapshot(state), before);
   for (const [catalog, label] of [[AUTHORITY_SHA, "fresh80"], [COMBINED_SHA, "fresh81"]]) {
     const snapshot = await schemaSnapshot(state);
     const options = { databaseTargetReceiptSha256: digest(label) };
@@ -311,6 +343,9 @@ test("fresh target receipts require the signed immutable bootstrap pin for each 
     assert.equal(receipt.migration_applied_count, 1);
     assert.equal(receipt.role_configuration_transaction_committed_count, 0);
     assert.deepEqual((await schemaSnapshot(state)).bootstrap, before.bootstrap);
+    const currentReadback = await readProtectedBootstrap(state, catalog);
+    assert.deepEqual(currentReadback.historical_outlook_bootstrap_receipt, bootstrap);
+    assert.equal(currentReadback.historical_outlook_bootstrap_sha256, pin);
     const replay = await migrate(state, catalog, { ...approved,
       databaseTargetReceiptSha256: digest(`${label} replay`) });
     assert.equal(replay.postgres_mutation_committed_count, 0);

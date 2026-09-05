@@ -1430,6 +1430,23 @@ async function filterVaultAuditEvents({ events, context, runtime, tenantId }) {
   const documents = new Map();
   const allowed = [];
   for (const event of events) {
+    if (event.tenant_id === tenantId
+        && event.actor_id === (context?.principal?.user_id ?? context?.principal?.actor_id)
+        && /^vault_sensitive_read_[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/u.test(event.event_id)
+        && event.decision === "allow" && event.metadata?.sensitive_read_audit_required === true
+        && event.authorization_document_id == null && event.authorization_workspace_id == null
+        && event.object_id === event.object_type
+        && ((event.action === "dms:document:read" && event.object_type === "vault_document")
+          || (event.action === "dms:search" && event.object_type === "vault_search"))) {
+      allowed.push({ event_id: event.event_id, tenant_id: tenantId, actor_id: event.actor_id,
+        action: event.action, object_type: event.object_type, object_id: event.object_type,
+        decision: "allow", reason: "vault_sensitive_read_allowed_after_permission_gate",
+        occurred_at: event.occurred_at,
+        metadata: { permission_ref: null, audit_hint_ref: null, returned_count: null,
+          sensitive_read_audit_required: true, raw_payload_included: false, raw_text_included: false,
+          document_bytes_included: false, storage_pointer_ref_included: false } });
+      continue;
+    }
     const documentId = event.authorization_document_id ?? event.payload?.document_id
       ?? event.after?.document_id
       ?? (["DmsDocument", "vault_document", "dms_document"].includes(event.object_type) ? event.object_id : null);

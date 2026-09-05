@@ -338,6 +338,30 @@ export function selectClientOperationsMigrationTarget(
   return Object.freeze({ migrations, catalog, normalized });
 }
 
+export function selectClientOperationsMigrationReadback(migrationCatalogSha256) {
+  if (migrationCatalogSha256 !== "43c6a087834d9dd2177be0b63fc94cf723181b93b04f40a65689b6431bd44556") {
+    return selectClientOperationsMigrationTarget(migrationCatalogSha256);
+  }
+  const migrations = Object.freeze(OPERATIONAL_MIGRATIONS.filter(({ id }) =>
+    !["016_dms_corporate_workspace", "309_client_internal_unsigned_installation_authority"].includes(id)));
+  const catalog = packetMigrationCatalogMaterial(migrations);
+  const entries = Object.freeze(migrations.map(({ id, sql }) =>
+    Object.freeze({ id, checksum: checksumPostgresMigration(sql) })));
+  const ledgerSha256 = hashDomainValue(entries);
+  if (entries.length !== 79 || hashDomainValue(catalog) !== migrationCatalogSha256
+      || ledgerSha256 !== "fe0b9c53de1617361fd607692beb7e462b28159321e7830d507836948fcfdbc3") {
+    throw new TypeError("Historical Client operations readback catalog drifted");
+  }
+  return Object.freeze({ migrations, catalog, normalized: Object.freeze({
+    migration_catalog_count: entries.length,
+    migration_catalog_sha256: migrationCatalogSha256,
+    ledger_entries: entries,
+    ledger_sha256: ledgerSha256,
+    final_migration_id: entries.at(-1).id,
+    final_migration_checksum: entries.at(-1).checksum,
+  }) });
+}
+
 const SCHEMA_ENTRIES = Object.freeze(
   OPERATIONAL_MIGRATIONS.map(({ id, sql }) => Object.freeze({
     id,
@@ -404,6 +428,12 @@ export function verifyClientOperationsPostgresMigrations(pool) {
 export function verifyClientOperationsMigrationTarget(pool, { migrationCatalogSha256 } = {}) {
   return verifyPostgresMigrationState(pool, {
     migrations: selectClientOperationsMigrationTarget(migrationCatalogSha256).migrations,
+  });
+}
+
+export function verifyClientOperationsMigrationReadback(pool, { migrationCatalogSha256 } = {}) {
+  return verifyPostgresMigrationState(pool, {
+    migrations: selectClientOperationsMigrationReadback(migrationCatalogSha256).migrations,
   });
 }
 
