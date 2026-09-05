@@ -332,6 +332,9 @@ test("existing tenant enrichment preserves business history and atomically recor
   const conflicted = structuredClone(before);
   conflicted.records.find((record) => record.record_type === "hrx_employment_profiles").payload.legal_entity_id = "other-company";
   assert.throws(() => planAmicPrivateBootstrapEnrichment({ ...context, corpus, currentSnapshot: conflicted }), { code: "AMIC_ENRICHMENT_FIELD_CONFLICT" });
+  const corruptTenant = structuredClone(before);
+  corruptTenant.records.find((record) => record.record_id === "historical-profile").payload.tenant_id = "tenant-negative";
+  assert.throws(() => planAmicPrivateBootstrapEnrichment({ ...context, corpus, currentSnapshot: corruptTenant }), { code: "AMIC_ENRICHMENT_RECORD_SCOPE" });
   const faultPool = Object.create(database.appPool);
   faultPool.connect = async () => {
     const client = await database.appPool.connect();

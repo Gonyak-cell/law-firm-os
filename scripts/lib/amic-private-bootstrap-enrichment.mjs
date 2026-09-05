@@ -43,7 +43,7 @@ function buildEnrichment({ corpus, currentSnapshot, sourceSha, sourceTree, impor
   const profiles = new Map();
   for (const record of desired.records) {
     const current = observedById.get(identity(record));
-    requireCondition(current && !current.append_only && equal(current.references, record.references)
+    requireCondition(current && current.payload.tenant_id === desired.tenant_id && !current.append_only && equal(current.references, record.references)
       && current.unique_key === record.unique_key, "AMIC_ENRICHMENT_EXISTING_BASELINE_REQUIRED");
     const fields = record.record_type === "hrx_employee_user_links" ? ["employee_id", "user_id", "purpose"]
       : record.record_type === "hrx_employees" ? ["employee_id", "work_email"] : ["employee_id", "profile_id"];
@@ -67,7 +67,7 @@ function buildEnrichment({ corpus, currentSnapshot, sourceSha, sourceTree, impor
     const proposed = current.record_type === "hrx_employees" ? employees.get(current.payload.employee_id)
       : current.record_type === "hrx_employment_profiles" ? profiles.get(current.payload.employee_id) : null;
     if (!proposed) return current;
-    requireCondition(!current.append_only, "AMIC_ENRICHMENT_APPEND_ONLY");
+    requireCondition(current.payload.tenant_id === desired.tenant_id && !current.append_only, "AMIC_ENRICHMENT_RECORD_SCOPE");
     const fields = current.record_type === "hrx_employees" ? ["mobile_phone", ...PHOTO_FIELDS] : PROFILE_FIELDS;
     if (current.record_type === "hrx_employment_profiles") profileCoverage += 1;
     const payload = structuredClone(current.payload);
