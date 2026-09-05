@@ -9,7 +9,9 @@ import { CORPORATE_IMPORT_ACTION, CORPORATE_IMPORT_VERSION, assertCorporateImpor
 const equal = (a, b) => hashDomainValue(a) === hashDomainValue(b);
 export const corporateImportApprovalScope = (plan) => ["approved-real-manifest", `corporate-import:${plan.manifest_sha256}`, `tenant:${plan.tenant_ref_sha256}`];
 
-export function verifyCorporateImportApproval({ manifest, plan, sourceSha, sourceTree, approval, now }) {
+// The caller must obtain this pin from trusted execution configuration, independently of the approval bundle.
+export function verifyCorporateImportApproval({ manifest, plan, sourceSha, sourceTree, expectedRegistrySha256, approval, now }) {
+  requireCondition(typeof expectedRegistrySha256 === "string" && /^[a-f0-9]{64}$/.test(expectedRegistrySha256), "REGISTRY_PIN_REQUIRED");
   validateCorporateImportManifest(manifest);
   const { packet_sha256, ...material } = plan;
   requireCondition(plan.schema_version === CORPORATE_IMPORT_VERSION && plan.action === CORPORATE_IMPORT_ACTION
@@ -22,7 +24,7 @@ export function verifyCorporateImportApproval({ manifest, plan, sourceSha, sourc
   requireCondition(Number.isFinite(currentTime) && Date.parse(receipt.signed_at) <= currentTime
     && Date.parse(key?.valid_from) <= currentTime, "APPROVAL_TIME");
   requireCondition(equal(receipt.data_scope, corporateImportApprovalScope(plan)) && equal(receipt.contact_scope, []), "APPROVAL_SCOPE");
-  const verified = validateRuntimeSafetyApprovalPayload({ ...approval, expectedRegistrySha256: approval.registrySha256,
+  const verified = validateRuntimeSafetyApprovalPayload({ ...approval, expectedRegistrySha256,
     expectedRole: "owner", expectedAction: CORPORATE_IMPORT_ACTION, expectedEnvironment: manifest.environment,
     expectedPacketSha256: packet_sha256, expectedSourceSha: sourceSha, expectedSourceTree: sourceTree,
     allowedDataScope: corporateImportApprovalScope(plan), allowedContactScope: [], now: currentTime });
@@ -69,10 +71,10 @@ export async function planCorporateRecordImport({ pool, manifest }) {
   });
 }
 
-export async function executeCorporateRecordImport({ pool, manifest, plan, sourceSha, sourceTree, approval, readOnly = false, clock = () => new Date() }) {
+export async function executeCorporateRecordImport({ pool, manifest, plan, sourceSha, sourceTree, expectedRegistrySha256, approval, readOnly = false, clock = () => new Date() }) {
   // Historical clocks are only available to synthetic fixtures; real imports always revalidate against wall time.
   if (manifest.environment !== "synthetic-test") clock = () => new Date();
-  const verify = () => verifyCorporateImportApproval({ manifest, plan, sourceSha, sourceTree, approval, now: clock() });
+  const verify = () => verifyCorporateImportApproval({ manifest, plan, sourceSha, sourceTree, expectedRegistrySha256, approval, now: clock() });
   verify();
   return withPostgresTransaction(pool, { tenant_id: manifest.tenant_id, readOnly, isolationLevel: "serializable" }, async (client) => {
     verify();

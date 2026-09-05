@@ -11,7 +11,7 @@ import { MASTER_DATA_DOMAIN_DESCRIPTOR } from "../../packages/master-data/src/ce
 import { CORPORATE_IMPORT_ACTION, CORPORATE_IMPORT_VERSION, prepareCorporateMasterDataImport } from "../../packages/master-data/src/corporate-import-service.js";
 import { createPostgresDmsUploadRuntime } from "../../packages/dms/src/postgres-upload-runtime.js";
 import { createLocalStorageAdapter } from "../../packages/dms/src/storage/local-storage-adapter.js";
-import { corporateImportApprovalScope, executeCorporateRecordImport, planCorporateRecordImport } from "../lib/corporate-record-import.mjs";
+import { corporateImportApprovalScope, executeCorporateRecordImport, planCorporateRecordImport, verifyCorporateImportApproval } from "../lib/corporate-record-import.mjs";
 
 const tenant = "tenant-corporate-synthetic";
 const clock = () => new Date("2026-09-05T01:00:00.000Z");
@@ -57,8 +57,8 @@ function fixture() {
     ] };
   return { before, manifest, document };
 }
-function approvalFor(plan, receiptPatch = {}) {
-  const { publicKey, privateKey } = generateKeyPairSync("ed25519");
+const trustedFixtureKeys = generateKeyPairSync("ed25519");
+function approvalFor(plan, receiptPatch = {}, { publicKey, privateKey } = trustedFixtureKeys) {
   const registryBytes = Buffer.from(JSON.stringify({ schema_version: "law-firm-os.runtime-safety.approval-trust-registry.v1",
     generated_at: "2026-09-05T00:00:00.000Z", keys: [{ key_id: "corporate-test-owner", algorithm: "Ed25519",
       public_key_spki_pem: publicKey.export({ type: "spki", format: "pem" }), roles: ["owner"], actions: [CORPORATE_IMPORT_ACTION],
@@ -108,9 +108,50 @@ test("production import cannot revive an expired approval by injecting a histori
   manifest.environment = "lawos-production";
   const plan = prepareCorporateMasterDataImport({ manifest, currentSnapshot: before }).plan;
   const current = Date.now();
+  const approval = approvalFor(plan, { signed_at: new Date(current - 120_000).toISOString(), expires_at: new Date(current - 60_000).toISOString() });
   await assert.rejects(executeCorporateRecordImport({ pool: null, manifest, plan, sourceSha: manifest.source_sha, sourceTree: manifest.source_tree,
-    clock: () => new Date(current - 90_000), approval: approvalFor(plan, { signed_at: new Date(current - 120_000).toISOString(),
-      expires_at: new Date(current - 60_000).toISOString() }) }), { code: "APPROVAL_EXPIRED" });
+    clock: () => new Date(current - 90_000), approval, expectedRegistrySha256: sha256(approval.registryBytes) }), { code: "APPROVAL_EXPIRED" });
+});
+
+test("owner approval uses the independent registry pin and rejects an attacker-signed bundle before PostgreSQL", async () => {
+  const { before, manifest } = fixture();
+  const plan = prepareCorporateMasterDataImport({ manifest, currentSnapshot: before }).plan;
+  const trustedApproval = approvalFor(plan);
+  const trustedExecutionConfig = { expectedRegistrySha256: sha256(trustedApproval.registryBytes) };
+  const attackerApproval = approvalFor(plan, {}, generateKeyPairSync("ed25519"));
+  let connections = 0;
+  const run = { pool: { connect() { connections += 1; throw new Error("PostgreSQL must not be reached"); } },
+    manifest, plan, sourceSha: manifest.source_sha, sourceTree: manifest.source_tree, clock, ...trustedExecutionConfig };
+  assert.equal(verifyCorporateImportApproval({ ...run, approval: trustedApproval, now: clock() }).decision, "approved");
+  assert.notEqual(attackerApproval.registrySha256, trustedExecutionConfig.expectedRegistrySha256);
+  assert.throws(() => verifyCorporateImportApproval({ ...run, approval: attackerApproval, now: clock() }), { code: "APPROVAL_REGISTRY_DIGEST" });
+  for (const readOnly of [false, true]) {
+    await assert.rejects(executeCorporateRecordImport({ ...run, approval: attackerApproval, readOnly }), { code: "APPROVAL_REGISTRY_DIGEST" });
+    await assert.rejects(executeCorporateRecordImport({ ...run, approval: trustedApproval, expectedRegistrySha256: undefined, readOnly }),
+      { code: "LAWOS_CORPORATE_IMPORT_REGISTRY_PIN_REQUIRED" });
+  }
+  assert.equal(connections, 0);
+});
+
+test("all company anchors must match authority even when only a new contact is imported", () => {
+  const { before, manifest } = fixture();
+  manifest.operations = [manifest.operations.find((item) => item.model_type === "ContactPoint")];
+  const baseHash = before.snapshot_hash;
+  const createContact = (currentSnapshot) => prepareCorporateMasterDataImport({ manifest, currentSnapshot });
+  const anchorTypes = ["Entity", "Party", "Organization"];
+  const companyB = createDomainSnapshot({ ...before, source_hash: undefined, records: before.records.map((record) => anchorTypes.includes(record.record_type)
+    ? { ...record, payload: { ...record.payload, owner_user_id: "owner-company-b", permission_ref: "permission-company-b", matter_id: "matter-company-b" } } : record) });
+  assert.throws(() => createContact(companyB), { code: "LAWOS_CORPORATE_IMPORT_ANCHOR_AUTHORITY" });
+  for (const recordType of anchorTypes) for (const field of ["tenant_id", "owner_user_id", "permission_ref", "matter_id"]) {
+    const mismatched = createDomainSnapshot({ ...before, source_hash: undefined, records: before.records.map((record) => record.record_type === recordType
+      ? { ...record, payload: { ...record.payload, [field]: "other-company-authority" } } : record) });
+    assert.throws(() => createContact(mismatched), { code: field === "tenant_id" ? "LAWOS_CORPORATE_IMPORT_TENANT" : "LAWOS_CORPORATE_IMPORT_ANCHOR_AUTHORITY" });
+  }
+  assert.equal(before.snapshot_hash, baseHash);
+  const matched = createContact(before).after.records.find((record) => record.record_id === manifest.operations[0].record_id).payload;
+  assert.equal(matched.owner_user_id, binding.owner_user_id);
+  assert.equal(matched.permission_ref, binding.permission_ref);
+  assert.equal(matched.matter_id, binding.record_matter_id);
 });
 
 test("shared representatives do not authorize another company's contacts through indirect graph links", () => {
@@ -178,7 +219,9 @@ test("actual PostgreSQL corporate import binds committed DMS references, rolls b
   const baseline = await read();
   const dmsBefore = await dms.getDocumentState({ tenant_id: tenant, document_id: document.document_id });
   const plan = await planCorporateRecordImport({ pool: database.appPool, manifest });
-  const run = { pool: database.appPool, manifest, plan, sourceSha: manifest.source_sha, sourceTree: manifest.source_tree, approval: approvalFor(plan), clock };
+  const approval = approvalFor(plan);
+  const run = { pool: database.appPool, manifest, plan, sourceSha: manifest.source_sha, sourceTree: manifest.source_tree,
+    expectedRegistrySha256: sha256(approval.registryBytes), approval, clock };
   for (const field of ["sha256", "object_id", "file_object_id", "version_id", "document_id", "content_type", "byte_size"]) {
     const changed = structuredClone(manifest);
     changed.documents[0][field] = field === "sha256" ? "d".repeat(64) : field === "byte_size" ? 123 : "wrong-reference";

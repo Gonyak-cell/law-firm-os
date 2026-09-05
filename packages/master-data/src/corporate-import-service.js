@@ -156,6 +156,9 @@ export function prepareCorporateMasterDataImport({ manifest, currentSnapshot }) 
       requireCondition(organization?.entity_id === binding.legal_entity_id && organization.party_id === binding.party_id
         && entity?.entity_kind === "organization" && party?.party_type === "organization"
         && party.canonical_entity_id === binding.legal_entity_id, "LEGAL_ENTITY_MAPPING");
+      requireCondition([entity, party, organization].every((record) => record.tenant_id === manifest.tenant_id
+        && record.owner_user_id === binding.owner_user_id && record.permission_ref === binding.permission_ref
+        && record.matter_id === binding.record_matter_id), "ANCHOR_AUTHORITY");
     }
     const proposed = createRecordRepositoryDomainSnapshot({ descriptor: MASTER_DATA_DOMAIN_DESCRIPTOR,
       repositories: [{ source_id: "approved-corporate-import", repository }], tenant_id: manifest.tenant_id }).snapshot;
