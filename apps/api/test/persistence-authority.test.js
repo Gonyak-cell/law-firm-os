@@ -318,6 +318,82 @@ test("selected PostgreSQL initialization failure is sanitized and never falls ba
   );
 });
 
+test("PostgreSQL preflight reports only fixed stages and reasons while closing failed pools", async (t) => {
+  const sensitive = "synthetic-private-value-must-not-be-logged";
+  const cases = [
+    ["database-credential"],
+    ["tenant-context-credential"],
+    ["connection"],
+    ["health-query"],
+    ["migration-catalog"],
+    ["migration-catalog", "missing", "MIGRATION_HISTORY_DIVERGED"],
+    ["migration-catalog", "checksum", "MIGRATION_CHECKSUM_MISMATCH"],
+    ["migration-catalog", "denied", "ACCESS_DENIED"],
+    ["tenant-authority"],
+    ["tenant-authority", "inactive"],
+  ];
+  for (const [failureStage, variant, reason = "INITIALIZATION_FAILED"] of cases) {
+    await t.test(`${failureStage}:${variant ?? "failure"}`, async () => {
+      let closed = 0;
+      const failure = () => {
+        throw Object.assign(new Error(sensitive), {
+          code: variant === "denied" ? "42501" : sensitive,
+          safe_error_code: sensitive,
+          detail: sensitive,
+        });
+      };
+      const pool = {
+        connect() {},
+        async query(sql) {
+          const stage = sql.includes("schema_migrations") ? "migration-catalog"
+            : sql.includes("tenant_context_authority_ready") ? "tenant-authority" : "health-query";
+          if (stage === failureStage && !["missing", "checksum", "inactive"].includes(variant)) failure();
+          if (stage === "migration-catalog") {
+            const rows = CLIENT_OPERATIONS_SCHEMA_MANIFEST.entries.map((entry) => ({
+              migration_id: entry.id, checksum: entry.checksum,
+            }));
+            if (variant === "missing") rows.pop();
+            if (variant === "checksum") rows[0].checksum = "0".repeat(64);
+            return { rows };
+          }
+          return { rows: [{ ready: variant !== "inactive", authority_ready: 1 }] };
+        },
+        async end() {
+          closed += 1;
+          throw new Error(sensitive);
+        },
+      };
+      await assert.rejects(preparePersistenceAuthority({
+        value: "postgres-v2",
+        env: {
+          LAWOS_RUNTIME_PROFILE: "operational",
+          LAWOS_POSTGRES_URL_SECRET_ID: "synthetic-database",
+          LAWOS_POSTGRES_TENANT_CONTEXT_SECRET_ID: "synthetic-tenant-context",
+        },
+        resolvePostgresSecret: async ({ secretId }) => {
+          const tenant = secretId === "synthetic-tenant-context";
+          if (failureStage === (tenant ? "tenant-context-credential" : "database-credential")) failure();
+          return tenant ? TENANT_CONTEXT_SECRET : "postgresql://synthetic.invalid/lawos";
+        },
+        connectPostgres: async () => {
+          if (failureStage === "connection") failure();
+          return pool;
+        },
+      }), (error) => {
+        assert.equal(error.code, "LAWOS_RUNTIME_PREFLIGHT_FAILED");
+        assert.equal(error.exitCode, 78);
+        assert.equal(error.persistence_stage, failureStage);
+        assert.equal(error.persistence_reason, reason);
+        assert.match(error.message, /file fallback is disabled/u);
+        assert.equal(`${error.stack}${JSON.stringify(error)}`.includes(sensitive), false);
+        assert.equal(error.cause, undefined);
+        return true;
+      });
+      assert.equal(closed, ["database-credential", "tenant-context-credential", "connection"].includes(failureStage) ? 0 : 1);
+    });
+  }
+});
+
 test("operational PostgreSQL authority resolves credentials only through an AWS secret reference", async () => {
   const resolved = [];
   let connectorOptions;
