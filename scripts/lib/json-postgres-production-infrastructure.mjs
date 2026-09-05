@@ -1902,6 +1902,13 @@ export function buildJsonPostgresProductionTemplate(stagingTemplate) {
   resources.ProgramInputBucketPolicy = programInputBucketPolicy();
 
   const apiRole = resources.ApiExecutionRole;
+  statement(apiRole, "ReadCommittedMemberPhotos").Resource = {
+    "Fn::Sub": "${DmsBucket.Arn}/approved-real-migration/member-photos/objects/*",
+  };
+  resources.S3GatewayEndpoint.Properties.PolicyDocument.Statement
+    .find(({ Sid }) => Sid === "ApiReadsCommittedMemberPhotos").Resource = {
+      "Fn::Sub": "${DmsBucket.Arn}/approved-real-migration/member-photos/objects/*",
+    };
   statement(apiRole, "ReadExactRuntimeSecrets").Resource.push(
     {
       "Fn::If": [
@@ -2741,6 +2748,10 @@ export function buildJsonPostgresProductionTemplate(stagingTemplate) {
   api.Properties.Description = "Exact-main LawOS production API with PostgreSQL-only authority";
   apiEnv.LAWOS_DATA_SCOPE = "approved-real-manifest";
   apiEnv.LAWOS_DMS_S3_DEFAULT_RETENTION_DAYS = "365";
+  for (const field of ["BUCKET", "EXPECTED_BUCKET_OWNER", "REGION", "KMS_KEY_ID", "CREDENTIAL_REF"]) {
+    apiEnv[`LAWOS_MEMBER_PHOTO_S3_${field}`] = clone(apiEnv[`LAWOS_DMS_S3_${field}`]);
+  }
+  apiEnv.LAWOS_MEMBER_PHOTO_S3_PREFIX = "approved-real-migration/member-photos";
   apiEnv.LAWOS_IDENTITY_TENANT_ID = { Ref: "PrimaryTenantId" };
   apiEnv.LAWOS_GRAPH_NOTIFICATION_URL = configuredOutlookEnvironment({
     "Fn::Sub": "${HttpApi.ApiEndpoint}/api/outlook/graph/notifications",
@@ -3136,6 +3147,39 @@ export function validateJsonPostgresProductionTemplate(template) {
   const resources = template.Resources ?? {};
   const apiEnvironment = resources.ApiFunction?.Properties?.Environment
     ?.Variables ?? {};
+  const expectedMemberPhotoEnvironment = {
+    BUCKET: { Ref: "DmsBucket" },
+    EXPECTED_BUCKET_OWNER: { Ref: "AWS::AccountId" },
+    REGION: { Ref: "AWS::Region" },
+    KMS_KEY_ID: { "Fn::GetAtt": ["ProductionKey", "Arn"] },
+    CREDENTIAL_REF: { Ref: "ProviderCredentialReferenceSecret" },
+    PREFIX: "approved-real-migration/member-photos",
+  };
+  const memberPhotoRead = policyStatements(resources.ApiExecutionRole)
+    .filter(({ Sid }) => Sid === "ReadCommittedMemberPhotos");
+  const memberPhotoEndpointRead = resources.S3GatewayEndpoint?.Properties?.PolicyDocument?.Statement
+    ?.filter(({ Sid }) => Sid === "ApiReadsCommittedMemberPhotos");
+  if (Object.entries(expectedMemberPhotoEnvironment).some(([field, expected]) =>
+    stableJson(apiEnvironment[`LAWOS_MEMBER_PHOTO_S3_${field}`]) !== stableJson(expected))
+    || stableJson(memberPhotoRead) !== stableJson([{
+      Sid: "ReadCommittedMemberPhotos",
+      Effect: "Allow",
+      Action: ["s3:GetObject", "s3:GetObjectVersion"],
+      Resource: {
+        "Fn::Sub": "${DmsBucket.Arn}/approved-real-migration/member-photos/objects/*",
+      },
+    }])
+    || stableJson(memberPhotoEndpointRead) !== stableJson([{
+      Sid: "ApiReadsCommittedMemberPhotos",
+      Effect: "Allow",
+      Principal: { AWS: { "Fn::GetAtt": ["ApiExecutionRole", "Arn"] } },
+      Action: ["s3:GetObject", "s3:GetObjectVersion"],
+      Resource: {
+        "Fn::Sub": "${DmsBucket.Arn}/approved-real-migration/member-photos/objects/*",
+      },
+    }])) {
+    fail("production member photo scope or read-only access drifted");
+  }
   const expectedInternalUpdateEnvironment = (parameter) => ({
     "Fn::If": [
       "AmicInternalUnsignedUpdateBrokerEnabled",
