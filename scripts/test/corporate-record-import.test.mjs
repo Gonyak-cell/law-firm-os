@@ -23,6 +23,12 @@ const common = { tenant_id: tenant, status: "active", synthetic_only: true, owne
   matter_id: binding.record_matter_id, permission_ref: binding.permission_ref };
 const bytes = Buffer.from("Synthetic registration source. Page one.");
 const sha256 = (value) => createHash("sha256").update(value).digest("hex");
+function withAuthoritySmoke(snapshot) {
+  return createDomainSnapshot({ ...snapshot, source_hash: undefined, records: [...snapshot.records, {
+    record_type: "OperationalAuthoritySmoke", record_id: "synthetic-retirement-smoke", unique_key: "synthetic-retirement-idempotency",
+    payload: { model_type: "OperationalAuthoritySmoke", authority: "postgres-v2", source_sha: "c".repeat(40) },
+  }] });
+}
 function fixture() {
   const repository = createMasterDataRepository({ seedRecords: [
     { ...common, model_type: "Entity", entity_id: binding.legal_entity_id, entity_kind: "organization", display_name: "Synthetic Corporation" },
@@ -78,6 +84,24 @@ function approvalFor(plan, receiptPatch = {}, { publicKey, privateKey } = truste
   return { registryBytes, registrySha256: sha256(registryBytes), receiptBytes: Buffer.from(JSON.stringify(receipt)),
     signatureBytes: sign(null, Buffer.from(canonicalizeJson(receipt)), privateKey) };
 }
+
+test("corporate plan preserves the existing tenant-scoped operational marker without weakening record tenant checks", () => {
+  const { before, manifest } = fixture();
+  const currentSnapshot = withAuthoritySmoke(before);
+  const marker = currentSnapshot.records.find((record) => record.record_type === "OperationalAuthoritySmoke");
+  assert.equal(Object.hasOwn(marker.payload, "tenant_id"), false);
+  const prepared = prepareCorporateMasterDataImport({ manifest, currentSnapshot });
+  assert.deepEqual(prepared.after.records.find((record) => record.record_type === "OperationalAuthoritySmoke"), marker);
+  assert.equal(prepared.plan.preserved_record_count, 4);
+  for (const patch of [{ tenant_id: "another-tenant" }, { tenant_id: null }, { model_type: "Entity" }]) {
+    const corrupt = structuredClone(currentSnapshot);
+    Object.assign(corrupt.records.find((record) => record.record_type === "OperationalAuthoritySmoke").payload, patch);
+    assert.throws(() => prepareCorporateMasterDataImport({ manifest, currentSnapshot: corrupt }), { code: "LAWOS_CORPORATE_IMPORT_TENANT" });
+  }
+  const missingTenant = structuredClone(currentSnapshot);
+  delete missingTenant.records.find((record) => record.record_type === "Organization").payload.tenant_id;
+  assert.throws(() => prepareCorporateMasterDataImport({ manifest, currentSnapshot: missingTenant }), { code: "LAWOS_CORPORATE_IMPORT_TENANT" });
+});
 
 test("corporate plan rejects unsupported fields, missing provenance, stale CAS and wrong tenant without dropping legacy data", () => {
   const { before, manifest } = fixture();
@@ -240,7 +264,7 @@ test("actual PostgreSQL corporate import binds committed DMS references, rolls b
   if (!database) return;
   const { before, manifest, document } = fixture();
   const ledger = createPostgresDomainLedger({ pool: database.appPool, clock });
-  await ledger.importSnapshot(before);
+  await ledger.importSnapshot(withAuthoritySmoke(before));
   const scope = { tenant_id: tenant, domain_id: "master-data" };
   const read = () => ledger.transaction(scope, async (tx) => createDomainSnapshot({ ...scope, records: await tx.list(),
     idempotency_entries: await tx.listIdempotency(), audit_events: await tx.listAudit() }));
