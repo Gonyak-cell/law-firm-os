@@ -37,7 +37,7 @@ import { handleAnalyticsApiRequest } from "../src/analytics-runtime-context.js";
 import { handleCrmIntakeApiRequest } from "../src/crm-intake-runtime-context.js";
 import { handleFinanceApiRequest } from "../src/finance-runtime-context.js";
 import { handleHomeDashboardApiRequest } from "../src/home-dashboard-runtime-context.js";
-import { handleHrxApiRequest } from "../src/hrx-runtime-context.js";
+import { handleHrxApiRequest, resolveHrxEmployeeProfileByUserId } from "../src/hrx-runtime-context.js";
 import {
   handleClientGroupRegistrationCreate,
   handleClientGroupRegistrationReview,
@@ -170,6 +170,118 @@ async function importMatterAssignmentIdentityBaseline(ledger, tenantId, { employ
     store.close();
   }
 }
+
+test("PostgreSQL profile reads are bounded, tenant-scoped, and never flush domain writes", async (t) => {
+  const fixture = await createMigratedPostgresFixture(t, { appPoolMax: 1 });
+  if (!fixture) return;
+  const ledger = createPostgresDomainLedger({ pool: fixture.appPool });
+  const employeeId = "employee-postgres-profile";
+  const userId = "user-postgres-profile";
+  await importMatterAssignmentIdentityBaseline(ledger, TENANT_A, { employeeId, userId });
+  const scope = { tenant_id: TENANT_A, domain_id: "hrx" };
+  const capture = async () => ({
+    records: await ledger.list(scope),
+    idempotency: await ledger.listIdempotency(scope),
+    audit: await ledger.listAudit(scope),
+    outbox: await ledger.listOutbox(scope),
+  });
+  const before = await capture();
+  const calls = [];
+  let profileRead = true;
+  const guardedLedger = {
+    ...ledger,
+    transactionMany(input, callback) {
+      calls.push({ domains: input.domain_ids });
+      if (!profileRead) return ledger.transactionMany(input, callback);
+      assert.deepEqual(input.domain_ids, ["hrx"], "profile reads must not load unrelated product domains");
+      return ledger.transactionMany(input, (transactions) => callback({
+        hrx: Object.fromEntries(Object.entries(transactions.hrx).map(([name, value]) => [
+          name,
+          typeof value !== "function" ? value : (...args) => {
+            assert.ok(["list", "listIdempotency", "listAudit"].includes(name), `unexpected profile ledger operation: ${name}`);
+            calls.push({ read: name });
+            return value(...args);
+          },
+        ])),
+      }));
+    },
+  };
+  const dmsStorage = createLocalStorageAdapter({ adapter_id: "postgres-profile-read-test" });
+  const memberPhotoStorage = { storePhoto() {}, readPhoto() {} };
+  const authority = createPostgresApiRuntimeAuthority({
+    ledger: guardedLedger,
+    dmsStorage,
+    memberPhotoStorage,
+    payrollArtifactSecret: PAYROLL_ARTIFACT_SECRET,
+    bankImportPreviewTokens: BANK_IMPORT_PREVIEW_TOKENS,
+    dmsUploadRuntime: createPostgresDmsUploadRuntime({
+      pool: fixture.appPool, storage: dmsStorage, sourceOnly: false,
+    }),
+    identityRepository: {
+      async listDirectoryUsers({ tenant_id }) {
+        assert.ok([TENANT_A, TENANT_B].includes(tenant_id));
+        return [{ tenant_id, user_id: userId, display_name: "Server profile account",
+          status: "active", tenant_memberships: [{ tenant_id, status: "active" }] }];
+      },
+    },
+  });
+  for (const pathname of ["/api/profile/me", "/api/profile/me/photo", "/api/profile/me/photo/"]) {
+    await t.test(pathname, async () => {
+      calls.length = 0;
+      const result = await authority.run({
+        tenant_id: TENANT_A,
+        request_context: { method: "GET", pathname },
+        command({ hrxRuntime }) {
+          assert.equal(hrxRuntime.allowStaticRosterFallback, false);
+          assert.equal(hrxRuntime.memberPhotoStorage, memberPhotoStorage);
+          assert.equal(hrxRuntime.identityUserDirectory.listUsers({ tenant_id: TENANT_A, user_id: userId })[0].display_name, "Server profile account");
+          assert.deepEqual(hrxRuntime.identityUserDirectory.listUsers({ tenant_id: TENANT_B }), []);
+          assert.equal(resolveHrxEmployeeProfileByUserId(hrxRuntime, { tenant_id: TENANT_B, user_id: userId }), null);
+          return resolveHrxEmployeeProfileByUserId(hrxRuntime, { tenant_id: TENANT_A, user_id: userId });
+        },
+      });
+      assert.equal(result.employee_id, employeeId);
+      assert.deepEqual(calls, [{ domains: ["hrx"] }, { read: "list" }, { read: "listIdempotency" }, { read: "listAudit" }]);
+    });
+  }
+  await t.test("missing migration authority is rejected before the handler", async () => {
+    await assert.rejects(authority.run({
+      tenant_id: TENANT_B,
+      request_context: { method: "GET", pathname: "/api/profile/me" },
+      command() { assert.fail("unready HRX must not reach the profile handler"); },
+    }), { safe_error_code: "HRX_POSTGRES_AUTHORITY_NOT_READY" });
+  });
+  await t.test("accidental in-memory mutation is rejected without a database write", async () => {
+    await assert.rejects(authority.run({
+      tenant_id: TENANT_A,
+      request_context: { method: "GET", pathname: "/api/profile/me" },
+      command({ hrxRuntime }) {
+        hrxRuntime.repository.updateEmployee({ tenant_id: TENANT_A, employee_id: employeeId }, { display_name: "Must not persist" });
+        return "must not be returned";
+      },
+    }), { safe_error_code: "HRX_POSTGRES_AUTHORITY_NOT_READY" });
+  });
+  await t.test("handler failure closes the snapshot and preserves the ledger", async () => {
+    await assert.rejects(authority.run({
+      tenant_id: TENANT_A,
+      request_context: { method: "GET", pathname: "/api/profile/me/photo" },
+      command() { throw new Error("synthetic photo read failure"); },
+    }), /synthetic photo read failure/u);
+  });
+  await t.test("other methods and neighboring routes retain normal domain handling", async () => {
+    profileRead = false;
+    for (const [method, pathname] of [["POST", "/api/profile/me"], ["GET", "/api/profile/me/other"]]) {
+      calls.length = 0;
+      assert.equal(await authority.run({
+        tenant_id: TENANT_A,
+        request_context: { method, pathname },
+        command({ matterRuntime }) { assert.ok(matterRuntime); return "normal runtime"; },
+      }), "normal runtime");
+      assert.ok(calls.some(({ domains }) => domains.length > 1));
+    }
+  });
+  assert.deepEqual(await capture(), before);
+});
 
 async function assertMatterAssignmentRejectsInactiveIdentity({
   fixture,
