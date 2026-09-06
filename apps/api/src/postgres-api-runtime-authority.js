@@ -2,12 +2,14 @@ import {
   HRX_DOMAIN_ID,
   assertHrxPostgresAuthorityReady,
   createHrxOperationalDomainSnapshot,
+  flushHrxStoreToPostgres,
   getHrxMaterializedBaseline,
   materializeHrxStoreFromPostgres,
   materializeHrxStoreWithProjection,
 } from "../../../packages/hrx/src/postgres-store-v2.js";
 import { createHrxRuntimeContext } from "./hrx-runtime-context.js";
 import { createSqlHrxRepository } from "../../../packages/hrx/src/repository-sql.js";
+import { createDurableAuditStore } from "../../../packages/audit/src/durable-audit-store.js";
 import { createMasterDataRepository } from "../../../packages/master-data/src/repository.js";
 import { MASTER_DATA_DOMAIN_DESCRIPTOR } from "../../../packages/master-data/src/central-ledger.js";
 import { createMatterRepository } from "../../../packages/matter/src/repository.js";
@@ -733,6 +735,30 @@ export function createPostgresApiRuntimeAuthority({
             })),
           });
           return result;
+        },
+      });
+    }
+    if (method === "GET" && ["/api/hrx/employees", "/api/hrx/org-chart"].includes(pathname)) {
+      return runPostgresReadWithBaselineRetry({
+        method,
+        pathname,
+        execute: async () => {
+          const participant = createHrxDomainParticipant(request_context, hrxRelationalProjectionReader);
+          const store = await ledger.transactionMany({ tenant_id: tenantId, domain_ids: [HRX_DOMAIN_ID] },
+            (transactions) => participant.materialize({ ledger: transactions[HRX_DOMAIN_ID], tenant_id: tenantId }));
+          try {
+            const result = await command(Object.freeze({
+              hrxRuntime: Object.freeze({
+                repository: createSqlHrxRepository({ store }),
+                audit: createDurableAuditStore({ store }),
+                allowStaticRosterFallback: false,
+              }),
+            }));
+            await flushHrxStoreToPostgres({ ledger, store, tenant_id: tenantId, request_context });
+            return result;
+          } finally {
+            store.close();
+          }
         },
       });
     }
