@@ -15,6 +15,8 @@ export const JSON_POSTGRES_EXTERNAL_READ_DISABLED_PACK_SHA256 = "0".repeat(64);
 export const JSON_POSTGRES_AMIC_INTERNAL_UPDATE_DISABLED_BUCKET =
   "disabled-amic-internal-update";
 export const JSON_POSTGRES_AMIC_INTERNAL_UPDATE_DISABLED_VALUE = "disabled";
+export const JSON_POSTGRES_INSTALLATION_ATTESTATION_SECRET_ARN_PATTERN =
+  "^(?:disabled|arn:aws:secretsmanager:ap-northeast-2:770880870480:secret:/lawos/production/internal-installation/attestation-signer-[A-Za-z0-9]{6})$";
 export const JSON_POSTGRES_OUTLOOK_DISABLED_CONFIG_SECRET_NAME =
   "/lawos/disabled/outlook/config";
 export const JSON_POSTGRES_OUTLOOK_DISABLED_CREDENTIAL_SECRET_PREFIX =
@@ -1599,6 +1601,15 @@ export function buildJsonPostgresProductionTemplate(stagingTemplate) {
     Description:
       "Fail-closed activation for the authenticated AMIC OS internal update download broker",
   };
+  template.Parameters.InternalInstallationAttestationSecretArn = {
+    Type: "String",
+    Default: "disabled",
+    AllowedPattern: JSON_POSTGRES_INSTALLATION_ATTESTATION_SECRET_ARN_PATTERN,
+    Description: "Exact dedicated installation attestation secret ARN; private key material is never a template parameter",
+  };
+  template.Conditions.InternalInstallationAttestationConfigured = {
+    "Fn::Not": [{ "Fn::Equals": [{ Ref: "InternalInstallationAttestationSecretArn" }, "disabled"] }],
+  };
   template.Parameters.AmicInternalUnsignedArtifactBucketName = {
     Type: "String",
     Default: JSON_POSTGRES_AMIC_INTERNAL_UPDATE_DISABLED_BUCKET,
@@ -1784,6 +1795,13 @@ export function buildJsonPostgresProductionTemplate(stagingTemplate) {
       if (item.Sid === "ApiReadsExactRuntimeSecrets") {
         item.Resource.push({
           "Fn::If": [
+            "InternalInstallationAttestationConfigured",
+            { Ref: "InternalInstallationAttestationSecretArn" },
+            { Ref: "AWS::NoValue" },
+          ],
+        });
+        item.Resource.push({
+          "Fn::If": [
             "OutlookConversationWorkerConfigured",
             clone(outlookConfigSecretArn),
             { Ref: "AWS::NoValue" },
@@ -1912,6 +1930,25 @@ export function buildJsonPostgresProductionTemplate(stagingTemplate) {
   resources.ProgramInputBucketPolicy = programInputBucketPolicy();
 
   const apiRole = resources.ApiExecutionRole;
+  apiRole.Properties.Policies[0].PolicyDocument.Statement.push({
+    "Fn::If": [
+      "InternalInstallationAttestationConfigured",
+      {
+        Sid: "ReadExactInstallationAttestationSecret",
+        Effect: "Allow",
+        Action: "secretsmanager:GetSecretValue",
+        Resource: { Ref: "InternalInstallationAttestationSecretArn" },
+        Condition: {
+          ArnEquals: {
+            "lambda:SourceFunctionArn": {
+              "Fn::Sub": "arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:lawos-production-api",
+            },
+          },
+        },
+      },
+      { Ref: "AWS::NoValue" },
+    ],
+  });
   statement(apiRole, "ReadCommittedMemberPhotos").Resource = {
     "Fn::Sub": "${DmsBucket.Arn}/approved-real-migration/member-photos/objects/*",
   };
@@ -2639,28 +2676,28 @@ export function buildJsonPostgresProductionTemplate(stagingTemplate) {
     "Fn::If": [
       "ExternalReadProvidersEnabled",
       { Ref: "ExternalReadProviderPackSecretName" },
-      "",
+      { Ref: "AWS::NoValue" },
     ],
   };
   apiEnvironment.LAWOS_EXTERNAL_READ_PROVIDER_PACKS_SHA256 = {
     "Fn::If": [
       "ExternalReadProvidersEnabled",
       { Ref: "ExternalReadProviderPackSha256" },
-      "",
+      { Ref: "AWS::NoValue" },
     ],
   };
   apiEnvironment.LAWOS_EXTERNAL_READ_SECRET_PREFIX = {
     "Fn::If": [
       "ExternalReadProvidersEnabled",
       JSON_POSTGRES_EXTERNAL_READ_CREDENTIAL_SECRET_PREFIX,
-      "",
+      { Ref: "AWS::NoValue" },
     ],
   };
   apiEnvironment.LAWOS_EXTERNAL_READ_KMS_KEY_ARN = {
     "Fn::If": [
       "ExternalReadProvidersEnabled",
       { "Fn::GetAtt": ["ProductionKey", "Arn"] },
-      "",
+      { Ref: "AWS::NoValue" },
     ],
   };
   const configuredInternalUpdateEnvironment = (value) => ({
@@ -2812,6 +2849,13 @@ export function buildJsonPostgresProductionTemplate(stagingTemplate) {
     "lawos-production-outlook-conversation-worker";
   resources.OutlookConversationWorkerFunction.Properties.ReservedConcurrentExecutions = 1;
   resources.OutlookConversationWorkerFunction.Properties.Timeout = 900;
+  apiEnv.LAWOS_INTERNAL_INSTALLATION_ATTESTATION_SECRET_ID = {
+    "Fn::If": [
+      "InternalInstallationAttestationConfigured",
+      { Ref: "InternalInstallationAttestationSecretArn" },
+      { Ref: "AWS::NoValue" },
+    ],
+  };
   resources.OutlookConversationWorkerDeadLetterQueue = {
     Type: "AWS::SQS::Queue",
     Properties: {
@@ -3169,6 +3213,44 @@ export function validateJsonPostgresProductionTemplate(template) {
   }
   const apiEnvironment = resources.ApiFunction?.Properties?.Environment
     ?.Variables ?? {};
+  const attestationReference = {
+    "Fn::If": ["InternalInstallationAttestationConfigured",
+      { Ref: "InternalInstallationAttestationSecretArn" }, { Ref: "AWS::NoValue" }],
+  };
+  const attestationRead = conditionalPolicyStatement(resources.ApiExecutionRole,
+    "ReadExactInstallationAttestationSecret");
+  const attestationEndpoint = resources.SecretsManagerEndpoint?.Properties?.PolicyDocument
+    ?.Statement?.find(({ Sid }) => Sid === "ApiReadsExactRuntimeSecrets");
+  if (template.Parameters?.InternalInstallationAttestationSecretArn?.Type !== "String"
+    || template.Parameters?.InternalInstallationAttestationSecretArn?.Default !== "disabled"
+    || template.Parameters?.InternalInstallationAttestationSecretArn?.AllowedPattern
+      !== JSON_POSTGRES_INSTALLATION_ATTESTATION_SECRET_ARN_PATTERN
+    || template.Parameters?.InternalInstallationAttestationSecretArn?.NoEcho != null
+    || stableJson(template.Conditions?.InternalInstallationAttestationConfigured) !== stableJson({
+      "Fn::Not": [{ "Fn::Equals": [{ Ref: "InternalInstallationAttestationSecretArn" }, "disabled"] }],
+    })
+    || stableJson(apiEnvironment.LAWOS_INTERNAL_INSTALLATION_ATTESTATION_SECRET_ID)
+      !== stableJson(attestationReference)
+    || Object.entries(resources).some(([id, resource]) => resource.Type === "AWS::Lambda::Function"
+      && Object.keys(resource.Properties?.Environment?.Variables ?? {}).some((key) =>
+        key.startsWith("LAWOS_INTERNAL_INSTALLATION_ATTESTATION_")
+        && (id !== "ApiFunction" || key !== "LAWOS_INTERNAL_INSTALLATION_ATTESTATION_SECRET_ID")))
+    || stableJson(attestationRead) !== stableJson({
+      "Fn::If": ["InternalInstallationAttestationConfigured", {
+        Sid: "ReadExactInstallationAttestationSecret", Effect: "Allow",
+        Action: "secretsmanager:GetSecretValue", Resource: { Ref: "InternalInstallationAttestationSecretArn" },
+        Condition: { ArnEquals: { "lambda:SourceFunctionArn": {
+          "Fn::Sub": "arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:lawos-production-api",
+        } } },
+      }, { Ref: "AWS::NoValue" }],
+    })
+    || attestationEndpoint?.Effect !== "Allow" || attestationEndpoint?.Action !== "secretsmanager:GetSecretValue"
+    || stableJson(attestationEndpoint?.Principal) !== stableJson({ AWS: { "Fn::GetAtt": ["ApiExecutionRole", "Arn"] } })
+    || (attestationEndpoint?.Resource ?? []).filter((value) =>
+      stableJson(value) === stableJson(attestationReference)).length !== 1
+    || (JSON.stringify(resources).match(/"Ref":"InternalInstallationAttestationSecretArn"/gu) ?? []).length !== 3) {
+    fail("production installation attestation secret binding drifted");
+  }
   const expectedMemberPhotoEnvironment = {
     BUCKET: { Ref: "DmsBucket" },
     EXPECTED_BUCKET_OWNER: { Ref: "AWS::AccountId" },
@@ -3274,21 +3356,14 @@ export function validateJsonPostgresProductionTemplate(template) {
       ?.LAWOS_PROJECTION_AUDITOR_DATABASE_SECRET_ID != null
     || resources.ApiFunction?.Properties?.Environment?.Variables?.LAWOS_PERSISTENCE_AUTHORITY !== "postgres-v2"
     || resources.ApiFunction?.Properties?.Environment?.Variables?.LAWOS_RUNTIME_PROFILE !== "operational"
-    || resources.ApiFunction?.Properties?.Environment?.Variables
-      ?.LAWOS_EXTERNAL_READ_PROVIDER_PACKS_SECRET_ID?.["Fn::If"]?.[0]
-      !== "ExternalReadProvidersEnabled"
-    || resources.ApiFunction?.Properties?.Environment?.Variables
-      ?.LAWOS_EXTERNAL_READ_PROVIDER_PACKS_SECRET_ID?.["Fn::If"]?.[1]?.Ref
-      !== "ExternalReadProviderPackSecretName"
-    || resources.ApiFunction?.Properties?.Environment?.Variables
-      ?.LAWOS_EXTERNAL_READ_PROVIDER_PACKS_SHA256?.["Fn::If"]?.[1]?.Ref
-      !== "ExternalReadProviderPackSha256"
-    || resources.ApiFunction?.Properties?.Environment?.Variables
-      ?.LAWOS_EXTERNAL_READ_SECRET_PREFIX?.["Fn::If"]?.[1]
-      !== JSON_POSTGRES_EXTERNAL_READ_CREDENTIAL_SECRET_PREFIX
-    || resources.ApiFunction?.Properties?.Environment?.Variables
-      ?.LAWOS_EXTERNAL_READ_KMS_KEY_ARN?.["Fn::If"]?.[1]?.["Fn::GetAtt"]?.[0]
-      !== "ProductionKey"
+    || [
+      ["LAWOS_EXTERNAL_READ_PROVIDER_PACKS_SECRET_ID", { Ref: "ExternalReadProviderPackSecretName" }],
+      ["LAWOS_EXTERNAL_READ_PROVIDER_PACKS_SHA256", { Ref: "ExternalReadProviderPackSha256" }],
+      ["LAWOS_EXTERNAL_READ_SECRET_PREFIX", JSON_POSTGRES_EXTERNAL_READ_CREDENTIAL_SECRET_PREFIX],
+      ["LAWOS_EXTERNAL_READ_KMS_KEY_ARN", { "Fn::GetAtt": ["ProductionKey", "Arn"] }],
+    ].some(([name, enabledValue]) => stableJson(apiEnvironment[name]) !== stableJson({
+      "Fn::If": ["ExternalReadProvidersEnabled", enabledValue, { Ref: "AWS::NoValue" }],
+    }))
     || resources.ApiFunction?.Properties?.Environment?.Variables
       ?.LAWOS_HRX_RELATIONAL_PROJECTION_ENABLED?.["Fn::If"]?.[0]
       !== "ProjectionWorkerEnabled"

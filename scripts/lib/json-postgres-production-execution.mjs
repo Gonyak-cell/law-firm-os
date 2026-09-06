@@ -360,6 +360,7 @@ export function buildJsonPostgresProductionStackParameters({
     EnableLambdaEniBootstrap: enableLambdaEniBootstrap ? "true" : "false",
     RuntimeGeneration: String(runtimeGeneration),
     SchemaGovernanceLayerVersionArn: "disabled",
+    InternalInstallationAttestationSecretArn: "disabled",
     ExecutionPacketSha256: packet.packet_sha256,
     ProgramInputBucketName: packet.target.program_input_bucket_name,
     DmsBucketName: packet.target.dms_bucket_name,

@@ -25,6 +25,60 @@ import {
 
 const reference = JSON.parse(readFileSync("infra/lawos-private-staging/template.json", "utf8"));
 
+test("installation attestation grants only the API one exact optional signer reference", () => {
+  const template = buildJsonPostgresProductionTemplate(reference);
+  const parameter = template.Parameters.InternalInstallationAttestationSecretArn;
+  const signerArn = "arn:aws:secretsmanager:ap-northeast-2:770880870480:secret:/lawos/production/internal-installation/attestation-signer-AbCd12";
+  const pattern = new RegExp(parameter.AllowedPattern, "u");
+  assert.equal(parameter.Default, "disabled");
+  assert.equal(pattern.test("disabled"), true);
+  assert.equal(pattern.test(signerArn), true);
+  for (const value of ["", "*", "{{resolve:secretsmanager:private}}", signerArn + "*",
+    signerArn.replace("770880870480", "111111111111"), signerArn.replace("ap-northeast-2", "us-east-1"),
+    signerArn.replace("attestation-signer", "session"), signerArn.replace("AbCd12", "x")]) {
+    assert.equal(pattern.test(value), false);
+  }
+  assert.equal(validateJsonPostgresProductionTemplate(template).verdict, "PASS");
+  const env = (copy) => copy.Resources.ApiFunction.Properties.Environment.Variables;
+  const read = (copy) => copy.Resources.ApiExecutionRole.Properties.Policies[0].PolicyDocument.Statement
+    .find((item) => item["Fn::If"]?.[1]?.Sid === "ReadExactInstallationAttestationSecret");
+  const endpoint = (copy) => copy.Resources.SecretsManagerEndpoint.Properties.PolicyDocument.Statement
+    .find(({ Sid }) => Sid === "ApiReadsExactRuntimeSecrets");
+  for (const mutate of [
+    (copy) => { copy.Parameters.InternalInstallationAttestationSecretArn.Default = signerArn; },
+    (copy) => { copy.Parameters.InternalInstallationAttestationSecretArn.AllowedPattern = ".*"; },
+    (copy) => { copy.Conditions.InternalInstallationAttestationConfigured = { "Fn::Equals": [1, 1] }; },
+    (copy) => { env(copy).LAWOS_INTERNAL_INSTALLATION_ATTESTATION_SECRET_ID = signerArn; },
+    (copy) => { env(copy).LAWOS_INTERNAL_INSTALLATION_ATTESTATION_PRIVATE_KEY_PEM = "private"; },
+    (copy) => { delete env(copy).LAWOS_INTERNAL_INSTALLATION_ATTESTATION_SECRET_ID; },
+    (copy) => { delete read(copy)["Fn::If"][1].Condition; },
+    (copy) => { read(copy)["Fn::If"][1].Action = "secretsmanager:*"; },
+    (copy) => { read(copy)["Fn::If"][1].Resource = "*"; },
+    (copy) => { read(copy)["Fn::If"][1].Condition.ArnEquals["lambda:SourceFunctionArn"]["Fn::Sub"] += ":1"; },
+    (copy) => { endpoint(copy).Principal = "*"; },
+    (copy) => { endpoint(copy).Action = ["secretsmanager:GetSecretValue", "secretsmanager:PutSecretValue"]; },
+    (copy) => { endpoint(copy).Resource = endpoint(copy).Resource.filter((item) => item["Fn::If"]?.[0] !== "InternalInstallationAttestationConfigured"); },
+    ...["AdminFunction", "ProjectionWorkerFunction", "ProjectionAuditorFunction", "OutlookConversationWorkerFunction"].map((id) =>
+      (copy) => { copy.Resources[id].Properties.Environment.Variables.LAWOS_INTERNAL_INSTALLATION_ATTESTATION_SECRET_ID = env(copy).LAWOS_INTERNAL_INSTALLATION_ATTESTATION_SECRET_ID; }),
+  ]) {
+    const changed = structuredClone(template);
+    mutate(changed);
+    assert.throws(() => validateJsonPostgresProductionTemplate(changed), /installation attestation/u);
+  }
+});
+
+test("production rejects changed disabled-provider omission and enabled authority bindings", () => {
+  const staging = JSON.parse(readFileSync("infra/lawos-private-staging/template.json", "utf8"));
+  for (const name of ["LAWOS_EXTERNAL_READ_PROVIDER_PACKS_SECRET_ID", "LAWOS_EXTERNAL_READ_PROVIDER_PACKS_SHA256",
+    "LAWOS_EXTERNAL_READ_SECRET_PREFIX", "LAWOS_EXTERNAL_READ_KMS_KEY_ARN"]) {
+    for (const index of [0, 1, 2]) {
+      const template = buildJsonPostgresProductionTemplate(staging);
+      template.Resources.ApiFunction.Properties.Environment.Variables[name]["Fn::If"][index] = "";
+      assert.throws(() => validateJsonPostgresProductionTemplate(template));
+    }
+  }
+});
+
 test("schema governance accepts an immutable local layer only on the direct-invoke admin", () => {
   const template = buildJsonPostgresProductionTemplate(reference);
   const parameter = template.Parameters.SchemaGovernanceLayerVersionArn;
