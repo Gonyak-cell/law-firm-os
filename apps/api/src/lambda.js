@@ -4765,13 +4765,14 @@ export function createLambdaHttpHandler({
       redirect: "manual",
     });
     const path = event.rawPath || event.path || "/";
-    const binaryVaultDelivery = (
+    const binaryDelivery = (
       (method === "GET" && path.startsWith(OUTLOOK_VAULT_ATTACHMENT_DELIVERY_PREFIX))
       || (method === "POST" && path === DESKTOP_VAULT_EXPORT_DOWNLOAD_PATH)
+      || (method === "GET" && path.replace(/\/+$/u, "") === "/api/profile/me/photo")
     )
       && response.status >= 200
       && response.status < 300;
-    const body = binaryVaultDelivery
+    const body = binaryDelivery
       ? Buffer.from(await response.arrayBuffer()).toString("base64")
       : await response.text();
     const headers = Object.fromEntries(response.headers.entries());
@@ -4802,7 +4803,7 @@ export function createLambdaHttpHandler({
       statusCode: response.status,
       headers,
       body,
-      isBase64Encoded: binaryVaultDelivery,
+      isBase64Encoded: binaryDelivery,
     };
   };
 }

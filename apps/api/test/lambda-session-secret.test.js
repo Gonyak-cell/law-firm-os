@@ -464,6 +464,51 @@ test("Lambda HTTP proxy logs only safe Outlook failure metadata", async () => {
   assert.equal(logs[4].includes("PRIVATE_DEVICE_ID"), false);
 });
 
+test("Lambda HTTP proxy preserves signed profile photo bytes for HTTP and REST events", async () => {
+  const bytes = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10, 0, 255, 128, 192]);
+  const lambdaHandler = createLambdaHttpHandler({
+    runtimeCache: { async get() { return { port: 32123 }; } },
+    fetchFn: async (_url, options) => {
+      assert.equal(options.headers.authorization, "Bearer synthetic-session");
+      return new Response(bytes, { headers: {
+        "content-type": "image/png", "content-length": String(bytes.length),
+        "cache-control": "private, no-store", "x-content-type-options": "nosniff",
+      } });
+    },
+  });
+  for (const event of [
+    { rawPath: "/api/profile/me/photo", requestContext: { http: { method: "GET" } } },
+    { rawPath: "/api/profile/me/photo/", requestContext: { http: { method: "GET" } } },
+    { path: "/api/profile/me/photo", httpMethod: "GET" },
+  ]) {
+    const result = await lambdaHandler({ ...event, headers: { authorization: "Bearer synthetic-session" } });
+    assert.equal(result.statusCode, 200);
+    assert.equal(result.isBase64Encoded, true);
+    assert.deepEqual(Buffer.from(result.body, "base64"), bytes);
+    assert.equal(result.headers["content-type"], "image/png");
+    assert.equal(result.headers["content-length"], String(bytes.length));
+    assert.equal(result.headers["cache-control"], "private, no-store");
+    assert.equal(result.headers["x-content-type-options"], "nosniff");
+  }
+});
+
+test("Lambda HTTP proxy keeps rejected profile photo responses as JSON", async () => {
+  const body = JSON.stringify({ outcome: "blocked", safe_error_codes: ["PROFILE_PHOTO_UNAVAILABLE"] });
+  for (const status of [401, 403, 404, 503]) {
+    const lambdaHandler = createLambdaHttpHandler({
+      runtimeCache: { async get() { return { port: 32123 }; } },
+      fetchFn: async () => new Response(body, { status, headers: {
+        "content-type": "application/json", "cache-control": "private, no-store",
+      } }),
+    });
+    const result = await lambdaHandler({ rawPath: "/api/profile/me/photo", requestContext: { http: { method: "GET" } } });
+    assert.equal(result.statusCode, status);
+    assert.equal(result.isBase64Encoded, false);
+    assert.equal(result.body, body);
+    assert.equal(result.headers["cache-control"], "private, no-store");
+  }
+});
+
 test("Lambda HTTP proxy preserves exact Outlook Vault delivery bytes as API Gateway base64", async () => {
   const bytes = Buffer.from([0, 255, 1, 2, 128, 64, 10]);
   const token = "lawos_ovd_v1.opaque-token-part.ciphertext-part.auth-tag-part";
