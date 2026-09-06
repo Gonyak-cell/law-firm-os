@@ -16,7 +16,7 @@ import { PeopleHome } from "./people/PeopleHome.tsx";
 import { resolvePeopleRoute } from "./people/peopleFeatureCatalog.js";
 import { readPeopleWebFeatureFlags } from "./people/peopleFeatureFlags.ts";
 import { parsePeopleOutlookConnectionResult, presentPeopleOutlookConnectionResult } from "./people/outlookConnectionResult.js";
-import { fetchLawosVaultCapabilities, isDesktopRendererLocation, loginLawosApiSession, readLawosApiSession, readLawosSessionEnvelope } from "./data/apiClient.js";
+import { fetchLawosVaultCapabilities, isDesktopRendererLocation, loginLawosApiSession, readDesktopMatterSessionStatus, readLawosApiSession, readLawosSessionEnvelope } from "./data/apiClient.js";
 import { canAccessHomeCompany } from "./data/homeAccess.js";
 import { canAccessHomeFinanceSection } from "./data/financeAccess.js";
 import { fetchHomeMessageItems } from "./data/homeMessages.js";
@@ -526,7 +526,7 @@ export function App() {
     let cancelled = false;
     async function verifyDesktopSession() {
       try {
-        const status = await window.matterSession.status();
+        const status = await readDesktopMatterSessionStatus();
         if (status?.state === "signed_in") {
           const capabilityResult = await fetchLawosVaultCapabilities();
           if (!cancelled) {

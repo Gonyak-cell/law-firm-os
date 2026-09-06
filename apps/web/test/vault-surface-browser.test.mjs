@@ -1,11 +1,12 @@
 import assert from "node:assert/strict";
-import { mkdir } from "node:fs/promises";
+import { mkdir, mkdtemp, rm } from "node:fs/promises";
 import { createServer as createNetServer } from "node:net";
+import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import test from "node:test";
 import { chromium } from "playwright";
-import { createServer } from "vite";
+import { build, createServer } from "vite";
 
 const testDir = dirname(fileURLToPath(import.meta.url));
 const webRoot = resolve(testDir, "..");
@@ -106,6 +107,76 @@ function preferencesBody() {
 async function fulfillJson(route, body, status = 200) {
   await route.fulfill({ status, contentType: "application/json; charset=utf-8", body: JSON.stringify(body) });
 }
+
+test("desktop cold start and reload bind the first Vault reads to the restored signed session", async (t) => {
+  const output = await mkdtemp(join(tmpdir(), "lawos-desktop-session-"));
+  t.after(() => rm(output, { recursive: true, force: true }));
+  await build({
+    root: webRoot,
+    base: "./",
+    logLevel: "silent",
+    build: { outDir: output, emptyOutDir: true }
+  });
+  const browser = await chromium.launch({ headless: true, args: ["--allow-file-access-from-files"] });
+  try {
+    const page = await browser.newPage();
+    await page.addInitScript(({ sessionValue, capabilityValue, documents, preferences }) => {
+      sessionStorage.clear();
+      window.__desktopReads = [];
+      window.__desktopStatusCalls = 0;
+      const restored = new Promise((resolveStatus) => {
+        window.__restoreDesktopSession = () => resolveStatus(sessionValue);
+      });
+      window.matterSession = Object.freeze({
+        status() {
+          window.__desktopStatusCalls += 1;
+          return restored;
+        },
+        async features() {
+          return { ok: true, http_status: 200, vault_capabilities: capabilityValue };
+        },
+        async api(request) {
+          const url = new URL(request.path, "https://runtime.example.invalid");
+          const envelope = JSON.parse(sessionStorage.getItem("lawos.session.envelope") ?? "null");
+          window.__desktopReads.push({
+            path: url.pathname,
+            tenant: url.searchParams.get("tenant_id"),
+            actor: envelope?.actor_ref ?? null,
+            sessionTenant: envelope?.tenant_refs?.vault ?? null
+          });
+          const bound = envelope?.actor_ref === sessionValue.user_id
+            && envelope?.tenant_refs?.vault === sessionValue.tenant_id
+            && url.searchParams.get("tenant_id") === sessionValue.tenant_id;
+          const body = url.pathname === "/api/vault/documents" ? documents
+            : url.pathname === "/api/vault/search/preferences" ? preferences : null;
+          return body && bound
+            ? { http_status: 200, body }
+            : { http_status: 403, body: { outcome: "blocked", safe_error_codes: ["SESSION_BINDING_REQUIRED"] } };
+        }
+      });
+    }, { sessionValue: session(), capabilityValue: projection(), documents: documentsBody(), preferences: preferencesBody() });
+    await page.goto(`${pathToFileURL(join(output, "index.html"))}?desktop=1&view=vault&ctx=allow#vault-home`);
+    for (let attempt = 0; attempt < 2; attempt += 1) {
+      if (attempt) await page.reload();
+      await page.waitForFunction(() => window.__desktopStatusCalls > 0);
+      assert.deepEqual(await page.evaluate(() => window.__desktopReads), []);
+      await page.evaluate(() => window.__restoreDesktopSession());
+      await page.waitForFunction(() => window.__desktopReads.some((read) => read.path === "/api/vault/search/preferences"));
+      const reads = await page.evaluate(() => window.__desktopReads);
+      const vaultReads = reads.filter((read) => ["/api/vault/documents", "/api/vault/search/preferences"].includes(read.path));
+      assert.deepEqual([...new Set(vaultReads.map((read) => read.path))].sort(), ["/api/vault/documents", "/api/vault/search/preferences"]);
+      for (const read of vaultReads) {
+        assert.equal(read.tenant, session().tenant_id, `${read.path} first request tenant`);
+        assert.equal(read.actor, session().user_id, `${read.path} first request actor`);
+        assert.equal(read.sessionTenant, session().tenant_id);
+      }
+      await page.locator('[data-vault-document-list="true"] .amic-search-row').first().waitFor();
+      assert.doesNotMatch(await page.locator("body").innerText(), /문서를 불러오지 못했습니다|검색 기록을 불러오지 못했습니다/);
+    }
+  } finally {
+    await browser.close();
+  }
+});
 
 test("Vault full-capability surface renders canonical groups, exact-version details, audit, and responsive containment", async () => {
   const port = await availablePort();
