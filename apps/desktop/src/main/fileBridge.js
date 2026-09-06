@@ -188,6 +188,15 @@ function assertBindingId(value, field, { required = false } = {}) {
   return value;
 }
 
+function exportTargetBinding(request) {
+  const matterId = assertBindingId(request.matterId, "matterId");
+  const workspaceId = assertBindingId(request.workspaceId, "workspaceId");
+  if (Boolean(matterId) === Boolean(workspaceId)) {
+    throw new FileBridgeError(matterId ? "INVALID_FILE_BRIDGE_BINDING" : "FILE_BRIDGE_BINDING_REQUIRED", "Exactly one document scope is required");
+  }
+  return workspaceId ? { matterId: null, workspaceId } : { matterId };
+}
+
 function ownerIdFrom(owner = {}) {
   if (typeof owner.ownerId !== "string" || !owner.ownerId) {
     throw new FileBridgeError("FILE_BRIDGE_OWNER_REQUIRED", "File bridge caller ownership is required");
@@ -831,7 +840,7 @@ export function createFileBridgeController(options = {}) {
     assertSaveDocumentProvider(documentProvider);
     const exactVersion = exactVersionBinding(request);
     const binding = {
-      matterId: assertBindingId(request.matterId, "matterId", { required: true }),
+      ...exportTargetBinding(request),
       documentId: exactVersion.document_id,
       exactVersion,
     };
@@ -878,6 +887,7 @@ export function createFileBridgeController(options = {}) {
           actionId: "save_document_as",
           documentId: binding.documentId,
           matterId: binding.matterId,
+          ...(binding.workspaceId ? { workspaceId: binding.workspaceId } : {}),
           exactVersion: binding.exactVersion,
           permissionDecisionId: precheck.decisionId ?? null
         }),
@@ -893,6 +903,7 @@ export function createFileBridgeController(options = {}) {
         operationId: providerResponse.operationId,
         documentId: binding.documentId,
         matterId: binding.matterId,
+        ...(binding.workspaceId ? { workspaceId: binding.workspaceId } : {}),
         exactVersion: binding.exactVersion,
         permissionDecisionId: precheck.decisionId ?? null
       });
@@ -944,7 +955,7 @@ export function createFileBridgeController(options = {}) {
     }
     const exactVersion = exactVersionBinding(request);
     const binding = {
-      matterId: assertBindingId(request.matterId, "matterId", { required: true }),
+      ...exportTargetBinding(request),
       documentId: exactVersion.document_id,
       exactVersion,
     };
@@ -979,6 +990,7 @@ export function createFileBridgeController(options = {}) {
           actionId: "open_temp_preview",
           documentId: binding.documentId,
           matterId: binding.matterId,
+          ...(binding.workspaceId ? { workspaceId: binding.workspaceId } : {}),
           exactVersion: binding.exactVersion,
           permissionDecisionId: precheck.decisionId ?? null,
         }),
@@ -1003,6 +1015,7 @@ export function createFileBridgeController(options = {}) {
         operationId: providerResponse.operationId,
         documentId: binding.documentId,
         matterId: binding.matterId,
+        ...(binding.workspaceId ? { workspaceId: binding.workspaceId } : {}),
         exactVersion: binding.exactVersion,
         permissionDecisionId: precheck.decisionId ?? null,
       });

@@ -742,6 +742,7 @@ export function createDesktopFileBridgePermissionClient(coordinator) {
         }
         const body = await coordinator.precheckVaultExport({
           matterId: request.matterId,
+          ...(request.workspaceId ? { workspaceId: request.workspaceId } : {}),
           exactVersion: request.exactVersion,
         });
         const exact = body?.exact_version;
@@ -760,6 +761,7 @@ export function createDesktopFileBridgePermissionClient(coordinator) {
           && body?.lawos_permission_checked === true
           && body?.provider_authority_checked === false
           && body?.provider_grant_created === false
+          && (request.workspaceId == null || body?.workspace_id === request.workspaceId)
           && sameExact;
         return {
           allowed,
@@ -807,6 +809,7 @@ export function createDesktopVaultDocumentProvider(coordinator) {
         : "export_exact_version";
       const downloadRequest = {
         matterId: request.matterId,
+        ...(request.workspaceId ? { workspaceId: request.workspaceId } : {}),
         exactVersion: request.exactVersion,
       };
       if (operationKind === "attach_outlook") Object.assign(downloadRequest, {
@@ -840,6 +843,7 @@ export function createDesktopVaultDocumentProvider(coordinator) {
       const failed = operationKind === "attach_outlook" && request.completionStage === "failed";
       const expectedStage = failed ? "failed" : operationKind === "attach_outlook" ? "attached" : "delivered";
       const completionRequest = {
+        ...(request.workspaceId ? { workspaceId: request.workspaceId } : {}),
         operationId: request.operationId,
         exactVersion: request.exactVersion,
       };

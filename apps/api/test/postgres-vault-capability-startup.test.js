@@ -35,7 +35,7 @@ test("operational startup publishes native Vault reads without an external provi
       tenant_binding_state: "bound", user_binding_state: "bound", capabilities: { download: true } };
   };
   for (const [label, extra, allowed] of [
-    ["native", {}, ["read", "audit"]],
+    ["native", {}, ["read", "download", "audit"]],
     ["disabled", { vaultCapabilityResolver: null }, []],
     ["external", { vaultUploadProvider: { resolveCapabilities: providerResolver } }, ["download"]],
   ]) {

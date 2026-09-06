@@ -213,6 +213,7 @@ export const JSON_POSTGRES_PRODUCTION_OUTLOOK_RUNTIME_ENTRIES = Object.freeze([
   "apps/api/src/middleware/hrx-step-up-context.js",
   "apps/api/src/middleware/hrx-step-up.js",
   "apps/api/src/middleware/tenant-context.js",
+  "apps/api/src/native-corporate-export-runtime.js",
   "apps/api/src/outlook-addin-runtime-context.js",
   "apps/api/src/outlook-attachment-receipt-authority.js",
   "apps/api/src/outlook-attachment-receipt-readback.js",

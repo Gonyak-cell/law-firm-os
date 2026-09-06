@@ -57,13 +57,13 @@ function session() {
   };
 }
 
-function documentsBody() {
+function documentsBody(corporate = false) {
   return {
     request_id: "req-vault-browser-documents",
     outcome: "passed",
     items: [{
       document_id: "document-vault-browser-001",
-      matter_id: "matter-vault-browser-001",
+      matter_id: corporate ? null : "matter-vault-browser-001",
       workspace_id: "workspace-vault-browser-001",
       title: "계약 검토 의견서",
       status: "active",
@@ -121,6 +121,7 @@ test("Vault full-capability surface renders canonical groups, exact-version deta
     assert.ok(baseUrl);
     const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
     let malformedAudit = false;
+    let corporateDocument = false;
     await page.addInitScript(({ sessionValue, capabilityValue }) => {
       sessionStorage.setItem("lawos.api.session", JSON.stringify({
         token_type: "Bearer",
@@ -151,6 +152,7 @@ test("Vault full-capability surface renders canonical groups, exact-version deta
         value: Object.freeze({
           async saveDocumentAs(request) {
             window.__vaultSaveCalls.push(request);
+            if (window.__cancelVaultSave) return { state: "cancelled" };
             return {
               state: "saved",
               file: { name: request.suggestedName, size: request.byteSize, pathVisibleToRenderer: false },
@@ -211,7 +213,7 @@ test("Vault full-capability surface renders canonical groups, exact-version deta
         return;
       }
       if (url.pathname === "/api/vault/documents") {
-        await fulfillJson(route, documentsBody());
+        await fulfillJson(route, documentsBody(corporateDocument));
         return;
       }
       if (url.pathname === "/api/vault/search/preferences") {
@@ -240,7 +242,7 @@ test("Vault full-capability surface renders canonical groups, exact-version deta
         return;
       }
       if (url.pathname === "/api/vault/search") {
-        await fulfillJson(route, { ...documentsBody(), request_id: "req-vault-browser-search" });
+        await fulfillJson(route, { ...documentsBody(corporateDocument), request_id: "req-vault-browser-search" });
         return;
       }
       await fulfillJson(route, { outcome: "not_found", items: [], safe_error_codes: ["NOT_FOUND"] }, 404);
@@ -460,6 +462,35 @@ test("Vault full-capability surface renders canonical groups, exact-version deta
     assert.match(await desktopBoundary.textContent(), /AMIC OS 데스크톱 앱/);
     assert.match(await desktopBoundary.textContent(), /별도 Vault 설치 없이/);
     assert.equal(await page.locator('input[type="file"]').count(), 0);
+    corporateDocument = true;
+    await page.setViewportSize({ width: 1440, height: 1000 });
+    await page.goto(`${baseUrl}?view=vault&ctx=allow#vault-home`, { waitUntil: "networkidle" });
+    await page.locator('[data-vault-document-list="true"] .amic-search-row').first().click();
+    await page.locator('[data-vault-exact-version-facts="true"]').waitFor();
+    await page.getByRole("button", { name: "미리보기" }).click();
+    await page.getByText("정확한 버전을 기본 문서 앱에서 열었습니다. 임시 파일은 자동으로 삭제됩니다.").waitFor();
+    const corporatePreview = await page.evaluate(() => window.__vaultPreviewCalls.at(-1));
+    assert.match(await page.locator('[data-vault-exact-version-facts="true"]').innerText(), /문서 공간/u);
+    assert.doesNotMatch(await page.locator('[data-vault-exact-version-facts="true"]').innerText(), /Matter|확인 필요/u);
+    assert.equal(corporatePreview.matterId, null);
+    assert.equal(corporatePreview.workspaceId, "workspace-vault-browser-001");
+    await page.evaluate(() => { window.__cancelVaultSave = true; });
+    await page.getByRole("button", { name: "내 컴퓨터에 저장" }).click();
+    await page.waitForFunction(() => window.__vaultSaveCalls.length === 1);
+    assert.equal(await page.getByText("선택한 위치에 저장했고 Vault 전달 기록을 확인했습니다.").count(), 0);
+    await page.evaluate(() => { window.__cancelVaultSave = false; });
+    await page.getByRole("button", { name: "내 컴퓨터에 저장" }).click();
+    await page.getByText("선택한 위치에 저장했고 Vault 전달 기록을 확인했습니다.").waitFor();
+    const corporateSave = await page.evaluate(() => window.__vaultSaveCalls.at(-1));
+    assert.equal(corporateSave.matterId, null);
+    assert.equal(corporateSave.workspaceId, "workspace-vault-browser-001");
+    assert.equal(corporateSave.sha256, sha256);
+    await page.evaluate(() => window.__classicOutlookAttachHandler?.({
+      request_handle: `classic-outlook-${"a".repeat(32)}`, expires_at: new Date(Date.now() + 60_000).toISOString(),
+    }));
+    assert.equal(await page.getByRole("button", { name: "현재 Outlook 초안에 첨부", exact: true }).count(), 0);
+    assert.equal((await page.evaluate(() => window.__vaultOutlookAttachCalls)).length, 0);
+    if (screenshotDir) await page.screenshot({ path: join(screenshotDir, "vault-corporate-document-1440.png"), fullPage: true });
   } finally {
     await browser.close();
     await server.close();

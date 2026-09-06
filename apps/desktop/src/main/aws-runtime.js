@@ -23,6 +23,9 @@ const DESKTOP_VAULT_EXPORT_AUTHORIZE_PATH = "/api/vault/desktop/export-authorize
 const DESKTOP_VAULT_EXPORT_DOWNLOAD_PATH = "/api/vault/desktop/export-download";
 const DESKTOP_VAULT_EXPORT_COMPLETE_PATH = "/api/vault/desktop/export-complete";
 const DESKTOP_VAULT_EXPORT_MAX_BYTES = 25 * 1024 * 1024;
+const CORPORATE_EXPORT_PREFIX = "/api/vault/desktop/corporate-export-";
+const CORPORATE_EXPORT_CHUNK_BYTES = 3 * 1024 * 1024;
+const CORPORATE_EXPORT_JSON_MAX_BYTES = 4 * 1024 * 1024 + 16 * 1024;
 const INTERNAL_UNSIGNED_UPDATE_AUTHORIZE_PATH = "/api/desktop/internal-updates/authorize";
 const VAULT_OPERATION_ID = /^vaultop_[a-f0-9]{32}$/u;
 const VAULT_BINDING_ID = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,255}$/u;
@@ -521,7 +524,8 @@ export function createMatterVaultAwsRuntimeClient({ baseUrl, operatorToken, fetc
     ? config.requestTimeoutMs
     : DEFAULT_RUNTIME_REQUEST_TIMEOUT_MS;
 
-  const requestJson = async (path, { method = "GET", body, actorEmail, authRequired = true, authToken, headers: extraHeaders = {} } = {}) => {
+  const requestJson = async (path, { method = "GET", body, actorEmail, authRequired = true, authToken,
+    headers: extraHeaders = {}, maxResponseBytes } = {}) => {
     const credential = authToken ?? (authRequired ? operatorToken : "");
     if (authRequired && !credential) {
       return {
@@ -537,16 +541,45 @@ export function createMatterVaultAwsRuntimeClient({ baseUrl, operatorToken, fetc
     const controller = new AbortController();
     const timeoutError = Object.assign(new Error("Runtime request deadline exceeded"), { name: "TimeoutError" });
     const timeout = setTimeout(() => controller.abort(timeoutError), requestTimeoutMs);
+    let boundedStream;
     let result;
     try {
       const response = await fetchImpl(url, {
         method,
         headers,
         body: body == null ? undefined : JSON.stringify(body),
+        ...(maxResponseBytes ? { redirect: "manual", cache: "no-store" } : {}),
         signal: controller.signal
       });
-      if (!response || typeof response.text !== "function") return response;
-      const text = await response.text();
+      let text;
+      if (maxResponseBytes) {
+        const declared = response?.headers?.get?.("content-length");
+        if (response?.redirected || !response?.body?.getReader
+            || String(response.headers?.get?.("content-type") ?? "").split(";", 1)[0].trim() !== "application/json"
+            || !privateNoStore(response.headers?.get?.("cache-control"))
+            || response.headers?.get?.("x-content-type-options") !== "nosniff"
+            || response.headers?.get?.("content-encoding") != null
+            || (declared != null && (!/^[0-9]+$/u.test(declared) || Number(declared) > maxResponseBytes))) {
+          controller.abort();
+          throw vaultExportError("VAULT_EXPORT_RESPONSE_MISMATCH", "Corporate export response is not a bounded private JSON response", 502);
+        }
+        boundedStream = Readable.fromWeb(response.body, { signal: controller.signal, highWaterMark: 16 * 1024 });
+        const parts = [];
+        let size = 0;
+        for await (const value of boundedStream) {
+          size += value.length;
+          if (size > maxResponseBytes) {
+            controller.abort();
+            throw vaultExportError("VAULT_EXPORT_SIZE_MISMATCH", "Corporate export JSON exceeded its limit", 502);
+          }
+          parts.push(value);
+        }
+        if (declared != null && size !== Number(declared)) throw vaultExportError("VAULT_EXPORT_SIZE_MISMATCH", "Corporate export JSON size mismatched", 502);
+        text = Buffer.concat(parts, size).toString("utf8");
+      } else {
+        if (!response || typeof response.text !== "function") return response;
+        text = await response.text();
+      }
       let parsed = {};
       try {
         parsed = text ? JSON.parse(text) : {};
@@ -570,6 +603,7 @@ export function createMatterVaultAwsRuntimeClient({ baseUrl, operatorToken, fetc
       };
     } finally {
       clearTimeout(timeout);
+      boundedStream?.destroy();
     }
     if (!result.response) return result;
     try {
@@ -1032,12 +1066,23 @@ export function createMatterVaultAwsRuntimeClient({ baseUrl, operatorToken, fetc
     return result;
   };
 
-  const precheckVaultExport = async ({ matterId, exactVersion, sessionToken } = {}) => {
+  const corporateScope = (matterId, workspaceId, operationKind = "export_exact_version") => {
+    if (workspaceId == null) return false;
+    if (matterId != null || typeof workspaceId !== "string" || !VAULT_BINDING_ID.test(workspaceId)
+        || operationKind !== "export_exact_version") {
+      throw vaultExportError("VAULT_EXPORT_BINDING_INVALID", "Corporate export requires an exclusive workspace scope", 400);
+    }
+    return true;
+  };
+
+  const precheckVaultExport = async ({ matterId, workspaceId, exactVersion, sessionToken } = {}) => {
     const signedSessionToken = requireSignedDesktopSession(sessionToken);
     const exact = normalizeVaultExactVersion(exactVersion);
-    return requestJson(DESKTOP_VAULT_EXPORT_PREFLIGHT_PATH, {
+    const corporate = corporateScope(matterId, workspaceId);
+    return requestJson(corporate ? `${CORPORATE_EXPORT_PREFIX}preflight` : DESKTOP_VAULT_EXPORT_PREFLIGHT_PATH, {
       method: "POST",
-      body: { matter_id: matterId, exact_version: exact },
+      body: { ...(corporate ? { workspace_id: workspaceId } : { matter_id: matterId }), exact_version: exact },
+      ...(corporate ? { maxResponseBytes: 16 * 1024, headers: { "accept-encoding": "identity" } } : {}),
       authToken: signedSessionToken,
       authRequired: true,
     });
@@ -1045,6 +1090,7 @@ export function createMatterVaultAwsRuntimeClient({ baseUrl, operatorToken, fetc
 
   const downloadVaultExactVersion = async ({
     matterId,
+    workspaceId,
     exactVersion,
     operationKind = "export_exact_version",
     requestNonceSha256,
@@ -1054,6 +1100,7 @@ export function createMatterVaultAwsRuntimeClient({ baseUrl, operatorToken, fetc
   } = {}) => {
     const signedSessionToken = requireSignedDesktopSession(sessionToken);
     const exact = normalizeVaultExactVersion(exactVersion);
+    const corporate = corporateScope(matterId, workspaceId, operationKind);
     const attachOutlook = operationKind === "attach_outlook";
     if (!attachOutlook && operationKind !== "export_exact_version") {
       throw vaultExportError("VAULT_EXPORT_OPERATION_INVALID", "Vault export operation kind is invalid", 400);
@@ -1068,7 +1115,7 @@ export function createMatterVaultAwsRuntimeClient({ baseUrl, operatorToken, fetc
       throw vaultExportError("VAULT_EXPORT_BINDING_INVALID", "Vault export host binding is invalid", 400);
     }
     const authorizationBody = {
-      matter_id: matterId,
+      ...(corporate ? { workspace_id: workspaceId } : { matter_id: matterId }),
       exact_version: exact,
       request_nonce_sha256: requestNonce,
     };
@@ -1077,11 +1124,12 @@ export function createMatterVaultAwsRuntimeClient({ baseUrl, operatorToken, fetc
       installation_ref_sha256: installationRefSha256,
       compose_target_sha256: composeTargetSha256,
     });
-    const authorization = await requestJson(DESKTOP_VAULT_EXPORT_AUTHORIZE_PATH, {
+    const authorization = await requestJson(corporate ? `${CORPORATE_EXPORT_PREFIX}authorize` : DESKTOP_VAULT_EXPORT_AUTHORIZE_PATH, {
       method: "POST",
       body: authorizationBody,
       authToken: signedSessionToken,
       authRequired: true,
+      ...(corporate ? { maxResponseBytes: 16 * 1024, headers: { "accept-encoding": "identity" } } : {}),
     });
     assertNoVaultUploadBoundaryLeak(authorization);
     if (authorization?.http_status !== 200
@@ -1098,6 +1146,51 @@ export function createMatterVaultAwsRuntimeClient({ baseUrl, operatorToken, fetc
     }
 
     const operationId = authorization.operation_id;
+    if (corporate) {
+      const expiresAt = Date.parse(authorization.expires_at);
+      if (authorization.workspace_id !== workspaceId || authorization.chunk_bytes !== CORPORATE_EXPORT_CHUNK_BYTES
+          || !Number.isFinite(expiresAt) || expiresAt <= Date.now()) {
+        throw vaultExportError("VAULT_EXPORT_RESPONSE_MISMATCH", "Corporate export authorization binding is invalid", 409);
+      }
+      const chunks = [];
+      let offset = 0;
+      while (offset < exact.byte_size) {
+        if (Date.now() >= expiresAt) throw vaultExportError("VAULT_EXPORT_TIMEOUT", "Corporate export authorization expired", 409);
+        const result = await requestJson(`${CORPORATE_EXPORT_PREFIX}chunk`, {
+          method: "POST", body: { operation_id: operationId, offset }, authToken: signedSessionToken,
+          headers: { "accept-encoding": "identity", "idempotency-key": `${operationId}:${offset}` },
+          maxResponseBytes: CORPORATE_EXPORT_JSON_MAX_BYTES,
+        });
+        assertNoVaultUploadBoundaryLeak({ ...result, chunk: { ...result?.chunk, content_base64: null } });
+        const chunk = result?.chunk;
+        const expectedSize = Math.min(CORPORATE_EXPORT_CHUNK_BYTES, exact.byte_size - offset);
+        if (result.http_status !== 200 || result.ok !== true || result.outcome !== "chunk_verified"
+            || result.operation_id !== operationId || result.operation_kind !== operationKind
+            || result.workspace_id !== workspaceId || !sameVaultExactVersion(result.exact_version, exact)
+            || result.expires_at !== authorization.expires_at || Date.now() >= expiresAt
+            || result.chunk_bytes !== CORPORATE_EXPORT_CHUNK_BYTES
+            || chunk?.offset !== offset || chunk?.byte_size !== expectedSize
+            || typeof chunk?.content_base64 !== "string" || chunk.content_base64.length !== 4 * Math.ceil(expectedSize / 3)
+            || !VAULT_SHA256.test(chunk.sha256 ?? "")
+            || result.next_offset !== offset + expectedSize || result.final_chunk !== (offset + expectedSize === exact.byte_size)) {
+          throw vaultExportError(result?.safe_error_codes?.[0] ?? "VAULT_EXPORT_RESPONSE_MISMATCH", "Corporate export chunk binding failed", 409);
+        }
+        const bytes = Buffer.from(chunk.content_base64, "base64");
+        if (bytes.length !== expectedSize || bytes.toString("base64") !== chunk.content_base64
+            || createHash("sha256").update(bytes).digest("hex") !== chunk.sha256) {
+          throw vaultExportError("VAULT_EXPORT_BODY_MISMATCH", "Corporate export chunk hash mismatched", 409);
+        }
+        chunks.push(bytes);
+        offset += bytes.length;
+      }
+      const bytes = Buffer.concat(chunks, offset);
+      if (createHash("sha256").update(bytes).digest("hex") !== exact.sha256) {
+        throw vaultExportError("VAULT_EXPORT_BODY_MISMATCH", "Corporate export document hash mismatched", 409);
+      }
+      return Object.freeze({ ok: true, http_status: 200, operation_id: operationId, operation_kind: operationKind,
+        attachment_name: authorization.attachment_name, exact_version: exact, bytes,
+        raw_path_included: false, token_material_returned: false, production_ready_claim: false });
+    }
     const controller = new AbortController();
     const timeoutError = Object.assign(new Error("Runtime request deadline exceeded"), { name: "TimeoutError" });
     const timeout = setTimeout(() => controller.abort(timeoutError), requestTimeoutMs);
@@ -1187,6 +1280,7 @@ export function createMatterVaultAwsRuntimeClient({ baseUrl, operatorToken, fetc
 
   const completeVaultExport = async ({
     operationId,
+    workspaceId,
     exactVersion,
     operationKind = "export_exact_version",
     completionStage,
@@ -1200,6 +1294,7 @@ export function createMatterVaultAwsRuntimeClient({ baseUrl, operatorToken, fetc
       throw vaultExportError("VAULT_EXPORT_OPERATION_INVALID", "Vault export operation ID is invalid", 400);
     }
     const exact = normalizeVaultExactVersion(exactVersion);
+    const corporate = corporateScope(null, workspaceId, operationKind);
     const attachOutlook = operationKind === "attach_outlook";
     const failed = attachOutlook && completionStage === "failed";
     const expectedStage = failed ? "failed" : attachOutlook ? "attached" : "delivered";
@@ -1222,10 +1317,11 @@ export function createMatterVaultAwsRuntimeClient({ baseUrl, operatorToken, fetc
       completion_stage: "failed",
       safe_reason_code: safeReasonCode,
     });
-    const response = await requestJson(DESKTOP_VAULT_EXPORT_COMPLETE_PATH, {
+    const response = await requestJson(corporate ? `${CORPORATE_EXPORT_PREFIX}complete` : DESKTOP_VAULT_EXPORT_COMPLETE_PATH, {
       method: "POST",
       body: completionBody,
-      headers: { "idempotency-key": operationId },
+      headers: { "idempotency-key": operationId, ...(corporate ? { "accept-encoding": "identity" } : {}) },
+      ...(corporate ? { maxResponseBytes: 16 * 1024 } : {}),
       authToken: signedSessionToken,
       authRequired: true,
     });
@@ -1235,6 +1331,7 @@ export function createMatterVaultAwsRuntimeClient({ baseUrl, operatorToken, fetc
         || response?.outcome !== expectedStage
         || response?.operation_kind !== operationKind
         || response?.operation_id !== operationId
+        || (corporate && response?.workspace_id !== workspaceId)
         || !sameVaultExactVersion(response?.exact_version, exact)
         || response?.receipt?.stage !== expectedStage) {
       const code = response?.safe_error_codes?.[0]
@@ -1277,6 +1374,8 @@ export function createMatterVaultAwsRuntimeClient({ baseUrl, operatorToken, fetc
         || normalizedPathname === DESKTOP_VAULT_EXPORT_AUTHORIZE_PATH
         || normalizedPathname === DESKTOP_VAULT_EXPORT_DOWNLOAD_PATH
         || normalizedPathname === DESKTOP_VAULT_EXPORT_COMPLETE_PATH
+        || normalizedPathname.startsWith(CORPORATE_EXPORT_PREFIX)
+        || /^\/api\/vault\/documents\/[^/]+\/download\/?$/u.test(normalizedPathname)
         || normalizedPathname === INTERNAL_UNSIGNED_UPDATE_AUTHORIZE_PATH) {
       return {
         ok: false,

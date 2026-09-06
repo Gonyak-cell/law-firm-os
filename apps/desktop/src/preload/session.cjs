@@ -274,14 +274,14 @@ const fileBridgeApi = Object.freeze({
   resumePendingUploads: () => invokeFileBridge("resumePendingUploads", {}),
   saveDocumentAs: (request = {}) => invokeFileBridge("saveDocumentAs", {
     ...pickFileBridgeFields(request, [
-      "matterId", "documentId", "versionId", "fileObjectId", "sha256",
+      "matterId", "workspaceId", "documentId", "versionId", "fileObjectId", "sha256",
       "byteSize", "mimeType", "suggestedName", "title",
     ]),
     ...activeUserInteraction()
   }),
   openDocumentPreview: (request = {}) => invokeFileBridge("openDocumentPreview", {
     ...pickFileBridgeFields(request, [
-      "matterId", "documentId", "versionId", "fileObjectId", "sha256",
+      "matterId", "workspaceId", "documentId", "versionId", "fileObjectId", "sha256",
       "byteSize", "mimeType", "suggestedName",
     ]),
     ...activeUserInteraction()

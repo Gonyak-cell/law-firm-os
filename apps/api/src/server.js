@@ -116,6 +116,7 @@ import {
   handleDesktopVaultExportPreflight,
   isDesktopVaultExportApiPath,
 } from "./desktop-vault-export-runtime.js";
+import { handleNativeCorporateExportApiRequest, isNativeCorporateExportApiPath } from "./native-corporate-export-runtime.js";
 import {
   OUTLOOK_VAULT_ATTACHMENT_AUTHORIZE_PATH,
   OUTLOOK_VAULT_ATTACHMENT_COMPLETE_PATH,
@@ -2542,7 +2543,7 @@ async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, mast
 
   if (isVaultPath) {
     const context = requestPermissionContext();
-    if (isDesktopVaultExportApiPath(pathname)) {
+    if (isDesktopVaultExportApiPath(pathname) || isNativeCorporateExportApiPath(pathname)) {
       if (req.method !== "POST") {
         sendJson(req, res, 405, {
           request_id: requestId,
@@ -2588,7 +2589,9 @@ async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, mast
         dmsRuntime,
         vaultExportProvider,
       };
-      const result = pathname === DESKTOP_VAULT_EXPORT_PREFLIGHT_PATH
+      const result = isNativeCorporateExportApiPath(pathname)
+        ? await handleNativeCorporateExportApiRequest({ ...common, pathname })
+        : pathname === DESKTOP_VAULT_EXPORT_PREFLIGHT_PATH
         ? await handleDesktopVaultExportPreflight(common)
         : pathname === DESKTOP_VAULT_EXPORT_AUTHORIZE_PATH
           ? await handleDesktopVaultExportAuthorize(common)
@@ -2600,7 +2603,8 @@ async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, mast
           && Buffer.isBuffer(result.body)) {
         sendVaultExportBinary(req, res, result);
       } else {
-        sendJson(req, res, result.status, result.body);
+        sendJson(req, res, result.status, result.body, isNativeCorporateExportApiPath(pathname)
+          ? { "cache-control": "private, no-store", "x-content-type-options": "nosniff" } : {});
       }
       return;
     }
