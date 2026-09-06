@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import assert from "node:assert/strict";
 import test from "node:test";
+import { SCHEMA_GOVERNANCE_TRUST_ANCHOR } from "../../packages/runtime-auth/src/external-release-trust-registry.js";
 import {
   JSON_POSTGRES_AMIC_INTERNAL_UPDATE_DISABLED_BUCKET,
   JSON_POSTGRES_AMIC_INTERNAL_UPDATE_DISABLED_VALUE,
@@ -31,7 +32,8 @@ test("schema governance accepts an immutable local layer only on the direct-invo
   const pattern = new RegExp(parameter.AllowedPattern, "u");
   const arn = `arn:aws:lambda:ap-northeast-2:770880870480:layer:lawos-schema-governance-2026090601-${"a".repeat(64)}:1`;
   assert.equal(pattern.test(arn), true);
-  for (const value of [arn.replace(":1", ":$LATEST"), arn.replace("770880870480", "111111111111"), arn.replace("ap-northeast-2", "us-east-1"), arn.replace("2026090601", "2026090600")]) assert.equal(pattern.test(value), false);
+  assert.equal(pattern.test(arn.replace("2026090601", String(SCHEMA_GOVERNANCE_TRUST_ANCHOR.registry_serial))), true);
+  for (const value of [arn.replace(":1", ":$LATEST"), arn.replace("770880870480", "111111111111"), arn.replace("ap-northeast-2", "us-east-1"), arn.replace("2026090601", "2026090600"), arn.replace("2026090601", String(SCHEMA_GOVERNANCE_TRUST_ANCHOR.registry_serial + 1))]) assert.equal(pattern.test(value), false);
   assert.deepEqual(template.Resources.AdminFunction.Properties.Layers["Fn::If"][1], [{ Ref: "SchemaGovernanceLayerVersionArn" }]);
   for (const mutate of [
     (copy) => { copy.Parameters.SchemaGovernanceLayerVersionArn.Default = arn; },
