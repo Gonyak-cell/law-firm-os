@@ -2676,28 +2676,28 @@ export function buildJsonPostgresProductionTemplate(stagingTemplate) {
     "Fn::If": [
       "ExternalReadProvidersEnabled",
       { Ref: "ExternalReadProviderPackSecretName" },
-      "",
+      { Ref: "AWS::NoValue" },
     ],
   };
   apiEnvironment.LAWOS_EXTERNAL_READ_PROVIDER_PACKS_SHA256 = {
     "Fn::If": [
       "ExternalReadProvidersEnabled",
       { Ref: "ExternalReadProviderPackSha256" },
-      "",
+      { Ref: "AWS::NoValue" },
     ],
   };
   apiEnvironment.LAWOS_EXTERNAL_READ_SECRET_PREFIX = {
     "Fn::If": [
       "ExternalReadProvidersEnabled",
       JSON_POSTGRES_EXTERNAL_READ_CREDENTIAL_SECRET_PREFIX,
-      "",
+      { Ref: "AWS::NoValue" },
     ],
   };
   apiEnvironment.LAWOS_EXTERNAL_READ_KMS_KEY_ARN = {
     "Fn::If": [
       "ExternalReadProvidersEnabled",
       { "Fn::GetAtt": ["ProductionKey", "Arn"] },
-      "",
+      { Ref: "AWS::NoValue" },
     ],
   };
   const configuredInternalUpdateEnvironment = (value) => ({
@@ -3356,21 +3356,14 @@ export function validateJsonPostgresProductionTemplate(template) {
       ?.LAWOS_PROJECTION_AUDITOR_DATABASE_SECRET_ID != null
     || resources.ApiFunction?.Properties?.Environment?.Variables?.LAWOS_PERSISTENCE_AUTHORITY !== "postgres-v2"
     || resources.ApiFunction?.Properties?.Environment?.Variables?.LAWOS_RUNTIME_PROFILE !== "operational"
-    || resources.ApiFunction?.Properties?.Environment?.Variables
-      ?.LAWOS_EXTERNAL_READ_PROVIDER_PACKS_SECRET_ID?.["Fn::If"]?.[0]
-      !== "ExternalReadProvidersEnabled"
-    || resources.ApiFunction?.Properties?.Environment?.Variables
-      ?.LAWOS_EXTERNAL_READ_PROVIDER_PACKS_SECRET_ID?.["Fn::If"]?.[1]?.Ref
-      !== "ExternalReadProviderPackSecretName"
-    || resources.ApiFunction?.Properties?.Environment?.Variables
-      ?.LAWOS_EXTERNAL_READ_PROVIDER_PACKS_SHA256?.["Fn::If"]?.[1]?.Ref
-      !== "ExternalReadProviderPackSha256"
-    || resources.ApiFunction?.Properties?.Environment?.Variables
-      ?.LAWOS_EXTERNAL_READ_SECRET_PREFIX?.["Fn::If"]?.[1]
-      !== JSON_POSTGRES_EXTERNAL_READ_CREDENTIAL_SECRET_PREFIX
-    || resources.ApiFunction?.Properties?.Environment?.Variables
-      ?.LAWOS_EXTERNAL_READ_KMS_KEY_ARN?.["Fn::If"]?.[1]?.["Fn::GetAtt"]?.[0]
-      !== "ProductionKey"
+    || [
+      ["LAWOS_EXTERNAL_READ_PROVIDER_PACKS_SECRET_ID", { Ref: "ExternalReadProviderPackSecretName" }],
+      ["LAWOS_EXTERNAL_READ_PROVIDER_PACKS_SHA256", { Ref: "ExternalReadProviderPackSha256" }],
+      ["LAWOS_EXTERNAL_READ_SECRET_PREFIX", JSON_POSTGRES_EXTERNAL_READ_CREDENTIAL_SECRET_PREFIX],
+      ["LAWOS_EXTERNAL_READ_KMS_KEY_ARN", { "Fn::GetAtt": ["ProductionKey", "Arn"] }],
+    ].some(([name, enabledValue]) => stableJson(apiEnvironment[name]) !== stableJson({
+      "Fn::If": ["ExternalReadProvidersEnabled", enabledValue, { Ref: "AWS::NoValue" }],
+    }))
     || resources.ApiFunction?.Properties?.Environment?.Variables
       ?.LAWOS_HRX_RELATIONAL_PROJECTION_ENABLED?.["Fn::If"]?.[0]
       !== "ProjectionWorkerEnabled"

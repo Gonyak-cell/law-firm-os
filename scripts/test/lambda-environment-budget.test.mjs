@@ -7,6 +7,7 @@ import {
 } from "../lib/lambda-environment-budget.mjs";
 import { buildJsonPostgresProductionTemplate } from "../lib/json-postgres-production-infrastructure.mjs";
 import { CLOUDFORMATION_NO_ECHO_PLACEHOLDER } from "../lib/cloudformation-template-transport.mjs";
+import { resolveExternalReadProviderPacksFromConfig } from "../../apps/api/src/external-read-provider-pack-config.js";
 
 function fixture(count, keyValueBytes, prefix = "ENV") {
   const result = Object.fromEntries(Array.from({ length: count }, (_, i) => [`${prefix}_${i}`, ""]));
@@ -169,7 +170,7 @@ test("rejects unknown references, ambiguous live bindings, and unrecognized expr
   }
 });
 
-test("resolves every variable in the current production API template", () => {
+function productionResolutionFixture() {
   const staging = JSON.parse(readFileSync("infra/lawos-private-staging/template.json", "utf8"));
   const template = buildJsonPostgresProductionTemplate(staging);
   const variables = template.Resources.ApiFunction.Properties.Environment.Variables;
@@ -178,11 +179,41 @@ test("resolves every variable in the current production API template", () => {
   const liveVariables = Object.fromEntries(Object.entries(variables)
     .filter(([key]) => !key.startsWith("LAWOS_MEMBER_PHOTO_"))
     .map(([key, value]) => [key, typeof value === "object" ? "fixture-resource" : value]));
-  const resolved = resolveW15ApiEnvironment({
+  return {
     variables, deployedVariables: variables, liveVariables, parameters: { ...allParameters, ...parameters },
     outputs: { ApiEndpoint: "https://example.invalid" },
     accountId: "111111111111", region: "ap-northeast-2",
-  });
+  };
+}
+
+test("resolves every variable in the current production API template", () => {
+  const resolved = resolveW15ApiEnvironment(productionResolutionFixture());
   assert.equal(resolved.LAWOS_MEMBER_PHOTO_S3_PREFIX, "approved-real-migration/member-photos");
   assert.ok(assertLambdaEnvironmentBudget(resolved).size_bytes <= 4096);
+});
+
+test("omitted disabled provider fields preserve zero-provider startup without a secret read", async () => {
+  const resolved = resolveW15ApiEnvironment(productionResolutionFixture());
+  const names = ["LAWOS_EXTERNAL_READ_PROVIDER_PACKS_SECRET_ID", "LAWOS_EXTERNAL_READ_PROVIDER_PACKS_SHA256",
+    "LAWOS_EXTERNAL_READ_SECRET_PREFIX", "LAWOS_EXTERNAL_READ_KMS_KEY_ARN"];
+  for (const name of names) assert.equal(Object.hasOwn(resolved, name), false);
+  let reads = 0;
+  assert.deepEqual(await resolveExternalReadProviderPacksFromConfig({
+    env: resolved, resolveSecret: async () => { reads += 1; throw new Error("unexpected provider read"); },
+  }), []);
+  assert.equal(reads, 0);
+  const previous = { ...resolved, ...Object.fromEntries(names.map((name) => [name, ""])) };
+  assert.equal(assertLambdaEnvironmentBudget(previous).size_bytes - assertLambdaEnvironmentBudget(resolved).size_bytes, 173);
+});
+
+test("enabled provider configuration retains all four exact resolved bindings", () => {
+  const input = productionResolutionFixture();
+  input.parameters.EnableExternalReadProviders = "true";
+  input.parameters.ExternalReadProviderPackSecretName = "/lawos/production/external-read/provider-packs";
+  input.parameters.ExternalReadProviderPackSha256 = "1".repeat(64);
+  const resolved = resolveW15ApiEnvironment(input);
+  assert.equal(resolved.LAWOS_EXTERNAL_READ_PROVIDER_PACKS_SECRET_ID, input.parameters.ExternalReadProviderPackSecretName);
+  assert.equal(resolved.LAWOS_EXTERNAL_READ_PROVIDER_PACKS_SHA256, input.parameters.ExternalReadProviderPackSha256);
+  assert.equal(resolved.LAWOS_EXTERNAL_READ_SECRET_PREFIX, "/lawos/production/external-read/credentials");
+  assert.equal(resolved.LAWOS_EXTERNAL_READ_KMS_KEY_ARN, input.liveVariables.LAWOS_DMS_S3_KMS_KEY_ID);
 });

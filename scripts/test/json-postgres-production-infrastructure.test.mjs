@@ -67,6 +67,18 @@ test("installation attestation grants only the API one exact optional signer ref
   }
 });
 
+test("production rejects changed disabled-provider omission and enabled authority bindings", () => {
+  const staging = JSON.parse(readFileSync("infra/lawos-private-staging/template.json", "utf8"));
+  for (const name of ["LAWOS_EXTERNAL_READ_PROVIDER_PACKS_SECRET_ID", "LAWOS_EXTERNAL_READ_PROVIDER_PACKS_SHA256",
+    "LAWOS_EXTERNAL_READ_SECRET_PREFIX", "LAWOS_EXTERNAL_READ_KMS_KEY_ARN"]) {
+    for (const index of [0, 1, 2]) {
+      const template = buildJsonPostgresProductionTemplate(staging);
+      template.Resources.ApiFunction.Properties.Environment.Variables[name]["Fn::If"][index] = "";
+      assert.throws(() => validateJsonPostgresProductionTemplate(template));
+    }
+  }
+});
+
 test("schema governance accepts an immutable local layer only on the direct-invoke admin", () => {
   const template = buildJsonPostgresProductionTemplate(reference);
   const parameter = template.Parameters.SchemaGovernanceLayerVersionArn;

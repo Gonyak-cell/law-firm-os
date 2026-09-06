@@ -64,6 +64,12 @@ JSON environment map. A representative 109-character ARN adds 164 bytes; a
 128-character ARN adds 183 bytes. These are planning examples, not actual
 deployment measurements. Recompute the complete live environment with the
 actual ARN using the existing deployment budget guard before CloudFormation.
+When external providers are disabled, the template omits their four empty
+configuration variables. The existing runtime already resolves absent values
+to zero providers without reading a secret; enabled providers retain all four
+exact bindings. This saves 173 bytes for simultaneous installation signing and
+update-broker configuration. Measure both enabled features together before
+activation; passing the signer-only budget is insufficient for broker rollout.
 
 The original runtime requires exactly 79 catalog rows, so it is not a rollback
 target after 309. Use the API composition bridge, which selects only the pinned
