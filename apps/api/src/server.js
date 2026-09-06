@@ -206,6 +206,7 @@ import {
   createApiSessionAuth,
 } from "./session-auth.js";
 import { createHrxStepUpAuthority } from "./hrx-step-up-token.js";
+import { createPostgresVaultCapabilityResolver } from "./vault-capability-projection.js";
 import {
   LAWOS_RUNTIME_PROFILES,
   resolveRuntimeProfile,
@@ -3669,20 +3670,8 @@ async function startApiServerImplementation({
       const configuredIdentityTenantId = String(
         resolvedPersistenceAuthorityEnv.LAWOS_IDENTITY_TENANT_ID ?? "",
       ).trim() || null;
-      const resolvedSessionAuth = sessionAuth ?? createApiSessionAuth({
-        profile: resolvedRuntimeProfile,
-        secret: resolvedSessionSecret,
-        trustedTenantId: configuredIdentityTenantId ?? undefined,
-        passwordResetEmailDelivery,
-        stepUpAuthority: resolvedStepUpAuthority,
-        staffOidcProvider: resolvedStaffOidcProvider,
-        officeSsoProvider: m365GraphConfig?.office_sso_provider ?? null,
-        identityRepository,
-        objectAclResolver: resolvedSessionObjectAclResolver,
-        vaultCapabilityResolver: resolvedVaultCapabilityResolver,
-      });
       const sessionAuthorityTenantId = String(
-        sessionAuth == null ? "" : resolvedSessionAuth.trusted_tenant_id ?? "",
+        sessionAuth?.trusted_tenant_id ?? "",
       ).trim() || null;
       if (configuredIdentityTenantId && sessionAuthorityTenantId
           && configuredIdentityTenantId !== sessionAuthorityTenantId) {
@@ -3733,6 +3722,23 @@ async function startApiServerImplementation({
       await dmsConsumerReadAuthority.probe({
         tenant_id: startupAuthorityTenantId,
         adapter_id: resolvedDmsStorage.adapter_id,
+      });
+      const resolvedSessionAuth = sessionAuth ?? createApiSessionAuth({
+        profile: resolvedRuntimeProfile,
+        secret: resolvedSessionSecret,
+        trustedTenantId: startupAuthorityTenantId,
+        passwordResetEmailDelivery,
+        stepUpAuthority: resolvedStepUpAuthority,
+        staffOidcProvider: resolvedStaffOidcProvider,
+        officeSsoProvider: m365GraphConfig?.office_sso_provider ?? null,
+        identityRepository,
+        objectAclResolver: resolvedSessionObjectAclResolver,
+        vaultCapabilityResolver: resolvedVaultCapabilityResolver === undefined
+          ? createPostgresVaultCapabilityResolver({
+              tenantId: startupAuthorityTenantId,
+              consumerReadAuthority: dmsConsumerReadAuthority,
+            })
+          : resolvedVaultCapabilityResolver,
       });
       const dmsConsumerStorage = createPostgresDmsConsumerStorage({
         storage: resolvedDmsStorage,

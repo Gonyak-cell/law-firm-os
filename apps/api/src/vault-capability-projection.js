@@ -1,3 +1,5 @@
+import { POSTGRES_DMS_CONSUMER_READ_AUTHORITY } from "../../../packages/dms/src/postgres-consumer-storage.js";
+
 export const VAULT_CAPABILITY_PROJECTION_SCHEMA_VERSION =
   "law-firm-os.vault-capability-projection.v1";
 
@@ -166,4 +168,28 @@ export async function resolveVaultCapabilityProjection({ principal, resolver, re
   } catch {
     return projectVaultCapabilities({ principal, providerResult: null });
   }
+}
+
+export function createPostgresVaultCapabilityResolver({ tenantId, consumerReadAuthority } = {}) {
+  if (!text(tenantId)) throw new TypeError("PostgreSQL Vault tenant is required");
+  return ({ tenant_id, user_id } = {}) => {
+    const authority = consumerReadAuthority?.validate?.();
+    if (tenant_id !== tenantId || !text(user_id)
+        || authority?.authority !== POSTGRES_DMS_CONSUMER_READ_AUTHORITY
+        || authority.durable !== true || authority.deny_before_provider_io !== true
+        || authority.probe_completed !== true) return null;
+    // Session authentication has already verified the current account and membership.
+    // These collection capabilities never replace document owner/ACL authorization.
+    return Object.freeze({
+      authoritative: true,
+      provider_state: "ready",
+      tenant_binding_state: "bound",
+      user_binding_state: "bound",
+      authority_ref: `${POSTGRES_DMS_CONSUMER_READ_AUTHORITY}:${tenantId}`,
+      capabilities: Object.freeze({
+        read: true, audit: true,
+        upload: false, download: false, attach: false, work: false, governance: false,
+      }),
+    });
+  };
 }
