@@ -790,13 +790,14 @@ function hasExactKeys(value, keys) {
 function assertOutlookRoleReadiness(
   value,
   approvedTenantIds,
-  { expectedRoleBootstrap = null } = {},
+  { expectedRoleBootstrap = null, historicalOutlookBootstrapSha256 = null } = {},
 ) {
   const tenantCount = new Set(approvedTenantIds).size;
   let readiness;
   try {
     readiness = assertLawosOutlookRoleBootstrapReceipt(value, {
       expectedRoleBootstrap,
+      historicalOutlookBootstrapSha256,
     });
   } catch {
     fail(
@@ -881,7 +882,7 @@ function assertOutlookMigrationRunSummary(value, {
   const readiness = assertOutlookRoleReadiness(
     roleBootstrap,
     approvedTenantIds,
-    { expectedRoleBootstrap: roleBootstrap },
+    { expectedRoleBootstrap: roleBootstrap, historicalOutlookBootstrapSha256 },
   );
   let receipt;
   try {
@@ -1819,6 +1820,7 @@ export async function bootstrapJsonPostgresProductionDatabase({
     roleBootstrap = assertOutlookRoleReadiness(
       migrationAdapter.getRoleReadiness(),
       approvedTenantIds,
+      historicalBootstrapOptions,
     );
     migrationRun = assertOutlookMigrationRunSummary(
       migrationAdapter.normalizeRunReceipt(rawMigrationRun),

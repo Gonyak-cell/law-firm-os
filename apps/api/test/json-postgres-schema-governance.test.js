@@ -116,7 +116,7 @@ function fixture(t) {
 test("installed schema root verifies a distinct, exact leaf and readback without input or secret access", (t) => {
   const f = fixture(t);
   const trust = f.verify();
-  assert.equal(trust.registrySerial, 2026090602);
+  assert.equal(trust.registrySerial, 2026090603);
   assert.equal(trust.installationSha256, hash(readFileSync(path.join(f.root, "installation.json"))));
   assert.equal(verifyJsonPostgresOutlookAuthorityApproval(f.receipt(trust)).trust_root_verified, true);
   const result = readJsonPostgresSchemaGovernance({ event: f.readbackEvent, env: f.env, now, verifyRegistry: f.verify });

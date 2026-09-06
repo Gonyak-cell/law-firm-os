@@ -14,6 +14,7 @@ import {
   normalizeLawosOutlookAuthorityCatalog,
 } from "../../../packages/persistence/src/postgres/outlook-authority-roles.js";
 import { createMigratedPostgresFixture } from "../../../packages/persistence/test/helpers/disposable-postgres.js";
+import { syntheticNativeRdsReadiness } from "../../../packages/persistence/test/helpers/native-rds-role-history.js";
 import {
   bootstrapJsonPostgresRehearsalDatabase,
   bootstrapJsonPostgresProductionDatabase,
@@ -2037,10 +2038,21 @@ function retainedOutlookRun(harness, mode, freshTarget = false) {
   });
 }
 
-function retainedOutlookHarness(mode, { forge = null, postflightFailure = false, freshTarget = false } = {}) {
+function retainedOutlookHarness(mode, { forge = null, postflightFailure = false, freshTarget = false, nativeRds = false } = {}) {
   const harness = syntheticFreshOutlookHarness({
     migrationCatalogSha256: CLIENT_OPERATIONS_MIGRATION_CATALOG_SHA256,
   });
+  if (nativeRds) {
+    harness.readiness = syntheticNativeRdsReadiness(harness.readiness.role_bootstrap, {
+      tenantAuthorityCount: harness.readiness.tenant_authority_count,
+      pauseExpectation: outlookPauseExpectation({
+        authorityCatalogSha256: harness.authorityCatalog.catalog_sha256,
+        databaseTargetReceiptSha256: "d".repeat(64),
+        migrationCatalogSha256: "43c6a087834d9dd2177be0b63fc94cf723181b93b04f40a65689b6431bd44556",
+        roleBootstrapSha256: harness.readiness.role_bootstrap_sha256,
+      }),
+    }).receipt;
+  }
   const receipt = retainedOutlookRun(harness, mode, freshTarget);
   if (freshTarget) harness.authorization.packet.target.historical_outlook_bootstrap_sha256 = receipt.historical_outlook_bootstrap_sha256;
   const failure = Object.assign(new Error("synthetic internal installation postflight drift"), {
@@ -2162,6 +2174,25 @@ test("Outlook continuation rejects a dropped or substituted adapter bootstrap pi
     assert.deepEqual(harness.secretWrites, []);
     assert.ok(harness.inputBuffer().every((byte) => byte === 0));
   }
+});
+
+test("Outlook administrator validates native RDS history against the authorized pin and preserves credentials", async () => {
+  for (const mode of ["appended", "verified"]) {
+    const harness = retainedOutlookHarness(mode, { freshTarget: true, nativeRds: true });
+    const result = await bootstrapJsonPostgresProductionDatabase(harness.options);
+    assert.equal(result.outcome, "PASS");
+    assert.equal(result.postgres_mutation_committed_count, mode === "appended" ? 1 : 0);
+    assert.deepEqual(harness.secretWrites, []);
+    assert.equal(harness.terminalWrites[0].status, "PASS");
+    assert.ok(harness.inputBuffer().every((byte) => byte === 0));
+  }
+  const invalid = retainedOutlookHarness("verified", { freshTarget: true, nativeRds: true });
+  invalid.readiness.native_rds_history.memberships.pop();
+  await assert.rejects(bootstrapJsonPostgresProductionDatabase(invalid.options), {
+    code: "LAWOS_OUTLOOK_DATABASE_ROLE_DRIFT",
+  });
+  assert.deepEqual(invalid.secretWrites, []);
+  assert.notEqual(invalid.terminalWrites[0]?.status, "PASS");
 });
 
 test("Outlook appended migration rejects rehashed forged role, mutation, and applied counters before secret writes", async () => {

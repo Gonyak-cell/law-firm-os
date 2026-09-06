@@ -43,7 +43,7 @@ export const SCHEMA_GOVERNANCE_INSTALLATION_SCHEMA_VERSION = "law-firm-os.schema
 export const SCHEMA_GOVERNANCE_TRUST_ANCHOR = Object.freeze({
   installation_root: "/opt/lawos-schema-governance",
   root_public_key_spki_sha256: "bee700a24abf39d58644709dcc497bde7fbdcffb28ce0f8cbf995d7c81cfa0da",
-  registry_serial: 2026090602,
+  registry_serial: 2026090603,
 });
 const SCHEMA_GOVERNANCE_FILES = Object.freeze({
   "root-public-key.spki.pem": 4096,

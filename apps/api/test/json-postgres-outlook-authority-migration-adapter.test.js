@@ -18,7 +18,8 @@ import { OUTLOOK_DESKTOP_ASSIGNMENT_AUTHORITY_CATALOG as AUTHORITY } from "../..
 import { createOutlookAssignmentMigrationPauseExpectation, readOutlookAssignmentMigrationPauseExpectation } from "../../../packages/email-dms/src/outlook-desktop-assignment-bootstrap-authority.js";
 import { verifyOutlookAssignmentMigrationPreflight } from "../../../packages/email-dms/src/outlook-desktop-assignment-authority-readback.js";
 import { verifyOutlookAssignmentMigrationPostflight } from "../../../packages/email-dms/src/outlook-desktop-assignment-migration-postflight.js";
-import { configureLawosOutlookDatabaseRoles, verifyLawosOutlookApplicationRolePrecondition } from "../../../packages/persistence/src/postgres/outlook-authority-roles.js";
+import { configureLawosOutlookDatabaseRoles, verifyLawosOutlookApplicationRolePrecondition, verifyLawosOutlookDatabaseRoles } from "../../../packages/persistence/src/postgres/outlook-authority-roles.js";
+import { syntheticNativeRdsReadiness } from "../../../packages/persistence/test/helpers/native-rds-role-history.js";
 
 const TARGET_SHA = "d".repeat(64);
 const CATALOG_SHA = "2ef366427d98ed297ab376c8fc7e6a255cf6a054d0eaa660dc6fb7e13c814f79";
@@ -46,8 +47,10 @@ function options(secret = Buffer.alloc(48, 7)) {
   } };
 }
 
-async function fixture(t, label) {
-  const instance = await startDisposablePostgres(t, { registerCleanup: false });
+async function fixture(t, label, { nativeRdsBootstrap = false } = {}) {
+  const instance = await startDisposablePostgres(t, {
+    ...(nativeRdsBootstrap ? { bootstrapUsername: "rdsadmin" } : {}),
+  });
   if (!instance) return null;
   let bootstrap;
   let admin;
@@ -492,6 +495,116 @@ test("migration adapter preserves the signed 79-row authority while appending on
       .onInternalUnsignedInstallationAuthorityPostMigration(state.admin, []),
     /callback boundary/u);
   } finally { wrongPhase.dispose(); }
+});
+
+test("signed native RDS history appends 79 to 80 to 81 without rewriting roles or the original receipt", async (t) => {
+  const state = await fixture(t, "native-rds-history-append", { nativeRdsBootstrap: true });
+  if (!state) return;
+  await runHistoricalCatalog(state);
+  const input = options();
+  const original = await verifyLawosOutlookDatabaseRoles(state.admin, {
+    migrationAdminRole: AUTHORITY.migration_admin,
+    migration: { catalog_id: AUTHORITY.bootstrap_receipt.migration_catalog_id,
+      schema_version: AUTHORITY.bootstrap_receipt.migration_schema_version,
+      target_schema: AUTHORITY.schema.name },
+    approvedTenantIds: input.value.approvedTenantIds,
+  });
+  const originalPause = await readOutlookAssignmentMigrationPauseExpectation(state.observer);
+  const managed = original.role_bootstrap.roles.filter(({ name }) => name !== "lawos_app");
+  await state.observer.query("CREATE ROLE rds_superuser NOLOGIN INHERIT");
+  await state.observer.query("CREATE ROLE lawos_outlook_bootstrap_grantor NOLOGIN NOINHERIT");
+  for (const { name } of original.role_bootstrap.roles) {
+    await state.observer.query(`REVOKE ${name} FROM lawos_admin`);
+  }
+  await state.observer.query("ALTER ROLE lawos_admin INHERIT");
+  await state.observer.query("SET ROLE rdsadmin");
+  try {
+    await state.observer.query(`GRANT rds_superuser TO lawos_admin
+      WITH ADMIN FALSE, INHERIT TRUE, SET TRUE`);
+    await state.observer.query(`GRANT lawos_outlook_bootstrap_grantor TO lawos_admin
+      WITH ADMIN TRUE, INHERIT FALSE, SET TRUE`);
+    for (const { name } of managed) {
+      await state.observer.query(`GRANT ${name} TO lawos_outlook_bootstrap_grantor
+        WITH ADMIN TRUE, INHERIT FALSE, SET TRUE`);
+    }
+  } finally { await state.observer.query("RESET ROLE"); }
+  await state.observer.query("SET ROLE lawos_outlook_bootstrap_grantor");
+  try {
+    for (const { name } of managed) {
+      await state.observer.query(`GRANT ${name} TO lawos_admin
+        WITH ADMIN TRUE, INHERIT FALSE, SET FALSE`);
+    }
+  } finally { await state.observer.query("RESET ROLE"); }
+  const identities = Object.fromEntries((await state.observer.query(
+    "SELECT rolname, oid::int AS oid FROM pg_roles WHERE rolname=ANY($1::name[])",
+    [["rdsadmin", "rds_superuser", "lawos_outlook_bootstrap_grantor"]],
+  )).rows.map(({ rolname, oid }) => [rolname, oid]));
+  const native = syntheticNativeRdsReadiness(original.role_bootstrap, {
+    grantorOid: identities.lawos_outlook_bootstrap_grantor,
+    superuserOid: identities.rds_superuser, platformOid: identities.rdsadmin,
+    pauseExpectation: originalPause,
+  });
+  const bootstrap = native.receipt.role_bootstrap;
+  // Only this disposable fixture reconstructs the historical bootstrap operator's result.
+  await state.observer.query("SET session_replication_role = replica");
+  try {
+    await state.observer.query(`UPDATE lawos_meta.outlook_authority_bootstrap_receipts
+      SET migration_admin=jsonb_set(migration_admin,'{inherit}','true'),
+          bootstrap_grantor=$1::jsonb, protected_memberships=$2::jsonb,
+          lawos_app_membership_present=false, role_bootstrap_sha256=$3`, [
+      JSON.stringify({ role_oid: String(bootstrap.bootstrap_grantor.oid),
+        role_name: bootstrap.bootstrap_grantor.name }),
+      JSON.stringify(bootstrap.memberships.map((edge) => ({
+        granted_role: edge.granted_role.name, granted_role_oid: String(edge.granted_role.oid),
+        member: edge.member.name, member_oid: String(edge.member.oid),
+        grantor: edge.grantor.name, grantor_oid: String(edge.grantor.oid),
+        admin_option: edge.admin_option, inherit_option: edge.inherit_option, set_option: edge.set_option,
+      }))), native.receipt.role_bootstrap_sha256,
+    ]);
+  } finally { await state.observer.query("SET session_replication_role = origin"); }
+  const snapshot = async () => ({
+    receipt: (await state.observer.query("SELECT * FROM lawos_meta.outlook_authority_bootstrap_receipts")).rows,
+    memberships: (await state.observer.query("SELECT * FROM pg_auth_members ORDER BY roleid,member,grantor")).rows,
+    roles: (await state.observer.query("SELECT * FROM pg_roles ORDER BY oid")).rows,
+    tenants: (await state.observer.query("SELECT * FROM lawos_security.tenant_context_authorities ORDER BY database_role,tenant_id")).rows,
+  });
+  const before = await snapshot();
+  const run = async (overrides = {}) => {
+    const next = options();
+    const adapter = createJsonPostgresOutlookAuthorityMigrationAdapter({
+      ...next.value, historicalOutlookBootstrapSha256: native.historicalOutlookBootstrapSha256,
+      ...overrides,
+    });
+    try {
+      const raw = await runClientOperationsPostgresMigrations(state.admin, adapter.runnerOptions);
+      const result = adapter.normalizeRunReceipt(raw);
+      assert.equal(adapter.getRoleReadiness().native_rds_history.memberships.length, 10);
+      return result;
+    } finally { adapter.dispose(); }
+  };
+  await assert.rejects(run({ historicalOutlookBootstrapSha256: "0".repeat(64) }), /expectation/u);
+  await assert.rejects(verifyLawosOutlookApplicationRolePrecondition(state.admin, {
+    migrationAdminRole: "lawos_admin", expectedApplicationMembershipPresent: false,
+  }), /membership drifted/u);
+  await state.observer.query("CREATE ROLE unapproved_member NOLOGIN");
+  await state.observer.query("GRANT lawos_outlook_bootstrap_grantor TO unapproved_member");
+  try { await assert.rejects(run(), /membership graph drifted/u); }
+  finally {
+    await state.observer.query("REVOKE lawos_outlook_bootstrap_grantor FROM unapproved_member");
+    await state.observer.query("DROP ROLE unapproved_member");
+  }
+  assert.equal((await state.admin.query("SELECT count(*)::int AS n FROM lawos_meta.schema_migrations")).rows[0].n, 79);
+  for (const migrationCatalogSha256 of [CATALOG_SHA,
+    "8de3211a545ebb7c50813990d15f6abc215ffd23a7d09ba2149d9b37fd96e8c7"]) {
+    const result = await run({ migrationCatalogSha256 });
+    assert.equal(result.migration_applied_count, 1);
+    assert.equal(result.role_configuration_transaction_committed_count, 0);
+    assert.equal(result.postgres_mutation_committed_count, 1);
+    const replay = await run({ migrationCatalogSha256 });
+    assert.equal(replay.postgres_mutation_committed_count, 0);
+    assert.deepEqual(await snapshot(), before);
+  }
+  assert.equal((await state.admin.query("SELECT count(*)::int AS n FROM lawos_meta.schema_migrations")).rows[0].n, 81);
 });
 
 test("internal authority postflight failure retains the committed 79-to-80 append", async (t) => {

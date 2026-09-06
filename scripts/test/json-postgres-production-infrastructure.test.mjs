@@ -33,6 +33,7 @@ test("schema governance accepts an immutable local layer only on the direct-invo
   const arn = `arn:aws:lambda:ap-northeast-2:770880870480:layer:lawos-schema-governance-2026090601-${"a".repeat(64)}:1`;
   assert.equal(pattern.test(arn), true);
   assert.equal(pattern.test(arn.replace("2026090601", String(SCHEMA_GOVERNANCE_TRUST_ANCHOR.registry_serial))), true);
+  assert.equal(pattern.test(arn.replace("2026090601", "2026090602")), true);
   for (const value of [arn.replace(":1", ":$LATEST"), arn.replace("770880870480", "111111111111"), arn.replace("ap-northeast-2", "us-east-1"), arn.replace("2026090601", "2026090600"), arn.replace("2026090601", String(SCHEMA_GOVERNANCE_TRUST_ANCHOR.registry_serial + 1))]) assert.equal(pattern.test(value), false);
   assert.deepEqual(template.Resources.AdminFunction.Properties.Layers["Fn::If"][1], [{ Ref: "SchemaGovernanceLayerVersionArn" }]);
   for (const mutate of [
