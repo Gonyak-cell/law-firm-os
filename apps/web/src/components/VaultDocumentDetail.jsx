@@ -22,13 +22,14 @@ export function VaultDocumentDetail({
 }) {
   const versionId = document?.current_version_id ?? document?.version_id ?? '';
   const sha256 = document?.latest_sha256 ?? document?.content_sha256 ?? '';
+  const corporate = document?.matter_id === null && Boolean(document?.workspace_id);
   return (
     <div data-mv-vault-document-detail="true">
       <DocumentDetail document={document} labels={labels} />
       <Panel className="vault-panel" title={detailLabel(labels, 'vaultExactVersionLabel', '버전 기준')} meta={detailLabel(labels, 'vaultAuthorityValue', 'Vault 서버')}>
         <dl className="vault-exact-version-facts" data-vault-exact-version-facts="true">
           <div><dt>{detailLabel(labels, 'documentIdLabel', '문서 ID')}</dt><dd><code>{document?.document_id ?? detailLabel(labels, 'documentExactIdentityMissing', '확인 필요')}</code></dd></div>
-          <div><dt>{detailLabel(labels, 'documentMatterLabel', 'Matter')}</dt><dd><code>{document?.matter_id ?? detailLabel(labels, 'documentExactIdentityMissing', '확인 필요')}</code></dd></div>
+          <div><dt>{corporate ? detailLabel(labels, 'documentWorkspaceLabel', '문서 공간') : detailLabel(labels, 'documentMatterLabel', 'Matter')}</dt><dd><code>{(corporate ? document.workspace_id : document?.matter_id) ?? detailLabel(labels, 'documentExactIdentityMissing', '확인 필요')}</code></dd></div>
           <div><dt>{detailLabel(labels, 'documentVersionIdLabel', '버전 ID')}</dt><dd><code>{versionId || detailLabel(labels, 'documentExactIdentityMissing', '확인 필요')}</code></dd></div>
           <div><dt>{detailLabel(labels, 'documentHashLabel', 'SHA-256')}</dt><dd><code>{sha256 || detailLabel(labels, 'documentExactIdentityMissing', '확인 필요')}</code></dd></div>
         </dl>

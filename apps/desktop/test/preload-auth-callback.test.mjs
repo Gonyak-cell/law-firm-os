@@ -6,19 +6,22 @@ import vm from "node:vm";
 const AUTH_CALLBACK_CHANNEL = "desktop:auth-callback";
 const OUTLOOK_CONNECTION_RESULT_CHANNEL = "desktop:outlook-connection:result";
 
-function loadSessionPreload({ listeners = new Map() } = {}) {
+function loadSessionPreload({ listeners = new Map(), userActivation = false } = {}) {
   const source = readFileSync(new URL("../src/preload/session.cjs", import.meta.url), "utf8");
   const invocations = [];
   const signals = [];
+  const exposedApis = new Map();
   let exposed = null;
   vm.runInNewContext(source, {
     process: { env: {} },
+    navigator: { userActivation: { isActive: userActivation } },
     require(specifier) {
       assert.equal(specifier, "electron");
       return {
         contextBridge: {
           exposeInMainWorld(name, api) {
             exposed = { name, api };
+            exposedApis.set(name, api);
           },
         },
         ipcRenderer: {
@@ -41,8 +44,29 @@ function loadSessionPreload({ listeners = new Map() } = {}) {
       };
     },
   });
-  return { exposed, invocations, listeners, signals, source };
+  return { exposed, exposedApis, invocations, listeners, signals, source };
 }
+
+test("packaged preload forwards corporate workspace only on explicit preview and save, without renderer authority", async () => {
+  const harness = loadSessionPreload({ userActivation: true });
+  const bridge = harness.exposedApis.get("amicFileBridge");
+  const request = { matterId: null, workspaceId: "workspace-corporate", documentId: "document-corporate",
+    versionId: "version-corporate", fileObjectId: "file-corporate", sha256: "a".repeat(64), byteSize: 3,
+    mimeType: "application/pdf", suggestedName: "synthetic.pdf", tenantId: "forged", filePath: "/forged/path" };
+  await bridge.saveDocumentAs(request);
+  await bridge.openDocumentPreview(request);
+  for (const call of harness.invocations) {
+    assert.equal(call.payload.workspaceId, request.workspaceId);
+    assert.equal(call.payload.matterId, null);
+    assert.equal(call.payload.userActivation, true);
+    assert.equal(Object.hasOwn(call.payload, "tenantId"), false);
+    assert.equal(Object.hasOwn(call.payload, "filePath"), false);
+  }
+  assert.throws(() => bridge.saveDocumentAs({ ...request, bytes: new Uint8Array([1]) }), /Renderer-supplied document bytes/u);
+  const inactive = loadSessionPreload();
+  assert.throws(() => inactive.exposedApis.get("amicFileBridge").saveDocumentAs({ ...request, userActivation: true }), /active user interaction/u);
+  assert.equal(inactive.invocations.length, 0);
+});
 
 test("session preload has no raw OAuth callback event, API, readiness, or acknowledgement surface", () => {
   const { exposed, listeners, signals, source } = loadSessionPreload();

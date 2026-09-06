@@ -187,8 +187,8 @@ export function createPostgresVaultCapabilityResolver({ tenantId, consumerReadAu
       user_binding_state: "bound",
       authority_ref: `${POSTGRES_DMS_CONSUMER_READ_AUTHORITY}:${tenantId}`,
       capabilities: Object.freeze({
-        read: true, audit: true,
-        upload: false, download: false, attach: false, work: false, governance: false,
+        read: true, audit: true, download: true,
+        upload: false, attach: false, work: false, governance: false,
       }),
     });
   };

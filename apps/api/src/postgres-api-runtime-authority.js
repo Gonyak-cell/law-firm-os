@@ -48,6 +48,7 @@ import {
 import { createMasterDataRuntimeContext } from "./master-data-context.js";
 import { createMatterRuntimeContext } from "./matter-runtime-context.js";
 import { createVaultDmsRuntimeContext } from "./vault-dms-runtime-context.js";
+import { isNativeCorporateExportApiPath } from "./native-corporate-export-runtime.js";
 import { createCrmIntakeRuntimeContext } from "./crm-intake-runtime-context.js";
 import { createFinanceRuntimeContext } from "./finance-runtime-context.js";
 import { createAnalyticsRuntimeContext } from "./analytics-runtime-context.js";
@@ -708,10 +709,12 @@ export function createPostgresApiRuntimeAuthority({
       || /^\/master-data\/client-groups\/[^/]+$/u.test(pathname)
       || /^\/api\/vault\/documents\/[^/]+\/download$/u.test(pathname)
     );
-    if (corporateRead) {
+    const corporateExport = method === "POST" && isNativeCorporateExportApiPath(pathname);
+    if (corporateRead || corporateExport) {
       return runPostgresReadWithBaselineRetry({
         method,
         pathname,
+        allowIdempotentWriteRetry: corporateExport,
         execute: async () => {
           const { result } = await runRecordRepositoryMultiDomainCommand({
             ledger,

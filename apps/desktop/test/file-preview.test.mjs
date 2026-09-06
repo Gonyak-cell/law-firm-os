@@ -116,6 +116,17 @@ function previewHarness({
   };
 }
 
+test("corporate preview retains its workspace binding through protected staging and completion", async () => {
+  const harness = previewHarness();
+  const request = { ...previewRequest(), matterId: null, workspaceId: "workspace-corporate" };
+  assert.equal((await harness.controller.openDocumentPreview(request, OWNER_A)).state, "opened");
+  assert.equal(harness.fetches[0].workspaceId, request.workspaceId);
+  assert.equal(harness.completions[0].workspaceId, request.workspaceId);
+  await assert.rejects(harness.controller.openDocumentPreview({ ...request, matterId: "matter-mixed" }, OWNER_A), { code: "INVALID_FILE_BRIDGE_BINDING" });
+  assert.equal(harness.staged.length, 1);
+  harness.controller.dispose();
+});
+
 test("open-document-preview verifies and opens one exact Vault version without exposing bytes or paths", async () => {
   const harness = previewHarness();
   const result = await harness.controller.openDocumentPreview(previewRequest(), OWNER_A);

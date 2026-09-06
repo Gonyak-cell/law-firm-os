@@ -411,8 +411,10 @@ function suggestedVaultSaveName(document) {
 }
 
 export function vaultSaveAsRequest(document) {
+  const corporate = document?.matter_id === null && SAFE_DOCUMENT_TARGET_ID.test(document?.workspace_id ?? "");
   const exact = {
     matterId: document?.matter_id,
+    ...(corporate ? { workspaceId: document.workspace_id } : {}),
     documentId: document?.document_id,
     versionId: document?.current_version_id ?? document?.version_id,
     fileObjectId: document?.current_file_object_id ?? document?.file_object_id,
@@ -420,7 +422,7 @@ export function vaultSaveAsRequest(document) {
     byteSize: Number(document?.current_byte_size ?? document?.byte_size),
     mimeType: String(document?.current_mime_type ?? document?.mime_type ?? "").toLowerCase(),
   };
-  if (!SAFE_DOCUMENT_TARGET_ID.test(exact.matterId ?? "")
+  if ((!corporate && !SAFE_DOCUMENT_TARGET_ID.test(exact.matterId ?? ""))
       || !SAFE_DOCUMENT_TARGET_ID.test(exact.documentId ?? "")
       || !SAFE_DOCUMENT_TARGET_ID.test(exact.versionId ?? "")
       || !SAFE_DOCUMENT_TARGET_ID.test(exact.fileObjectId ?? "")
@@ -438,7 +440,7 @@ export function vaultSaveAsRequest(document) {
 export function vaultClassicOutlookAttachRequest(document, requestHandle) {
   if (!/^classic-outlook-[a-f0-9]{32}$/u.test(String(requestHandle ?? ""))) return null;
   const exact = vaultSaveAsRequest(document);
-  return exact ? { ...exact, requestHandle } : null;
+  return exact && exact.matterId ? { ...exact, requestHandle } : null;
 }
 
 export function vaultPreviewRequest(document) {

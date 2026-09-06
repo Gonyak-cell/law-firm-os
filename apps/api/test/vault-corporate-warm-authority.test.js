@@ -24,6 +24,7 @@ import { createPostgresSessionObjectAclResolver } from "../src/session-object-ac
 import { createPostgresApiRuntimeAuthority } from "../src/postgres-api-runtime-authority.js";
 import { createBankImportPreviewTokenAuthority } from "../src/bank-import-preview-token.js";
 import { createApiServer } from "../src/server.js";
+import { createMatterVaultAwsRuntimeClient } from "../../desktop/src/main/aws-runtime.js";
 
 const TENANT = "tenant-corporate-warm-api-test";
 const OWNER = "user-corporate-warm-owner";
@@ -104,7 +105,7 @@ test("the same PostgreSQL HTTP server and signed bearers observe external worksp
     });
     await externalPool?.end();
   });
-  const fixture = await createMigratedPostgresFixture(t);
+  const fixture = await createMigratedPostgresFixture(t, { appPoolMax: 1 });
   if (!fixture) return;
   const externalUrl = new URL(fixture.instance.connection_string);
   externalUrl.username = "lawos_app";
@@ -134,7 +135,9 @@ test("the same PostgreSQL HTTP server and signed bearers observe external worksp
   const workspaceScope = { tenant_id: TENANT, domain_id: "dms-auxiliary", record_type: "DmsWorkspace", record_id: WORKSPACE.workspace_id };
   const baseStorage = createLocalStorageAdapter({ adapter_id: "corporate-warm-api-storage" });
   let providerReads = 0;
-  const storage = { ...baseStorage, async getObject(input) { providerReads += 1; return baseStorage.getObject(input); } };
+  const storage = { ...baseStorage,
+    async getObject(input) { providerReads += 1; return baseStorage.getObject(input); },
+    async readObjectBounded(input) { providerReads += 1; return baseStorage.readObjectBounded(input); } };
   const uploadRuntime = createPostgresDmsUploadRuntime({ pool: fixture.appPool, storage, sourceOnly: false, clock });
   const externalUpload = createPostgresDmsUploadRuntime({ pool: externalPool, storage, sourceOnly: false, clock });
   await externalUpload.uploadDocument({ document: { tenant_id: TENANT, document_id: SOURCE.document_id,
@@ -143,6 +146,8 @@ test("the same PostgreSQL HTTP server and signed bearers observe external worksp
     title: "Synthetic private registration source", mime_type: SOURCE.content_type }, bytes: BYTES, actor_id: OWNER,
     idempotency_key: "corporate-warm-source", session_id: "session-corporate-warm", object_id: SOURCE.object_id });
   const sessionAuth = createApiSessionAuth({ profile: "operational", trustedTenantId: TENANT, secret: SECRET,
+    vaultCapabilityResolver: async () => ({ authoritative: true, provider_state: "ready", authority_ref: "synthetic-native-export",
+      tenant_binding_state: "bound", user_binding_state: "bound", capabilities: { read: true, download: true } }),
     identityRepository: identity, now: () => NOW, objectAclResolver: createPostgresSessionObjectAclResolver({ ledger }) });
   const authority = createPostgresApiRuntimeAuthority({ ledger, identityRepository: identity, dmsStorage: storage,
     dmsUploadRuntime: uploadRuntime, payrollArtifactSecret: SECRET,
@@ -166,6 +171,17 @@ test("the same PostgreSQL HTTP server and signed bearers observe external worksp
     const response = await fetch(`${baseUrl}${path}?${query}`, { headers: { authorization: bearers.get(userId) } });
     return { status: response.status, body: await response.json() };
   };
+  const nativeTarget = { workspace_id: WORKSPACE.workspace_id, exact_version: {
+    document_id: SOURCE.document_id, version_id: SOURCE.version_id, file_object_id: SOURCE.file_object_id,
+    sha256: SOURCE.sha256, byte_size: SOURCE.byte_size, mime_type: SOURCE.content_type,
+  } };
+  const nativeRequest = async (userId, stage, body, extraHeaders = {}) => {
+    const response = await fetch(`${baseUrl}/api/vault/desktop/corporate-export-${stage}`, {
+      method: "POST", headers: { authorization: bearers.get(userId), "content-type": "application/json", ...extraHeaders },
+      body: JSON.stringify(body),
+    });
+    return { status: response.status, body: await response.json() };
+  };
   const assertAccess = async (userId, allowed) => {
     const readsBefore = providerReads;
     for (const path of ["/api/vault/documents", "/api/vault/search"]) {
@@ -180,6 +196,8 @@ test("the same PostgreSQL HTTP server and signed bearers observe external worksp
       assert.deepEqual(Buffer.from(download.body.download.content_base64, "base64"), BYTES);
       assert.ok(providerReads > readsBefore);
     } else { assert.equal(providerReads, readsBefore, "a denied request must never read provider bytes"); }
+    const nativePreflight = await nativeRequest(userId, "preflight", nativeTarget);
+    assert.equal(nativePreflight.status, allowed ? 200 : 403, JSON.stringify(nativePreflight.body));
   };
   for (const userId of [OWNER, READER, OTHER]) await assertAccess(userId, false);
   assert.equal((await externalLedger.read(workspaceScope)).payload_hash, pendingPlan.after_payload_sha256);
@@ -209,13 +227,45 @@ test("the same PostgreSQL HTTP server and signed bearers observe external worksp
   await assertAccess(READER, false);
   await assertAccess(OTHER, false);
 
+  const client = createMatterVaultAwsRuntimeClient({ baseUrl, requestTimeoutMs: 5000 });
+  const downloadInput = { matterId: null, workspaceId: WORKSPACE.workspace_id, exactVersion: nativeTarget.exact_version,
+    sessionToken: bearers.get(OWNER).slice(7) };
+  assert.equal((await client.precheckVaultExport(downloadInput)).http_status, 200);
+  const downloaded = await client.downloadVaultExactVersion(downloadInput);
+  assert.deepEqual(downloaded.bytes, BYTES, "real desktop transport and native PostgreSQL export must agree on the full body");
+  const completeInput = { ...downloadInput, operationId: downloaded.operation_id };
+  assert.equal((await client.completeVaultExport(completeInput)).outcome, "delivered");
+  const completedAudit = await ledger.listAudit({ tenant_id: TENANT, domain_id: "dms-auxiliary" });
+  assert.equal((await client.completeVaultExport(completeInput)).receipt.stage, "delivered");
+  assert.deepEqual(await ledger.listAudit({ tenant_id: TENANT, domain_id: "dms-auxiliary" }), completedAudit);
+  const idempotencyBeforeAuditFailure = await ledger.listIdempotency({ tenant_id: TENANT, domain_id: "dms-auxiliary" });
+  await fixture.adminPool.query(`CREATE FUNCTION lawos_domain.synthetic_native_export_audit_failure() RETURNS trigger
+    LANGUAGE plpgsql AS $$ BEGIN IF NEW.event_id LIKE 'native-corporate-export:%' THEN
+      RAISE EXCEPTION 'synthetic native export audit failure'; END IF; RETURN NEW; END $$;
+    CREATE TRIGGER synthetic_native_export_audit_failure BEFORE INSERT ON lawos_domain.audit_events
+      FOR EACH ROW EXECUTE FUNCTION lawos_domain.synthetic_native_export_audit_failure()`);
+  try {
+    assert.equal((await nativeRequest(OWNER, "authorize", { ...nativeTarget, request_nonce_sha256: "f".repeat(64) })).status, 503);
+  } finally {
+    await fixture.adminPool.query("DROP TRIGGER synthetic_native_export_audit_failure ON lawos_domain.audit_events; DROP FUNCTION lawos_domain.synthetic_native_export_audit_failure()");
+  }
+  assert.deepEqual(await ledger.listIdempotency({ tenant_id: TENANT, domain_id: "dms-auxiliary" }), idempotencyBeforeAuditFailure);
+  assert.deepEqual(await ledger.listAudit({ tenant_id: TENANT, domain_id: "dms-auxiliary" }), completedAudit);
+
   const aclScope = { tenant_id: TENANT, domain_id: "authz", record_type: "ObjectAcl", record_id: "acl-corporate-warm-reader" };
   const acl = { acl_id: aclScope.record_id, tenant_id: TENANT, principal_id: READER,
     resource_type: "DmsWorkspace", resource_id: WORKSPACE.workspace_id, effect: "allow", action: "*" };
   await externalLedger.write({ ...aclScope, expected_version: 0, payload: acl });
   await assertAccess(READER, true);
   await assertAccess(OTHER, false);
+  const readerExport = await nativeRequest(READER, "authorize", { ...nativeTarget, request_nonce_sha256: "e".repeat(64) });
+  assert.equal(readerExport.status, 200, JSON.stringify(readerExport.body));
   await externalLedger.write({ ...aclScope, expected_version: 1, payload: { ...acl, effect: "deny" } });
+  const readsBeforeRevokedExport = providerReads;
+  const readerChunk = await nativeRequest(READER, "chunk", { operation_id: readerExport.body.operation_id, offset: 0 },
+    { "idempotency-key": `${readerExport.body.operation_id}:0` });
+  assert.equal(readerChunk.status, 403, JSON.stringify(readerChunk.body));
+  assert.equal(providerReads, readsBeforeRevokedExport, "independent ACL revocation is enforced before native object I/O");
   await assertAccess(READER, false);
   await assertAccess(OWNER, true);
 

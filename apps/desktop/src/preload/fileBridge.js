@@ -34,7 +34,7 @@ export function sanitizeUploadPrecheckRequest(request = {}) {
 export function sanitizeSaveDocumentAsRequest(request = {}) {
   assertNoRendererDocumentBytes(request);
   return pickAllowedRequestFields(request, [
-    "matterId", "documentId", "versionId", "fileObjectId", "sha256",
+    "matterId", "workspaceId", "documentId", "versionId", "fileObjectId", "sha256",
     "byteSize", "mimeType", "suggestedName", "title",
   ]);
 }
@@ -42,7 +42,7 @@ export function sanitizeSaveDocumentAsRequest(request = {}) {
 export function sanitizeOpenDocumentPreviewRequest(request = {}) {
   assertNoRendererDocumentBytes(request);
   return pickAllowedRequestFields(request, [
-    "matterId", "documentId", "versionId", "fileObjectId", "sha256",
+    "matterId", "workspaceId", "documentId", "versionId", "fileObjectId", "sha256",
     "byteSize", "mimeType", "suggestedName",
   ]);
 }

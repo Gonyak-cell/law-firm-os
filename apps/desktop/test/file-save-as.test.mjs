@@ -110,6 +110,24 @@ test("save-document-as fetches bytes in main process before writing the user-sel
   harness.controller.dispose();
 });
 
+test("corporate save-as carries an exclusive workspace through precheck, transfer and completion", async () => {
+  const harness = saveAsHarness();
+  const request = saveRequest({ matterId: null, workspaceId: "workspace-corporate" });
+  assert.equal((await harness.controller.saveDocumentAs(request, OWNER_A)).state, "saved");
+  assert.equal(harness.fetches[0].matterId, null);
+  assert.equal(harness.fetches[0].workspaceId, request.workspaceId);
+  assert.equal(harness.completions[0].workspaceId, request.workspaceId);
+  const count = harness.order.length;
+  await assert.rejects(harness.controller.saveDocumentAs({ ...request, matterId: "matter-mixed" }, OWNER_A), { code: "INVALID_FILE_BRIDGE_BINDING" });
+  assert.equal(harness.order.length, count);
+  harness.controller.dispose();
+  const cancelled = saveAsHarness({ canceled: true });
+  assert.equal((await cancelled.controller.saveDocumentAs(request, OWNER_A)).state, "cancelled");
+  assert.equal(cancelled.fetches.length, 0);
+  assert.equal(cancelled.completions.length, 0);
+  cancelled.controller.dispose();
+});
+
 test("save-document-as rejects renderer bytes and renderer-selected tenant before precheck or write", async () => {
   const harness = saveAsHarness();
 

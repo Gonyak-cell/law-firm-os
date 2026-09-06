@@ -751,6 +751,7 @@ export class MainProcessAuthCoordinator {
     const sessionToken = await this.#secureStore.get("session_token");
     const response = await this.#runtimeClient?.precheckVaultExport?.({
       matterId: input.matterId,
+      ...(input.workspaceId ? { workspaceId: input.workspaceId } : {}),
       exactVersion: input.exactVersion,
       sessionToken,
     });
@@ -773,6 +774,7 @@ export class MainProcessAuthCoordinator {
     }
     return this.#runtimeClient.downloadVaultExactVersion({
       matterId: input.matterId,
+      ...(input.workspaceId ? { workspaceId: input.workspaceId } : {}),
       exactVersion: input.exactVersion,
       operationKind: input.operationKind,
       requestNonceSha256: input.requestNonceSha256,
@@ -786,6 +788,7 @@ export class MainProcessAuthCoordinator {
     const sessionToken = await this.#secureStore.get("session_token");
     const response = await this.#runtimeClient?.completeVaultExport?.({
       operationId: input.operationId,
+      ...(input.workspaceId ? { workspaceId: input.workspaceId } : {}),
       exactVersion: input.exactVersion,
       operationKind: input.operationKind,
       completionStage: input.completionStage,
