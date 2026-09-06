@@ -2509,7 +2509,11 @@ async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, mast
       },
       permissionContext,
     });
-    sendJson(req, res, result.status, { request_id: requestId, ...result.body });
+    if (result.status === 200 && Buffer.isBuffer(result.body)) {
+      sendProfilePhotoBinary(req, res, result);
+    } else {
+      sendJson(req, res, result.status, { request_id: requestId, ...result.body });
+    }
     return;
   }
 

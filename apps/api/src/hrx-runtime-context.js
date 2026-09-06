@@ -459,6 +459,10 @@ function employeeRosterReadFields(
     title: profile?.title,
     employment_type: profile?.employment_type,
     legal_entity_id: profile?.legal_entity_id ?? null,
+    photo_url: profile?.tenant_id === employee.tenant_id && profile?.legal_entity_id && employee.photo_object_id && employee.photo_sha256
+      && employee.photo_byte_size && employee.photo_version_id && employee.photo_content_type === "image/png"
+      && /^[A-Za-z0-9][A-Za-z0-9._:-]{0,159}$/u.test(employee.employee_id)
+      ? `/api/hrx/employees/${employee.employee_id}/photo` : null,
     affiliation: profile?.affiliation
       ?? member?.affiliation
       ?? orgUnit?.label
@@ -5047,6 +5051,25 @@ export function handleHrxApiRequest({
           employeeId,
         }),
       }));
+    }
+
+    const employeePhotoMatch = pathname.match(/^\/api\/hrx\/employees\/([A-Za-z0-9][A-Za-z0-9._:-]{0,159})\/photo$/u);
+    if (employeePhotoMatch && method === "GET") {
+      const guarded = employeeGuardResponse({ permissionContext, actorContext });
+      if (guarded) return guarded;
+      const employeeId = employeePhotoMatch[1];
+      const selfGuard = selfServiceReadGuard({ repository: context.repository, actorContext, targetEmployeeId: employeeId });
+      if (selfGuard) return selfGuard;
+      const employee = context.repository.getEmployee({ tenant_id: tenantId, employee_id: employeeId });
+      const profile = employee && currentEmploymentProfile(context.repository, tenantId, employeeId);
+      const fields = employee && employeeRosterReadFields(employee, profile, { allowStaticRosterFallback: false });
+      if (!fields?.photo_url || employee.tenant_id !== tenantId || !context.memberPhotoStorage) {
+        return response(404, { outcome: "not_found", safe_error_code: "HRX_EMPLOYEE_PHOTO_NOT_FOUND" });
+      }
+      return context.memberPhotoStorage.readPhoto({
+        tenant_id: tenantId, legal_entity_id: fields.legal_entity_id, employee_id: employeeId, photo: employee,
+      }).then(readback => ({ status: 200, body: readback.bytes, content_type: readback.content_type, byte_size: readback.byte_size }))
+        .catch(() => response(503, { outcome: "blocked", safe_error_code: "HRX_EMPLOYEE_PHOTO_UNAVAILABLE" }));
     }
 
     if (pathname === "/api/hrx/employees" && method === "GET") {

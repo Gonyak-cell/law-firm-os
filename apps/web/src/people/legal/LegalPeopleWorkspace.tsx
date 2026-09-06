@@ -287,7 +287,7 @@ export function LegalPeopleWorkspace({ mode = "directory", refreshKey = 0, liveC
               const displayName = personLabel(person);
               const typeLabel = personTypeLabel(person);
               const organization = organizationLabel(person);
-              const photo = memberPhotoFor(person.display_name);
+              const photo = memberPhotoFor(person);
               return (
                 <button
                   key={person.person_id}
@@ -318,8 +318,8 @@ export function LegalPeopleWorkspace({ mode = "directory", refreshKey = 0, liveC
           <div className="legal-people-detail-stack">
             <div className="legal-people-identity">
               <span className="people-row-avatar">
-                {memberPhotoFor(detail.person.display_name)
-                  ? <img src={memberPhotoFor(detail.person.display_name)} alt="" />
+                {memberPhotoFor(detail.person)
+                  ? <img src={memberPhotoFor(detail.person)} alt="" />
                   : selectedPersonLabel.slice(0, 1) || "P"}
               </span>
               <div>

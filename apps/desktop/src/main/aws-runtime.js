@@ -618,7 +618,7 @@ export function createMatterVaultAwsRuntimeClient({ baseUrl, operatorToken, fetc
     };
   };
 
-  const requestProfilePhoto = async ({ authToken, headers: extraHeaders = {} } = {}) => {
+  const requestProfilePhoto = async ({ path = PROFILE_PHOTO_PATH, authToken, headers: extraHeaders = {} } = {}) => {
     const credential = typeof authToken === "string" ? authToken.trim() : "";
     if (!credential) {
       return {
@@ -642,7 +642,7 @@ export function createMatterVaultAwsRuntimeClient({ baseUrl, operatorToken, fetc
     );
     try {
       const response = await fetchImpl(
-        new URL(PROFILE_PHOTO_PATH.slice(1), `${baseUrl}/`),
+        new URL(path.slice(1), `${baseUrl}/`),
         {
           method: "GET",
           headers: { ...jsonHeaders(credential), ...extraHeaders },
@@ -1487,8 +1487,9 @@ export function createMatterVaultAwsRuntimeClient({ baseUrl, operatorToken, fetc
         forwardedHeaders[name] = String(value);
       }
     }
-    if (normalizedPathname === PROFILE_PHOTO_PATH) {
-      if (safeMethod !== "GET" || safePath !== PROFILE_PHOTO_PATH || body != null) {
+    if (normalizedPathname === PROFILE_PHOTO_PATH
+        || /^\/api\/hrx\/employees\/[A-Za-z0-9][A-Za-z0-9._:-]{0,159}\/photo$/u.test(normalizedPathname)) {
+      if (safeMethod !== "GET" || safePath !== normalizedPathname || body != null) {
         return {
           ok: false,
           reason: "desktop_runtime_profile_photo_request_invalid",
@@ -1497,6 +1498,7 @@ export function createMatterVaultAwsRuntimeClient({ baseUrl, operatorToken, fetc
         };
       }
       return requestProfilePhoto({
+        path: normalizedPathname,
         authToken: signedSessionToken,
         headers: forwardedHeaders,
       });

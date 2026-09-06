@@ -54,6 +54,7 @@ type WorkforceRow = {
   contact: string;
   email: string;
   employeeId?: string;
+  photo_url?: string;
   muted?: boolean;
 };
 type WorkforceDirectoryProps = {
@@ -89,6 +90,7 @@ type OrgEmployee = {
   managerEmployeeId: string;
   managerName: string;
   directReportCount: number;
+  photo_url?: string;
 };
 type EmployeeEditorState = {
   mode: "create" | "edit";
@@ -322,6 +324,7 @@ export function rowsForTab(activeTab: string, employeeResult: EmployeeResult, li
       return {
         key: stringField(employee, "employee_id") || `employee-${index}`,
         name,
+        photo_url: stringField(employee, "photo_url") || undefined,
         department,
         jobTitle: roleLabel(stringField(employee, "title") || stringField(employee, "role")),
         workerType: workerTypeLabel(employee),
@@ -451,6 +454,8 @@ export function PeopleWorkforceDirectory({ initialTab = "active", initialView = 
   const orgUnitLabelById = useMemo(() => new Map(orgUnits.map((unit) => [unit.id, unit.label])), [orgUnits]);
   const orgEmployees = useMemo<OrgEmployee[]>(() => {
     const employees = orgChartResult?.kind === "data" ? orgChartResult.employees : [];
+    const photosByEmployeeId = new Map((employeeResult?.kind === "data" ? employeeResult.employees : [])
+      .map(employee => [stringField(employee, "employee_id"), memberPhotoFor(employee)]));
     return employees.map((employee, index) => {
       const employeeId = stringField(employee, "employee_id");
       const orgUnitId = stringField(employee, "org_unit_id") || "unassigned";
@@ -463,6 +468,7 @@ export function PeopleWorkforceDirectory({ initialTab = "active", initialView = 
       return {
         key: employeeId || `org-employee-${index}`,
         employeeId,
+        photo_url: photosByEmployeeId.get(employeeId),
         name: rawName ? safeProjectedLabel(rawName, employeeId) || UNRESOLVED_EMPLOYEE_LABEL : `구성원 ${index + 1}`,
         title: roleLabel(safeProjectedLabel(rawTitle, employeeId)),
         orgUnitId,
@@ -473,7 +479,7 @@ export function PeopleWorkforceDirectory({ initialTab = "active", initialView = 
         directReportCount: numberField(employee, "direct_report_count")
       };
     });
-  }, [orgChartResult, orgUnitLabelById]);
+  }, [orgChartResult, orgUnitLabelById, employeeResult]);
   const orgVisibleEmployees = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
     if (!normalizedQuery) return orgEmployees;
@@ -598,7 +604,7 @@ export function PeopleWorkforceDirectory({ initialTab = "active", initialView = 
 
   const renderOrgEmployee = (employee: OrgEmployee, depth = 0): unknown => {
     const childRows = (orgChildrenByManager.get(employee.employeeId) ?? []).filter((child) => child.orgUnitId === employee.orgUnitId);
-    const photo = memberPhotoFor(employee.name);
+    const photo = memberPhotoFor(employee);
     const managerName = employee.managerEmployeeId
       ? safeProjectedLabel(orgEmployeeById.get(employee.managerEmployeeId)?.name, employee.managerEmployeeId)
       : safeProjectedLabel(employee.managerName);
@@ -731,12 +737,13 @@ export function PeopleWorkforceDirectory({ initialTab = "active", initialView = 
                 )}
                 {!status && visibleRows.map((row) => {
                     const isSelected = Boolean(row.employeeId && row.employeeId === selectedEmployeeId);
+                    const photo = memberPhotoFor(row);
                     return (
                       <tr key={row.key} className={[row.muted ? "muted" : "", isSelected ? "selected" : ""].filter(Boolean).join(" ")}>
                         <td>
                           <div className="hr-roster-member-cell">
                             <button type="button" className="hr-roster-person" data-compact-record="true" aria-pressed={isSelected ? "true" : "false"} onClick={() => handleRowSelect(row)}>
-                              <FileText className="hr-roster-page-icon" size={17} />
+                              <span className="hr-roster-avatar" aria-hidden="true">{photo ? <img src={photo} alt="" /> : initials(row.name)}</span>
                               <span>
                                 <strong>{row.name}</strong>
                                 {compact && <small>{row.workerType} / {row.affiliation}</small>}

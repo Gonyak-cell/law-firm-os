@@ -9,6 +9,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 import { createLocalStorageAdapter } from "../../../packages/dms/src/storage/local-storage-adapter.js";
+import { createHrxMemberPhotoStorage } from "../../../packages/hrx/src/member-photo-storage.js";
 import {
   DMS_AUXILIARY_DOMAIN_DESCRIPTOR,
   createDmsAuxiliaryRepository,
@@ -302,8 +303,9 @@ test("PostgreSQL employee directory reads isolate HRX and retain durable denial 
     },
   ]));
   const dmsStorage = createLocalStorageAdapter({ adapter_id: "bounded-hrx-directory-test" });
+  const memberPhotoStorage = createHrxMemberPhotoStorage({ storage: dmsStorage });
   const authority = createPostgresApiRuntimeAuthority({
-    ledger: scopedLedger, dmsStorage, payrollArtifactSecret: PAYROLL_ARTIFACT_SECRET,
+    ledger: scopedLedger, dmsStorage, memberPhotoStorage, payrollArtifactSecret: PAYROLL_ARTIFACT_SECRET,
     bankImportPreviewTokens: BANK_IMPORT_PREVIEW_TOKENS,
     dmsUploadRuntime: createPostgresDmsUploadRuntime({ pool: fixture.appPool, storage: dmsStorage, sourceOnly: false }),
     identityRepository: { listDirectoryUsers() { assert.fail("directory reads do not need an identity-wide scan"); } },
@@ -325,6 +327,15 @@ test("PostgreSQL employee directory reads isolate HRX and retain durable denial 
       if (count) assert.equal(result.body.employees[0].employee_id, employeeId);
     }
   }
+  const photo = await authority.run({ tenant_id: TENANT_A,
+    request_context: { method: "GET", pathname: `/api/hrx/employees/${employeeId}/photo` },
+    command({ hrxRuntime, matterRuntime }) {
+      assert.equal(matterRuntime, undefined);
+      assert.equal(hrxRuntime.memberPhotoStorage, memberPhotoStorage);
+      return Buffer.from("synthetic handler response");
+    },
+  });
+  assert.equal(photo.toString(), "synthetic handler response");
   assert.deepEqual(await capture(), before);
   await assert.rejects(authority.run({ tenant_id: TENANT_B,
     request_context: { method: "GET", pathname: "/api/hrx/employees" },

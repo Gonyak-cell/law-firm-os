@@ -738,7 +738,8 @@ export function createPostgresApiRuntimeAuthority({
         },
       });
     }
-    if (method === "GET" && ["/api/hrx/employees", "/api/hrx/org-chart"].includes(pathname)) {
+    if (method === "GET" && (["/api/hrx/employees", "/api/hrx/org-chart"].includes(pathname)
+      || /^\/api\/hrx\/employees\/[A-Za-z0-9][A-Za-z0-9._:-]{0,159}\/photo$/u.test(pathname))) {
       return runPostgresReadWithBaselineRetry({
         method,
         pathname,
@@ -751,6 +752,7 @@ export function createPostgresApiRuntimeAuthority({
               hrxRuntime: Object.freeze({
                 repository: createSqlHrxRepository({ store }),
                 audit: createDurableAuditStore({ store }),
+                memberPhotoStorage,
                 allowStaticRosterFallback: false,
               }),
             }));

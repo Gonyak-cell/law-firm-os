@@ -1380,8 +1380,11 @@ function pngDataUrl(bytes) {
   return `data:image/png;base64,${globalThis.btoa(binary)}`;
 }
 
-async function hydrateAuthenticatedProfilePhoto(item, headers) {
-  if (!item || item.photo_url !== "/api/profile/me/photo") return item;
+export async function hydrateAuthenticatedProfilePhoto(item, headers = {}) {
+  const employeePhotoPath = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,159}$/u.test(item?.employee_id ?? "")
+    ? `/api/hrx/employees/${item.employee_id}/photo` : null;
+  if (!item || (item.photo_url !== "/api/profile/me/photo"
+      && (!employeePhotoPath || item.photo_url !== employeePhotoPath))) return item;
   try {
     const response = await apiFetch(item.photo_url, { headers });
     const contentType = String(response.headers.get("content-type") ?? "")

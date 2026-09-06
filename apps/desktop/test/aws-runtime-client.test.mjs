@@ -544,7 +544,8 @@ test("runtime client proxies signed desktop read API calls without exposing sess
   assert.equal(response.body.items.length, 1);
 });
 
-test("runtime client streams one bounded authenticated profile photo through the desktop bridge", async () => {
+for (const photoPath of ["/api/profile/me/photo", "/api/hrx/employees/employee-synthetic/photo"]) {
+test(`runtime client streams bounded authenticated photo ${photoPath} through the desktop bridge`, async () => {
   const bytes = Buffer.concat([
     Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]),
     Buffer.from("synthetic-desktop-profile-photo"),
@@ -564,7 +565,7 @@ test("runtime client streams one bounded authenticated profile photo through the
   });
 
   const response = await client.api({
-    path: "/api/profile/me/photo",
+    path: photoPath,
     method: "GET",
     headers: {
       authorization: "Bearer renderer-token-must-not-pass",
@@ -574,7 +575,7 @@ test("runtime client streams one bounded authenticated profile photo through the
   });
 
   assert.equal(calls.length, 1);
-  assert.equal(calls[0].url, "https://example.execute-api.ap-northeast-2.amazonaws.com/staging/api/profile/me/photo");
+  assert.equal(calls[0].url, `https://example.execute-api.ap-northeast-2.amazonaws.com/staging${photoPath}`);
   assert.equal(calls[0].init.method, "GET");
   assert.equal(calls[0].init.headers.authorization, "Bearer lawos_session_v1.secret");
   assert.equal(calls[0].init.headers["x-lawos-permission-context"].includes("user-001"), true);
@@ -587,7 +588,7 @@ test("runtime client streams one bounded authenticated profile photo through the
   assert.equal(JSON.stringify(response).includes("renderer-token-must-not-pass"), false);
 });
 
-test("runtime client rejects unbound or oversized profile photo responses", async () => {
+test(`runtime client rejects unbound or oversized responses for ${photoPath}`, async () => {
   const pngHeader = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
   let mode = "unsafe-cache";
   let fetchCount = 0;
@@ -612,7 +613,7 @@ test("runtime client rejects unbound or oversized profile photo responses", asyn
   });
 
   const unsafeCache = await client.api({
-    path: "/api/profile/me/photo",
+    path: photoPath,
     sessionToken: "lawos_session_v1.secret",
   });
   assert.equal(unsafeCache.http_status, 502);
@@ -620,23 +621,23 @@ test("runtime client rejects unbound or oversized profile photo responses", asyn
 
   mode = "oversized";
   const oversized = await client.api({
-    path: "/api/profile/me/photo",
+    path: photoPath,
     sessionToken: "lawos_session_v1.secret",
   });
   assert.equal(oversized.http_status, 502);
   assert.equal(oversized.body.reason, "profile_photo_response_invalid");
 
   const query = await client.api({
-    path: "/api/profile/me/photo?employee_id=other",
+    path: `${photoPath}?employee_id=other`,
     sessionToken: "lawos_session_v1.secret",
   });
   const body = await client.api({
-    path: "/api/profile/me/photo",
+    path: photoPath,
     body: "{}",
     sessionToken: "lawos_session_v1.secret",
   });
   const write = await client.api({
-    path: "/api/profile/me/photo",
+    path: photoPath,
     method: "POST",
     body: "{}",
     sessionToken: "lawos_session_v1.secret",
@@ -647,6 +648,7 @@ test("runtime client rejects unbound or oversized profile photo responses", asyn
   );
   assert.equal(fetchCount, 2);
 });
+}
 
 test("runtime client read API bridge blocks writes and auth routes", async () => {
   const client = createMatterVaultAwsRuntimeClient({

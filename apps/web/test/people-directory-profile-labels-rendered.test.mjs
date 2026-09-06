@@ -10,6 +10,7 @@ import {
 import { repoRoot } from "./people-overview-test-support.mjs";
 
 const FALLBACK = "구성원 이름 확인 필요";
+const SYNTHETIC_PNG = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=", "base64");
 const unsafeLabels = [
   "person@example.com",
   "550e8400-e29b-41d4-a716-446655440000",
@@ -33,6 +34,7 @@ const employees = [
     employee_id: "lee",
     user_id: "user-lee",
     display_name: "Leena Kim",
+    photo_url: "/api/hrx/employees/lee/photo",
     work_email: "leena@example.test",
     mobile_phone: "010-0000-0010",
     status: "active",
@@ -123,6 +125,10 @@ async function installAdversarialRoutes(page, { managerDisplayName = "Manager Ki
   await page.route("**/api/hrx/**", async (route) => {
     const request = route.request();
     const pathname = new URL(request.url()).pathname;
+    if (pathname === "/api/hrx/employees/lee/photo" && request.method() === "GET") {
+      return route.fulfill({ status: 200, contentType: "image/png", body: SYNTHETIC_PNG,
+        headers: { "cache-control": "private, no-store", "x-content-type-options": "nosniff" } });
+    }
     if (pathname === "/api/hrx/employees" && request.method() === "GET") {
       return json(route, { outcome: "ok", employees });
     }
@@ -184,6 +190,11 @@ test("People directory renders safe active, onboarding, offboarding, and edit la
       assert.equal(await directory.getByRole("button", { name: FALLBACK, exact: true }).count(), unsafeLabels.length);
       assert.equal(await directory.getByRole("button", { name: `${FALLBACK} 수정`, exact: true }).count(), unsafeLabels.length);
       assert.equal(await directory.getByRole("button", { name: "person@example.com 수정", exact: true }).count(), 0);
+      const photo = directory.getByRole("button", { name: "Leena Kim", exact: true }).locator("img");
+      assert.equal(await photo.getAttribute("src"), `data:image/png;base64,${SYNTHETIC_PNG.toString("base64")}`);
+      assert.equal(await photo.evaluate(image => image.complete && image.naturalWidth > 0), true);
+      assert.equal(await directory.getByRole("button", { name: "Manager Kim", exact: true }).locator("img").count(), 0);
+      await page.screenshot({ path: join(evidenceDir, "directory-authenticated-photo.png"), fullPage: true });
 
       await directory.getByRole("button", { name: "입사예정", exact: true }).click();
       const onboarding = page.locator('[data-hr-workforce-table="true"]');

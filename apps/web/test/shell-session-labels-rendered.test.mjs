@@ -9,6 +9,7 @@ import {
 
 const SESSION_SCHEMA = "law-firm-os.desktop-web-session-envelope.v0.1";
 const evidenceDir = join(repoRoot, ".omo/evidence/fix-shell-session-public-label-20260731");
+const SYNTHETIC_PNG = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=", "base64");
 
 function sessionEnvelope(actorRef) {
   return {
@@ -53,6 +54,7 @@ async function openShellPage({
   displayName,
   title,
   email,
+  photo = false,
 }) {
   const page = await browser.newPage({
     viewport: { width: 1440, height: 1000 },
@@ -66,11 +68,17 @@ async function openShellPage({
     session: apiSession({ userId, displayName, title, email }),
     envelope: sessionEnvelope(actorRef),
   });
-  await page.route("**/api/**", (route) => route.fulfill({
-    status: 200,
-    contentType: "application/json",
-    body: "{}",
-  }));
+  await page.route("**/api/**", (route) => {
+    const pathname = new URL(route.request().url()).pathname;
+    if (photo && pathname === "/api/profile/me/photo") {
+      return route.fulfill({ status: 200, contentType: "image/png", body: SYNTHETIC_PNG,
+        headers: { "cache-control": "private, no-store" } });
+    }
+    return route.fulfill({ status: 200, contentType: "application/json",
+      body: photo && pathname === "/api/profile/me" ? JSON.stringify({ request_id: "synthetic-photo-profile", outcome: "passed", ui_state: "data",
+        safe_error_codes: [], audit_hint_ref: "synthetic-sidebar-photo", production_ready_claim: false,
+        item: { display_name: displayName, title, photo_url: "/api/profile/me/photo", photo_included: true } }) : "{}" });
+  });
   await page.goto(`${baseUrl}/?locale=${locale}&view=people&ctx=allow#people-leave`, {
     waitUntil: "networkidle",
   });
@@ -125,6 +133,7 @@ test("sidebar session labels sanitize every source reference and preserve real n
       email: "lee@example.test",
       expectedName: "김민",
       expectedRole: "수석 변호사",
+      photo: true,
     },
     {
       name: "english-fallback",
@@ -146,6 +155,11 @@ test("sidebar session labels sanitize every source reference and preserve real n
         const sidebar = page.locator(".forest-sidebar-user");
         await sidebar.getByText(fixture.expectedName, { exact: true }).waitFor();
         assert.equal(await sidebar.locator("strong").innerText(), fixture.expectedName);
+        assert.equal(await sidebar.locator("img").count(), fixture.photo ? 1 : 0);
+        if (fixture.photo) {
+          assert.equal(await sidebar.locator("img").getAttribute("src"), `data:image/png;base64,${SYNTHETIC_PNG.toString("base64")}`);
+          assert.equal(await sidebar.locator("img").evaluate(image => image.complete && image.naturalWidth > 0), true);
+        }
         if (fixture.expectedRole) {
           assert.equal(await sidebar.locator("small").innerText(), fixture.expectedRole);
         } else {

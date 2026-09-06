@@ -15,6 +15,7 @@ import {
 import { highestPrivilegeRegisteredAccount } from "../src/matter-vault-account-registry.js";
 import {
   createHrxRuntimeContext,
+  handleHrxApiRequest,
   resolveHrxEmployeeProfileByUserId,
 } from "../src/hrx-runtime-context.js";
 import { startApiServer } from "../src/server.js";
@@ -230,6 +231,7 @@ test("Profile API streams the signed-in employee photo from scoped versioned sto
     adapter_id: "profile-photo-versioned-test",
   });
   let providerReadCount = 0;
+  let corruptPhoto = false;
   const versionedStorage = Object.freeze({
     ...base,
     provider: "synthetic-versioned",
@@ -249,7 +251,8 @@ test("Profile API streams the signed-in employee photo from scoped versioned sto
     },
     async readObjectBounded(input) {
       providerReadCount += 1;
-      return base.readObjectBounded(input);
+      const result = await base.readObjectBounded(input);
+      return corruptPhoto ? { ...result, bytes: Buffer.alloc(png.byteLength) } : result;
     },
   });
   const memberPhotoStorage = createHrxMemberPhotoStorage({
@@ -325,7 +328,58 @@ test("Profile API streams the signed-in employee photo from scoped versioned sto
     const unauthenticated = await json(baseUrl, "/api/profile/me/photo");
     assert.equal(unauthenticated.status, 401);
     assert.equal(providerReadCount, 1);
+
+    const directory = await json(baseUrl, "/api/hrx/employees", { headers });
+    assert.equal(directory.status, 200);
+    const employeePhotoPath = `/api/hrx/employees/${employeeId}/photo`;
+    assert.equal(directory.body.employees[0].photo_url, employeePhotoPath);
+    const employeePhoto = await fetch(`${baseUrl}${employeePhotoPath}`, { headers });
+    assert.equal(employeePhoto.status, 200);
+    assert.equal(employeePhoto.headers.get("content-type"), "image/png");
+    assert.equal(employeePhoto.headers.get("cache-control"), "private, no-store");
+    assert.equal(employeePhoto.headers.get("x-content-type-options"), "nosniff");
+    assert.equal(employeePhoto.headers.get("content-length"), String(png.byteLength));
+    assert.deepEqual(Buffer.from(await employeePhoto.arrayBuffer()), png);
+    assert.equal(providerReadCount, 2);
+    assert.equal((await json(baseUrl, employeePhotoPath)).status, 401);
+    const forgedTenant = await json(baseUrl, `${employeePhotoPath}?tenant_id=tenant_other`, { headers });
+    assert.equal(forgedTenant.status, 400);
+    assert.equal(forgedTenant.body.safe_error_code, "HRX_QUERY_CONTEXT_FORBIDDEN");
+    assert.equal((await json(baseUrl, "/api/hrx/employees/unknown/photo", { headers })).status, 404);
+    assert.equal(providerReadCount, 2, "denied or missing records must not read storage");
+    corruptPhoto = true;
+    const corrupted = await json(baseUrl, employeePhotoPath, { headers });
+    assert.equal(corrupted.status, 503);
+    assert.equal(corrupted.body.safe_error_code, "HRX_EMPLOYEE_PHOTO_UNAVAILABLE");
+    assert.equal(providerReadCount, 3);
   }, { hrxRuntime });
+});
+
+test("Employee photos preserve self-service and tenant scope before storage reads", async () => {
+  const tenantId = "tenant-photo-synthetic";
+  const employeeId = "employee-photo-synthetic";
+  const employee = { tenant_id: tenantId, employee_id: employeeId,
+    photo_object_id: "photo-synthetic", photo_sha256: "a".repeat(64), photo_byte_size: 68,
+    photo_version_id: "v1", photo_content_type: "image/png" };
+  let profileTenant = tenantId;
+  const context = {
+    repository: {
+      getEmployee() { return employee; },
+      listEmployeeUserLinks({ user_id }) { return user_id === "user-owner" ? [{ tenant_id: tenantId, user_id, employee_id: employeeId, link_id: "link-photo-owner", purpose: "login_mapping" }] : []; },
+      listEmploymentProfiles() { return [{ tenant_id: profileTenant, employee_id: employeeId,
+        legal_entity_id: "company-synthetic", effective_from: "2020-01-01" }]; },
+    },
+    memberPhotoStorage: { readPhoto() { assert.fail("scope must be resolved before storage access"); } },
+  };
+  const request = actorId => handleHrxApiRequest({ pathname: `/api/hrx/employees/${employeeId}/photo`, method: "GET", context,
+    requestContext: { tenant_id: tenantId, actor_id: actorId, actor_role: "staff", hrx_scopes: ["hrx.employee.read"], session_bound: true } });
+  const nonOwner = await request("user-other");
+  assert.equal(nonOwner.status, 403);
+  assert.equal(nonOwner.body.safe_error_code, "HRX_SELF_SERVICE_SCOPE_DENIED");
+  profileTenant = "tenant-other";
+  const foreignProfile = await request("user-owner");
+  assert.equal(foreignProfile.status, 404);
+  assert.equal(foreignProfile.body.safe_error_code, "HRX_EMPLOYEE_PHOTO_NOT_FOUND");
 });
 
 test("Packaged public professional profile catalog exposes only the employee join and public profile", () => {
