@@ -9,6 +9,7 @@ import {
   MASTER_DATA_API_REFERENCE_SURFACE,
   MASTER_DATA_CP156_HIDDEN_SOURCE_FIELDS,
   MASTER_DATA_PROGRAM_CONTRACT,
+  MASTER_DATA_PRIMARY_ID_FIELDS,
   MASTER_DATA_UI_SURFACE_STATES,
   createClientRegistrationService,
   createMasterDataRepository,
@@ -415,16 +416,7 @@ function clientRegistrationCreateSuccess({ result, body, requestId, auditHintRef
 }
 
 function primaryIdOf(record) {
-  switch (record.model_type) {
-    case "Entity": return record.entity_id;
-    case "Person": return record.person_id;
-    case "Organization": return record.organization_id;
-    case "ClientGroup": return record.client_group_id;
-    case "Relationship": return record.relationship_id;
-    case "ContactPoint": return record.contact_point_id;
-    case "BillingProfile": return record.billing_profile_id;
-    default: return null;
-  }
+  return record[MASTER_DATA_PRIMARY_ID_FIELDS[record.model_type]] ?? null;
 }
 
 function serializeRecord(record, runtime) {

@@ -8,7 +8,14 @@ import { createPostgresDomainLedger } from "../../../packages/persistence/src/po
 import { hashDomainValue } from "../../../packages/persistence/src/domain-ledger.js";
 import { createPostgresDmsUploadRuntime } from "../../../packages/dms/src/postgres-upload-runtime.js";
 import { createLocalStorageAdapter } from "../../../packages/dms/src/storage/local-storage-adapter.js";
+import { createDmsWorkspace } from "../../../packages/dms/src/model.js";
+import { createMasterDataRecord } from "../../../packages/master-data/src/model.js";
+import { createMasterDataRepository } from "../../../packages/master-data/src/repository.js";
+import { MASTER_DATA_DOMAIN_DESCRIPTOR, MASTER_DATA_PRIMARY_ID_FIELDS } from "../../../packages/master-data/src/central-ledger.js";
+import { createRecordRepositoryDomainSnapshot } from "../../../packages/persistence/src/record-domain-adapter.js";
 import { createPostgresSessionObjectAclResolver } from "../src/session-object-acl-authority.js";
+import { createPostgresApiRuntimeAuthority } from "../src/postgres-api-runtime-authority.js";
+import { handleRecordsSearch } from "../src/master-data-context.js";
 
 const TENANT = "tenant-corporate-guard";
 const OWNER = "user-corporate-owner";
@@ -82,6 +89,10 @@ function target({ status = "active", workspacePatch = {}, documentPatch = {} } =
 }
 
 async function request(target, path, ctx, method = "GET", body = {}) {
+  if (target.authority) {
+    return target.authority.run({ tenant_id: TENANT, request_context: { method, pathname: path },
+      command: ({ dmsRuntime }) => request({ runtime: dmsRuntime }, path, ctx, method, body) });
+  }
   return handleVaultDmsApiRequest({ pathname: path, method, query, body: { ...query, ...body }, context: ctx, requestId: "request-corporate", runtime: target.runtime });
 }
 
@@ -224,15 +235,15 @@ test("missing canonical document readback cannot fall back to broad authorizatio
   assert.equal(runtime.storageReads(), 0);
 });
 
-test("actual PostgreSQL corporate bytes stay hidden pending activation and follow canonical ObjectAcl afterward", async (t) => {
-  const fixture = await createMigratedPostgresFixture(t);
+test("bounded PostgreSQL corporate reads preserve pending visibility and canonical ObjectAcl with one connection", async (t) => {
+  const fixture = await createMigratedPostgresFixture(t, { appPoolMax: 1 });
   if (!fixture) return;
   const tx = (callback) => withPostgresTransaction(fixture.appPool, { tenant_id: TENANT }, callback);
-  let workspace = { ...target().workspace, status: "pending_anchor", name: "Synthetic corporate source workspace" };
+  let workspace = createDmsWorkspace({ ...target().workspace, status: "pending_anchor", name: "Synthetic corporate source workspace" });
   await tx((client) => client.query(`INSERT INTO lawos_domain.records
-    (tenant_id,domain_id,record_type,record_id,state_version,payload,payload_hash)
-    VALUES ($1,'dms-auxiliary','DmsWorkspace',$2,1,$3::jsonb,$4)`,
-  [TENANT, WORKSPACE, JSON.stringify(workspace), hashDomainValue(workspace)]));
+    (tenant_id,domain_id,record_type,record_id,state_version,payload,payload_hash,unique_key)
+    VALUES ($1,'dms-auxiliary','DmsWorkspace',$2,1,$3::jsonb,$4,$5)`,
+  [TENANT, WORKSPACE, JSON.stringify(workspace), hashDomainValue(workspace), `legal-entity-administration:${workspace.legal_entity_id}`]));
   const storage = createLocalStorageAdapter({ adapter_id: "corporate-api-postgres-test" });
   let providerReads = 0;
   const uploadRuntime = createPostgresDmsUploadRuntime({ pool: fixture.appPool, sourceOnly: false,
@@ -242,10 +253,28 @@ test("actual PostgreSQL corporate bytes stay hidden pending activation and follo
   await uploadRuntime.uploadDocument({ document: { ...target().document, owner_user_id: OWNER, audit_trace_id: "audit-corporate", mime_type: "text/plain" },
     bytes: Buffer.from("private synthetic corporate body"), actor_id: OWNER, session_id: "session-corporate-api-pg",
     object_id: "object-corporate-api-pg", idempotency_key: "idempotency-corporate-api-pg", expires_at: "2026-09-05T08:15:00.000Z" });
-  const runtime = { authority: "postgres-v2", upload_runtime: uploadRuntime,
-    repository: { get: ({ model_type, workspace_id }) => model_type === "DmsWorkspace" && workspace_id === WORKSPACE ? workspace : null, appendAudit() {} },
-  };
-  const observed = { runtime };
+  const ledger = createPostgresDomainLedger({ pool: fixture.appPool });
+  const domainCalls = [];
+  let expectFullRuntime = false;
+  const authority = createPostgresApiRuntimeAuthority({
+    ledger: { ...ledger, transactionMany(input, callback) {
+      domainCalls.push(input.domain_ids);
+      if (expectFullRuntime) {
+        assert.ok(input.domain_ids.includes("hrx"));
+        throw new Error("synthetic full runtime boundary reached");
+      }
+      assert.deepEqual(input.domain_ids, ["master-data", "dms-auxiliary"]);
+      return ledger.transactionMany(input, callback);
+    } },
+    dmsStorage: storage, dmsUploadRuntime: uploadRuntime,
+    payrollArtifactSecret: "synthetic-corporate-read-payroll-unused-secret",
+    bankImportPreviewTokens: { issue() { assert.fail("read must not issue a bank token"); }, verify() { assert.fail("read must not verify a bank token"); } },
+    identityRepository: { listDirectoryUsers() {
+      if (expectFullRuntime) return [];
+      assert.fail("corporate reads must not materialize the employee directory");
+    } },
+  });
+  const observed = { authority };
   const before = providerReads;
   for (const path of ["/api/vault/documents", "/api/vault/search", "/api/vault/audit"]) {
     const response = await request(observed, path, context(OWNER));
@@ -254,29 +283,32 @@ test("actual PostgreSQL corporate bytes stay hidden pending activation and follo
   }
   assert.equal((await request(observed, `/api/vault/documents/${DOCUMENT}/download`, context(OWNER))).status, 403);
   assert.equal(providerReads, before);
-  await tx(async (client) => {
-    for (const [type, id, fields] of [
+  const anchors = createMasterDataRepository({ seedRecords: [
       ["Entity", workspace.legal_entity_id, { entity_kind: "organization" }],
       ["Party", workspace.party_id, { party_type: "organization", canonical_entity_id: workspace.legal_entity_id }],
       ["Organization", workspace.organization_id, { entity_id: workspace.legal_entity_id, party_id: workspace.party_id }],
-    ]) {
-      const payload = { model_type: type, tenant_id: TENANT, owner_user_id: OWNER,
-        [{ Entity: "entity_id", Party: "party_id", Organization: "organization_id" }[type]]: id,
-        permission_ref: workspace.permission_ref, matter_id: null, status: "active", ...fields };
-      await client.query(`INSERT INTO lawos_domain.records
-        (tenant_id,domain_id,record_type,record_id,state_version,payload,payload_hash)
-        VALUES ($1,'master-data',$2,$3,1,$4::jsonb,$5)`, [TENANT, type, id, JSON.stringify(payload), hashDomainValue(payload)]);
-    }
+      ["PartyIdentifier", "identifier-corporate", { party_id: workspace.party_id, identifier_type: "registration_id", identifier_value: "SYNTHETIC-REGISTRY-ID" }],
+      ["PartyAlias", "alias-corporate", { party_id: workspace.party_id, alias_type: "legal_name", alias_value: "Synthetic alternate entity name" }],
+    ].map(([type, id, fields]) => createMasterDataRecord(type, { tenant_id: TENANT, owner_user_id: OWNER,
+        [MASTER_DATA_PRIMARY_ID_FIELDS[type]]: id,
+        display_name: "Synthetic corporate entity", synthetic_only: false,
+        permission_ref: workspace.permission_ref, matter_id: null, status: "active", ...fields })),
   });
+  try {
+    await ledger.importSnapshot(createRecordRepositoryDomainSnapshot({
+      descriptor: MASTER_DATA_DOMAIN_DESCRIPTOR, tenant_id: TENANT,
+      repositories: [{ source_id: "synthetic-corporate-anchors", repository: anchors }],
+    }).snapshot);
+  } finally { anchors.close(); }
   workspace = { ...workspace, status: "active" };
   await tx((client) => client.query(`UPDATE lawos_domain.records SET payload=$3::jsonb,payload_hash=$4,state_version=2
     WHERE tenant_id=$1 AND domain_id='dms-auxiliary' AND record_type='DmsWorkspace' AND record_id=$2`,
   [TENANT, WORKSPACE, JSON.stringify(workspace), hashDomainValue(workspace)]));
   workspace = (await tx((client) => client.query(`SELECT payload FROM lawos_domain.records
     WHERE tenant_id=$1 AND domain_id='dms-auxiliary' AND record_type='DmsWorkspace' AND record_id=$2`, [TENANT, WORKSPACE]))).rows[0].payload;
+  const recordsBeforeReads = await ledger.list({ tenant_id: TENANT, domain_id: "master-data" });
   assert.equal((await request(observed, "/api/vault/documents", context())).body.items.length, 0);
   assert.equal((await request(observed, "/api/vault/documents", context(OWNER))).body.items.length, 1);
-  const ledger = createPostgresDomainLedger({ pool: fixture.appPool });
   await ledger.write({ tenant_id: TENANT, domain_id: "authz", record_type: "ObjectAcl", record_id: "acl-corporate-api-pg",
     expected_version: 0, payload: { ...acl(), acl_id: "acl-corporate-api-pg", resource_type: "DmsWorkspace" } });
   const resolved = await createPostgresSessionObjectAclResolver({ ledger })({ tenant_id: TENANT, user_id: READER });
@@ -288,4 +320,46 @@ test("actual PostgreSQL corporate bytes stay hidden pending activation and follo
   assert.ok(audit.body.items.length > 0);
   assert.ok(audit.body.items.every((event) => !Object.hasOwn(event, "authorization_workspace_id") && !Object.hasOwn(event, "authorization_document_id")));
   assert.ok(audit.body.items.every((event) => event.payload?.returned_count == null));
+  const master = await authority.run({ tenant_id: TENANT,
+    request_context: { method: "GET", pathname: "/master-data/records" },
+    command: ({ masterDataRuntime }) => handleRecordsSearch({ query, context: context(OWNER), requestId: "corporate-master-read", runtime: masterDataRuntime }) });
+  assert.equal(master.status, 200);
+  assert.ok(master.body.items.every((item) => item.matter_core_enrichment === null));
+  assert.deepEqual(new Set(master.body.items.map((item) => item.resource_id)),
+    new Set([workspace.legal_entity_id, workspace.party_id, workspace.organization_id, "identifier-corporate", "alias-corporate"]));
+  const identifierDenied = await authority.run({ tenant_id: TENANT,
+    request_context: { method: "GET", pathname: "/master-data/records" },
+    command: ({ masterDataRuntime }) => handleRecordsSearch({ query,
+      context: context(OWNER, [acl("identifier-corporate", "deny", { principal_id: OWNER })]),
+      requestId: "corporate-master-denied", runtime: masterDataRuntime }) });
+  assert.equal(identifierDenied.status, 403);
+  assert.equal(identifierDenied.body.items.length, 0);
+  assert.ok(identifierDenied.body.items.every((item) => item.resource_id !== "identifier-corporate"));
+  assert.equal(JSON.stringify(identifierDenied.body).includes("SYNTHETIC-REGISTRY-ID"), false);
+  assert.ok(domainCalls.length > 0);
+  assert.deepEqual(await ledger.list({ tenant_id: TENANT, domain_id: "hrx" }), []);
+  const deniedBefore = providerReads;
+  const denied = await request(observed, `/api/vault/documents/${DOCUMENT}/download`,
+    context(OWNER, [acl(WORKSPACE, "deny", { principal_id: OWNER })]));
+  assert.equal(denied.status, 403);
+  assert.equal(providerReads, deniedBefore);
+  const denialAudit = await ledger.listAudit({ tenant_id: TENANT, domain_id: "dms-auxiliary" });
+  assert.ok(denialAudit.some((event) => event.event_type === "dms:document:download" && event.actor_id === OWNER));
+  for (const pathname of ["/master-data/records/", "/master-data/relationships", "/master-data/client-groups/unknown", "/api/vault/search/preferences"]) {
+    let repository;
+    await authority.run({ tenant_id: TENANT, request_context: { method: "GET", pathname },
+      command(runtimes) {
+        assert.deepEqual(Object.keys(runtimes).sort(), ["dmsRuntime", "masterDataRuntime"]);
+        repository = runtimes.masterDataRuntime.repository;
+        assert.deepEqual(repository.list({ tenant_id: "another-tenant" }), []);
+      } });
+    assert.throws(() => repository.list({ tenant_id: TENANT }), /closed/u);
+  }
+  expectFullRuntime = true;
+  for (const [method, pathname] of [["POST", "/master-data/records"], ["POST", "/api/vault/documents"],
+    ["GET", "/api/vault/documents/unknown"], ["GET", "/api/vault/documents/unknown/download/extra"]]) {
+    await assert.rejects(authority.run({ tenant_id: TENANT, request_context: { method, pathname },
+      command() { assert.fail("neighboring routes must use the full runtime"); } }), /synthetic full runtime boundary reached/u);
+  }
+  assert.deepEqual(await ledger.list({ tenant_id: TENANT, domain_id: "master-data" }), recordsBeforeReads);
 });

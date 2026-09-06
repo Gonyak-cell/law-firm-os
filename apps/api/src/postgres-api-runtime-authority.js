@@ -465,7 +465,7 @@ function createRequestRuntimes({
     seedRuntimeFixtures: false,
     allowStaticRosterFallback: false,
   });
-  const masterDataRuntime = createMasterDataRuntimeContext({ repository: repositories.masterDataRepository });
+  const masterDataRuntime = createMasterDataRuntimeContext({ repository: repositories.masterDataRepository, matterCoreEnrichment: null });
   const dmsRuntime = Object.freeze({
     ...createVaultDmsRuntimeContext({
       repository: repositories.dmsRepository,
@@ -702,6 +702,37 @@ export function createPostgresApiRuntimeAuthority({
     if (typeof command !== "function") throw new TypeError("PostgreSQL API command callback is required");
     const method = String(request_context?.method ?? "").toUpperCase();
     const pathname = String(request_context?.pathname ?? "").replace(/\/+$/, "");
+    const corporateRead = method === "GET" && (
+      ["/master-data/records", "/master-data/relationships", "/api/vault/documents",
+        "/api/vault/search", "/api/vault/search/preferences", "/api/vault/audit"].includes(pathname)
+      || /^\/master-data\/client-groups\/[^/]+$/u.test(pathname)
+      || /^\/api\/vault\/documents\/[^/]+\/download$/u.test(pathname)
+    );
+    if (corporateRead) {
+      return runPostgresReadWithBaselineRetry({
+        method,
+        pathname,
+        execute: async () => {
+          const { result } = await runRecordRepositoryMultiDomainCommand({
+            ledger,
+            tenant_id: tenantId,
+            domains: PRODUCT_DOMAINS.filter(({ key }) =>
+              ["masterDataRepository", "dmsRepository"].includes(key)),
+            command: (repositories) => command(Object.freeze({
+              masterDataRuntime: createMasterDataRuntimeContext({ repository: repositories.masterDataRepository, matterCoreEnrichment: null }),
+              dmsRuntime: Object.freeze({
+                ...createVaultDmsRuntimeContext({ repository: repositories.dmsRepository, storage: dmsStorage }),
+                authority: "postgres-v2",
+                upload_runtime: dmsUploadRuntime,
+                precedent_search_runtime: precedentSearchRuntime,
+                operation_owner: resolvedVaultOperationOwner,
+              }),
+            })),
+          });
+          return result;
+        },
+      });
+    }
     if (method === "GET" && ["/api/profile/me", "/api/profile/me/photo"].includes(pathname)) {
       const participant = createHrxDomainParticipant(request_context, hrxRelationalProjectionReader);
       const store = await ledger.transactionMany({ tenant_id: tenantId, domain_ids: [HRX_DOMAIN_ID] },
