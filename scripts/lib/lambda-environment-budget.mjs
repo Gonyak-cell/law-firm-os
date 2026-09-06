@@ -1,6 +1,7 @@
 import {
   JSON_POSTGRES_OUTLOOK_DISABLED_CONFIG_SECRET_NAME,
   JSON_POSTGRES_OUTLOOK_DISABLED_CREDENTIAL_SECRET_PREFIX,
+  JSON_POSTGRES_INSTALLATION_ATTESTATION_SECRET_ARN_PATTERN,
 } from "./json-postgres-production-infrastructure.mjs";
 import { CLOUDFORMATION_NO_ECHO_PLACEHOLDER } from "./cloudformation-template-transport.mjs";
 
@@ -97,6 +98,14 @@ export function resolveW15ApiEnvironment({
     OutlookConversationWorkerEnabled: enabled("EnableProductionTraffic")
       && enabled("EnableOutlookConversationWorker") && outlookConfigured,
   };
+  if (own(variables, "LAWOS_INTERNAL_INSTALLATION_ATTESTATION_SECRET_ID")) {
+    const secretArn = parameters.InternalInstallationAttestationSecretArn;
+    if (typeof secretArn !== "string" || secretArn.trim() !== secretArn
+      || !new RegExp(JSON_POSTGRES_INSTALLATION_ATTESTATION_SECRET_ARN_PATTERN, "u").test(secretArn)) {
+      throw new Error("W15 API environment installation attestation reference is unresolved");
+    }
+    conditions.InternalInstallationAttestationConfigured = secretArn !== "disabled";
+  }
   function resolve(value) {
     if (typeof value === "string") return value;
     if (!record(value) || Object.keys(value).length !== 1) {

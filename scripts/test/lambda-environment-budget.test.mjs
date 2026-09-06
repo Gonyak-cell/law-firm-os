@@ -85,6 +85,32 @@ test("resolves candidate variables from current resource bindings and new parame
   });
 });
 
+test("installation signer is omitted when disabled and budgets only the resolved exact ARN", () => {
+  const name = "LAWOS_INTERNAL_INSTALLATION_ATTESTATION_SECRET_ID";
+  const arn = "arn:aws:secretsmanager:ap-northeast-2:770880870480:secret:/lawos/production/internal-installation/attestation-signer-AbCd12";
+  const input = resolutionFixture();
+  input.variables[name] = { "Fn::If": ["InternalInstallationAttestationConfigured",
+    { Ref: "InternalInstallationAttestationSecretArn" }, { Ref: "AWS::NoValue" }] };
+  input.parameters = { ...parameters, InternalInstallationAttestationSecretArn: "disabled" };
+  const disabled = resolveW15ApiEnvironment(input);
+  assert.equal(Object.hasOwn(disabled, name), false);
+  input.parameters.InternalInstallationAttestationSecretArn = arn;
+  const enabled = resolveW15ApiEnvironment(input);
+  assert.equal(enabled[name], arn);
+  assert.equal(assertLambdaEnvironmentBudget(enabled).size_bytes - assertLambdaEnvironmentBudget(disabled).size_bytes,
+    Buffer.byteLength(name) + Buffer.byteLength(arn) + 6);
+  for (const value of [undefined, "", "****", "{{resolve:secretsmanager:secret}}", arn + "*", arn + "\n", arn.replace("770880870480", "111111111111")]) {
+    input.parameters.InternalInstallationAttestationSecretArn = value;
+    assert.throws(() => resolveW15ApiEnvironment(input), /installation attestation reference is unresolved/u);
+  }
+  input.parameters.InternalInstallationAttestationSecretArn = arn;
+  const remaining = assertLambdaEnvironmentBudget(enabled).headroom_bytes;
+  input.variables.PADDING = "x".repeat(remaining - 13);
+  assert.equal(assertLambdaEnvironmentBudget(resolveW15ApiEnvironment(input)).headroom_bytes, 0);
+  input.variables.PADDING += "x";
+  assert.throws(() => resolveW15ApiEnvironment(input), /exceeds 4096 bytes/u);
+});
+
 function noEchoFixture() {
   const input = resolutionFixture();
   input.parameters = { ...parameters, PasswordResetFromEmail: CLOUDFORMATION_NO_ECHO_PLACEHOLDER };

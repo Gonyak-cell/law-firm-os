@@ -26,6 +26,33 @@ object containing `key_id`, `private_key_pem`, and `public_key_sha256`. The last
 field must equal the SHA-256 of the private key's Ed25519 public SPKI DER bytes.
 Grant the API only the required secret read. Configure the matching issuer ID,
 public key, and digest independently for the adoption publisher and reader.
+The production template's `InternalInstallationAttestationSecretArn` parameter
+defaults to `disabled`. Its only enabled value is the complete ARN, including
+the generated six-character suffix, of
+`/lawos/production/internal-installation/attestation-signer` in account
+`770880870480`, region `ap-northeast-2`. Provision this dedicated Ed25519 key
+through the private operator path under the existing production KMS key.
+Neither the template nor its parameters contain the secret body.
+
+The template adds the reference only to the API environment. Its IAM read is
+conditioned on the unqualified `lawos-production-api` source function ARN, so
+the Outlook worker sharing that execution role receives no signer access.
+The existing Secrets Manager endpoint permits only the exact ARN and API role;
+there are no added secret writes or KMS grants. This uses the IAM identity-policy
+boundary described in [AWS's source function ARN documentation](https://docs.aws.amazon.com/lambda/latest/dg/permissions-source-function-arn.html).
+Setting the parameter back to `disabled` removes the reference and its read
+permission while preserving the secret and registered installations.
+
+Record `DescribeSecret` metadata and the production KMS key binding, derive and
+pin the public key independently, and simulate allowed API reads plus denied
+worker, missing-source, unrelated-secret and write requests before activation.
+If simulation disagrees with the documented source-function boundary, preserve
+its result and require a bounded live Lambda caller test before activation;
+do not remove the source condition to obtain a passing result.
+Prepare a configuration change set with the full actual environment budget and
+exact old/new parameter binding. The normal W15 runtime update preserves this
+parameter and initializes it to `disabled` for an older stack. Do not use a
+runtime update as implicit authorization to rotate the signing key.
 Duplicate issuer or public-key pins in the former server environment variables
 are rejected. Missing the secret reference disables signing and the dedicated
 endpoints while preserving internal-binding enforcement at a verified 80- or
