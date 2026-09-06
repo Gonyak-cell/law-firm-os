@@ -4,7 +4,7 @@ export const JSON_POSTGRES_PRODUCTION_INFRASTRUCTURE_VERSION = "law-firm-os.json
 export const JSON_POSTGRES_PRODUCTION_ARTIFACT_STORE_VERSION = "law-firm-os.json-postgres-production-artifact-store.v4";
 export const JSON_POSTGRES_PRODUCTION_COST_CEILING_KRW = 300_000;
 export const JSON_POSTGRES_PRODUCTION_BUDGET_USD = 190;
-export const JSON_POSTGRES_SCHEMA_GOVERNANCE_LAYER_ARN_PATTERN = "^(disabled|arn:aws:lambda:ap-northeast-2:770880870480:layer:lawos-schema-governance-2026090601-[0-9a-f]{64}:[1-9][0-9]*)$";
+export const JSON_POSTGRES_SCHEMA_GOVERNANCE_LAYER_ARN_PATTERN = "^(disabled|arn:aws:lambda:ap-northeast-2:770880870480:layer:lawos-schema-governance-(2026090601|2026090602)-[0-9a-f]{64}:[1-9][0-9]*)$";
 export const JSON_POSTGRES_EXTERNAL_READ_PROVIDER_PACK_SECRET_NAME =
   "/lawos/production/external-read/provider-packs";
 export const JSON_POSTGRES_EXTERNAL_READ_CREDENTIAL_SECRET_PREFIX =
