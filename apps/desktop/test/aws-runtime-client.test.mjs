@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
+import { createServer } from "node:http";
 import { Readable } from "node:stream";
 import test from "node:test";
 import {
@@ -544,7 +545,8 @@ test("runtime client proxies signed desktop read API calls without exposing sess
   assert.equal(response.body.items.length, 1);
 });
 
-test("runtime client streams one bounded authenticated profile photo through the desktop bridge", async () => {
+for (const photoPath of ["/api/profile/me/photo", "/api/hrx/employees/employee-synthetic/photo"]) {
+test(`runtime client streams bounded authenticated photo ${photoPath} through the desktop bridge`, async () => {
   const bytes = Buffer.concat([
     Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]),
     Buffer.from("synthetic-desktop-profile-photo"),
@@ -564,7 +566,7 @@ test("runtime client streams one bounded authenticated profile photo through the
   });
 
   const response = await client.api({
-    path: "/api/profile/me/photo",
+    path: photoPath,
     method: "GET",
     headers: {
       authorization: "Bearer renderer-token-must-not-pass",
@@ -574,7 +576,7 @@ test("runtime client streams one bounded authenticated profile photo through the
   });
 
   assert.equal(calls.length, 1);
-  assert.equal(calls[0].url, "https://example.execute-api.ap-northeast-2.amazonaws.com/staging/api/profile/me/photo");
+  assert.equal(calls[0].url, `https://example.execute-api.ap-northeast-2.amazonaws.com/staging${photoPath}`);
   assert.equal(calls[0].init.method, "GET");
   assert.equal(calls[0].init.headers.authorization, "Bearer lawos_session_v1.secret");
   assert.equal(calls[0].init.headers["x-lawos-permission-context"].includes("user-001"), true);
@@ -587,7 +589,7 @@ test("runtime client streams one bounded authenticated profile photo through the
   assert.equal(JSON.stringify(response).includes("renderer-token-must-not-pass"), false);
 });
 
-test("runtime client rejects unbound or oversized profile photo responses", async () => {
+test(`runtime client rejects unbound or oversized responses for ${photoPath}`, async () => {
   const pngHeader = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
   let mode = "unsafe-cache";
   let fetchCount = 0;
@@ -612,7 +614,7 @@ test("runtime client rejects unbound or oversized profile photo responses", asyn
   });
 
   const unsafeCache = await client.api({
-    path: "/api/profile/me/photo",
+    path: photoPath,
     sessionToken: "lawos_session_v1.secret",
   });
   assert.equal(unsafeCache.http_status, 502);
@@ -620,23 +622,23 @@ test("runtime client rejects unbound or oversized profile photo responses", asyn
 
   mode = "oversized";
   const oversized = await client.api({
-    path: "/api/profile/me/photo",
+    path: photoPath,
     sessionToken: "lawos_session_v1.secret",
   });
   assert.equal(oversized.http_status, 502);
   assert.equal(oversized.body.reason, "profile_photo_response_invalid");
 
   const query = await client.api({
-    path: "/api/profile/me/photo?employee_id=other",
+    path: `${photoPath}?employee_id=other`,
     sessionToken: "lawos_session_v1.secret",
   });
   const body = await client.api({
-    path: "/api/profile/me/photo",
+    path: photoPath,
     body: "{}",
     sessionToken: "lawos_session_v1.secret",
   });
   const write = await client.api({
-    path: "/api/profile/me/photo",
+    path: photoPath,
     method: "POST",
     body: "{}",
     sessionToken: "lawos_session_v1.secret",
@@ -646,6 +648,40 @@ test("runtime client rejects unbound or oversized profile photo responses", asyn
     [400, 400, 405],
   );
   assert.equal(fetchCount, 2);
+});
+}
+
+test("photo transport rejects real HTTP redirects and stalled response bodies", async (t) => {
+  let mode = "redirect";
+  let redirectedReads = 0;
+  const server = createServer((req, res) => {
+    if (req.url === "/redirected-photo") redirectedReads += 1;
+    else if (mode === "redirect") {
+      res.writeHead(302, { location: "/redirected-photo" });
+      res.end();
+      return;
+    }
+    res.writeHead(200, { "content-type": "image/png", "content-length": "8",
+      "cache-control": "private, no-store", "x-content-type-options": "nosniff" });
+    res.write(Buffer.from([137, 80, 78, 71]));
+    if (mode !== "stalled") res.end(Buffer.from([13, 10, 26, 10]));
+  });
+  await new Promise(resolve => server.listen(0, "127.0.0.1", resolve));
+  t.after(() => new Promise(resolve => { server.closeAllConnections(); server.close(resolve); }));
+  const client = createMatterVaultAwsRuntimeClient({ baseUrl: `http://127.0.0.1:${server.address().port}`, requestTimeoutMs: 100 });
+  for (const path of ["/api/profile/me/photo", "/api/hrx/employees/employee-synthetic/photo"]) {
+    mode = "redirect";
+    const redirect = await client.api({ path, sessionToken: "lawos_session_v1.synthetic" });
+    assert.equal(redirect.http_status, 0);
+    assert.equal(redirect.body.reason, "runtime_request_failed");
+    assert.equal(redirectedReads, 0, "authenticated photo requests must not follow redirects");
+    mode = "stalled";
+    const stalled = await client.api({ path, sessionToken: "lawos_session_v1.synthetic" });
+    assert.equal(stalled.http_status, 0);
+    assert.equal(stalled.body.reason, "runtime_request_timeout");
+    assert.equal(stalled.token_material_returned, false);
+    assert.equal(stalled.binary_body_base64, undefined);
+  }
 });
 
 test("runtime client read API bridge blocks writes and auth routes", async () => {

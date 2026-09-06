@@ -86,6 +86,17 @@ const HRX_ROUTE_POLICIES = Object.freeze([
     resource_param: "employee_id",
   },
   {
+    id: "hrx.employees.photo",
+    method: "GET",
+    pattern: /^\/api\/hrx\/employees\/(?<employee_id>[A-Za-z0-9][A-Za-z0-9._:-]{0,159})\/photo$/u,
+    action: "hrx.employee.read",
+    sensitivity: "employee",
+    required_scope: "hrx.employee.read",
+    purpose: "hr_operations",
+    resource_type: "Employee",
+    resource_param: "employee_id",
+  },
+  {
     id: "hrx.employees.create",
     method: "POST",
     pattern: /^\/api\/hrx\/employees$/,

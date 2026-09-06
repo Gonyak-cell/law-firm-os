@@ -1,4 +1,5 @@
 import { resolveAwsJsonSecret } from "./aws-secret-reference.js";
+import { parseOutlookDesktopAutoconnectRoster } from "./outlook-desktop-entitlement.js";
 import { verifyInternalUnsignedInstallationAuthorityReadback } from "../../../packages/email-dms/src/internal-unsigned-installation-authority-readback.js";
 import {
   createPostgresInternalUnsignedInstallationAuthority,
@@ -51,11 +52,18 @@ export async function createInternalUnsignedInstallationRuntimeFromEnv({
   await verifyAuthority(pool);
   if (!secretId) return createPostgresInternalUnsignedInstallationAuthority({ pool, tenant_id });
   const secret = await resolveSecret({ secretId, region });
-  if (!exactFields(secret, ["key_id", "private_key_pem", "public_key_sha256"])
+  const signerFields = ["key_id", "private_key_pem", "public_key_sha256"];
+  if ((!exactFields(secret, signerFields)
+      && !exactFields(secret, [...signerFields, "entitlement_roster"]))
     || typeof secret.key_id !== "string" || !ID.test(secret.key_id)
     || typeof secret.public_key_sha256 !== "string" || !/^[a-f0-9]{64}$/u.test(secret.public_key_sha256)
     || typeof secret.private_key_pem !== "string" || !secret.private_key_pem.trim()) {
     throw new TypeError("Internal installation signer secret is invalid");
+  }
+  const roster = Object.hasOwn(secret, "entitlement_roster")
+    ? parseOutlookDesktopAutoconnectRoster(secret.entitlement_roster) : null;
+  if (roster?.entries.some((entry) => entry.tenant_id !== tenant_id)) {
+    throw new TypeError("Internal installation roster tenant does not match its authority");
   }
   const service = createPostgresInternalUnsignedInstallationAuthority({
     pool, tenant_id,
@@ -63,7 +71,28 @@ export async function createInternalUnsignedInstallationRuntimeFromEnv({
     attestation_private_key: secret.private_key_pem,
     expected_attestation_public_key_sha256: secret.public_key_sha256,
   });
-  return service;
+  return roster ? Object.freeze(Object.defineProperty({ ...service }, "entitlement_roster", {
+    value: roster,
+    enumerable: false,
+  })) : service;
+}
+
+export function resolveInternalUnsignedInstallationRoster(existingInput, service) {
+  const roster = service?.entitlement_roster;
+  let existingRoster = null;
+  if (existingInput != null && existingInput !== "") {
+    try {
+      existingRoster = parseOutlookDesktopAutoconnectRoster(existingInput);
+    } catch {
+      if (roster) throw new TypeError("Configured Outlook roster is invalid alongside the installation roster");
+      return null;
+    }
+  }
+  if (!roster) return existingRoster;
+  if (existingRoster && JSON.stringify(existingRoster) !== JSON.stringify(roster)) {
+    throw new TypeError("Internal installation roster conflicts with the configured Outlook roster");
+  }
+  return roster;
 }
 
 export function composeInternalUnsignedInstallationRuntime(runtime, service) {

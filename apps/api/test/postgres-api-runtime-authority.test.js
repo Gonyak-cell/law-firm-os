@@ -9,6 +9,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 import { createLocalStorageAdapter } from "../../../packages/dms/src/storage/local-storage-adapter.js";
+import { createHrxMemberPhotoStorage } from "../../../packages/hrx/src/member-photo-storage.js";
 import {
   DMS_AUXILIARY_DOMAIN_DESCRIPTOR,
   createDmsAuxiliaryRepository,
@@ -38,6 +39,7 @@ import { handleCrmIntakeApiRequest } from "../src/crm-intake-runtime-context.js"
 import { handleFinanceApiRequest } from "../src/finance-runtime-context.js";
 import { handleHomeDashboardApiRequest } from "../src/home-dashboard-runtime-context.js";
 import { handleHrxApiRequest, resolveHrxEmployeeProfileByUserId } from "../src/hrx-runtime-context.js";
+import { appendHrxRouteAudit } from "../src/middleware/hrx-audit-write.js";
 import {
   handleClientGroupRegistrationCreate,
   handleClientGroupRegistrationReview,
@@ -270,7 +272,7 @@ test("PostgreSQL profile reads are bounded, tenant-scoped, and never flush domai
   });
   await t.test("other methods and neighboring routes retain normal domain handling", async () => {
     profileRead = false;
-    for (const [method, pathname] of [["POST", "/api/profile/me"], ["GET", "/api/profile/me/other"]]) {
+    for (const [method, pathname] of [["POST", "/api/profile/me"], ["GET", "/api/profile/me/other"], ["POST", "/api/hrx/employees"], ["GET", "/api/hrx/employees/other"]]) {
       calls.length = 0;
       assert.equal(await authority.run({
         tenant_id: TENANT_A,
@@ -281,6 +283,85 @@ test("PostgreSQL profile reads are bounded, tenant-scoped, and never flush domai
     }
   });
   assert.deepEqual(await capture(), before);
+});
+
+test("PostgreSQL employee directory reads isolate HRX and retain durable denial audit", async (t) => {
+  const fixture = await createMigratedPostgresFixture(t, { appPoolMax: 1 });
+  if (!fixture) return;
+  const ledger = createPostgresDomainLedger({ pool: fixture.appPool });
+  const employeeId = "employee-directory-bounded";
+  const userId = "user-directory-bounded";
+  await importMatterAssignmentIdentityBaseline(ledger, TENANT_A, { employeeId, userId });
+  const scope = { tenant_id: TENANT_A, domain_id: "hrx" };
+  const capture = async () => ({ records: await ledger.list(scope), audit: await ledger.listAudit(scope),
+    idempotency: await ledger.listIdempotency(scope), outbox: await ledger.listOutbox(scope) });
+  const before = await capture();
+  const scopedLedger = Object.fromEntries(Object.entries(ledger).map(([name, value]) => [name,
+    typeof value !== "function" ? value : (input, ...args) => {
+      assert.deepEqual(input.domain_ids ?? [input.domain_id], ["hrx"], "directory reads must not materialize other domains");
+      return value(input, ...args);
+    },
+  ]));
+  const dmsStorage = createLocalStorageAdapter({ adapter_id: "bounded-hrx-directory-test" });
+  const memberPhotoStorage = createHrxMemberPhotoStorage({ storage: dmsStorage });
+  const authority = createPostgresApiRuntimeAuthority({
+    ledger: scopedLedger, dmsStorage, memberPhotoStorage, payrollArtifactSecret: PAYROLL_ARTIFACT_SECRET,
+    bankImportPreviewTokens: BANK_IMPORT_PREVIEW_TOKENS,
+    dmsUploadRuntime: createPostgresDmsUploadRuntime({ pool: fixture.appPool, storage: dmsStorage, sourceOnly: false }),
+    identityRepository: { listDirectoryUsers() { assert.fail("directory reads do not need an identity-wide scan"); } },
+  });
+  const request = { tenant_id: TENANT_A, actor_id: userId, actor_role: "hr_admin", hrx_scopes: ["hrx.employee.read"], session_bound: true };
+  for (const pathname of ["/api/hrx/employees", "/api/hrx/org-chart"]) {
+    for (const [actorId, role, count] of [[userId, "hr_admin", 1], [userId, "staff", 1], ["user-unlinked", "staff", 0]]) {
+      const result = await authority.run({
+        tenant_id: TENANT_A, request_context: { method: "GET", pathname, actor_id: actorId },
+        command({ hrxRuntime, matterRuntime }) {
+          assert.equal(matterRuntime, undefined);
+          assert.equal(hrxRuntime.allowStaticRosterFallback, false);
+          return handleHrxApiRequest({ pathname, method: "GET", context: hrxRuntime,
+            requestContext: { ...request, actor_id: actorId, actor_role: role } });
+        },
+      });
+      assert.equal(result.status, 200);
+      assert.equal(result.body.employees.length, count);
+      if (count) assert.equal(result.body.employees[0].employee_id, employeeId);
+    }
+  }
+  const photo = await authority.run({ tenant_id: TENANT_A,
+    request_context: { method: "GET", pathname: `/api/hrx/employees/${employeeId}/photo` },
+    command({ hrxRuntime, matterRuntime }) {
+      assert.equal(matterRuntime, undefined);
+      assert.equal(hrxRuntime.memberPhotoStorage, memberPhotoStorage);
+      return Buffer.from("synthetic handler response");
+    },
+  });
+  assert.equal(photo.toString(), "synthetic handler response");
+  assert.deepEqual(await capture(), before);
+  await assert.rejects(authority.run({ tenant_id: TENANT_B,
+    request_context: { method: "GET", pathname: "/api/hrx/employees" },
+    command() { assert.fail("unready tenant cannot reach the handler"); },
+  }), { safe_error_code: "HRX_POSTGRES_AUTHORITY_NOT_READY" });
+  const appendDenial = runtime => appendHrxRouteAudit({ store: runtime.audit, context: request,
+    route: "/api/hrx/employees", action: "hrx.employee.read", decision: { effect: "deny", reason: "synthetic_scope_denial" } });
+  await assert.rejects(authority.run({ tenant_id: TENANT_A,
+    request_context: { method: "GET", pathname: "/api/hrx/employees", actor_id: userId },
+    async command({ hrxRuntime }) { await appendDenial(hrxRuntime); throw new Error("synthetic response failure"); },
+  }), /synthetic response failure/u);
+  assert.deepEqual(await capture(), before);
+  assert.equal(await authority.run({ tenant_id: TENANT_A,
+    request_context: { method: "GET", pathname: "/api/hrx/employees", actor_id: userId, idempotency_key: "bounded-directory-denial-audit" },
+    async command({ hrxRuntime }) { await appendDenial(hrxRuntime); return 403; },
+  }), 403);
+  const afterDenial = await capture();
+  assert.ok(afterDenial.records.length > before.records.length);
+  for (const row of before.records) assert.deepEqual(afterDenial.records.find(candidate => candidate.record_type === row.record_type && candidate.record_id === row.record_id), row);
+  const audit = await authority.run({ tenant_id: TENANT_A,
+    request_context: { method: "GET", pathname: "/api/hrx/org-chart", actor_id: userId },
+    command({ hrxRuntime }) { return hrxRuntime.audit.exportTenant({ tenant_id: TENANT_A }); },
+  });
+  assert.equal(audit.hash_chain_valid, true);
+  assert.equal(audit.events.filter(event => event.reason === "synthetic_scope_denial").length, 1);
+  assert.deepEqual(await capture(), afterDenial);
 });
 
 async function assertMatterAssignmentRejectsInactiveIdentity({

@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { memberPhotoFor } from "../src/people/memberPhotos.js";
 
 const PNG_BYTES = Uint8Array.from([
   137, 80, 78, 71, 13, 10, 26, 10,
@@ -36,6 +37,50 @@ function desktopLocation() {
     password: "",
     search: "?desktop=1",
   };
+}
+
+for (const desktop of [false, true]) {
+  test(`employee photo hydration binds its path to the employee in ${desktop ? "desktop" : "web"}`, async () => {
+    const previousWindow = globalThis.window;
+    const previousFetch = globalThis.fetch;
+    const employee = { employee_id: "employee-synthetic", photo_url: "/api/hrx/employees/employee-synthetic/photo" };
+    let readCount = 0;
+    let allowed = true;
+    globalThis.window = { location: desktop ? desktopLocation() : webLocation(),
+      ...(desktop ? { matterSession: { async api(input) {
+        assert.equal(input.path, employee.photo_url);
+        readCount += 1;
+        return allowed ? { http_status: 200, binary_body_base64: Buffer.from(PNG_BYTES).toString("base64"),
+          byte_size: PNG_BYTES.byteLength, content_type: "image/png", token_material_returned: false }
+          : { http_status: 403, body: { outcome: "denied" }, token_material_returned: false };
+      } } } : {}),
+    };
+    globalThis.fetch = async input => {
+      assert.equal(desktop, false, "desktop photos must use the authenticated main-process bridge");
+      assert.equal(input, employee.photo_url);
+      readCount += 1;
+      return new Response(allowed ? PNG_BYTES : null, { status: allowed ? 200 : 403,
+        headers: { "content-type": "image/png", "cache-control": "private, no-store" } });
+    };
+    try {
+      const { hydrateAuthenticatedProfilePhoto } = await import(`../src/data/apiClient.js?employee-photo=${desktop}-${Date.now()}`);
+      const hydrated = await hydrateAuthenticatedProfilePhoto(employee);
+      assert.equal(memberPhotoFor(hydrated), `data:image/png;base64,${Buffer.from(PNG_BYTES).toString("base64")}`);
+      for (const photo_url of ["https://untrusted.example/photo.png", "/api/hrx/employees/other/photo", `${employee.photo_url}?tenant_id=other`, "/api/hrx/employees/../photo"]) {
+        const rejected = await hydrateAuthenticatedProfilePhoto({ ...employee, photo_url });
+        assert.equal(memberPhotoFor(rejected), undefined);
+      }
+      assert.equal(readCount, 1);
+      allowed = false;
+      const denied = await hydrateAuthenticatedProfilePhoto(employee);
+      assert.equal(denied.photo_url, null);
+      assert.equal(denied.photo_included, false);
+      assert.equal(readCount, 2);
+    } finally {
+      globalThis.window = previousWindow;
+      globalThis.fetch = previousFetch;
+    }
+  });
 }
 
 test("web profile read hydrates the authenticated PNG without exposing its server path", async () => {

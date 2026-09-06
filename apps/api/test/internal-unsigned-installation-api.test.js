@@ -5,11 +5,13 @@ import {
   composeInternalUnsignedInstallationRuntime,
   createInternalUnsignedInstallationRuntimeFromEnv,
   handleInternalUnsignedInstallationApiRequest,
+  resolveInternalUnsignedInstallationRoster,
 } from "../src/internal-unsigned-installation-runtime-context.js";
 import {
   OUTLOOK_DESKTOP_AUTOCONNECT_REQUIRED_SCOPE,
   OUTLOOK_DESKTOP_AUTOCONNECT_ROSTER_SCHEMA_VERSION,
   parseOutlookDesktopAutoconnectRoster,
+  evaluateOutlookDesktopEntitlement,
 } from "../src/outlook-desktop-entitlement.js";
 import { handleOutlookDesktopInstallationApiRequest } from "../src/outlook-desktop-installation-runtime-context.js";
 
@@ -335,6 +337,68 @@ test("configured signer rejects authority metadata drift before fetching any sec
   }), (error) => error === drift);
   assert.equal(metadataReads, 1);
   assert.equal(secretCalls, 0);
+});
+
+test("the installation secret restores the exact tenant roster without starting a Graph provider or exposing identities", async () => {
+  const { publicKey, privateKey } = generateKeyPairSync("ed25519");
+  const secret = {
+    key_id: "synthetic-attestation-roster",
+    private_key_pem: privateKey.export({ type: "pkcs8", format: "pem" }),
+    public_key_sha256: createHash("sha256").update(publicKey.export({ type: "spki", format: "der" })).digest("hex"),
+    entitlement_roster: JSON.parse(JSON.stringify(roster)),
+  };
+  let secretReads = 0;
+  let databaseCalls = 0;
+  const options = {
+    env: { AWS_REGION: "ap-northeast-2", LAWOS_INTERNAL_INSTALLATION_ATTESTATION_SECRET_ID: "synthetic/attestation" },
+    pool: { connect: async () => { databaseCalls += 1; throw new Error("unexpected database access"); } },
+    tenant_id: principal.tenant_id,
+    schema_migration_count: 81,
+    verifyAuthority: async () => {},
+    resolveSecret: async () => { secretReads += 1; return secret; },
+  };
+  const service = await createInternalUnsignedInstallationRuntimeFromEnv(options);
+  const restored = resolveInternalUnsignedInstallationRoster(undefined, service);
+  assert.deepEqual(restored, roster);
+  assert.equal(secretReads, 1);
+  assert.equal(service.attestation_configured, true);
+  assert.equal(Object.isFrozen(restored.entries[0]), true);
+  assert.equal(Object.keys(service).includes("entitlement_roster"), false);
+  assert.doesNotMatch(JSON.stringify(service), /subject-internal|user-internal|PRIVATE KEY/);
+  assert.equal(evaluateOutlookDesktopEntitlement({ principal, roster: restored }).eligible, true);
+  for (const denied of [
+    { ...principal, tenant_id: "other-tenant" },
+    { ...principal, user_id: "other-user" },
+    { ...principal, entra_subject_id: "other-subject" },
+    { ...principal, scopes: [] },
+  ]) {
+    assert.equal(evaluateOutlookDesktopEntitlement({ principal: denied, roster: restored }).eligible, false);
+  }
+  assert.deepEqual(resolveInternalUnsignedInstallationRoster(JSON.stringify(roster), service), roster);
+  assert.throws(() => resolveInternalUnsignedInstallationRoster({ ...roster, roster_version: "different" }, service), /conflicts/);
+  assert.throws(() => resolveInternalUnsignedInstallationRoster("malformed", service), /invalid alongside/);
+  assert.equal(resolveInternalUnsignedInstallationRoster("malformed", null), null);
+  assert.deepEqual(resolveInternalUnsignedInstallationRoster(roster, null), roster);
+  assert.equal(resolveInternalUnsignedInstallationRoster(null, null), null);
+
+  for (const invalid of [
+    null,
+    { ...roster, entries: roster.entries.slice(0, 9) },
+    { ...roster, entries: [...roster.entries.slice(0, 9), roster.entries[0]] },
+    { ...roster, entries: roster.entries.map((entry) => ({ ...entry, tenant_id: "other-tenant" })) },
+    { ...roster, entries: roster.entries.map((entry, index) => index ? entry : { ...entry, enabled: false }) },
+  ]) {
+    await assert.rejects(createInternalUnsignedInstallationRuntimeFromEnv({ ...options,
+      resolveSecret: async () => ({ ...secret, entitlement_roster: invalid }),
+    }));
+  }
+  await assert.rejects(createInternalUnsignedInstallationRuntimeFromEnv({ ...options,
+    resolveSecret: async () => ({ ...secret, arbitrary: true }),
+  }), /secret is invalid/);
+  await assert.rejects(createInternalUnsignedInstallationRuntimeFromEnv({ ...options,
+    resolveSecret: async () => ({ ...secret, public_key_sha256: "f".repeat(64) }),
+  }));
+  assert.equal(databaseCalls, 0);
 });
 
 test("HTTP dispatch retains session and permission checks while reaching the internal attestation authority", async () => {

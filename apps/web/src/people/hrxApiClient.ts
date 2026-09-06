@@ -1,4 +1,4 @@
-import { isDesktopRendererLocation, readLawosApiSession } from "../data/apiClient.js";
+import { hydrateAuthenticatedProfilePhoto, isDesktopRendererLocation, readLawosApiSession } from "../data/apiClient.js";
 
 const HRX_ORG_REF = "tenant_hrx_synthetic";
 const LAWOS_SESSION_ENVELOPE_STORAGE_KEY = "lawos.session.envelope";
@@ -504,7 +504,13 @@ export async function fetchHrxEmployees(options: HrxRequestOptions = {}) {
   if (result.kind !== "data" || !Array.isArray(result.body.employees)) {
     return { kind: "error" as const, reason: result.reason ?? "unexpected_response" };
   }
-  return { kind: "data" as const, employees: result.body.employees };
+  const employees: HrxClientRecord[] = [];
+  const headers = sessionHrxRuntimeHeaders();
+  for (let offset = 0; offset < result.body.employees.length; offset += 4) {
+    employees.push(...await Promise.all(result.body.employees.slice(offset, offset + 4).map(employee =>
+      hydrateAuthenticatedProfilePhoto(employee, headers))));
+  }
+  return { kind: "data" as const, employees };
 }
 
 export async function createHrxEmployee(form: HrxClientRecord) {

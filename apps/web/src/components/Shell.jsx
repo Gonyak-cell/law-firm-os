@@ -1044,7 +1044,7 @@ export function Sidebar({
   const forestUserName = sessionIdentity.name;
   const forestUserLabel = forestUserName || shellLabel(labels, "sessionUserFallback", "사용자");
   const forestUserRole = sessionIdentity.role;
-  const forestUserPhoto = forestUserName ? memberPhotoFor(forestUserName) : undefined;
+  const forestUserPhoto = memberPhotoFor(profileUser);
   const forestUserInitial = forestUserLabel.trim().slice(0, 1);
   useEffect(() => {
     let cancelled = false;
