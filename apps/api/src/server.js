@@ -247,6 +247,7 @@ import {
 } from "./outlook-desktop-installation-runtime-context.js";
 import {
   composeInternalUnsignedInstallationRuntime,
+  resolveInternalUnsignedInstallationRoster,
   createInternalUnsignedInstallationRuntimeFromEnv,
   handleInternalUnsignedInstallationApiRequest,
   isInternalUnsignedInstallationApiPath,
@@ -262,9 +263,6 @@ import {
   assertPostgresOutlookDesktopOperationalControlPorts,
   createPostgresOutlookDesktopOperationalRuntime,
 } from "./outlook-desktop-operational-runtime.js";
-import {
-  parseOutlookDesktopAutoconnectRoster,
-} from "./outlook-desktop-entitlement.js";
 import {
   createPeopleOutlookDesktopCallbackLocation,
   isPeopleOutlookOAuthState,
@@ -357,15 +355,6 @@ export const LAWOS_OUTLOOK_DESKTOP_AUTOCONNECT_ROSTER_ENV =
   "LAWOS_OUTLOOK_DESKTOP_AUTOCONNECT_ROSTER_JSON";
 export const LAWOS_OUTLOOK_VAULT_DELIVERY_PUBLIC_ORIGIN_ENV =
   "LAWOS_OUTLOOK_VAULT_DELIVERY_PUBLIC_ORIGIN";
-
-function resolveOutlookDesktopAutoconnectRoster(value) {
-  if (value == null || value === "") return null;
-  try {
-    return parseOutlookDesktopAutoconnectRoster(value);
-  } catch {
-    return null;
-  }
-}
 
 const OUTLOOK_DESKTOP_FORBIDDEN_STARTUP_OPTIONS = Object.freeze([
   "outlookDesktopRuntime",
@@ -3851,11 +3840,12 @@ async function startApiServerImplementation({
             pool: postgresPool,
             tenant_id: startupAuthorityTenantId,
             entra_tenant_id: m365GraphConfig?.entra_tenant_id ?? null,
-            entitlement_roster: resolveOutlookDesktopAutoconnectRoster(
+            entitlement_roster: resolveInternalUnsignedInstallationRoster(
               outlookDesktopAutoconnectRoster
                 ?? resolvedPersistenceAuthorityEnv[
                   LAWOS_OUTLOOK_DESKTOP_AUTOCONNECT_ROSTER_ENV
                 ],
+              internalUnsignedInstallationService,
             ),
             ...(outlookDesktopEntitlementEnabled
               ? {

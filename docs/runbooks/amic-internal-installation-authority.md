@@ -24,6 +24,25 @@ The API requires one new environment reference:
 Secrets Manager reference, never the private key. The secret is a closed JSON
 object containing `key_id`, `private_key_pem`, and `public_key_sha256`. The last
 field must equal the SHA-256 of the private key's Ed25519 public SPKI DER bytes.
+The same closed object may additionally contain `entitlement_roster`, using the
+existing `lawos.outlook-desktop-autoconnect-roster.v1` contract. It must contain
+exactly ten enabled, unique identities, all bound to the installation authority's
+tenant. This optional field lets installation enrollment use the approved roster
+while the Graph provider and conversation worker remain disabled. The roster is
+kept non-enumerable on the service and is never returned in an API response.
+A separately configured Outlook roster must match it exactly; malformed or
+conflicting concurrent configuration stops startup. All existing identity,
+permission, device-proof, owner-grant, expiry and revocation checks remain required.
+
+Deploy code accepting the optional field before promoting a secret version that
+contains it. Copy only the independently verified approved roster, preserve the
+exact issuer ID, private key and public-key digest, and verify the new immutable
+secret version before moving `AWSCURRENT`. This is not a signing-key rotation.
+Keep the previous secret version for recovery. Before rolling back to code that
+accepts only the original three fields, restore that exact previous version.
+Do not place roster JSON in Lambda environment variables or Git. Reuse the
+existing exact secret reference and API-only read permission; no provider flag,
+worker permission or additional environment value is needed.
 Grant the API only the required secret read. Configure the matching issuer ID,
 public key, and digest independently for the adoption publisher and reader.
 The production template's `InternalInstallationAttestationSecretArn` parameter
