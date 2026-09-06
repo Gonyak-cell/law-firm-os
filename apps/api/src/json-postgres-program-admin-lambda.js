@@ -597,6 +597,12 @@ function assertOutlookDatabaseTarget(authorization, env) {
 }
 
 function assertOutlookMasterDatabaseTarget(master, receipt) {
+  // RDS-managed secrets contain only credentials; the signed RDS receipt supplies the endpoint.
+  if (hasExactKeys(master, ["username", "password"])
+    && receipt.master_secret_arn.startsWith(
+      `arn:aws:secretsmanager:${receipt.region}:${receipt.account_id}:secret:rds!db-`,
+    )
+    && master.username === receipt.master_username) return;
   const hasDbname = Object.hasOwn(master ?? {}, "dbname");
   const hasDatabase = Object.hasOwn(master ?? {}, "database");
   const database = hasDbname ? master.dbname : master?.database;
