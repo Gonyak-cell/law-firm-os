@@ -3,6 +3,7 @@ import test from "node:test";
 
 import {
   VAULT_CAPABILITY_DEFINITIONS,
+  createPostgresVaultCapabilityResolver,
   projectVaultCapabilities,
   resolveVaultCapabilityProjection,
 } from "../src/vault-capability-projection.js";
@@ -10,6 +11,31 @@ import { createApiSessionAuth } from "../src/session-auth.js";
 import { highestPrivilegeRegisteredAccount } from "../src/matter-vault-account-registry.js";
 
 const capabilityIds = VAULT_CAPABILITY_DEFINITIONS.map(({ id }) => id);
+
+test("native PostgreSQL capabilities require a probed authority and exact tenant, then intersect session scopes", async () => {
+  let contract = { authority: "lawos-dms-postgres-consumer-read-v1", durable: true,
+    deny_before_provider_io: true, probe_completed: true };
+  const resolver = createPostgresVaultCapabilityResolver({ tenantId: "tenant_amic",
+    consumerReadAuthority: { validate: () => contract } });
+  const read = async (input = principal(["vault.read", "audit.read", "vault.write", "vault.governance"])) => (
+    resolveVaultCapabilityProjection({ principal: input, resolver })
+  );
+  const ready = await read();
+  assert.equal(ready.authoritative, true);
+  assert.deepEqual(ready.capabilities.filter((item) => item.allowed).map((item) => item.id), ["read", "audit"]);
+  assert.ok((await read(principal([]))).capabilities.every((item) => !item.allowed));
+  assert.equal((await read({ ...principal(["vault.read"]), tenant_id: "tenant_other" })).authoritative, false);
+  assert.equal(resolver({ tenant_id: "tenant_amic", user_id: " " }), null);
+  const valid = contract;
+  for (const patch of [{ authority: "unverified" }, { durable: false },
+    { deny_before_provider_io: false }, { probe_completed: false }]) {
+    contract = { ...valid, ...patch };
+    assert.ok((await read()).capabilities.every((item) => !item.allowed));
+  }
+  contract = null;
+  assert.equal((await read()).authoritative, false);
+  assert.throws(() => createPostgresVaultCapabilityResolver({ tenantId: " " }), /tenant is required/u);
+});
 
 function principal(scopes = []) {
   return {
