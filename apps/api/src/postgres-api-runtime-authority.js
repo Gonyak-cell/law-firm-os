@@ -7,6 +7,7 @@ import {
   materializeHrxStoreWithProjection,
 } from "../../../packages/hrx/src/postgres-store-v2.js";
 import { createHrxRuntimeContext } from "./hrx-runtime-context.js";
+import { createSqlHrxRepository } from "../../../packages/hrx/src/repository-sql.js";
 import { createMasterDataRepository } from "../../../packages/master-data/src/repository.js";
 import { MASTER_DATA_DOMAIN_DESCRIPTOR } from "../../../packages/master-data/src/central-ledger.js";
 import { createMatterRepository } from "../../../packages/matter/src/repository.js";
@@ -700,6 +701,29 @@ export function createPostgresApiRuntimeAuthority({
     const tenantId = requiredText(tenant_id, "tenant_id");
     if (typeof command !== "function") throw new TypeError("PostgreSQL API command callback is required");
     const method = String(request_context?.method ?? "").toUpperCase();
+    const pathname = String(request_context?.pathname ?? "").replace(/\/+$/, "");
+    if (method === "GET" && ["/api/profile/me", "/api/profile/me/photo"].includes(pathname)) {
+      const participant = createHrxDomainParticipant(request_context, hrxRelationalProjectionReader);
+      const store = await ledger.transactionMany({ tenant_id: tenantId, domain_ids: [HRX_DOMAIN_ID] },
+        (transactions) => participant.materialize({ ledger: transactions[HRX_DOMAIN_ID], tenant_id: tenantId }));
+      try {
+        const identityUsers = identityRepository?.listDirectoryUsers
+          ? await identityRepository.listDirectoryUsers({ tenant_id: tenantId })
+          : [];
+        const result = await command(Object.freeze({
+          hrxRuntime: Object.freeze({
+            repository: createSqlHrxRepository({ store }),
+            identityUserDirectory: createIdentityUserDirectorySnapshot(identityUsers),
+            memberPhotoStorage,
+            allowStaticRosterFallback: false,
+          }),
+        }));
+        assertHrxPostgresAuthorityReady({ store, tenant_id: tenantId });
+        return result;
+      } finally {
+        store.close();
+      }
+    }
     const peopleOutlookSelfCompletion = isPeopleOutlookSelfCompletion(
       method,
       request_context?.pathname,
