@@ -36,6 +36,7 @@ export async function disposablePostgresAvailable() {
 
 export async function startDisposablePostgres(t, {
   outlookAuthorityAdmin = false,
+  bootstrapUsername = userInfo().username,
 } = {}) {
   if (!(await disposablePostgresAvailable())) {
     t.skip("local PostgreSQL binaries are unavailable");
@@ -49,7 +50,7 @@ export async function startDisposablePostgres(t, {
   const socketDir = separateSocketDir
     ? mkdtempSync("/tmp/lawos-pg-socket-")
     : rootSocketDir;
-  const username = userInfo().username;
+  const username = bootstrapUsername;
   const port = await reservePort();
   mkdirSync(socketDir, { recursive: true, mode: 0o700 });
   let stopped = false;

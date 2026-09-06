@@ -20,6 +20,7 @@ import {
 import { runPostgresMigrations } from "../src/postgres/migration-runner.js";
 import { createPostgresPool } from "../src/postgres/pool.js";
 import { startDisposablePostgres } from "./helpers/disposable-postgres.js";
+import { syntheticNativeRdsReadiness } from "./helpers/native-rds-role-history.js";
 
 const TENANT_CONTEXT_SECRET =
   "outlook-tenant-context-secret-at-least-32-bytes";
@@ -1587,6 +1588,48 @@ test("Outlook database roles and synthetic 007 authority stay exact in disposabl
     ),
     (error) => error?.code === "LAWOS_OUTLOOK_TENANT_AUTHORITY_DRIFT",
   );
+});
+
+test("native RDS replay requires signed history and every supporting edge", async (t) => {
+  const { receipt, historicalOutlookBootstrapSha256 } =
+    syntheticNativeRdsReadiness(knownRoleBootstrap());
+  const expected = { historicalOutlookBootstrapSha256 };
+  const normalized = assertLawosOutlookRoleBootstrapReceipt(receipt, expected);
+  assert.equal(normalized.native_rds_history.memberships.length, 10);
+  assert.equal(normalized.role_bootstrap.migration_admin.inherit, true);
+  assert.throws(() => assertLawosOutlookRoleBootstrapReceipt(receipt), /signed historical/u);
+  assert.throws(() => lawosOutlookRoleBootstrapDigest(receipt.role_bootstrap), /privilege drifted/u);
+  const mutations = [
+    (r) => { r.native_rds_history.pause_expectation.database_target_receipt_sha256 = "0".repeat(64); },
+    (r) => { r.native_rds_history.bootstrap_grantor.can_login = true; },
+    (r) => { r.native_rds_history.bootstrap_grantor.inherit = true; },
+    (r) => { r.native_rds_history.rds_superuser.can_login = true; },
+    (r) => { r.native_rds_history.rdsadmin.superuser = false; },
+    (r) => { r.native_rds_history.rdsadmin.name = "rds_forged"; },
+    (r) => { r.native_rds_history.rdsadmin.oid = r.role_bootstrap.migration_admin.oid; },
+    (r) => { r.role_bootstrap.roles[0].superuser = true; },
+    (r) => { r.role_bootstrap.migration_admin.inherit = false; },
+    (r) => { r.role_bootstrap.migration_admin.valid_until_present = true; r.role_bootstrap.migration_admin.valid_until = "2030-01-01T00:00:00.000000Z"; },
+    (r) => { r.native_rds_history.memberships.push(r.native_rds_history.memberships[0]); },
+    (r) => { r.native_rds_history.unexpected = true; },
+    ...receipt.native_rds_history.memberships.flatMap((_, i) => [
+      (r) => { r.native_rds_history.memberships.splice(i, 1); },
+      (r) => { r.native_rds_history.memberships[i].set_option = !r.native_rds_history.memberships[i].set_option; },
+      (r) => { r.native_rds_history.memberships[i].inherit_option = !r.native_rds_history.memberships[i].inherit_option; },
+      (r) => { r.native_rds_history.memberships[i].admin_option = !r.native_rds_history.memberships[i].admin_option; },
+    ]),
+  ];
+  for (const mutate of mutations) {
+    const changed = structuredClone(receipt); mutate(changed);
+    assert.throws(() => assertLawosOutlookRoleBootstrapReceipt(changed, expected));
+  }
+  const instance = await startDisposablePostgres(t);
+  if (!instance) return;
+  const pool = createPostgresPool({ connectionString: instance.connection_string,
+    sslMode: "disable", allowInsecureLocal: true });
+  t.after(async () => { await pool.end(); await instance.stop(); });
+  assert.equal(await sqlRoleBootstrapDigest(pool, receipt.role_bootstrap),
+    receipt.role_bootstrap_sha256);
 });
 
 test("Outlook role bootstrap receipt is closed and binds every live identity", () => {

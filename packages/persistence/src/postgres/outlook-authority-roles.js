@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { hashDomainValue } from "../domain-ledger.js";
 import { setPostgresRolePassword } from "./role-password.js";
 
 export const LAWOS_OUTLOOK_AUTHORITY_OWNER_ROLE =
@@ -17,6 +18,9 @@ const CATALOG_SCHEMA_VERSION =
   "law-firm-os.outlook-authority-catalog.v1";
 const ROLE_READINESS_SCHEMA_VERSION =
   "law-firm-os.outlook-role-readiness.v2";
+const NATIVE_RDS_READINESS_SCHEMA_VERSION =
+  "law-firm-os.outlook-role-readiness.native-rds-history.v1";
+const NATIVE_RDS_BOOTSTRAP_GRANTOR = "lawos_outlook_bootstrap_grantor";
 const APPLICATION_ROLE_PRECONDITION_SCHEMA_VERSION =
   "lawos.outlook-application-role-precondition.v1";
 const APPLICATION_ROLE = "lawos_app";
@@ -391,12 +395,12 @@ function assertExactBootstrapRole(role) {
   }
 }
 
-function assertExactMigrationAdmin(role) {
+function assertExactMigrationAdmin(role, { nativeRdsHistory = false } = {}) {
   if (role.can_login !== true
     || role.superuser !== false
     || role.createdb !== true
     || role.createrole !== true
-    || role.inherit !== false
+    || role.inherit !== nativeRdsHistory
     || role.replication !== false
     || role.bypass_rls !== false
     || role.connection_limit !== -1
@@ -408,7 +412,7 @@ function assertExactMigrationAdmin(role) {
   return role;
 }
 
-function normalizeRoleBootstrap(value) {
+function normalizeRoleBootstrap(value, { nativeRdsHistory = null } = {}) {
   if (!exactKeys(value, [
     "schema_version",
     "postgres_major",
@@ -429,7 +433,9 @@ function normalizeRoleBootstrap(value) {
     value.migration_admin,
     LAWOS_OUTLOOK_MIGRATION_ADMIN_ROLE,
   );
-  assertExactMigrationAdmin(migrationAdmin);
+  assertExactMigrationAdmin(migrationAdmin, {
+    nativeRdsHistory: nativeRdsHistory !== null,
+  });
   if (!exactKeys(value.schema_owners, [
     OUTLOOK_AUTHORITY_SCHEMA,
     META_SCHEMA,
@@ -509,7 +515,7 @@ function normalizeRoleBootstrap(value) {
       "Outlook database role membership drifted",
     );
   }
-  return Object.freeze({
+  const bootstrap = Object.freeze({
     schema_version: LAWOS_OUTLOOK_ROLE_BOOTSTRAP_SCHEMA_VERSION,
     postgres_major: 16,
     database: normalizedDatabase(value.database),
@@ -519,6 +525,78 @@ function normalizeRoleBootstrap(value) {
     bootstrap_grantor: grantor,
     roles,
     memberships,
+  });
+  if (nativeRdsHistory !== null) {
+    normalizeNativeRdsHistory(nativeRdsHistory, bootstrap);
+  }
+  return bootstrap;
+}
+
+function normalizeNativeRdsHistory(value, bootstrap) {
+  const pauseKeys = ["schema_version", "role_bootstrap_sha256",
+    "authority_manifest_sha256", "database_target_receipt_sha256",
+    "migration_catalog_sha256"];
+  if (!exactKeys(value, ["pause_expectation", "bootstrap_grantor",
+    "rds_superuser", "rdsadmin", "memberships"])
+    || !exactKeys(value.pause_expectation, pauseKeys)
+    || value.pause_expectation.schema_version
+      !== LAWOS_OUTLOOK_ROLE_BOOTSTRAP_SCHEMA_VERSION
+    || pauseKeys.slice(1).some((key) => typeof value.pause_expectation[key] !== "string"
+      || !SHA256.test(value.pause_expectation[key]))) {
+    throw bootstrapDrift("Native RDS historical authority is invalid");
+  }
+  const grantor = normalizedRoleState(value.bootstrap_grantor,
+    NATIVE_RDS_BOOTSTRAP_GRANTOR);
+  const rdsSuperuser = normalizedRoleState(value.rds_superuser, "rds_superuser");
+  for (const role of [grantor, rdsSuperuser]) {
+    if (role.can_login || role.superuser || role.createdb || role.createrole
+      || role.inherit !== (role.name === "rds_superuser")
+      || role.replication || role.bypass_rls || role.connection_limit !== -1
+      || role.valid_until_present || role.valid_until !== null || role.config_count !== 0) {
+      throw bootstrapDrift("Native RDS supporting role privilege drifted");
+    }
+  }
+  const platformKeys = ["can_login", "superuser", "createdb", "createrole",
+    "inherit", "replication", "bypass_rls"];
+  if (!exactKeys(value.rdsadmin, ["oid", "name", ...platformKeys])
+    || value.rdsadmin.name !== "rdsadmin"
+    || platformKeys.some((key) => value.rdsadmin[key] !== true)) {
+    throw bootstrapDrift("Native RDS platform grantor drifted");
+  }
+  const rdsadmin = Object.freeze({
+    ...normalizedRoleReference({ oid: value.rdsadmin.oid, name: value.rdsadmin.name }),
+    ...Object.fromEntries(platformKeys.map((key) => [key, true])),
+  });
+  const allRoles = [bootstrap.migration_admin, ...bootstrap.roles,
+    grantor, rdsSuperuser, rdsadmin];
+  if (new Set(allRoles.map(({ oid }) => oid)).size !== allRoles.length
+    || bootstrap.bootstrap_grantor.oid !== grantor.oid
+    || bootstrap.bootstrap_grantor.name !== grantor.name
+    || bootstrap.memberships.length !== MANAGED_ROLES.length
+    || !Array.isArray(value.memberships)) {
+    throw bootstrapDrift("Native RDS historical identities drifted");
+  }
+  const ref = ({ oid, name }) => ({ oid, name });
+  const edge = (role, member, admin, inherit) => ({
+    granted_role: ref(role), member: ref(member), grantor: ref(rdsadmin),
+    admin_option: admin, inherit_option: inherit, set_option: true,
+  });
+  const expected = [
+    ...bootstrap.memberships,
+    ...bootstrap.roles.filter(({ name }) => MANAGED_ROLES.includes(name))
+      .map((role) => edge(role, grantor, true, false)),
+    edge(grantor, bootstrap.migration_admin, true, false),
+    edge(rdsSuperuser, bootstrap.migration_admin, false, true),
+  ].map(normalizedMembership).sort(compareMembership);
+  const memberships = value.memberships.map(normalizedMembership).sort(compareMembership);
+  if (!equalJson(memberships, expected)) {
+    throw drift("LAWOS_OUTLOOK_DATABASE_ROLE_MEMBERSHIP_DRIFT",
+      "Native RDS historical membership graph drifted");
+  }
+  return Object.freeze({
+    pause_expectation: Object.freeze({ ...value.pause_expectation }),
+    bootstrap_grantor: grantor, rds_superuser: rdsSuperuser, rdsadmin,
+    memberships: Object.freeze(memberships),
   });
 }
 
@@ -551,8 +629,8 @@ function updateRoleDigest(hash, role) {
   for (const setting of role.config) updateLengthPrefixed(hash, setting);
 }
 
-export function lawosOutlookRoleBootstrapDigest(value) {
-  const bootstrap = normalizeRoleBootstrap(value);
+export function lawosOutlookRoleBootstrapDigest(value, options = {}) {
+  const bootstrap = normalizeRoleBootstrap(value, options);
   const hash = createHash("sha256");
   updateLengthPrefixed(
     hash,
@@ -604,10 +682,22 @@ export function lawosOutlookRoleBootstrapDigest(value) {
 
 export function assertLawosOutlookRoleBootstrapReceipt(value, {
   expectedRoleBootstrap = null,
+  historicalOutlookBootstrapSha256 = null,
 } = {}) {
   try {
-    const bootstrap = normalizeRoleBootstrap(value?.role_bootstrap);
-    const digest = lawosOutlookRoleBootstrapDigest(bootstrap);
+    const native = value?.schema_version === NATIVE_RDS_READINESS_SCHEMA_VERSION;
+    const nativeRdsHistory = native
+      ? normalizeNativeRdsHistory(value.native_rds_history, value.role_bootstrap) : null;
+    if (native && (typeof historicalOutlookBootstrapSha256 !== "string"
+      || !SHA256.test(historicalOutlookBootstrapSha256)
+      || hashDomainValue(nativeRdsHistory.pause_expectation) !== historicalOutlookBootstrapSha256)) {
+      throw bootstrapDrift("Native RDS replay requires its signed historical authority");
+    }
+    const bootstrap = normalizeRoleBootstrap(value?.role_bootstrap, { nativeRdsHistory });
+    const digest = lawosOutlookRoleBootstrapDigest(bootstrap, { nativeRdsHistory });
+    if (native && digest !== nativeRdsHistory.pause_expectation.role_bootstrap_sha256) {
+      throw bootstrapDrift("Native RDS bootstrap changed from its historical authority");
+    }
     const applicationMembershipCount = bootstrap.memberships.filter(
       ({ granted_role: grantedRole }) =>
         grantedRole.name === APPLICATION_ROLE,
@@ -625,8 +715,9 @@ export function assertLawosOutlookRoleBootstrapReceipt(value, {
       "role_bootstrap_sha256",
       "password_returned",
       "secret_material_returned",
+      ...(native ? ["native_rds_history"] : []),
     ])
-      || value.schema_version !== ROLE_READINESS_SCHEMA_VERSION
+      || value.schema_version !== (native ? NATIVE_RDS_READINESS_SCHEMA_VERSION : ROLE_READINESS_SCHEMA_VERSION)
       || value.role_count !== MANAGED_ROLES.length
       || value.login_role_count !== LOGIN_ROLES.length
       || !Number.isSafeInteger(value.tenant_authority_count)
@@ -644,13 +735,15 @@ export function assertLawosOutlookRoleBootstrapReceipt(value, {
     if (expectedRoleBootstrap) {
       const expected = assertLawosOutlookRoleBootstrapReceipt(
         expectedRoleBootstrap,
+        { historicalOutlookBootstrapSha256 },
       );
-      if (digest !== expected.role_bootstrap_sha256) {
+      if (digest !== expected.role_bootstrap_sha256
+        || !equalJson(nativeRdsHistory, expected.native_rds_history ?? null)) {
         throw bootstrapDrift("Outlook role bootstrap receipt changed");
       }
     }
     return Object.freeze({
-      schema_version: ROLE_READINESS_SCHEMA_VERSION,
+      schema_version: native ? NATIVE_RDS_READINESS_SCHEMA_VERSION : ROLE_READINESS_SCHEMA_VERSION,
       role_count: MANAGED_ROLES.length,
       login_role_count: LOGIN_ROLES.length,
       tenant_authority_count: value.tenant_authority_count,
@@ -662,6 +755,7 @@ export function assertLawosOutlookRoleBootstrapReceipt(value, {
       role_bootstrap_sha256: digest,
       password_returned: false,
       secret_material_returned: false,
+      ...(native ? { native_rds_history: nativeRdsHistory } : {}),
     });
   } catch (error) {
     if (error?.code?.startsWith("LAWOS_OUTLOOK_DATABASE_ROLE_")) throw error;
@@ -954,6 +1048,8 @@ async function readRoleBootstrap(client, {
   migration,
   tenantAuthorityCount,
   expectedRoleBootstrap = null,
+  historicalOutlookBootstrapSha256 = null,
+  historicalPauseExpectation = null,
 } = {}) {
   const database = await readDatabase(client);
   const postgresMajor = await readPostgresMajor(client);
@@ -967,7 +1063,44 @@ async function readRoleBootstrap(client, {
     );
   }
   const roles = catalogRoles.map(roleState);
-  const memberships = (await readMembershipEdges(client)).sort(compareMembership);
+  let nativeRdsHistory = null;
+  let memberships;
+  if (historicalOutlookBootstrapSha256 !== null && migrationAdmin.inherit === true) {
+    if (typeof historicalOutlookBootstrapSha256 !== "string"
+      || !SHA256.test(historicalOutlookBootstrapSha256)
+      || hashDomainValue(historicalPauseExpectation) !== historicalOutlookBootstrapSha256) {
+      throw bootstrapDrift("Native RDS replay historical authority is unbound");
+    }
+    const fullGraph = await readMembershipEdges(client,
+      [...MEMBERSHIP_EDGE_SCOPE_ROLES, NATIVE_RDS_BOOTSTRAP_GRANTOR]);
+    const supportingRows = await readRoles(client,
+      [NATIVE_RDS_BOOTSTRAP_GRANTOR, "rds_superuser", "rdsadmin"]);
+    if (supportingRows.length !== 3) {
+      throw bootstrapDrift("Native RDS supporting roles are incomplete");
+    }
+    const supporting = new Map(supportingRows.map((row) => [row.rolname, row]));
+    const platform = supporting.get("rdsadmin");
+    nativeRdsHistory = {
+      pause_expectation: historicalPauseExpectation,
+      bootstrap_grantor: roleState(supporting.get(NATIVE_RDS_BOOTSTRAP_GRANTOR)),
+      rds_superuser: roleState(supporting.get("rds_superuser")),
+      rdsadmin: {
+        oid: platform.role_oid, name: platform.rolname,
+        can_login: platform.rolcanlogin, superuser: platform.rolsuper,
+        createdb: platform.rolcreatedb, createrole: platform.rolcreaterole,
+        inherit: platform.rolinherit, replication: platform.rolreplication,
+        bypass_rls: platform.rolbypassrls,
+      },
+      memberships: fullGraph,
+    };
+    // The complete graph is checked below; only its original creator edges enter the old digest.
+    memberships = fullGraph.filter((edge) =>
+      edge.member.name === migrationAdminRole
+        && edge.grantor.name === NATIVE_RDS_BOOTSTRAP_GRANTOR);
+  } else {
+    memberships = await readMembershipEdges(client);
+  }
+  memberships.sort(compareMembership);
   const protectedMemberships = memberships.filter(
     ({ granted_role: grantedRole }) =>
       MANAGED_ROLES.includes(grantedRole.name),
@@ -988,9 +1121,9 @@ async function readRoleBootstrap(client, {
     bootstrap_grantor: protectedMemberships[0].grantor,
     roles,
     memberships,
-  });
+  }, { nativeRdsHistory });
   return assertLawosOutlookRoleBootstrapReceipt({
-    schema_version: ROLE_READINESS_SCHEMA_VERSION,
+    schema_version: nativeRdsHistory ? NATIVE_RDS_READINESS_SCHEMA_VERSION : ROLE_READINESS_SCHEMA_VERSION,
     role_count: MANAGED_ROLES.length,
     login_role_count: LOGIN_ROLES.length,
     tenant_authority_count: tenantAuthorityCount,
@@ -1000,10 +1133,11 @@ async function readRoleBootstrap(client, {
       - protectedMemberships.length,
     synthetic_wildcard_count: 0,
     role_bootstrap: bootstrap,
-    role_bootstrap_sha256: lawosOutlookRoleBootstrapDigest(bootstrap),
+    role_bootstrap_sha256: lawosOutlookRoleBootstrapDigest(bootstrap, { nativeRdsHistory }),
     password_returned: false,
     secret_material_returned: false,
-  }, { expectedRoleBootstrap });
+    ...(nativeRdsHistory ? { native_rds_history: nativeRdsHistory } : {}),
+  }, { expectedRoleBootstrap, historicalOutlookBootstrapSha256 });
 }
 
 async function readTenantAuthorities(client) {
@@ -1049,6 +1183,8 @@ export async function verifyLawosOutlookDatabaseRoles(client, {
   migration,
   approvedTenantIds,
   expectedRoleBootstrap = null,
+  historicalOutlookBootstrapSha256 = null,
+  historicalPauseExpectation = null,
 } = {}) {
   if (!client || typeof client.query !== "function") {
     throw new TypeError("PostgreSQL client is required");
@@ -1061,6 +1197,8 @@ export async function verifyLawosOutlookDatabaseRoles(client, {
     migration: migrationBinding,
     tenantAuthorityCount: LOGIN_ROLES.length * tenants.length,
     expectedRoleBootstrap,
+    historicalOutlookBootstrapSha256,
+    historicalPauseExpectation,
   });
 }
 

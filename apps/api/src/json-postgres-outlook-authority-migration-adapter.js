@@ -141,12 +141,6 @@ export function createJsonPostgresOutlookAuthorityMigrationAdapter(options = {})
           authority_catalog: AUTHORITY,
           phase: replay ? "post_migration" : "pre_migration",
         });
-        applicationRole = await verifyLawosOutlookApplicationRolePrecondition(
-          client,
-          { migrationAdminRole: AUTHORITY.migration_admin,
-            expectedApplicationMembershipPresent:
-              preflight.lawos_app_membership_present },
-        );
         if (replay) {
           pause = await readOutlookAssignmentMigrationPauseExpectation(client);
           if (pause.authority_manifest_sha256 !== authoritySha
@@ -161,10 +155,31 @@ export function createJsonPostgresOutlookAuthorityMigrationAdapter(options = {})
                         HISTORICAL_MIGRATION_CATALOG_SHA256)))) {
             fail("persisted Outlook migration expectation drifted");
           }
+        }
+        if (hasHistoricalBootstrap) {
+          if (!replay) fail("historical Outlook bootstrap requires an existing protected receipt");
+          readiness = await verifyLawosOutlookDatabaseRoles(client, {
+            migrationAdminRole: AUTHORITY.migration_admin, migration: MIGRATION,
+            approvedTenantIds, historicalOutlookBootstrapSha256: historicalBootstrapSha,
+            historicalPauseExpectation: pause,
+          });
+          if (readiness.role_bootstrap_sha256 !== pause.role_bootstrap_sha256
+            || readiness.application_membership_edge_count
+              !== Number(preflight.lawos_app_membership_present)) {
+            fail("historical Outlook role precondition drifted");
+          }
+        } else {
+          applicationRole = await verifyLawosOutlookApplicationRolePrecondition(
+            client,
+            { migrationAdminRole: AUTHORITY.migration_admin,
+              expectedApplicationMembershipPresent:
+                preflight.lawos_app_membership_present },
+          );
+        }
+        if (replay) {
           phase = "post";
           return pause;
         }
-        if (hasHistoricalBootstrap) fail("historical Outlook bootstrap requires an existing protected receipt");
         phase = "paused";
         return undefined;
       },
@@ -211,6 +226,10 @@ export function createJsonPostgresOutlookAuthorityMigrationAdapter(options = {})
           migrationAdminRole: AUTHORITY.migration_admin, migration: MIGRATION,
           approvedTenantIds,
           ...(readiness ? { expectedRoleBootstrap: readiness } : {}),
+          ...(hasHistoricalBootstrap ? {
+            historicalOutlookBootstrapSha256: historicalBootstrapSha,
+            historicalPauseExpectation: pause,
+          } : {}),
         });
         if (readiness.role_bootstrap_sha256 !== pause.role_bootstrap_sha256) {
           fail("post-migration role bootstrap digest drifted");

@@ -63,6 +63,38 @@ target fields, URL-only aliases and a different master username are rejected.
 Do not add connection fields to, rotate or replace the RDS-managed secret to
 prepare a schema transition.
 
+For a previously bootstrapped native RDS database, the signed historical
+bootstrap hash can authorize the existing 79-to-80 and 80-to-81 append paths.
+The adapter verifies the persisted five-field expectation before reading the
+entire role graph, and checks it again after the append. Fresh bootstrap keeps
+its original NOINHERIT administrator and creator-membership requirements.
+
+The native history verifier requires an INHERIT migration administrator with
+otherwise unchanged privileges, the exact five protected roles and their
+original digest, a NOLOGIN/NOINHERIT `lawos_outlook_bootstrap_grantor`, and the
+native `rdsadmin` and `rds_superuser` identities and attributes. It checks every
+membership touching the six LawOS roles or the bootstrap grantor. Exactly ten
+edges are accepted: four original creator edges, four native grants to the
+bootstrap grantor, its native grant to the migration administrator, and the
+native `rds_superuser` membership. Every role OID, grantor OID, ADMIN, INHERIT
+and SET option must match. Extra edges, partial graphs, wildcard role names,
+application memberships and changed historical identities stop before writes.
+
+The native readiness receipt carries the full supporting graph and the
+historical expectation. Its validator also requires the separately authorized
+historical hash; a self-consistent diagnostic receipt alone is insufficient.
+The migration administrator retains its pre-existing indirect SET ROLE path
+through the bootstrap grantor. No role creation, grant/revoke operation,
+password publication or bootstrap-receipt rewrite occurs during an append.
+Do not revoke the bootstrap grantor's ADMIN OPTION to satisfy a generic
+fixture: PostgreSQL 16 tracks dependent grants and can cascade their removal.
+See [PostgreSQL 16 role grants](https://www.postgresql.org/docs/16/sql-grant.html).
+
+Before retrying a blocked append, independently verify the native graph and
+protected-object postflight in a read-only transaction, preserve the failed
+claim, and issue a fresh source-bound approval. Source/fixture success is not
+evidence that the production schema changed.
+
 Execution also requires the three existing Outlook role-secret references in
 the admin environment and `s3:GetObject` for the claim and terminal paths.
 Distinguishing an absent terminal from access denial requires `s3:ListBucket`

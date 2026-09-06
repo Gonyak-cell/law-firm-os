@@ -125,6 +125,7 @@ jobs:
             packages/persistence/test/migration-executor.test.js \
             packages/persistence/test/migration-reconciliation.test.js \
             packages/persistence/test/outlook-authority-corporate-workspace-receipts.test.js \
+            packages/persistence/test/outlook-authority-roles.test.js \
             packages/persistence/test/performance-acceptance.test.js \
             packages/persistence/test/postgres-application-role.test.js \
             packages/persistence/test/postgres-repository-contract.test.js \
