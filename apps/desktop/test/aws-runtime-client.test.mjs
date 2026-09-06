@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
+import { createServer } from "node:http";
 import { Readable } from "node:stream";
 import test from "node:test";
 import {
@@ -649,6 +650,39 @@ test(`runtime client rejects unbound or oversized responses for ${photoPath}`, a
   assert.equal(fetchCount, 2);
 });
 }
+
+test("photo transport rejects real HTTP redirects and stalled response bodies", async (t) => {
+  let mode = "redirect";
+  let redirectedReads = 0;
+  const server = createServer((req, res) => {
+    if (req.url === "/redirected-photo") redirectedReads += 1;
+    else if (mode === "redirect") {
+      res.writeHead(302, { location: "/redirected-photo" });
+      res.end();
+      return;
+    }
+    res.writeHead(200, { "content-type": "image/png", "content-length": "8",
+      "cache-control": "private, no-store", "x-content-type-options": "nosniff" });
+    res.write(Buffer.from([137, 80, 78, 71]));
+    if (mode !== "stalled") res.end(Buffer.from([13, 10, 26, 10]));
+  });
+  await new Promise(resolve => server.listen(0, "127.0.0.1", resolve));
+  t.after(() => new Promise(resolve => { server.closeAllConnections(); server.close(resolve); }));
+  const client = createMatterVaultAwsRuntimeClient({ baseUrl: `http://127.0.0.1:${server.address().port}`, requestTimeoutMs: 100 });
+  for (const path of ["/api/profile/me/photo", "/api/hrx/employees/employee-synthetic/photo"]) {
+    mode = "redirect";
+    const redirect = await client.api({ path, sessionToken: "lawos_session_v1.synthetic" });
+    assert.equal(redirect.http_status, 0);
+    assert.equal(redirect.body.reason, "runtime_request_failed");
+    assert.equal(redirectedReads, 0, "authenticated photo requests must not follow redirects");
+    mode = "stalled";
+    const stalled = await client.api({ path, sessionToken: "lawos_session_v1.synthetic" });
+    assert.equal(stalled.http_status, 0);
+    assert.equal(stalled.body.reason, "runtime_request_timeout");
+    assert.equal(stalled.token_material_returned, false);
+    assert.equal(stalled.binary_body_base64, undefined);
+  }
+});
 
 test("runtime client read API bridge blocks writes and auth routes", async () => {
   const client = createMatterVaultAwsRuntimeClient({

@@ -645,6 +645,7 @@ export function createMatterVaultAwsRuntimeClient({ baseUrl, operatorToken, fetc
         new URL(path.slice(1), `${baseUrl}/`),
         {
           method: "GET",
+          redirect: "error",
           headers: { ...jsonHeaders(credential), ...extraHeaders },
           signal: controller.signal,
         },
