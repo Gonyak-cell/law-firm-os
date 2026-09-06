@@ -90,7 +90,10 @@ export function prepareCorporateMasterDataImport({ manifest, currentSnapshot }) 
   validateCorporateImportManifest(manifest);
   const before = createDomainSnapshot(currentSnapshot);
   requireCondition(before.tenant_id === manifest.tenant_id && before.domain_id === "master-data"
-    && before.records.every((record) => record.tenant_id === manifest.tenant_id && record.payload.tenant_id === manifest.tenant_id
+    && before.records.every((record) => record.tenant_id === manifest.tenant_id
+      && (record.payload.tenant_id === manifest.tenant_id
+        || (MASTER_DATA_DOMAIN_DESCRIPTOR.read_only_shadow_record_types.includes(record.record_type)
+          && !Object.hasOwn(record.payload, "tenant_id")))
       && record.payload.model_type === record.record_type), "TENANT");
   const manifestHash = hashDomainValue(manifest);
   const eventId = `corporate-import:${manifestHash}`;
