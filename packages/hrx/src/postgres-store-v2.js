@@ -571,6 +571,10 @@ export async function flushHrxStoreToPostgres({ ledger, store, tenant_id, reques
   const tenantId = requiredText(tenant_id, "tenant_id");
   const source = createHrxOperationalDomainSnapshot({ store, tenant_id: tenantId, request_context });
   const expectedBaseline = materializedBaselines.get(store);
+  if (compareDomainSnapshots(expectedBaseline, source).equal) {
+    const comparison = await compareCommittedReadback({ ledger, tenantId, source });
+    return Object.freeze({ snapshot: source, comparison });
+  }
   try {
     await ledger.transaction({ tenant_id: tenantId, domain_id: HRX_DOMAIN_ID }, (tx) =>
       flushDomainSnapshotToScopedLedger({
