@@ -28,6 +28,52 @@ function currentSourceStore() {
   return store;
 }
 
+test("unchanged HRX reads skip write replay but still reject changed PostgreSQL readback", async (t) => {
+  const fixture = await createMigratedPostgresFixture(t);
+  if (!fixture) return;
+  const ledger = createPostgresDomainLedger({ pool: fixture.appPool, clock: CLOCK });
+  const sourceStore = currentSourceStore();
+  try {
+    await ledger.importSnapshot(createHrxDomainSnapshot({ store: sourceStore, tenant_id: TENANT }).snapshot);
+  } finally {
+    sourceStore.close();
+  }
+  const store = await materializeHrxStoreFromPostgres({ ledger, tenant_id: TENANT });
+  const readbackCalls = [];
+  const readOnlyLedger = {
+    ...ledger,
+    transaction() { assert.fail("unchanged HRX read must not replay a write transaction"); },
+    ...Object.fromEntries(["list", "listIdempotency", "listAudit"].map((method) => [method, async (scope) => {
+      readbackCalls.push(method);
+      return ledger[method](scope);
+    }])),
+  };
+  try {
+    const flush = await flushHrxStoreToPostgres({ ledger: readOnlyLedger, store, tenant_id: TENANT });
+    assert.equal(flush.comparison.equal, true);
+    assert.deepEqual(readbackCalls, ["list", "listIdempotency", "listAudit"]);
+    const employee = store.query("selectOne", { table: "hrx_employees", where: { tenant_id: TENANT } });
+    await runHrxPostgresCommand({
+      ledger,
+      tenant_id: TENANT,
+      request_context: { method: "POST", pathname: "test/concurrent-employee", idempotency_key: "concurrent-employee" },
+      command(current) {
+        return current.query("updateOne", {
+          table: "hrx_employees",
+          where: { tenant_id: TENANT, employee_id: employee.employee_id },
+          patch: { display_name: "Changed by a concurrent writer" },
+        });
+      },
+    });
+    await assert.rejects(
+      flushHrxStoreToPostgres({ ledger: readOnlyLedger, store, tenant_id: TENANT }),
+      (error) => error.safe_error_code === "DOMAIN_SHADOW_DIFFERENCE" && error.status === 409,
+    );
+  } finally {
+    store.close();
+  }
+});
+
 test("HRX domain inventory covers migrations, tables, append-only, CAS, payroll and PII names", () => {
   const store = currentSourceStore();
   try {
