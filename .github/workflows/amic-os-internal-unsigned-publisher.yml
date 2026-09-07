@@ -2,6 +2,9 @@ name: AMIC OS Internal Unsigned Publisher Job
 
 on:
   workflow_call:
+    secrets:
+      AMIC_INTERNAL_ADOPTION_SESSION_TOKEN:
+        required: false
     inputs:
       approval_ref:
         required: true

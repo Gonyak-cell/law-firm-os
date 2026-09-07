@@ -55,6 +55,8 @@ jobs:
       contents: read
       id-token: write
     uses: ./.github/workflows/amic-os-internal-unsigned-publisher.yml
+    secrets:
+      AMIC_INTERNAL_ADOPTION_SESSION_TOKEN: ${{ secrets.AMIC_INTERNAL_ADOPTION_SESSION_TOKEN }}
     with:
       approval_ref: ${{ inputs.approval_ref }}
       publication_mode: ${{ inputs.publication_mode }}
@@ -71,6 +73,8 @@ jobs:
       contents: read
       id-token: write
     uses: ./.github/workflows/amic-os-internal-unsigned-readback.yml
+    secrets:
+      AMIC_INTERNAL_ADOPTION_SESSION_TOKEN: ${{ secrets.AMIC_INTERNAL_ADOPTION_SESSION_TOKEN }}
     with:
       approval_ref: ${{ inputs.approval_ref }}
       publication_mode: ${{ needs.publish-private-internal-unsigned.outputs.publication_mode }}
