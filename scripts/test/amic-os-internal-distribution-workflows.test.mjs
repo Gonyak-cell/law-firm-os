@@ -163,6 +163,15 @@ test("adoption skips every package creation step while ordinary modes retain all
   const dispatcher = await readFile(path.join(root, ".github/workflows/amic-os-internal-unsigned-publish.yml"), "utf8");
   const publisher = await readFile(path.join(root, ".github/workflows/amic-os-internal-unsigned-publisher.yml"), "utf8");
   const reader = await readFile(path.join(root, ".github/workflows/amic-os-internal-unsigned-readback.yml"), "utf8");
+  assert.doesNotMatch(dispatcher, /secrets: inherit/u);
+  for (const name of ["publisher", "readback"]) {
+    assert.ok(dispatcher.includes(`uses: ./.github/workflows/amic-os-internal-unsigned-${name}.yml\n    secrets:\n      AMIC_INTERNAL_ADOPTION_SESSION_TOKEN: \${{ secrets.AMIC_INTERNAL_ADOPTION_SESSION_TOKEN }}`),
+      "the caller declares exactly the adoption session for each reusable workflow");
+  }
+  for (const source of [publisher, reader]) {
+    assert.match(source, /workflow_call:\s+secrets:\s+AMIC_INTERNAL_ADOPTION_SESSION_TOKEN:\s+required: false\s+inputs:/u,
+      "environment-scoped adoption sessions are explicitly declared and optional for other modes");
+  }
   assert.match(dispatcher, /- adopt-managed-bootstrap/u);
   assert.match(dispatcher, /adoption: \$\{\{ needs\.publish-private-internal-unsigned\.outputs\.adoption == 'true' \}\}/u);
   assert.match(publisher, /publication_mode: \$\{\{ steps\.source\.outputs\.publication_mode \}\}/u);
@@ -198,7 +207,7 @@ test("adoption skips every package creation step while ordinary modes retain all
   assert.match(readback, /AMIC_INTERNAL_ADOPTION_SESSION_TOKEN: \$\{\{ inputs\.adoption && secrets\.AMIC_INTERNAL_ADOPTION_SESSION_TOKEN \|\| '' \}\}/u,
     "the typed adoption flag supplies a session only for adoption; ordinary readback receives an empty string");
   assert.match(readback, /AMIC_INTERNAL_CANONICAL_API_BASE_URL: \$\{\{ vars\.AMIC_INTERNAL_CANONICAL_API_BASE_URL \}\}/u);
-  assert.equal(reader.match(/AMIC_INTERNAL_ADOPTION_SESSION_TOKEN:/gu)?.length, 1,
+  assert.equal(reader.split("\njobs:")[1].match(/AMIC_INTERNAL_ADOPTION_SESSION_TOKEN:/gu)?.length, 1,
     "only the final readback step receives the authority session");
   assert.doesNotMatch(reader, /METADATA_SIGNING_SECRET|AMIC_INTERNAL_PUBLISHER_ROLE_ARN/u);
   for (const pin of ["AUTHORITY_PUBLIC_KEY_SPKI_B64", "AUTHORITY_PUBLIC_KEY_SHA256", "AUTHORITY_KEY_ID", "OWNER_REGISTRY_B64", "OWNER_REGISTRY_SHA256"]) {
