@@ -44,6 +44,15 @@ jobs:
       - name: Install Playwright Chromium
         run: npx playwright install --with-deps chromium
 
+      - name: Expose local PostgreSQL binaries
+        shell: bash
+        run: |
+          set -euo pipefail
+          pg_bindir="$(pg_config --bindir)"
+          test -x "${pg_bindir}/initdb"
+          test -x "${pg_bindir}/pg_ctl"
+          echo "${pg_bindir}" >> "${GITHUB_PATH}"
+
       - name: API tests
         run: npm --workspace apps/api test
 

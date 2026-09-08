@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { createMatterRepository } from "../../../packages/matter/src/repository.js";
+import { MATTER_WORKTREE_TEMPLATE_APPROVER_ID } from "../../../packages/matter/src/worktree-template-model.js";
 import { createMatterRuntimeContext, handleMatterApiRequest } from "../src/matter-runtime-context.js";
 
 const tenantId = "tenant_wt_02_02";
@@ -21,7 +22,7 @@ function records({ templateStatus } = {}) {
   if (!templateStatus) return base;
   const approved = templateStatus === "approved";
   return [...base,
-    { model_type: "MatterWorktreeTemplate", template_id: "template_wt_02_02", tenant_id: tenantId, practice_area: "litigation", name: "[QA] 송무 템플릿", status: templateStatus, version: 1, approval_ref: approved ? "approval_wt_02_02" : null, approved_by: approved ? "member06@runtime.example.test" : null, approved_at: approved ? occurredAt : null, created_by: "qa_author", created_at: occurredAt, updated_by: "qa_author", updated_at: occurredAt },
+    { model_type: "MatterWorktreeTemplate", template_id: "template_wt_02_02", tenant_id: tenantId, practice_area: "litigation", name: "[QA] 송무 템플릿", status: templateStatus, version: 1, approval_ref: approved ? "approval_wt_02_02" : null, approved_by: approved ? MATTER_WORKTREE_TEMPLATE_APPROVER_ID : null, approved_at: approved ? occurredAt : null, created_by: "qa_author", created_at: occurredAt, updated_by: "qa_author", updated_at: occurredAt },
     { model_type: "MatterWorktreeTemplateNode", template_node_id: "template_branch_wt_02_02", template_id: "template_wt_02_02", tenant_id: tenantId, node_type: "branch", parent_template_node_id: null, title: "준비", sort_order: 0, status: "active" },
     { model_type: "MatterWorktreeTemplateNode", template_node_id: "template_task_wt_02_02", template_id: "template_wt_02_02", tenant_id: tenantId, node_type: "task", parent_template_node_id: "template_branch_wt_02_02", title: "기록 검토", sort_order: 0, status: "active" },
   ];

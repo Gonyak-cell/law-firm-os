@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { createMatterRepository } from "../../../packages/matter/src/repository.js";
+import { MATTER_WORKTREE_TEMPLATE_APPROVER_ID } from "../../../packages/matter/src/worktree-template-model.js";
 import { createMatterRuntimeContext, handleMatterApiRequest } from "../src/matter-runtime-context.js";
 import { handleMatterWorktreeTemplateList } from "../src/matter-worktree-read-api.js";
 
@@ -27,7 +28,7 @@ function fixtures() {
     { model_type: "MatterWorktreeNode", node_id: "node_branch_wt_02_01", worktree_id: "worktree_wt_02_01", matter_id: matterId, tenant_id: tenantId, node_type: "branch", parent_node_id: null, title: "준비", sort_order: 0, status: "active", task_id: null, ...evidence },
     { model_type: "MatterWorktreeNode", node_id: "node_task_wt_02_01", worktree_id: "worktree_wt_02_01", matter_id: matterId, tenant_id: tenantId, node_type: "task", parent_node_id: "node_branch_wt_02_01", title: "연결 업무", sort_order: 0, status: "active", task_id: "task_linked_wt_02_01", ...evidence },
     { model_type: "MatterTask", task_id: "task_other_wt_02_01", matter_id: "matter_other", tenant_id: tenantId, title: "권한 밖 업무", status: "blocked", created_by: "user_other", ...evidence },
-    { model_type: "MatterWorktreeTemplate", template_id: "template-approved", tenant_id: tenantId, practice_area: "litigation", name: "송무 준비", status: "approved", version: 2, approval_ref: "approval", approved_by: "member06@runtime.example.test", approved_at: "2026-07-11T12:00:00.000Z", created_by: "author", created_at: "2026-07-11T12:00:00.000Z", updated_by: "member06@runtime.example.test", updated_at: "2026-07-11T12:00:00.000Z" },
+    { model_type: "MatterWorktreeTemplate", template_id: "template-approved", tenant_id: tenantId, practice_area: "litigation", name: "송무 준비", status: "approved", version: 2, approval_ref: "approval", approved_by: MATTER_WORKTREE_TEMPLATE_APPROVER_ID, approved_at: "2026-07-11T12:00:00.000Z", created_by: "author", created_at: "2026-07-11T12:00:00.000Z", updated_by: MATTER_WORKTREE_TEMPLATE_APPROVER_ID, updated_at: "2026-07-11T12:00:00.000Z" },
     { model_type: "MatterWorktreeTemplate", template_id: "template-draft", tenant_id: tenantId, practice_area: "litigation", name: "초안", status: "draft", version: 1, approval_ref: null, approved_by: null, approved_at: null, created_by: "author", created_at: "2026-07-11T12:00:00.000Z", updated_by: "author", updated_at: "2026-07-11T12:00:00.000Z" },
   ];
 }
