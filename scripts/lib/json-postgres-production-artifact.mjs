@@ -34,13 +34,6 @@ export const JSON_POSTGRES_PRODUCTION_REDACTION_TARGETS = Object.freeze([
   "packages/matter/src/worktree-template-model.js",
 ]);
 
-export const JSON_POSTGRES_PRODUCTION_REQUIRED_PROFILE_PHOTO_ENTRIES = Object.freeze([
-  "apps/api/src/hrx-member-photos/167499af06d33e69afce9bf8047ec0233c4037aecda34e3056ba83f287af103f.png",
-  "apps/api/src/hrx-member-photos/729b8639553bbcfd2b721efd1f8c06ab4c2e1d9c52679b64950322979548fb81.png",
-  "apps/api/src/hrx-member-photos/b6ad38508be75403e379885a95ef91c3f77da7d19ac4f8635ba328f6a6da0725.png",
-  "apps/api/src/hrx-member-photos/c1fd85d4f8d574a98a743afea034d702d3b4242a9c57ecf2c0ecad9e5cd31ad8.png",
-  "apps/api/src/hrx-member-photos/e72b1c79fcf11f443a3d347924ffc6e8a339b004c824395d756f273f2422e9e7.png",
-]);
 export const JSON_POSTGRES_PRODUCTION_PUBLIC_PROFILE_CATALOG_ENTRY =
   "apps/api/src/hrx-public-professional-profile-catalog.json";
 export const JSON_POSTGRES_PRODUCTION_OUTLOOK_SECRET_PUBLICATION_ENTRY = "apps/api/src/json-postgres-outlook-secret-publication.js";
@@ -1095,7 +1088,7 @@ export function emptyJsonPostgresProductionSources() {
 
 export function productionArtifactSourcePathAllowed(path) {
   const normalized = String(path ?? "").replaceAll("\\", "/").replace(/^\.\//u, "");
-  if (JSON_POSTGRES_PRODUCTION_REQUIRED_PROFILE_PHOTO_ENTRIES.includes(normalized)) return true;
+  if (normalized.startsWith("apps/api/src/hrx-member-photos/")) return false;
   return privateStagingArtifactSourcePathAllowed(normalized)
     && !PRIVATE_STAGING_SOURCE.test(normalized);
 }
@@ -1227,7 +1220,6 @@ export function validateJsonPostgresProductionArtifactEntries(entries, {
     "packages/dms/src/json-postgres-dms-migration.js",
     "packages/persistence/src/postgres/execution-contract.js",
     "packages/persistence/src/postgres/program-receipt.js",
-    ...JSON_POSTGRES_PRODUCTION_REQUIRED_PROFILE_PHOTO_ENTRIES,
   ];
   for (const path of required) {
     if (!normalized.includes(path)) throw new Error(`production artifact is missing ${path}`);
@@ -1237,6 +1229,7 @@ export function validateJsonPostgresProductionArtifactEntries(entries, {
     || (!entry.startsWith("node_modules/") && FIRST_PARTY_TEST_ENTRY.test(entry))
     || entry.startsWith("infra/")
     || entry.startsWith("scripts/")
+    || entry.startsWith("apps/api/src/hrx-member-photos/")
     || PRIVATE_STAGING_SOURCE.test(entry));
   if (forbidden.length) {
     throw new Error(`production artifact contains forbidden entries: ${forbidden.slice(0, 5).join(", ")}`);
