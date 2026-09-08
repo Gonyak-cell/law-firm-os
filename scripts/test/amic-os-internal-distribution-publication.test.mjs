@@ -540,7 +540,7 @@ class FakeAwsDistribution {
     if (input.ifMatch != null && input.ifMatch !== current?.etag) {
       throw new Error("PreconditionFailed");
     }
-    const versionId = `version-${String(this.puts.length + 1).padStart(3, "0")}`;
+    const versionId = `_${String(this.puts.length + 1).padStart(3, "0")}`;
     const stored = {
       ...input,
       bytes,
@@ -1583,6 +1583,37 @@ test("adoption refuses state drift, partial readback, and concurrent marker comm
   } finally { await rm(root, { recursive: true, force: true }); }
 });
 
+test("adoption resumes after a partial control readback while preserving every original version", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "amic-adoption-partial-resume-"));
+  try {
+    const { aws, fixture, receipt: original } = await bootstrapForAdoption(root);
+    const originalBodies = new Map([...aws.objects].map(([key, object]) => [key, sha256(object.bytes)]));
+    aws.failGetKind = "update_metadata";
+    await assert.rejects(executeAmicInternalManagedBootstrapAdoption(adoptionExecution(aws, fixture)));
+    const partial = aws.puts.slice(7);
+    assert.deepEqual(partial.map(({ kind }) => kind), ["release_manifest", "release_manifest_signature", "update_metadata"]);
+    assert.ok(partial.every(({ versionId }) => versionId.startsWith("_")));
+    const partialBodies = new Map([...aws.objects].map(([key, object]) => [key, sha256(object.bytes)]));
+    aws.failGetKind = null;
+    const adopted = await executeAmicInternalManagedBootstrapAdoption(adoptionExecution(aws, fixture));
+    assert.deepEqual(aws.puts.slice(7 + partial.length).map(({ kind }) => kind), [
+      "release_manifest", "release_manifest_signature", "update_metadata", "update_metadata_signature", "baseline_marker",
+    ]);
+    for (const [key, digest] of [...originalBodies, ...partialBodies]) {
+      assert.equal(sha256(aws.objects.get(key).bytes), digest);
+    }
+    const independent = await verifyAmicInternalManagedBootstrapAdoptionReadback({
+      ...managedBootstrapReadbackInput(aws, original),
+      bindings: { ...bindings(), retainUntil: fixture.request.retention.controlRetainUntil },
+      baselineMarker: adopted.baseline_marker, adoption: fixture.approved(), authority: fixture.authority,
+    });
+    assert.equal(independent.original_artifact_versions_reused, true);
+    assert.equal(independent.managed_bootstrap_exact_version_read_count, 7);
+    assert.equal(aws.puts.filter(({ kind }) => kind === "baseline_marker").length, 1);
+    assert.equal(aws.puts.some(({ kind }) => kind === "channel_pointer"), false);
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
+
 test("adoption CLI preflight binds protected executor and approval without invoking AWS", async () => {
   const root = await mkdtemp(path.join(tmpdir(), "amic-adoption-cli-"));
   try {
@@ -1603,7 +1634,7 @@ test("adoption CLI preflight binds protected executor and approval without invok
     const options = fixture.makeOptions();
     const installedRef = { kind: "windows_installed_receipt",
       key: `internal-unsigned/baseline/adoption-inputs/${sha256(amicAdoptionCanonicalBytes(options.request))}/installed.json`,
-      version_id: "installed-receipt-version", sha256: fixture.request.installedReceiptSha256, bytes: options.installedReceiptBytes.length };
+      version_id: "-installed-receipt-version", sha256: fixture.request.installedReceiptSha256, bytes: options.installedReceiptBytes.length };
     const bundle = { request: options.request, attestation: options.attestation,
       ownerApprovalReceipt: JSON.parse(options.ownerApprovalReceiptBytes), ownerApprovalSignatureBase64: options.ownerApprovalSignatureBytes.toString("base64"),
       installedReceiptRef: installedRef, retainUntil: fixture.request.retention.controlRetainUntil };

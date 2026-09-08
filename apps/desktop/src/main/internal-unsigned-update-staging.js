@@ -8,7 +8,7 @@ export const INTERNAL_UNSIGNED_UPDATE_CACHE_DIRECTORY = "amic-os-internal-update
 const SHA256 = /^[0-9a-f]{64}$/u;
 const SAFE_STAGE_ID = /^[a-f0-9-]{36}$/u;
 const SAFE_FILENAME = /^[A-Za-z0-9][A-Za-z0-9._-]{0,199}$/u;
-const SAFE_VERSION_ID = /^[A-Za-z0-9][A-Za-z0-9._+=/-]{0,1023}$/u;
+const SAFE_VERSION_ID = /^[A-Za-z0-9._+=/-]{1,1024}$/u;
 const MAX_ARTIFACT_BYTES = 2 * 1024 * 1024 * 1024;
 
 export class InternalUnsignedUpdateStagingError extends Error {

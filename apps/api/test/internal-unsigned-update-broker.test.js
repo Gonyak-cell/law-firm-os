@@ -30,7 +30,7 @@ const KMS_KEY_ARN = `arn:aws:kms:${REGION}:${ACCOUNT_ID}:key/12345678-1234-1234-
 const BUCKET = "amic-os-internal-artifacts-770880870480";
 const DOMAIN = "d111111abcdef8.cloudfront.net";
 const KEY_PAIR_ID = "K1234567890";
-const VERSION_ID = "version-001";
+const VERSION_ID = "_version-001";
 
 function canonicalValue(value) {
   if (Array.isArray(value)) return value.map(canonicalValue);
@@ -127,7 +127,7 @@ function fixture({ tamperMetadata = false, channelTenantId = TENANT_ID } = {}) {
     ].join("/"),
     artifactSha256,
     artifactBytes: artifactBytes.byteLength,
-    artifactVersionId: "artifact-version-001",
+    artifactVersionId: "-artifact-version-001",
     releaseManifestSha256: releaseManifest.sha256,
     authenticodeStatus: "not_signed",
     distribution: "private",
@@ -160,7 +160,7 @@ function fixture({ tamperMetadata = false, channelTenantId = TENANT_ID } = {}) {
     artifactFilename: "AMIC-OS-internal-0.1.32-win-x64.exe",
     artifactSha256: rollbackTargetArtifactSha256,
     artifactBytes: rollbackTargetArtifactBytes.byteLength,
-    artifactVersionId: "artifact-version-rollback-001",
+    artifactVersionId: ".artifact-version-rollback-001",
   };
   rollbackTargetMetadata.artifactObjectKey = [
     "internal-unsigned",

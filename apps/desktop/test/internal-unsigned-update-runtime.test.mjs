@@ -117,7 +117,7 @@ function metadata({
     ].join("/"),
     artifactSha256,
     artifactBytes: artifactBytes.byteLength,
-    artifactVersionId: `artifact-version-${sequence}`,
+    artifactVersionId: `-artifact-version-${sequence}`,
     releaseManifestSha256: "c".repeat(64),
     authenticodeStatus: "not_signed",
     distribution: "private",
@@ -212,7 +212,7 @@ function brokerFixture(release, { rollbackTarget = null, rollbackOverrides = {} 
       ? release.update.artifactVersionId
       : kind === "rollback_target_artifact" && rollbackTarget
         ? rollbackTarget.update.artifactVersionId
-        : `version-${kind}`,
+        : `_version-${kind}`,
   }]));
   return {
     authorization: {

@@ -33,7 +33,7 @@ export const AMIC_INTERNAL_MANAGED_BOOTSTRAP_READBACK_RECEIPT_SCHEMA =
   "law-firm-os.amic-internal-unsigned-managed-bootstrap-independent-readback.v1";
 
 const SHA256 = /^[0-9a-f]{64}$/u;
-const VERSION_ID = /^[A-Za-z0-9][A-Za-z0-9._+=/-]{0,1023}$/u;
+const VERSION_ID = /^[A-Za-z0-9._+=/-]{1,1024}$/u;
 const BUCKET = /^[a-z0-9](?:[a-z0-9-]{1,61}[a-z0-9])$/u;
 const OBJECT_MAX_BYTES = Object.freeze({
   installer: 2 * 1024 * 1024 * 1024,

@@ -68,7 +68,7 @@ const SHA256 = /^[0-9a-f]{64}$/u;
 const GIT_OBJECT = /^[0-9a-f]{40}$/u;
 const IDENTIFIER = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,199}$/u;
 const BUCKET = /^[a-z0-9](?:[a-z0-9-]{1,61}[a-z0-9])$/u;
-const VERSION_ID = /^[A-Za-z0-9][A-Za-z0-9._+=/-]{0,1023}$/u;
+const VERSION_ID = /^[A-Za-z0-9._+=/-]{1,1024}$/u;
 const VERSION = /^\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?$/u;
 const RELEASE_FIELDS = Object.freeze([
   "appId",
@@ -344,7 +344,7 @@ export function createAmicInternalDistributionAwsCliAdapter({
           "get-object",
           "--bucket", bucket,
           "--key", key,
-          "--version-id", versionId,
+          `--version-id=${versionId}`,
           "--expected-bucket-owner", expectedOwner,
           "--checksum-mode", "ENABLED",
           bodyPath,

@@ -119,6 +119,32 @@ test("AWS CLI successful JSON readback remains unchanged", async () => {
     expectedOwner: ACCOUNT }), expected);
 });
 
+test("AWS CLI HEAD and GET keep a leading hyphen inside the exact version argument", async () => {
+  const versionId = "-opaque_version.+=/";
+  const bytes = Buffer.from("exact private version body");
+  const calls = [];
+  const aws = createWindowsSignedArtifactAwsCliAdapter({
+    execFileSyncImpl(command, args) {
+      assert.equal(command, "aws");
+      calls.push(args[1]);
+      assert.equal(args.includes("--version-id"), false);
+      assert.equal(args.filter((arg) => arg.startsWith("--version-id=")).length, 1);
+      assert.ok(args.includes(`--version-id=${versionId}`));
+      if (args[1] === "get-object") {
+        writeFileSync(args[args.indexOf("--checksum-mode") + 2], bytes);
+      }
+      return JSON.stringify({ VersionId: versionId, ContentLength: bytes.length });
+    },
+  });
+  const input = { bucket: BUCKET, key: "artifact", versionId, expectedOwner: ACCOUNT };
+  assert.equal((await aws.headObject(input)).VersionId, versionId);
+  const body = await aws.getObject(input);
+  assert.equal(body.VersionId, versionId);
+  assert.equal(body.body_sha256, sha256(bytes));
+  assert.equal(body.body_bytes, bytes.length);
+  assert.deepEqual(calls, ["head-object", "get-object"]);
+});
+
 function sha256(bytes) {
   return createHash("sha256").update(bytes).digest("hex");
 }
