@@ -40,7 +40,7 @@ function textOf(value) {
 }
 
 const sourceMap = readJson(SOURCE_MAP_JSON);
-const roster = readJson(ROSTER_PATH);
+const roster = readJson(process.env.LAWOS_HRX_MEMBER_ROSTER_SOURCE_PATH?.trim() || ROSTER_PATH);
 const registry = read("apps/api/src/hrx-member-roster-registry.js");
 const runtimeContext = read("apps/api/src/hrx-runtime-context.js");
 const apiClient = read("apps/web/src/people/hrxApiClient.ts");

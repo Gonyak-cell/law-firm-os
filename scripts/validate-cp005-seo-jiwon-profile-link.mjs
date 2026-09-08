@@ -26,6 +26,11 @@ const rosterPath = "docs/reorganization/client-matter-os/matter-vault-r4/launch/
 const profileReceiptPath = "docs/lazycodex/evidence/matter-profile/2026-07-10/packaged-desktop-smoke.json";
 const profileScreenshotPath = "docs/lazycodex/evidence/matter-profile/2026-07-10/profile-api-packaged.png";
 const photoPath = `apps/api/src/hrx-member-photos/${createHash("sha256").update("emp_amic_jwsuh").digest("hex")}.png`;
+const accountInputPath = process.env.LAWOS_IDENTITY_REGISTRATION_SOURCE_PATH?.trim() || accountPath;
+const rosterInputPath = process.env.LAWOS_HRX_MEMBER_ROSTER_SOURCE_PATH?.trim() || rosterPath;
+const photoInputPath = process.env.LAWOS_HRX_MEMBER_PHOTO_SOURCE_PATH?.trim()
+  ? path.join(process.env.LAWOS_HRX_MEMBER_PHOTO_SOURCE_PATH.trim(), path.basename(photoPath))
+  : photoPath;
 const expectedPath = "workbook/forest-v0.1.17-integration-evidence/CP-005/seo-jiwon-profile-link-matrix.json";
 
 function text(filePath) {
@@ -45,8 +50,8 @@ function containsEvery(filePath, needles) {
   return needles.every((needle) => source.includes(needle));
 }
 
-const account = json(accountPath).users.find((row) => row.email === "jwsuh@amic.kr");
-const member = json(rosterPath).members.find((row) => row.work_email === "jwsuh@amic.kr");
+const account = json(accountInputPath).users.find((row) => row.email === "jwsuh@amic.kr");
+const member = json(rosterInputPath).members.find((row) => row.work_email === "jwsuh@amic.kr");
 const professional = member?.professional_profile ?? {};
 const identityChecks = {
   account_exists: Boolean(account),
@@ -95,9 +100,9 @@ const sourceContracts = {
   home_generic_suppression: containsEvery("apps/web/src/components/HomeSurface.jsx", ["genericSessionDisplayNames", "세션 사용자"])
 };
 
-const photo = readFileSync(photoPath);
+const photo = readFileSync(photoInputPath);
 const photoChecks = {
-  file_exists: existsSync(photoPath),
+  file_exists: existsSync(photoInputPath),
   png_magic: photo.subarray(0, 8).toString("hex") === "89504e470d0a1a0a",
   non_empty: photo.length > 8
 };
