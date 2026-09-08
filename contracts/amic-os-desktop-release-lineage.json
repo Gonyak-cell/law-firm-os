@@ -36,7 +36,7 @@
     "internal_probe_forbids_notarization": true,
     "explicit_release_intent_is_irreversible_for_the_process": true,
     "release_version_selection_recorded": true,
-    "selected_release_version": "0.1.32"
+    "selected_release_version": "0.1.33"
   },
   "claims": {
     "candidate_artifact_built": false,

@@ -149,11 +149,11 @@ test("CL-P3-W03-T01/T02 실제 API는 변호사 수임 결정과 Intake 인계�
   await withServer(runtime, async (baseUrl) => {
     const attorneyHeaders = await apiSessionHeaders(
       baseUrl,
-      registeredAccount("jh731@amic.kr"),
+      registeredAccount("member08@runtime.example.test"),
     );
     const staffHeaders = await apiSessionHeaders(
       baseUrl,
-      registeredAccount("yjlee@amic.kr"),
+      registeredAccount("member10@runtime.example.test"),
     );
     const health = await request(baseUrl, attorneyHeaders, "/api/health");
     const crm = health.body.bounded_contexts.find(
@@ -358,7 +358,7 @@ test("CL-P3-W03-T01 실제 API는 Matter 지정과 알 수 없는 명령 필드�
   await withServer(runtime, async (baseUrl) => {
     const headers = await apiSessionHeaders(
       baseUrl,
-      registeredAccount("jh731@amic.kr"),
+      registeredAccount("member08@runtime.example.test"),
     );
     const prematureHandoff = await request(
       baseUrl,
@@ -529,7 +529,7 @@ test("VC-CL-ENG-003 / CL-P3-W03-T01 실제 API 재처리는 실패한 Finance �
   await withServer(runtime, async (baseUrl) => {
     const headers = await apiSessionHeaders(
       baseUrl,
-      registeredAccount("jh731@amic.kr"),
+      registeredAccount("member08@runtime.example.test"),
     );
     const first = await request(
       baseUrl,

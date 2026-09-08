@@ -127,7 +127,7 @@ function dependencies({
       exchangeInput = input;
       return {
         provider_subject_id: "entra-subject-jwsuh",
-        mailbox_address: "jwsuh@amic.kr",
+        mailbox_address: "member06@runtime.example.test",
         access_token: ACCESS_TOKEN,
         refresh_token: REFRESH_TOKEN,
         refresh_profile: "people",
@@ -200,7 +200,7 @@ test("operational People Outlook stores only an encrypted DB credential, reads c
           attendees: [{
             type: "required",
             status: { response: "accepted" },
-            emailAddress: { address: "jwsuh@amic.kr" },
+            emailAddress: { address: "member06@runtime.example.test" },
           }],
           iCalUId: "required-meeting-ical",
           type: "singleInstance",
@@ -218,7 +218,7 @@ test("operational People Outlook stores only an encrypted DB credential, reads c
           attendees: [{
             type: "optional",
             status: { response: "accepted" },
-            emailAddress: { address: "jwsuh@amic.kr" },
+            emailAddress: { address: "member06@runtime.example.test" },
           }],
           iCalUId: "optional-meeting-ical",
           type: "singleInstance",
@@ -233,7 +233,7 @@ test("operational People Outlook stores only an encrypted DB credential, reads c
     tenant_id: TENANT,
     employee_id: EMPLOYEE,
     user_id: USER,
-    session_email: "jwsuh@amic.kr",
+    session_email: "member06@runtime.example.test",
     can_manage: true,
   };
 
@@ -275,7 +275,7 @@ test("operational People Outlook stores only an encrypted DB credential, reads c
   for (const secret of [
     ACCESS_TOKEN,
     REFRESH_TOKEN,
-    "jwsuh@amic.kr",
+    "member06@runtime.example.test",
     ports.exchangeInput().code_verifier,
   ]) {
     assert.equal(persistedText.includes(secret), false);
@@ -349,7 +349,7 @@ test("local fallback claims identical People Outlook completion before one broke
     tenant_id: TENANT,
     employee_id: EMPLOYEE,
     user_id: USER,
-    session_email: "jwsuh@amic.kr",
+    session_email: "member06@runtime.example.test",
     can_manage: true,
   };
   const authorizationCode = "0.ABC_concurrent-operational-code-20260804";
@@ -389,7 +389,7 @@ test("local fallback claims identical People Outlook completion before one broke
     begun.state_ref,
     ACCESS_TOKEN,
     REFRESH_TOKEN,
-    "jwsuh@amic.kr",
+    "member06@runtime.example.test",
     CLIENT_SECRET,
   ]) {
     assert.equal(claimedText.includes(secret), false);
@@ -473,7 +473,7 @@ test("operational People Outlook refreshes once and re-encrypts rotated tokens",
     tenant_id: TENANT,
     employee_id: EMPLOYEE,
     user_id: USER,
-    session_email: "jwsuh@amic.kr",
+    session_email: "member06@runtime.example.test",
     can_manage: true,
   };
   const begun = runtime.connections.begin(principal);
@@ -554,7 +554,7 @@ test("legacy People credential is broker-bound to People, re-encrypted in the sa
     tenant_id: TENANT,
     employee_id: EMPLOYEE,
     user_id: USER,
-    session_email: "jwsuh@amic.kr",
+    session_email: "member06@runtime.example.test",
     can_manage: true,
   };
   const begun = runtime.connections.begin(principal);
@@ -572,7 +572,7 @@ test("legacy People credential is broker-bound to People, re-encrypted in the sa
     refresh_token: REFRESH_TOKEN,
     expires_at: "2026-08-03T00:30:30.000Z",
     provider_subject_id: "entra-subject-jwsuh",
-    mailbox_address: "jwsuh@amic.kr",
+    mailbox_address: "member06@runtime.example.test",
     granted_scopes: [
       "openid",
       "profile",
@@ -677,7 +677,7 @@ test("operational People Outlook clears encrypted tokens when Microsoft requires
     tenant_id: TENANT,
     employee_id: EMPLOYEE,
     user_id: USER,
-    session_email: "jwsuh@amic.kr",
+    session_email: "member06@runtime.example.test",
     can_manage: true,
   };
   const begun = runtime.connections.begin(principal);
@@ -729,7 +729,7 @@ test("operational People Outlook rejects a callback for another signed account",
     tenant_id: TENANT,
     employee_id: EMPLOYEE,
     user_id: USER,
-    session_email: "jwsuh@amic.kr",
+    session_email: "member06@runtime.example.test",
     can_manage: true,
   });
   await assert.rejects(
@@ -773,7 +773,7 @@ test("operational People Outlook rebinds an expired same-email record before a m
     tenant_id: TENANT,
     employee_id: EMPLOYEE,
     user_id: USER,
-    session_email: "jwsuh@amic.kr",
+    session_email: "member06@runtime.example.test",
     can_manage: true,
   };
   const begun = runtime.connections.begin(legacyPrincipal);
@@ -850,7 +850,7 @@ test("operational People Outlook rejects email, subject, and active-credential p
     tenant_id: TENANT,
     employee_id: EMPLOYEE,
     user_id: USER,
-    session_email: "jwsuh@amic.kr",
+    session_email: "member06@runtime.example.test",
     can_manage: true,
   };
   const begun = runtime.connections.begin(connectedPrincipal);
@@ -890,7 +890,7 @@ test("operational People Outlook rejects email, subject, and active-credential p
     },
     {
       user_id: "user-jwsuh-subject-mismatch",
-      session_email: "jwsuh@amic.kr",
+      session_email: "member06@runtime.example.test",
       entra_subject_id: "entra-subject-other",
     },
   ]) {
@@ -931,7 +931,7 @@ test("operational People Outlook permits same-email rebinding before disconnecti
     tenant_id: TENANT,
     employee_id: EMPLOYEE,
     user_id: USER,
-    session_email: "jwsuh@amic.kr",
+    session_email: "member06@runtime.example.test",
     can_manage: true,
   };
   runtime.connections.begin(legacyPrincipal);
@@ -1000,7 +1000,7 @@ test("operational People Outlook rejects tenant and state mismatches before brok
     tenant_id: TENANT,
     employee_id: EMPLOYEE,
     user_id: USER,
-    session_email: "jwsuh@amic.kr",
+    session_email: "member06@runtime.example.test",
     can_manage: true,
   };
   const begun = runtime.connections.begin(principal);
@@ -1056,7 +1056,7 @@ test("operational People Outlook clears a consumed claim after Microsoft account
     tenant_id: TENANT,
     employee_id: EMPLOYEE,
     user_id: USER,
-    session_email: "jwsuh@amic.kr",
+    session_email: "member06@runtime.example.test",
     can_manage: true,
   };
   const begun = runtime.connections.begin(principal);
@@ -1116,7 +1116,7 @@ test("operational People Outlook clears a consumed claim after durable finalize 
     tenant_id: TENANT,
     employee_id: EMPLOYEE,
     user_id: USER,
-    session_email: "jwsuh@amic.kr",
+    session_email: "member06@runtime.example.test",
     can_manage: true,
   };
   const begun = runtime.connections.begin(principal);
@@ -1161,7 +1161,7 @@ test("encrypted People Outlook credentials are bound to their DB identity contex
     tenant_id: TENANT,
     employee_id: EMPLOYEE,
     user_id: USER,
-    session_email: "jwsuh@amic.kr",
+    session_email: "member06@runtime.example.test",
     can_manage: true,
   };
   const begun = runtime.connections.begin(principal);
@@ -1230,7 +1230,7 @@ test("People Outlook reuses an existing readable Entra config Secret without Sec
     tenant_id: TENANT,
     employee_id: EMPLOYEE,
     user_id: USER,
-    session_email: "jwsuh@amic.kr",
+    session_email: "member06@runtime.example.test",
     can_manage: true,
   });
   const authorizeUrl = new URL(begun.authorize_url);
@@ -1245,7 +1245,7 @@ test("People Outlook reuses an existing readable Entra config Secret without Sec
     authorizeUrl.searchParams.get("redirect_uri"),
     MICROSOFT_EGRESS_REDIRECT_URIS.people,
   );
-  assert.equal(authorizeUrl.searchParams.get("login_hint"), "jwsuh@amic.kr");
+  assert.equal(authorizeUrl.searchParams.get("login_hint"), "member06@runtime.example.test");
   assert.equal(authorizeUrl.searchParams.has("prompt"), false);
   assert.deepEqual(
     commands.map((command) => command.constructor.name),
@@ -1324,7 +1324,7 @@ test("10인 내부 파일럿은 같은 Entra 앱 ID에서도 People read-only sc
     tenant_id: TENANT,
     employee_id: EMPLOYEE,
     user_id: USER,
-    session_email: "jwsuh@amic.kr",
+    session_email: "member06@runtime.example.test",
     can_manage: true,
   });
   const authorizeUrl = new URL(begun.authorize_url);
@@ -1388,7 +1388,7 @@ test("HRX routes await operational connection and calendar ports without changin
         return publicConnection;
       },
       async begin(input) {
-        assert.equal(input.session_email, "jwsuh@amic.kr");
+        assert.equal(input.session_email, "member06@runtime.example.test");
         return publicConnection;
       },
       async complete() {
@@ -1431,7 +1431,7 @@ test("HRX routes await operational connection and calendar ports without changin
     actor_role: "staff",
     hrx_scopes: ["hrx.employee.read"],
     session_bound: true,
-    email: "jwsuh@amic.kr",
+    email: "member06@runtime.example.test",
   };
   const permissionContext = {
     principal: { user_id: USER, tenant_id: TENANT, role_ids: ["staff"] },
@@ -1534,7 +1534,7 @@ test("HRX self completion resolves one active EmployeeUserLink and rejects clien
       actor_role: "staff",
       hrx_scopes: ["hrx.employee.read"],
       session_bound: true,
-      email: "jwsuh@amic.kr",
+      email: "member06@runtime.example.test",
     },
     permissionContext: {
       principal: { user_id: USER, tenant_id: TENANT, role_ids: ["staff"] },
@@ -1553,14 +1553,14 @@ test("HRX self completion resolves one active EmployeeUserLink and rejects clien
   assert.equal(completionInputs[0].tenant_id, TENANT);
   assert.equal(completionInputs[0].employee_id, EMPLOYEE);
   assert.equal(completionInputs[0].user_id, USER);
-  assert.equal(completionInputs[0].session_email, "jwsuh@amic.kr");
+  assert.equal(completionInputs[0].session_email, "member06@runtime.example.test");
   assert.equal(completionInputs[0].authorization_code, authorizationCode);
   assert.equal(completionInputs[0].state_ref, stateRef);
   const publicText = JSON.stringify({
     response: completed,
     audit: runtime.audit.list({ tenant_id: TENANT }),
   });
-  for (const secret of [authorizationCode, stateRef, "jwsuh@amic.kr", CLIENT_SECRET]) {
+  for (const secret of [authorizationCode, stateRef, "member06@runtime.example.test", CLIENT_SECRET]) {
     assert.equal(publicText.includes(secret), false);
   }
 
@@ -1669,7 +1669,7 @@ test("HRX self completion fails closed for missing, ambiguous, or unsigned emplo
         actor_role: "staff",
         hrx_scopes: ["hrx.employee.read"],
         session_bound: sessionBound,
-        email: "jwsuh@amic.kr",
+        email: "member06@runtime.example.test",
       },
       permissionContext: {
         principal: { user_id: actorId, tenant_id: TENANT, role_ids: ["staff"] },

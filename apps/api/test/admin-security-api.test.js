@@ -37,21 +37,21 @@ test.before(async () => {
   const started = await startApiServer({ port: 0 });
   server = started.server;
   baseUrl = `http://${started.host}:${started.port}`;
-  adminHeaders = await apiSessionHeaders(baseUrl, account("jwsuh@amic.kr"));
-  staffHeaders = await apiSessionHeaders(baseUrl, account("yjlee@amic.kr"));
+  adminHeaders = await apiSessionHeaders(baseUrl, account("member06@runtime.example.test"));
+  staffHeaders = await apiSessionHeaders(baseUrl, account("member10@runtime.example.test"));
 });
 
 test.after(() => new Promise((resolve) => server.close(resolve)));
 
 test("admin security operations disable login, reactivate accounts, and audit break-glass transitions", async () => {
-  const target = account("yjlee@amic.kr");
+  const target = account("member10@runtime.example.test");
   const listed = await json("/api/admin/security/users");
   assert.equal(listed.status, 200);
   assert.ok(listed.body.items.some((item) => item.user_id === target.user_id && item.status === "active"));
   assert.equal(listed.body.items.some((item) => "local_dev" in item || "synthetic_token" in item), false);
 
   const denied = await json(
-    `/api/admin/security/users/${encodeURIComponent(account("wsjo@amic.kr").user_id)}/disable`,
+    `/api/admin/security/users/${encodeURIComponent(account("member02@runtime.example.test").user_id)}/disable`,
     {
       method: "POST",
       headers: { "content-type": "application/json" },
@@ -71,7 +71,7 @@ test("admin security operations disable login, reactivate accounts, and audit br
   assert.equal(disabled.body.item.status, "disabled");
   assert.equal(disabled.body.item.login_allowed, false);
 
-  const blockedLogin = await loginAs("yjlee@amic.kr");
+  const blockedLogin = await loginAs("member10@runtime.example.test");
   assert.equal(blockedLogin.status, 401);
   assert.deepEqual(blockedLogin.body.safe_error_codes, ["AUTH_CREDENTIAL_INVALID"]);
 
@@ -83,7 +83,7 @@ test("admin security operations disable login, reactivate accounts, and audit br
   assert.equal(reactivated.status, 200);
   assert.equal(reactivated.body.item.status, "active");
 
-  const restoredLogin = await loginAs("yjlee@amic.kr");
+  const restoredLogin = await loginAs("member10@runtime.example.test");
   assert.equal(restoredLogin.status, 200);
   assert.match(restoredLogin.body.session_token, /^lawos_session_v1\./);
 

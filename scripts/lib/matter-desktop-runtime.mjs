@@ -53,7 +53,7 @@ export function desktopLocalApiSourcePaths({
     roster: resolve(repoRoot, rosterSourcePath ?? env.LAWOS_HRX_MEMBER_ROSTER_SOURCE_PATH ?? defaultRosterSource),
     contact: configuredContact ? resolve(repoRoot, configuredContact) : null,
     photos: resolve(repoRoot, photoSourcePath ?? env.LAWOS_HRX_MEMBER_PHOTO_SOURCE_PATH ?? defaultPhotoSource),
-    registrationSeed: resolve(repoRoot, registrationSeedSourcePath ?? defaultRegistrationSeedSource)
+    registrationSeed: resolve(repoRoot, registrationSeedSourcePath ?? (String(env.LAWOS_IDENTITY_REGISTRATION_SOURCE_PATH ?? "").trim() || defaultRegistrationSeedSource))
   };
 }
 

@@ -843,7 +843,7 @@ test("Lambda password reset email delivery uses SESv2 simple content and never r
         const body = command.input;
         assert.equal(body.FromEmailAddress, "no-reply@amic.kr");
         assert.equal(body.FromEmailAddressIdentityArn, undefined);
-        assert.deepEqual(body.Destination.ToAddresses, ["jwsuh@amic.kr"]);
+        assert.deepEqual(body.Destination.ToAddresses, ["member06@runtime.example.test"]);
         assert.equal(body.Content.Raw, undefined);
         assert.equal(body.Content.Simple.Subject.Data, "AMIC LAW · LawOS 비밀번호 설정");
         assert.equal(body.Content.Simple.Subject.Charset, "UTF-8");
@@ -873,7 +873,7 @@ test("Lambda password reset email delivery uses SESv2 simple content and never r
 
   assert.equal(typeof delivery, "function");
   const result = await delivery({
-    to: "jwsuh@amic.kr",
+    to: "member06@runtime.example.test",
     token: "reset-token-value",
     expires_at: "2026-07-06T01:00:00.000Z",
   });
@@ -1715,7 +1715,7 @@ test("LCX-AUTH legacy reset JSON writer is disabled for operational authority", 
         lawos_maintenance_action: LCX_AUTH_RESET_RECOVERY_ACTION,
         approval_signature_ref: LCX_AUTH_RESET_RECOVERY_APPROVAL_REF,
         request_id: "unit-test-lcx-auth-reset",
-        target_email: "jwsuh@amic.kr",
+        target_email: "member06@runtime.example.test",
       },
       env: {
         LAWOS_RUNTIME_PROFILE: "operational",

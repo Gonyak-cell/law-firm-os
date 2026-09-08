@@ -3,9 +3,10 @@ import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 
 const ROOT = process.cwd();
-const seedPath = path.join(
+const seedPath = path.resolve(
   ROOT,
-  "docs/reorganization/client-matter-os/matter-vault-r4/launch/matter-vault-user-registration-seed.json",
+  process.env.LAWOS_IDENTITY_REGISTRATION_SOURCE_PATH?.trim()
+    || "docs/reorganization/client-matter-os/matter-vault-r4/launch/matter-vault-user-registration-seed.json",
 );
 const receiptPath = path.join(
   ROOT,

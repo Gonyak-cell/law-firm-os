@@ -39,25 +39,25 @@ test("AMIC bank initials extend the canonical HRX member roster", () => {
   );
   assert.equal(byAlias.get("JWS").employee_id, "emp_amic_jwsuh");
   assert.equal(byAlias.get("JWS").user_id, "user_amic_jwsuh");
-  assert.equal(byAlias.get("JWS").display_name, "서지원");
-  assert.equal(byAlias.get("JWS").work_email, "jwsuh@amic.kr");
+  assert.equal(byAlias.get("JWS").display_name, "테스트 구성원 06");
+  assert.equal(byAlias.get("JWS").work_email, "member06@runtime.example.test");
   assert.deepEqual(
-    Object.fromEntries(["김양태", "조우상", "박병준", "조성민", "임영훈", "서지원", "박서영", "이예진", "윤태리", "한제희"]
+    Object.fromEntries(["테스트 구성원 01", "테스트 구성원 02", "테스트 구성원 04", "테스트 구성원 07", "테스트 구성원 05", "테스트 구성원 06", "테스트 구성원 03", "테스트 구성원 10", "테스트 구성원 09", "테스트 구성원 08"]
       .map((displayName) => {
         const employee = employees.find((candidate) => candidate.display_name === displayName);
         return [displayName, employee?.payroll_category];
       })),
     {
-      김양태: "partner",
-      조우상: "partner",
-      박병준: "partner",
-      조성민: "partner",
-      임영훈: "partner",
-      서지원: "partner",
-      박서영: "staff",
-      이예진: "staff",
-      윤태리: "staff",
-      한제희: "advisor",
+      "테스트 구성원 01": "partner",
+      "테스트 구성원 02": "partner",
+      "테스트 구성원 04": "partner",
+      "테스트 구성원 07": "partner",
+      "테스트 구성원 05": "partner",
+      "테스트 구성원 06": "partner",
+      "테스트 구성원 03": "staff",
+      "테스트 구성원 10": "staff",
+      "테스트 구성원 09": "staff",
+      "테스트 구성원 08": "advisor",
     },
   );
 });
@@ -67,9 +67,9 @@ test("AMIC bank initials and payroll groups resolve from the HRX repository", ()
     employees: [{
       tenant_id: TENANT,
       employee_id: "emp_amic_jwsuh",
-      display_name: "서지원",
-      legal_name: "서지원",
-      work_email: "jwsuh@amic.kr",
+      display_name: "테스트 구성원 06",
+      legal_name: "테스트 구성원 06",
+      work_email: "member06@runtime.example.test",
       status: "active",
       source_ref: "test-postgres-directory",
     }],
@@ -86,7 +86,7 @@ test("AMIC bank initials and payroll groups resolve from the HRX repository", ()
   });
   const [employee] = listAmicBankClassificationEmployees({ repository, tenantId: TENANT });
   assert.equal(employee.employee_id, "emp_amic_jwsuh");
-  assert.equal(employee.display_name, "서지원");
+  assert.equal(employee.display_name, "테스트 구성원 06");
   assert.equal(employee.title, "대표변호사");
   assert.deepEqual(employee.aliases, ["JWS"]);
   assert.equal(employee.payroll_category, "partner");

@@ -18,8 +18,8 @@ test.before(async () => {
   const started = await startApiServer({ port: 0 });
   server = started.server;
   baseUrl = `http://${started.host}:${started.port}`;
-  adminHeaders = await signedHeaders(baseUrl, registeredAccount("jwsuh@amic.kr"));
-  noHrxHeaders = await signedHeaders(baseUrl, registeredAccount("matter.desktop.qa@amic.kr"));
+  adminHeaders = await signedHeaders(baseUrl, registeredAccount("member06@runtime.example.test"));
+  noHrxHeaders = await signedHeaders(baseUrl, registeredAccount("member11@runtime.example.test"));
 });
 
 test.after(() => new Promise((resolve) => server.close(resolve)));

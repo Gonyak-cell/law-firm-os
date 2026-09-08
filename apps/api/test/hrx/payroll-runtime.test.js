@@ -13,7 +13,7 @@ function setup(runtimeOptions = {}) {
   const store = createFileHrxStore();
   runHrxMigrations(store);
   const repository = createSqlHrxRepository({ store, clock: () => NOW });
-  for (const [index, displayName] of ["서지원", "김양태"].entries()) {
+  for (const [index, displayName] of ["테스트 구성원 06", "테스트 구성원 01"].entries()) {
     const employeeId = `emp-${index + 1}`;
     repository.createEmployee({ tenant_id: TENANT, employee_id: employeeId, display_name: displayName, status: "active" });
     repository.createEmploymentProfile({
@@ -158,14 +158,14 @@ test("PY-LABEL-002 resolves linked actors and fails closed to a human fallback f
   const linkedRunId = linked.runtime.payrollRepository.listRuns(preparer)[0].run_id;
   await call(linked.route, preparer, "snapshot", { run_id: linkedRunId });
   const normalNames = await call(linked.route, preparer, "bundle", { run_id: linkedRunId }, {}, "GET");
-  assert.deepEqual(normalNames.body.bundle.employees.map((row) => row.display_name), ["서지원", "김양태"]);
+  assert.deepEqual(normalNames.body.bundle.employees.map((row) => row.display_name), ["테스트 구성원 06", "테스트 구성원 01"]);
   await call(linked.route, preparer, "preview", { run_id: linkedRunId });
   const linkedApproval = await call(linked.route, linkedApprover, "approve", { run_id: linkedRunId });
   assert.equal(linkedApproval.status, 200, JSON.stringify(linkedApproval.body));
-  assert.equal(linkedApproval.body.bundle.run.approved_by_actor_display_name, "서지원");
+  assert.equal(linkedApproval.body.bundle.run.approved_by_actor_display_name, "테스트 구성원 06");
   assert.equal(linkedApproval.body.bundle.run.approved_by_actor_id, "user-1");
   const linkedEvent = linkedApproval.body.bundle.audit_history.find((event) => event.action === "hrx.payroll.run.approved");
-  assert.equal(linkedEvent.actor_display_name, "서지원");
+  assert.equal(linkedEvent.actor_display_name, "테스트 구성원 06");
   assert.equal(linkedEvent.actor_id, "user-1");
   linked.store.close();
 
@@ -302,7 +302,7 @@ test("Home payroll dashboard returns only approved aggregate categories without 
     ],
   );
   const serialized = JSON.stringify(approved.body);
-  assert.doesNotMatch(serialized, /employee_id|display_name|@|서지원|김양태/);
+  assert.doesNotMatch(serialized, /employee_id|display_name|@|테스트 구성원 06|테스트 구성원 01/);
   assert.equal(approved.body.summary.individual_values_included, false);
   assert.equal(approved.body.summary.individual_identifiers_included, false);
 
@@ -398,7 +398,7 @@ test("PEO-TUW-061 exposes a redacted close precheck and blocks approval while ev
   assert.equal(checked.body.outcome, "review_required");
   assert.equal(checked.body.precheck.ready, false);
   assert.equal(checked.body.precheck.blockers.every((row) => row.employee_id === null), true);
-  assert.doesNotMatch(JSON.stringify(checked.body), /서지원|김양태|emp-1|emp-2/);
+  assert.doesNotMatch(JSON.stringify(checked.body), /테스트 구성원 06|테스트 구성원 01|emp-1|emp-2/);
 
   const blocked = await call(value.route, approver, "approve", { run_id: runId }, { as_of: NOW });
   assert.equal(blocked.status, 409);
@@ -663,7 +663,7 @@ test("PEO-TUW-066/067 exposes legal-gated minimum-wage versions and redacted imp
     }],
   };
   const visible = await call(value.route, payrollReviewer, "minimum-wage-preview", {}, input);
-  assert.equal(visible.body.impact.impacts[0].display_name, "서지원");
+  assert.equal(visible.body.impact.impacts[0].display_name, "테스트 구성원 06");
   assert.equal(Object.hasOwn(visible.body.impact.impacts[0], "employee_id"), false);
   assert.equal(visible.body.impact.impacts[0].result_state, "below_candidate");
   assert.equal(visible.body.impact.impacts[0].required_wage_krw, 2_194_500);
@@ -721,7 +721,7 @@ test("PY-DOC/BANK/TAX runtime API generates, delivers, exports, pays, and files 
           tokenized_account_ref: `token:bank/${employee_id}`,
           bank_code: `00${index}`,
           account_number: `11000000000${index}`,
-          account_holder: index === "1" ? "서지원" : "김양태",
+          account_holder: index === "1" ? "테스트 구성원 06" : "테스트 구성원 01",
         };
       },
     },
@@ -769,7 +769,7 @@ test("PY-DOC/BANK/TAX runtime API generates, delivers, exports, pays, and files 
     ["string", true, true, "text/csv;charset=utf-8"],
   );
   const paymentExportJson = JSON.stringify(paymentExport.body);
-  assert.doesNotMatch(paymentExportJson, /content_base64|account_number|bank_code|account_holder|110000000001|110000000002|서지원|김양태/);
+  assert.doesNotMatch(paymentExportJson, /content_base64|account_number|bank_code|account_holder|110000000001|110000000002|테스트 구성원 06|테스트 구성원 01/);
   assert.equal((await call(value.route, preparer, "payment-reconcile", { payment_batch_id: batchId })).body.payment.batch.state, "reconciled");
 
   const created = await call(value.route, preparer, "filing-create", { run_id: runId }, { filing_kind: "withholding" });

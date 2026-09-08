@@ -44,6 +44,15 @@ jobs:
       - name: Install Playwright Chromium
         run: npx playwright install --with-deps chromium
 
+      - name: Expose local PostgreSQL binaries
+        shell: bash
+        run: |
+          set -euo pipefail
+          pg_bindir="$(pg_config --bindir)"
+          test -x "${pg_bindir}/initdb"
+          test -x "${pg_bindir}/pg_ctl"
+          echo "${pg_bindir}" >> "${GITHUB_PATH}"
+
       - name: API tests
         run: npm --workspace apps/api test
 
@@ -54,7 +63,7 @@ jobs:
         run: npm --workspace apps/web run build
 
       - name: Public renderer HRX roster PII guard
-        run: npm run public-renderer:pii:validate
+        run: node scripts/test/with-synthetic-runtime.mjs node scripts/validate-public-renderer-no-hrx-roster-pii.mjs
 
       - name: HRX UI validator
         run: npm run hrx:ui:validate

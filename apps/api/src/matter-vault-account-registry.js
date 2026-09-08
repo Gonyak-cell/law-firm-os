@@ -8,12 +8,21 @@ const repoSeedPath = resolve(
   __dirname,
   "../../../docs/reorganization/client-matter-os/matter-vault-r4/launch/matter-vault-user-registration-seed.json",
 );
+const configuredSourcePath = String(process.env.LAWOS_IDENTITY_REGISTRATION_SOURCE_PATH ?? "").trim();
 
 export const MATTER_VAULT_ACCOUNT_REGISTRY_SOURCE = "matter-vault-user-registration-seed";
-export const MATTER_VAULT_ACCOUNT_REGISTRY_PATH = existsSync(packagedSeedPath) ? packagedSeedPath : repoSeedPath;
+export const MATTER_VAULT_ACCOUNT_REGISTRY_PATH = configuredSourcePath
+  ? resolve(process.cwd(), configuredSourcePath)
+  : existsSync(packagedSeedPath) ? packagedSeedPath : existsSync(repoSeedPath) ? repoSeedPath : null;
 export const MATTER_VAULT_USER_REGISTRATION_SEED = Object.freeze(
-  JSON.parse(readFileSync(MATTER_VAULT_ACCOUNT_REGISTRY_PATH, "utf8")),
+  MATTER_VAULT_ACCOUNT_REGISTRY_PATH
+    ? JSON.parse(readFileSync(MATTER_VAULT_ACCOUNT_REGISTRY_PATH, "utf8"))
+    : { tenant_id: "", source_ref: "private-runtime-source-not-configured", users: [] },
 );
+if (typeof MATTER_VAULT_USER_REGISTRATION_SEED.tenant_id !== "string"
+    || !Array.isArray(MATTER_VAULT_USER_REGISTRATION_SEED.users)) {
+  throw new TypeError("Registration source requires a tenant_id and users array");
+}
 const configuredOperationalTenantId = String(process.env.LAWOS_IDENTITY_TENANT_ID ?? "").trim();
 export const MATTER_VAULT_REGISTERED_TENANT_ID =
   configuredOperationalTenantId || MATTER_VAULT_USER_REGISTRATION_SEED.tenant_id;

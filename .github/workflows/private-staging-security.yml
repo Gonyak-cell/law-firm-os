@@ -56,7 +56,7 @@ jobs:
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Security regression suite
         run: >-
-          node --test --test-concurrency=1
+          node scripts/test/with-synthetic-runtime.mjs node --test --test-concurrency=1
           apps/api/test/auth-password-reset-security.test.js
           apps/api/test/auth-restart-revocation.test.js
           apps/api/test/auth-concurrency.test.js
@@ -72,6 +72,7 @@ jobs:
           packages/matter/test/*.test.js
           packages/persistence/test/record-domain-seed-preservation.test.js
           packages/runtime-auth/test/*.test.js
+          scripts/test/synthetic-private-runtime-sources.test.mjs
           scripts/test/private-staging-artifact.test.mjs
           scripts/test/private-staging-aws-execution.test.mjs
           scripts/test/private-staging-checkpoint-closeout.test.mjs

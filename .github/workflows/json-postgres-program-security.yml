@@ -67,7 +67,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          node --test --test-concurrency=1 --test-reporter=tap \
+          node scripts/test/with-synthetic-runtime.mjs node --test --test-concurrency=1 --test-reporter=tap \
             apps/api/test/auth-concurrency.test.js \
             apps/api/test/auth-restart-revocation.test.js \
             apps/api/test/break-glass-postgres.test.js \

@@ -172,7 +172,7 @@ jobs:
 
       - name: Client Outlook API tests
         run: >-
-          node --test
+          node scripts/test/with-synthetic-runtime.mjs node --test
           --test-concurrency=1
           apps/api/test/client-outlook-https-callback.test.js
           apps/api/test/client-outlook-operational-runtime.test.js
@@ -202,7 +202,7 @@ jobs:
 
       - name: Outlook task, time, precedent, document, and DocuSign tests
         run: >-
-          node --test
+          node scripts/test/with-synthetic-runtime.mjs node --test
           --test-concurrency=1
           apps/api/test/outlook-time-entry-draft-postgres.test.js
           apps/api/test/outlook-graph-webhook.test.js
@@ -214,7 +214,7 @@ jobs:
 
       - name: Vault immutable precedent target tests
         run: >-
-          node --test
+          node scripts/test/with-synthetic-runtime.mjs node --test
           --test-concurrency=1
           apps/api/test/cmp-r4-g5-vault.test.js
           apps/api/test/outlook-precedent-api.test.js
@@ -226,7 +226,7 @@ jobs:
 
       - name: Final Outlook API, Matter replay, and DocuSign hardening tests
         run: >-
-          node --test
+          node scripts/test/with-synthetic-runtime.mjs node --test
           --test-concurrency=1
           apps/api/test/outlook-conversation-policy-api.test.js
           apps/api/test/outlook-conversation-policy-status-api.test.js

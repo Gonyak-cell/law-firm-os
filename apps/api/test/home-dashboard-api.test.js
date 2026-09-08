@@ -33,7 +33,7 @@ function createSeedRuntime(overrides = {}) {
           type: "approval",
           subtype: "leave",
           title: "휴가 승인 요청",
-          requester: "서지원",
+          requester: "테스트 구성원 06",
           due_at: "2026-07-07T15:00:00.000Z",
           risk_tier: "low",
           raw_payload: { hidden: true },

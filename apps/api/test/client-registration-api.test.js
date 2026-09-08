@@ -17,9 +17,9 @@ import { startApiServer } from "../src/server.js";
 import { apiSessionHeaders } from "./helpers/session.js";
 
 const TENANT = MATTER_VAULT_REGISTERED_TENANT_ID;
-const OPERATIONS_EMAIL = "wsjo@amic.kr";
-const STAFF_EMAIL = "yjlee@amic.kr";
-const ATTORNEY_EMAIL = "jh731@amic.kr";
+const OPERATIONS_EMAIL = "member02@runtime.example.test";
+const STAFF_EMAIL = "member10@runtime.example.test";
+const ATTORNEY_EMAIL = "member08@runtime.example.test";
 
 let server;
 let baseUrl;

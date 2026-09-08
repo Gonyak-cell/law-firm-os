@@ -88,7 +88,7 @@ jobs:
         run: npm --workspace apps/desktop run prepare:web-renderer
 
       - name: Run value-based roster, registration, and photo privacy gate
-        run: npm run public-renderer:pii:validate
+        run: node scripts/test/with-synthetic-runtime.mjs node scripts/validate-public-renderer-no-hrx-roster-pii.mjs
 
       - name: Build privacy-gated internal-unsigned Windows NSIS installer
         env:

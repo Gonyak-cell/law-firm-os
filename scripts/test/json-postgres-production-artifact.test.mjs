@@ -11,7 +11,6 @@ import {
   JSON_POSTGRES_PRODUCTION_OUTLOOK_SECRET_PUBLICATION_ENTRY,
   JSON_POSTGRES_PRODUCTION_PROGRAM_ADMIN_ENTRYPOINT,
   JSON_POSTGRES_PRODUCTION_PUBLIC_PROFILE_CATALOG_ENTRY,
-  JSON_POSTGRES_PRODUCTION_REQUIRED_PROFILE_PHOTO_ENTRIES,
   JSON_POSTGRES_PRODUCTION_REDACTION_TARGETS,
   emptyJsonPostgresProductionSources,
   deriveJsonPostgresProductionOutlookRuntimeEntries,
@@ -30,6 +29,8 @@ import { publicProfessionalProfileCatalog } from "../lib/hrx-public-professional
 const REPO_ROOT = process.env.LAWOS_JSON_POSTGRES_ARTIFACT_TEST_ROOT
   ? resolve(process.env.LAWOS_JSON_POSTGRES_ARTIFACT_TEST_ROOT)
   : fileURLToPath(new URL("../../", import.meta.url));
+const RETIRED_PHOTO_ENTRY =
+  "apps/api/src/hrx-member-photos/167499af06d33e69afce9bf8047ec0233c4037aecda34e3056ba83f287af103f.png";
 
 function recursiveOutlookRuntimeEntries() {
   return deriveJsonPostgresProductionOutlookRuntimeEntries({
@@ -41,13 +42,13 @@ function oid(character) {
   return character.repeat(40);
 }
 
-test("production Git tree excludes private-staging source", () => {
+test("production Git tree excludes private-staging source and private portraits", () => {
   const tree = Buffer.from([
     `100644 blob ${oid("a")}\tapps/api/src/lambda.js`,
     `100644 blob ${oid("b")}\tapps/api/src/private-staging-admin-lambda.js`,
     `100644 blob ${oid("c")}\tpackages/runtime-auth/src/private-staging-synthetic-email.js`,
     `100644 blob ${oid("d")}\tpackages/persistence/src/postgres/execution-contract.js`,
-    `100644 blob ${oid("e")}\t${JSON_POSTGRES_PRODUCTION_REQUIRED_PROFILE_PHOTO_ENTRIES[0]}`,
+    `100644 blob ${oid("e")}\t${RETIRED_PHOTO_ENTRY}`,
     `100644 blob ${oid("f")}\tapps/api/src/hrx-member-photos/not-approved.png`,
     `100644 blob ${oid("1")}\t${JSON_POSTGRES_PRODUCTION_OUTLOOK_SECRET_PUBLICATION_ENTRY}`,
     "",
@@ -56,7 +57,6 @@ test("production Git tree excludes private-staging source", () => {
   assert.deepEqual(
     parsed.map((entry) => entry.path),
     [
-      JSON_POSTGRES_PRODUCTION_REQUIRED_PROFILE_PHOTO_ENTRIES[0],
       JSON_POSTGRES_PRODUCTION_OUTLOOK_SECRET_PUBLICATION_ENTRY,
       "apps/api/src/lambda.js",
       "packages/persistence/src/postgres/execution-contract.js",
@@ -250,7 +250,6 @@ test("production artifact entry and deployment manifest contracts fail closed", 
     "packages/dms/src/json-postgres-dms-migration.js",
     "packages/persistence/src/postgres/execution-contract.js",
     "packages/persistence/src/postgres/program-receipt.js",
-    ...JSON_POSTGRES_PRODUCTION_REQUIRED_PROFILE_PHOTO_ENTRIES,
   ])];
   assert.deepEqual(
     validateJsonPostgresProductionArtifactEntries(entries),
@@ -306,12 +305,12 @@ test("production artifact entry and deployment manifest contracts fail closed", 
     ),
     /missing apps\/api\/src\/hrx-public-professional-profile-catalog\.json/u,
   );
-  assert.throws(
-    () => validateJsonPostgresProductionArtifactEntries(
-      entries.filter((entry) => entry !== JSON_POSTGRES_PRODUCTION_REQUIRED_PROFILE_PHOTO_ENTRIES[2]),
-    ),
-    /missing apps\/api\/src\/hrx-member-photos/u,
-  );
+  for (const photo of [RETIRED_PHOTO_ENTRY, "apps/api/src/hrx-member-photos/synthetic.png"]) {
+    assert.throws(
+      () => validateJsonPostgresProductionArtifactEntries([...entries, photo]),
+      /forbidden entries/u,
+    );
+  }
   assert.throws(
     () => validateJsonPostgresProductionArtifactEntries([
       ...entries,

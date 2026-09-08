@@ -2,6 +2,7 @@
 import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
+import { isRecordedCurrentPrivateSourceRetirement } from "./lib/current-private-source-retirement.mjs";
 
 function read(path) {
   return readFileSync(resolve(path), "utf8");
@@ -138,7 +139,7 @@ for (const path of [
   ...ledger.release_payload.in_scope,
   ...proofPaths
 ]) {
-  assert.ok(fileExists(path), `missing production rollout evidence: ${path}`);
+  assert.ok(fileExists(path) || isRecordedCurrentPrivateSourceRetirement(path), `missing production rollout evidence: ${path}`);
 }
 
 const excludedPaths = ledger.release_payload.excluded.map((entry) => entry.path);

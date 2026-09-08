@@ -49,9 +49,9 @@ test.before(async () => {
   const started = await startApiServer({ port: 0 });
   server = started.server;
   baseUrl = `http://${started.host}:${started.port}`;
-  adminHeaders = await apiSessionHeaders(baseUrl, account("jwsuh@amic.kr"));
-  staffHeaders = await apiSessionHeaders(baseUrl, account("yjlee@amic.kr"));
-  noHrxHeaders = await apiSessionHeaders(baseUrl, account("matter.desktop.qa@amic.kr"));
+  adminHeaders = await apiSessionHeaders(baseUrl, account("member06@runtime.example.test"));
+  staffHeaders = await apiSessionHeaders(baseUrl, account("member10@runtime.example.test"));
+  noHrxHeaders = await apiSessionHeaders(baseUrl, account("member11@runtime.example.test"));
 });
 
 test.after(() => new Promise((resolve) => server.close(resolve)));

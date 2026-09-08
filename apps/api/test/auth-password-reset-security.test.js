@@ -10,7 +10,7 @@ import { findRegisteredAccountByEmail } from "../src/matter-vault-account-regist
 test("password reset admission is account-independent and delivery runs only in the durable worker", async (t) => {
   const root = mkdtempSync(join(tmpdir(), "lawos-reset-admission-"));
   t.after(() => rmSync(root, { recursive: true, force: true }));
-  const account = findRegisteredAccountByEmail("jwsuh@amic.kr");
+  const account = findRegisteredAccountByEmail("member06@runtime.example.test");
   const credentialPath = join(root, "credentials.json");
   const resetPath = join(root, "resets.json");
   createAuthCredentialStore({ filePath: credentialPath }).setPassword({ user: account, password: "reset-security-password" });
@@ -42,7 +42,7 @@ test("password reset admission is account-independent and delivery runs only in 
 test("all post-syntax login failures share one public response envelope", async (t) => {
   const root = mkdtempSync(join(tmpdir(), "lawos-login-envelope-"));
   t.after(() => rmSync(root, { recursive: true, force: true }));
-  const account = findRegisteredAccountByEmail("jwsuh@amic.kr");
+  const account = findRegisteredAccountByEmail("member06@runtime.example.test");
   const credentialPath = join(root, "credentials.json");
   const resetPath = join(root, "resets.json");
   createAuthCredentialStore({ filePath: credentialPath }).setPassword({ user: account, password: "login-envelope-password" });

@@ -12,7 +12,8 @@ const rosterPath = path.resolve(
 );
 const registrationPath = path.resolve(
   ROOT,
-  "docs/reorganization/client-matter-os/matter-vault-r4/launch/matter-vault-user-registration-seed.json",
+  String(process.env.LAWOS_IDENTITY_REGISTRATION_SOURCE_PATH ?? "").trim()
+    || "docs/reorganization/client-matter-os/matter-vault-r4/launch/matter-vault-user-registration-seed.json",
 );
 const rendererRoots = [
   path.join(ROOT, "apps/web/dist"),
@@ -31,19 +32,20 @@ const roster = JSON.parse(readFileSync(rosterPath, "utf8"));
 const members = Array.isArray(roster.members) ? roster.members : [];
 const protectedKeys = ["display_name", "legal_name", "work_email", "employee_id", "user_id", "manager_employee_id"];
 const rosterProtectedValues =
-  members.flatMap((member) => protectedKeys.map((key) => String(member?.[key] ?? "").trim())).filter((value) => value.length >= 4);
+  members.flatMap((member) => protectedKeys.map((key) => String(member?.[key] ?? "").trim())).filter((value) => value.length >= 3);
 const registration = JSON.parse(readFileSync(registrationPath, "utf8"));
 const users = Array.isArray(registration.users) ? registration.users : [];
 const registrationProtectedKeys = ["display_name", "email", "english_name", "user_id"];
 const registrationProtectedValues = users
   .flatMap((user) => registrationProtectedKeys.map((key) => String(user?.[key] ?? "").trim()))
-  .filter((value) => value.length >= 4);
+  .filter((value) => value.length >= 3);
+assert(registrationProtectedValues.length > 0, "Registration source must contain protected values for PII validation");
 const protectedValues = [...new Set([
   ...rosterProtectedValues,
   ...registrationProtectedValues,
   String(roster.tenant_id ?? "").trim(),
   String(registration.tenant_id ?? "").trim(),
-].filter((value) => value.length >= 4))];
+].filter((value) => value.length >= 3))];
 assert(protectedValues.length > 0, "Private identity validator requires at least one protected value");
 
 function filesUnder(directory) {

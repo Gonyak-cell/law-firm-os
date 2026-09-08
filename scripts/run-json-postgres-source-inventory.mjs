@@ -127,12 +127,14 @@ const configuredSources = [
   { ref: "packaged-lawos-user-data", path: `${home}/Library/Application Support/matter/runtime-stores` },
   {
     ref: "registered-account-source",
-    path: resolve("docs/reorganization/client-matter-os/matter-vault-r4/launch/matter-vault-user-registration-seed.json"),
+    path: resolve(process.env.LAWOS_IDENTITY_REGISTRATION_SOURCE_PATH?.trim()
+      || "docs/reorganization/client-matter-os/matter-vault-r4/launch/matter-vault-user-registration-seed.json"),
     single_file: true,
   },
   {
     ref: "registered-roster-source",
-    path: resolve("docs/reorganization/client-matter-os/matter-vault-r4/launch/hrx-member-roster-source-of-truth.json"),
+    path: resolve(process.env.LAWOS_HRX_MEMBER_ROSTER_SOURCE_PATH?.trim()
+      || "docs/reorganization/client-matter-os/matter-vault-r4/launch/hrx-member-roster-source-of-truth.json"),
     single_file: true,
   },
 ];

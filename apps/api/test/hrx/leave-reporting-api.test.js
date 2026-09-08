@@ -62,7 +62,7 @@ test("LV-05 API filters ledger rows before counts and exports the same totals wi
 
   const unauthorized = request(context, "/api/hrx/leave/ledger", "GET", {}, staffActor(), { employee_id: "emp_amic_ytkim" });
   assert.equal(unauthorized.body.report.totals.row_count, 0);
-  assert.equal(JSON.stringify(unauthorized.body).includes("김양태"), false);
+  assert.equal(JSON.stringify(unauthorized.body).includes("테스트 구성원 01"), false);
 
   const exported = request(context, "/api/hrx/leave/reports/export", "GET", {}, hrActor(), { format: "csv", employee_id: EMPLOYEE });
   assert.equal(exported.status, 200, JSON.stringify(exported.body));

@@ -703,7 +703,7 @@ test("provider-backed Vault browse and search bypass the LawOS DMS repository", 
 test("desktop Vault preflight fails closed before picker when authority or scope is absent", async () => {
   for (const scenario of [
     { name: "authority", server: {}, account: undefined, code: "VAULT_AUTHORITY_UNAVAILABLE" },
-    { name: "vault.write scope", server: { vaultCapabilityResolver: capabilityResolver() }, account: registeredAccount("yjlee@amic.kr"), code: "VAULT_SCOPE_NOT_GRANTED" },
+    { name: "vault.write scope", server: { vaultCapabilityResolver: capabilityResolver() }, account: registeredAccount("member10@runtime.example.test"), code: "VAULT_SCOPE_NOT_GRANTED" },
     { name: "upload provider", server: { vaultCapabilityResolver: capabilityResolver() }, account: undefined, code: "VAULT_PROVIDER_UNAVAILABLE", status: 503 },
   ]) {
     const harness = dmsHarness();

@@ -46,7 +46,7 @@ test.before(async () => {
   const started = await startApiServer({ port: 0 });
   server = started.server;
   baseUrl = `http://${started.host}:${started.port}`;
-  authHeaders = await apiSessionHeaders(baseUrl, account("jwsuh@amic.kr"));
+  authHeaders = await apiSessionHeaders(baseUrl, account("member06@runtime.example.test"));
 });
 
 test.after(() => new Promise((resolve) => server.close(resolve)));

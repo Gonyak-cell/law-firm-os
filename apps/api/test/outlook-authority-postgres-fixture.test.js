@@ -101,9 +101,9 @@ test("terminal Client migrations use one direct Outlook authority cleanup", asyn
       },
     });
     assert.deepEqual(stages.map(({ stage, rows }) => [stage, rows.length]), [
-      ["historical79", 79], ["authority80", 80], ["combined81", 81],
+      ["historical79", 79], ["authority80", 80], ["combined81", 81], ["version82", 82],
     ]);
-    const [historical, authority, combined] = stages.map(({ receipt }) => receipt);
+    const [historical, authority, combined, version] = stages.map(({ receipt }) => receipt);
     assert.equal(historical.outcome, "committed");
     for (const id of ["306_client_outlook_desktop_assignment",
       "307_client_outlook_desktop_trusted_current_read",
@@ -120,13 +120,16 @@ test("terminal Client migrations use one direct Outlook authority cleanup", asyn
     assert.equal(combined.outcome, "appended");
     assert.deepEqual(combined.migrations.filter(({ applied }) => applied).map(({ id }) => id),
       ["016_dms_corporate_workspace"]);
-    for (const receipt of [authority, combined]) {
+    assert.equal(version.outcome, "appended");
+    assert.deepEqual(version.migrations.filter(({ applied }) => applied).map(({ id }) => id),
+      ["310_client_internal_unsigned_s3_version"]);
+    for (const receipt of [authority, combined, version]) {
       assert.equal(receipt.migration_applied_count, 1);
       assert.equal(receipt.postgres_mutation_committed_count, 1);
       assert.equal(receipt.role_configuration_transaction_committed_count, 0);
       assert.equal(receipt.role_bootstrap_sha256, historical.role_bootstrap_sha256);
     }
-    assert.equal(applied, combined);
+    assert.equal(applied, version);
 
     const replay = await runOutlookAuthorityPostgresMigrations(fixture, {
       appliedBy: "outlook-authority-fixture-replay",

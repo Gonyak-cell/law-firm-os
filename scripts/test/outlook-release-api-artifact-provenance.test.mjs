@@ -10,7 +10,6 @@ import {
   JSON_POSTGRES_PRODUCTION_OUTLOOK_RUNTIME_ENTRIES_SHA256,
   JSON_POSTGRES_PRODUCTION_PROGRAM_ADMIN_ENTRYPOINT,
   JSON_POSTGRES_PRODUCTION_PUBLIC_PROFILE_CATALOG_ENTRY,
-  JSON_POSTGRES_PRODUCTION_REQUIRED_PROFILE_PHOTO_ENTRIES,
 } from "../lib/json-postgres-production-artifact.mjs";
 import * as releaseGates from "../lib/outlook-release-gates.mjs";
 import { sha256 } from "../lib/outlook-release-gates.mjs";
@@ -33,7 +32,6 @@ const archiveEntries = [...new Set([
   "packages/dms/src/json-postgres-dms-migration.js",
   "packages/persistence/src/postgres/execution-contract.js",
   "packages/persistence/src/postgres/program-receipt.js",
-  ...JSON_POSTGRES_PRODUCTION_REQUIRED_PROFILE_PHOTO_ENTRIES,
 ])];
 const rdsCaBundleBytes = Buffer.from(
   `${"-----BEGIN CERTIFICATE-----\nfixture\n-----END CERTIFICATE-----\n".repeat(5)}${"x".repeat(10_000)}\n`,

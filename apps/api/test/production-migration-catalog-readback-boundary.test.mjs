@@ -103,7 +103,7 @@ test("the pool closes on read failure and raw database material is never seriali
       resolveSecret: async () => ({ username: "lawos_hrx_projection_auditor", password: "private-password" }),
       createPool: () => ({ end: async () => { ended += 1; } }),
       readCatalog: async () => {
-        throw Object.assign(new Error("postgres://auditor:private-password@private-host/lawos jwsuh@amic.kr"), {
+        throw Object.assign(new Error("postgres://auditor:private-password@private-host/lawos member06@runtime.example.test"), {
           code: "08006",
         });
       },
@@ -112,10 +112,10 @@ test("the pool closes on read failure and raw database material is never seriali
       const serialized = JSON.stringify(error);
       assert.equal(error.message.includes("private-password"), false);
       assert.equal(error.message.includes("private-host"), false);
-      assert.equal(error.message.includes("jwsuh@amic.kr"), false);
+      assert.equal(error.message.includes("member06@runtime.example.test"), false);
       assert.equal(serialized.includes("private-password"), false);
       assert.equal(serialized.includes("private-host"), false);
-      assert.equal(serialized.includes("jwsuh@amic.kr"), false);
+      assert.equal(serialized.includes("member06@runtime.example.test"), false);
       return true;
     },
   );
@@ -131,7 +131,7 @@ test("the pool closes on read failure and raw database material is never seriali
       }),
       createPool: () => ({ end: async () => {} }),
       readCatalog: async () => {
-        throw Object.assign(new Error("private-host jwsuh@amic.kr"), {
+        throw Object.assign(new Error("private-host member06@runtime.example.test"), {
           code: "LAWOS_CATALOG_READBACK_FORGED_RAW_DETAIL",
         });
       },

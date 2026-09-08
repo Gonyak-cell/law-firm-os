@@ -206,31 +206,25 @@ test("internal-unsigned package content audit rejects protected values repackage
     await writeFile(path.join(root, MARKER), "{}\n");
     await writeFile(path.join(root, TRUST), "{}\n");
     const sourcePath = path.join(privateRoot, "registration.json");
-    await writeFile(
-      sourcePath,
-      '{"tenant_id":"tenant-private","users":[{"display_name":"Private Person","email":"private@example.test","user_id":"user-private"}]}\n',
-    );
-    await writeFile(
-      path.join(root, "resources", "app", "assets", "repacked-public.bin"),
-      Buffer.concat([Buffer.alloc(65_530, 0x78), Buffer.from("Private Person")]),
-    );
-
-    await assert.rejects(
-      assertInternalUnsignedPackage({
-        rootPath: root,
-        privateSourcePaths: { registrationSeed: sourcePath },
-      }),
-      (error) => {
-        assert.match(
-          error.message,
-          /registrationSeed:resources\/app\/assets\/repacked-public\.bin:1/u,
-        );
-        assert.equal(error.message.includes("Private Person"), false);
-        assert.equal(error.message.includes("private@example.test"), false);
-        assert.equal(error.message.includes("tenant-private"), false);
-        return true;
-      },
-    );
+    for (const displayName of ["Private Person", "가나다"]) {
+      await writeFile(sourcePath, JSON.stringify({ tenant_id: "tenant-private", users: [{
+        display_name: displayName, email: "private@example.test", user_id: "user-private",
+      }] }));
+      await writeFile(
+        path.join(root, "resources", "app", "assets", "repacked-public.bin"),
+        Buffer.concat([Buffer.alloc(65_530, 0x78), Buffer.from(displayName)]),
+      );
+      await assert.rejects(
+        assertInternalUnsignedPackage({ rootPath: root, privateSourcePaths: { registrationSeed: sourcePath } }),
+        (error) => {
+          assert.match(error.message, /registrationSeed:resources\/app\/assets\/repacked-public\.bin:1/u);
+          assert.equal(error.message.includes(displayName), false);
+          assert.equal(error.message.includes("private@example.test"), false);
+          assert.equal(error.message.includes("tenant-private"), false);
+          return true;
+        },
+      );
+    }
   } finally {
     await rm(root, { recursive: true, force: true });
     await rm(privateRoot, { recursive: true, force: true });
@@ -298,7 +292,7 @@ test("public-repository Windows QA builds internal-unsigned but uploads syntheti
   assert.match(workflow, /generateKeyPairSync\('ed25519'\)/u);
   assert.match(workflow, /MATTER_INTERNAL_UPDATE_PUBLIC_KEY_SPKI_BASE64=\$publicKey/u);
   assert.match(workflow, /Run value-based roster, registration, and photo privacy gate/u);
-  assert.match(workflow, /npm run public-renderer:pii:validate/u);
+  assert.match(workflow, /node scripts\/test\/with-synthetic-runtime\.mjs node scripts\/validate-public-renderer-no-hrx-roster-pii\.mjs/u);
   assert.match(workflow, /apps\/api\/src\/hrx-member-photos\/\*\*/u);
   assert.match(workflow, /matter-vault-user-registration-seed\.json/u);
   assert.match(workflow, /validate-public-renderer-no-hrx-roster-pii\.mjs/u);

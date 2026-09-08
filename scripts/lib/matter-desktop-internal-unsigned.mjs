@@ -250,7 +250,7 @@ function collectPrivateTextValues(value, fieldNames, values) {
   }
   if (!value || typeof value !== "object") return;
   for (const [field, item] of Object.entries(value)) {
-    if (fieldNames.has(field) && typeof item === "string" && item.trim().length >= 4) {
+    if (fieldNames.has(field) && typeof item === "string" && item.trim().length >= 3) {
       values.add(item.trim());
     }
     collectPrivateTextValues(item, fieldNames, values);

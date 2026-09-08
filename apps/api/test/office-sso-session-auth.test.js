@@ -535,7 +535,7 @@ test("Office SSO stays disabled without a provider and standard sessions retain 
     );
   }
 
-  const user = findRegisteredAccountByEmail("jwsuh@amic.kr");
+  const user = findRegisteredAccountByEmail("member06@runtime.example.test");
   assert.ok(user);
   const standard = createApiSessionAuth({
     secret: "standard-session-surface-test",

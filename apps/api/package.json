@@ -13,6 +13,6 @@
   },
   "scripts": {
     "start": "node src/server.js",
-    "test": "node --test --test-concurrency=1 test/*.test.js test/hrx/*.test.js"
+    "test": "node ../../scripts/test/with-synthetic-runtime.mjs node --test --test-concurrency=1 test/*.test.js test/hrx/*.test.js"
   }
 }
