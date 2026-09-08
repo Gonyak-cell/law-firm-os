@@ -464,7 +464,7 @@ test("Lambda HTTP proxy logs only safe Outlook failure metadata", async () => {
   assert.equal(logs[4].includes("PRIVATE_DEVICE_ID"), false);
 });
 
-test("Lambda HTTP proxy preserves signed profile photo bytes for HTTP and REST events", async () => {
+test("Lambda HTTP proxy preserves signed profile and HRX photo bytes for HTTP and REST events", async () => {
   const bytes = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10, 0, 255, 128, 192]);
   const lambdaHandler = createLambdaHttpHandler({
     runtimeCache: { async get() { return { port: 32123 }; } },
@@ -480,6 +480,9 @@ test("Lambda HTTP proxy preserves signed profile photo bytes for HTTP and REST e
     { rawPath: "/api/profile/me/photo", requestContext: { http: { method: "GET" } } },
     { rawPath: "/api/profile/me/photo/", requestContext: { http: { method: "GET" } } },
     { path: "/api/profile/me/photo", httpMethod: "GET" },
+    { rawPath: "/api/hrx/employees/emp_synthetic/photo", requestContext: { http: { method: "GET" } } },
+    { rawPath: "/api/hrx/employees/emp_synthetic/photo/", requestContext: { http: { method: "GET" } } },
+    { path: "/api/hrx/employees/emp_synthetic/photo", httpMethod: "GET" },
   ]) {
     const result = await lambdaHandler({ ...event, headers: { authorization: "Bearer synthetic-session" } });
     assert.equal(result.statusCode, 200);
@@ -492,7 +495,22 @@ test("Lambda HTTP proxy preserves signed profile photo bytes for HTTP and REST e
   }
 });
 
-test("Lambda HTTP proxy keeps rejected profile photo responses as JSON", async () => {
+test("Lambda HTTP proxy preserves large HRX photo bytes within the buffered response limit", async () => {
+  const bytes = Buffer.alloc(4 * 1024 * 1024);
+  for (let index = 0; index < bytes.length; index += 1) bytes[index] = index % 256;
+  const lambdaHandler = createLambdaHttpHandler({
+    runtimeCache: { async get() { return { port: 32123 }; } },
+    fetchFn: async () => new Response(bytes, { headers: { "content-type": "image/png" } }),
+  });
+  const result = await lambdaHandler({
+    rawPath: "/api/hrx/employees/emp_synthetic/photo", requestContext: { http: { method: "GET" } },
+  });
+  assert.equal(result.isBase64Encoded, true);
+  assert.deepEqual(Buffer.from(result.body, "base64"), bytes);
+  assert.ok(Buffer.byteLength(JSON.stringify(result)) < 6 * 1024 * 1024);
+});
+
+test("Lambda HTTP proxy keeps rejected profile and HRX photo responses as JSON", async () => {
   const body = JSON.stringify({ outcome: "blocked", safe_error_codes: ["PROFILE_PHOTO_UNAVAILABLE"] });
   for (const status of [401, 403, 404, 503]) {
     const lambdaHandler = createLambdaHttpHandler({
@@ -501,11 +519,31 @@ test("Lambda HTTP proxy keeps rejected profile photo responses as JSON", async (
         "content-type": "application/json", "cache-control": "private, no-store",
       } }),
     });
-    const result = await lambdaHandler({ rawPath: "/api/profile/me/photo", requestContext: { http: { method: "GET" } } });
-    assert.equal(result.statusCode, status);
+    for (const path of ["/api/profile/me/photo", "/api/hrx/employees/emp_synthetic/photo"]) {
+      const result = await lambdaHandler({ rawPath: path, requestContext: { http: { method: "GET" } } });
+      assert.equal(result.statusCode, status);
+      assert.equal(result.isBase64Encoded, false);
+      assert.equal(result.body, body);
+      assert.equal(result.headers["cache-control"], "private, no-store");
+    }
+  }
+});
+
+test("Lambda HTTP proxy leaves other HRX responses in their original text format", async () => {
+  const body = JSON.stringify({ outcome: "synthetic" });
+  const lambdaHandler = createLambdaHttpHandler({
+    runtimeCache: { async get() { return { port: 32123 }; } },
+    fetchFn: async () => new Response(body, { headers: { "content-type": "application/json" } }),
+  });
+  for (const [method, path] of [
+    ["POST", "/api/hrx/employees/emp_synthetic/photo"],
+    ["GET", "/api/hrx/employees"],
+    ["GET", "/api/hrx/employees/emp_synthetic/photo/metadata"],
+    ["GET", "/api/hrx/employees/emp_synthetic/extra/photo"],
+  ]) {
+    const result = await lambdaHandler({ rawPath: path, requestContext: { http: { method } } });
     assert.equal(result.isBase64Encoded, false);
     assert.equal(result.body, body);
-    assert.equal(result.headers["cache-control"], "private, no-store");
   }
 });
 

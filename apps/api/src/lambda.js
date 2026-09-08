@@ -4769,6 +4769,7 @@ export function createLambdaHttpHandler({
       (method === "GET" && path.startsWith(OUTLOOK_VAULT_ATTACHMENT_DELIVERY_PREFIX))
       || (method === "POST" && path === DESKTOP_VAULT_EXPORT_DOWNLOAD_PATH)
       || (method === "GET" && path.replace(/\/+$/u, "") === "/api/profile/me/photo")
+      || (method === "GET" && /^\/api\/hrx\/employees\/[A-Za-z0-9][A-Za-z0-9._:-]{0,159}\/photo$/u.test(path.replace(/\/+$/u, "")))
     )
       && response.status >= 200
       && response.status < 300;
