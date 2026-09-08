@@ -1,12 +1,13 @@
-import { chmod, mkdir, mkdtemp, writeFile } from "node:fs/promises";
+import { randomUUID } from "node:crypto";
+import { chmod, mkdir, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 
 import { openProtectedEvidenceRoot, sha256 } from "../../lib/outlook-release-gates.mjs";
 
 export async function createProtectedFixtureRoot() {
-  const root = await mkdtemp(path.join(os.tmpdir(), "amic-outlook-protected-"));
-  await chmod(root, 0o700);
+  const root = path.join(os.tmpdir(), `amic-outlook-protected-${randomUUID()}`);
+  await mkdir(root, { mode: 0o700 });
   return root;
 }
 
