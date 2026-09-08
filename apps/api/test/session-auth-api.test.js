@@ -289,6 +289,61 @@ test("PostgreSQL highest-privilege sessions restore canonical administrator scop
   assert.ok(resolved.context.principal.scopes.includes("finance.bank.import"));
 });
 
+test("PostgreSQL HRX grants remain effective when stored separately from general scopes", async () => {
+  const account = { ...user(), highest_privilege: false };
+  const password = "synthetic-separated-hrx-scope-password";
+  const tenantId = MATTER_VAULT_REGISTERED_TENANT_ID;
+  const membership = {
+    tenant_id: tenantId, status: "active", role_ids: ["lawos_staff"], group_ids: [],
+    scopes: ["matter.read", "vault.read"],
+    hrx_scopes: ["hrx.employee.read", "hrx.document.read", "finance.bank.read"],
+  };
+  const auth = createApiSessionAuth({
+    profile: "operational", secret: "synthetic-separated-hrx-session-secret",
+    credentialStorePath: credentialStorePathFor([credentialRecord(account, password)]),
+    passwordResetTokenStorePath: passwordResetStorePath(),
+    seed: { tenant_id: tenantId, users: [{ ...account, directory_source: "postgres-v2", tenant_memberships: [membership] }] },
+    objectAclResolver: async () => ({
+      authoritative: true, source_ref: "synthetic-hrx-scope-test",
+      object_acl: [{ id: "document-deny", tenant_id: tenantId, principal_id: account.user_id, effect: "deny", action: "hrx.document.read" }],
+    }),
+  });
+  const signed = await auth.login({ email: account.email, password });
+  assert.equal(signed.status, 200);
+  assert.equal(signed.body.session.scopes.includes("hrx.employee.read"), false);
+  assert.equal(signed.body.session.hrx_scopes.includes("hrx.employee.read"), true);
+  const resolved = await auth.resolvePermissionContextFromHeaders({
+    authorization: `Bearer ${signed.body.session_token}`,
+    "x-lawos-hrx-scopes": "hrx.audit.read",
+    "x-lawos-permission-context": forgedAllowPermissionContext(),
+  }, { requireSessionToken: true, requestId: "separate-hrx-grants" });
+  assert.equal(resolved.ok, true);
+  for (const [action, resourceTenant, effect, reason] of [
+    ["hrx.employee.read", tenantId, "allow", "allow_rule"],
+    ["hrx.employee.write", tenantId, "deny", "fail_closed_no_match"],
+    ["hrx.audit.read", tenantId, "deny", "fail_closed_no_match"],
+    ["hrx.document.read", tenantId, "deny", "object_acl_deny"],
+    ["finance:bank_transaction:read", tenantId, "deny", "fail_closed_no_match"],
+    ["hrx.employee.read", "tenant-unrelated", "deny", "cross_tenant_deny"],
+  ]) {
+    const decision = evaluateRouteDecision({
+      context: resolved.context, action,
+      resource: { tenant_id: resourceTenant, resource_type: "HrxEmployee", resource_id: "employees", matter_id: null },
+    });
+    assert.equal(decision.effect, effect, action);
+    assert.equal(decision.reason, reason, action);
+  }
+  assert.deepEqual(membership.scopes, ["matter.read", "vault.read"]);
+  assert.equal(resolved.context.principal.scopes.includes("hrx.employee.read"), false);
+  membership.hrx_scopes = [];
+  const revoked = await auth.verifyToken(signed.body.session_token);
+  assert.equal(revoked.ok, true);
+  assert.equal(evaluateRouteDecision({
+    context: revoked.context, action: "hrx.employee.read",
+    resource: { tenant_id: tenantId, resource_type: "HrxEmployee", resource_id: "employees" },
+  }).effect, "deny");
+});
+
 test("Signed-session permission rules enforce verified scopes without a universal allow", async () => {
   const staff = userByEmail("yjlee@amic.kr");
   const auth = createApiSessionAuth({ secret: "scope-bound-session-test-secret" });
