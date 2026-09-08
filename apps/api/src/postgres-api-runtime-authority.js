@@ -738,6 +738,42 @@ export function createPostgresApiRuntimeAuthority({
         },
       });
     }
+    const homeCrmRead = method === "GET" && [
+      "/api/crm/accounts", "/api/crm/leads", "/api/crm/opportunities",
+    ].includes(pathname);
+    const homeFinanceRead = method === "GET" && [
+      "/api/analytics/finance/monthly", "/api/analytics/finance/cashflow",
+    ].includes(pathname);
+    if (homeCrmRead || homeFinanceRead) {
+      const domainKeys = homeCrmRead
+        ? ["crmRepository", "masterDataRepository"]
+        : ["analyticsRepository", "financeRepository", "masterDataRepository", "matterRepository"];
+      return runPostgresReadWithBaselineRetry({
+        method,
+        pathname,
+        execute: async () => {
+          const { result } = await runRecordRepositoryMultiDomainCommand({
+            ledger,
+            tenant_id: tenantId,
+            domains: PRODUCT_DOMAINS.filter(({ key }) => domainKeys.includes(key)),
+            command: (repositories) => command(Object.freeze(homeCrmRead ? {
+              crmIntakeRuntime: Object.freeze({
+                crmRepository: repositories.crmRepository,
+                masterDataRepository: repositories.masterDataRepository,
+              }),
+            } : {
+              analyticsRuntime: createAnalyticsRuntimeContext({
+                repository: repositories.analyticsRepository,
+                financeRepository: repositories.financeRepository,
+                masterDataRepository: repositories.masterDataRepository,
+                matterRepository: repositories.matterRepository,
+              }),
+            })),
+          });
+          return result;
+        },
+      });
+    }
     if (method === "GET" && (["/api/hrx/employees", "/api/hrx/org-chart"].includes(pathname)
       || /^\/api\/hrx\/employees\/[A-Za-z0-9][A-Za-z0-9._:-]{0,159}\/photo$/u.test(pathname))) {
       return runPostgresReadWithBaselineRetry({
