@@ -364,6 +364,88 @@ test("PostgreSQL employee directory reads isolate HRX and retain durable denial 
   assert.deepEqual(await capture(), afterDenial);
 });
 
+test("PostgreSQL home CRM and finance reads isolate their domains and preserve denial audit", async (t) => {
+  const fixture = await createMigratedPostgresFixture(t, { appPoolMax: 1 });
+  if (!fixture) return;
+  const ledger = createPostgresDomainLedger({ pool: fixture.appPool });
+  const repository = createCrmRuntimeRepository({ seedRecords: [
+    { model_type: "Account", resource_id: "account-home-native", account_id: "account-home-native", tenant_id: TENANT_A, display_name: "Synthetic account" },
+    { model_type: "Lead", resource_id: "lead-home-native", lead_id: "lead-home-native", tenant_id: TENANT_A, display_name: "Synthetic lead", party_id: "party-home-native", status: "active", owner_user_id: "user_home_native" },
+    { model_type: "Opportunity", resource_id: "opportunity-home-native", opportunity_id: "opportunity-home-native", tenant_id: TENANT_A, display_name: "Synthetic opportunity", party_id: "party-home-native", status: "active", stage: "qualified", owner_user_id: "user_home_native" },
+    { model_type: "Account", resource_id: "account-other-tenant", account_id: "account-other-tenant", tenant_id: TENANT_B, display_name: "Other tenant account" },
+  ] });
+  for (const tenant_id of [TENANT_A, TENANT_B]) {
+    await ledger.importSnapshot(createRecordRepositoryDomainSnapshot({
+      descriptor: CRM_DOMAIN_DESCRIPTOR, repositories: [{ source_id: "synthetic-home", repository }], tenant_id,
+    }).snapshot);
+  }
+  let expectedDomains;
+  const calls = [];
+  const guardedLedger = { ...ledger, transactionMany(input, command) {
+    assert.deepEqual([...input.domain_ids].sort(), expectedDomains);
+    calls.push(input.domain_ids);
+    return ledger.transactionMany(input, command);
+  } };
+  const dmsStorage = createLocalStorageAdapter({ adapter_id: "postgres-home-native-reads" });
+  const authority = createPostgresApiRuntimeAuthority({
+    ledger: guardedLedger, dmsStorage, payrollArtifactSecret: PAYROLL_ARTIFACT_SECRET,
+    bankImportPreviewTokens: BANK_IMPORT_PREVIEW_TOKENS,
+    dmsUploadRuntime: createPostgresDmsUploadRuntime({ pool: fixture.appPool, storage: dmsStorage, sourceOnly: false }),
+    identityRepository: { listDirectoryUsers() { assert.fail("Home lists must not load the identity directory"); } },
+  });
+  const context = {
+    principal: { tenant_id: TENANT_A, user_id: "user_home_native", scopes: ["analytics.finance.read"] },
+    rules: [{ id: "home-native-read", effect: "allow", action: "*" }], object_acl: [],
+  };
+  const read = (pathname, permission = context, tenantId = TENANT_A) => {
+    const crm = pathname.startsWith("/api/crm/");
+    expectedDomains = crm ? ["crm", "master-data"] : ["analytics", "finance", "master-data", "matter"];
+    return authority.run({ tenant_id: TENANT_A, request_context: { method: "GET", pathname },
+      command: (runtimes) => (crm ? handleCrmIntakeApiRequest : handleAnalyticsApiRequest)({
+        pathname, method: "GET", context: permission, requestId: "req_home_native",
+        query: { tenant_id: tenantId, permission_ref: "perm_home_native", audit_hint_ref: "audit_home_native" },
+        runtime: crm ? runtimes.crmIntakeRuntime : runtimes.analyticsRuntime,
+      }),
+    });
+  };
+  const capture = async () => Object.fromEntries(await Promise.all(
+    ["crm", "master-data", "analytics", "finance", "matter"].map(async domain_id => {
+      const scope = { tenant_id: TENANT_A, domain_id };
+      return [domain_id, { records: await ledger.list(scope), audit: await ledger.listAudit(scope),
+        outbox: await ledger.listOutbox(scope), idempotency: await ledger.listIdempotency(scope) }];
+    }),
+  ));
+  const before = await capture();
+  for (const name of ["accounts", "leads", "opportunities"]) {
+    const response = await read(`/api/crm/${name}`);
+    assert.equal(response.status, 200);
+    assert.equal(response.body.items.length, 1);
+    assert.equal(response.body.items[0].tenant_id, TENANT_A);
+  }
+  for (const name of ["monthly", "cashflow"]) {
+    assert.equal((await read(`/api/analytics/finance/${name}`)).status, 200);
+  }
+  assert.equal(calls.length, 5, "unchanged reads must not enter a flush transaction");
+  assert.deepEqual(await capture(), before);
+  assert.equal((await read("/api/crm/accounts", context, TENANT_B)).status, 403);
+  assert.equal((await read("/api/analytics/finance/monthly", {
+    ...context, principal: { ...context.principal, scopes: [] },
+  })).status, 403);
+  const afterDenial = await capture();
+  for (const domain of ["crm", "master-data", "finance", "matter"]) assert.deepEqual(afterDenial[domain], before[domain]);
+  assert.notDeepEqual(afterDenial.analytics, before.analytics, "finance denial audit must persist");
+  expectedDomains = ["analytics", "finance", "master-data", "matter"];
+  const audit = await authority.run({ tenant_id: TENANT_A,
+    request_context: { method: "GET", pathname: "/api/analytics/finance/monthly" },
+    command: ({ analyticsRuntime }) => analyticsRuntime.repository.listAudit({ tenant_id: TENANT_A }),
+  });
+  assert.equal(audit.length, 1);
+  assert.equal(audit[0].action, "analytics:finance:read");
+  assert.equal(audit[0].payload.source_payload_included, false);
+  assert.match(audit[0].payload.imported_event_hash, /^[a-f0-9]{64}$/u);
+  assert.deepEqual(await capture(), afterDenial);
+});
+
 async function assertMatterAssignmentRejectsInactiveIdentity({
   fixture,
   tenantId,
