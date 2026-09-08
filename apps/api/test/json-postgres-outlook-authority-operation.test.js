@@ -1,6 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  CLIENT_OPERATIONS_MIGRATION_CATALOG_SHA256,
+} from "../src/client-operations-schema.js";
+import {
   assertJsonPostgresOutlookAuthorityBootstrapEvent,
   createJsonPostgresOutlookAuthorityOperationBinding,
 } from "../src/json-postgres-program-inputs.js";
@@ -174,14 +177,18 @@ test("Outlook V6 operation digest remains stable for historical replay", () => {
   );
 });
 
-test("reviewed continuation binds the historical bootstrap separately from the fresh target and preserves expiry checks", () => {
+for (const [label, catalogSha256] of [
+  ["schema 80", "2ef366427d98ed297ab376c8fc7e6a255cf6a054d0eaa660dc6fb7e13c814f79"],
+  ["schema 81", "8de3211a545ebb7c50813990d15f6abc215ffd23a7d09ba2149d9b37fd96e8c7"],
+  ["current schema", CLIENT_OPERATIONS_MIGRATION_CATALOG_SHA256],
+]) {
+test(`${label} continuation binds the historical bootstrap separately from the fresh target and preserves expiry checks`, () => {
   const bind = (approved) => createJsonPostgresOutlookAuthorityOperationBinding({
     event: operationEvent({ packet_sha256: approved.packet.packet_sha256 }),
     authorization: approved, env: environment(),
   });
   const approved = authorization();
-  approved.packet.bindings.migration_catalog_sha256 =
-    "2ef366427d98ed297ab376c8fc7e6a255cf6a054d0eaa660dc6fb7e13c814f79";
+  approved.packet.bindings.migration_catalog_sha256 = catalogSha256;
   approved.packet.target.historical_outlook_bootstrap_sha256 = "b".repeat(64);
   refreshAuthorizationPacketSha256(approved);
   const first = bind(approved);
@@ -215,6 +222,7 @@ test("reviewed continuation binds the historical bootstrap separately from the f
     assert.throws(() => bind(changed), { code: "LAWOS_OUTLOOK_AUTHORITY_OPERATION_BINDING" });
   }
 });
+}
 
 for (const [label, kmsRef] of [
   ["opaque ref", "alias/lawos-prod-program-input"],
