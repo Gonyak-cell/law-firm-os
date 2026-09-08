@@ -468,6 +468,17 @@ test("owner approval claims require exact immutable S3 and admin IAM bindings", 
   const endpointDrift = clone(fixture("template.json"));
   endpointDrift.Resources.S3GatewayEndpoint.Properties.PolicyDocument.Statement[0].Resource.pop();
   assert.throws(() => validatePrivateStagingTemplate(endpointDrift), /S3 gateway endpoint policy/u);
+
+  for (const mutate of [
+    (statement) => { statement.Principal = { AWS: { "Fn::GetAtt": ["ApiExecutionRole", "Arn"] } }; },
+    (statement) => { delete statement.Condition; },
+    (statement) => { statement.Condition.StringEquals["aws:PrincipalArn"] = "*"; },
+  ]) {
+    const changed = clone(fixture("template.json"));
+    mutate(changed.Resources.S3GatewayEndpoint.Properties.PolicyDocument.Statement
+      .find(({ Sid }) => Sid === "ApiReadsCommittedMemberPhotos"));
+    assert.throws(() => validatePrivateStagingTemplate(changed), /S3 gateway endpoint policy/u);
+  }
 });
 
 test("the RDS gate inventories every instance and rejects extras", () => {

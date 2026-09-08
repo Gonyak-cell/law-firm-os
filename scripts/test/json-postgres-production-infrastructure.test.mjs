@@ -110,7 +110,10 @@ test("production member photos use their committed prefix with read-only API acc
     .find(({ Sid }) => Sid === "ApiReadsCommittedMemberPhotos"), {
     Sid: "ApiReadsCommittedMemberPhotos",
     Effect: "Allow",
-    Principal: { AWS: { "Fn::GetAtt": ["ApiExecutionRole", "Arn"] } },
+    Principal: "*",
+    Condition: {
+      StringEquals: { "aws:PrincipalArn": { "Fn::GetAtt": ["ApiExecutionRole", "Arn"] } },
+    },
     Action: ["s3:GetObject", "s3:GetObjectVersion"],
     Resource: { "Fn::Sub": "${DmsBucket.Arn}/synthetic-member-photos/objects/*" },
   });
@@ -144,7 +147,7 @@ test("production member photos use their committed prefix with read-only API acc
     (copy) => { copy.Resources.ApiFunction.Properties.Environment.Variables.LAWOS_MEMBER_PHOTO_S3_BUCKET = { Ref: "DmsBucket" }; },
     (copy) => { delete copy.Resources.ApiFunction.Properties.Environment.Variables.LAWOS_MEMBER_PHOTO_S3_PREFIX; },
     (copy) => { copy.Resources.ApiFunction.Properties.Environment.Variables.LAWOS_MEMBER_PHOTO_S3_PREFIX = "lawos-dms"; },
-    (copy) => { copy.Resources.S3GatewayEndpoint.Properties.PolicyDocument.Statement.find(({ Sid }) => Sid === "ApiReadsCommittedMemberPhotos").Principal = "*"; },
+    (copy) => { delete copy.Resources.S3GatewayEndpoint.Properties.PolicyDocument.Statement.find(({ Sid }) => Sid === "ApiReadsCommittedMemberPhotos").Condition; },
     (copy) => { copy.Resources.ApiExecutionRole.Properties.Policies[0].PolicyDocument.Statement.find(({ Sid }) => Sid === "ReadCommittedMemberPhotos").Action.push("s3:PutObject"); },
     (copy) => { copy.Resources.ApiExecutionRole.Properties.Policies[0].PolicyDocument.Statement.find(({ Sid }) => Sid === "ReadCommittedMemberPhotos").Resource = { "Fn::Sub": "${DmsBucket.Arn}/*" }; },
   ]) {
@@ -788,7 +791,10 @@ test("production API binds the internal updater only through one complete disabl
       {
         Sid: "ApiReadsExactInternalUnsignedDistribution",
         Effect: "Allow",
-        Principal: { AWS: { "Fn::GetAtt": ["ApiExecutionRole", "Arn"] } },
+        Principal: "*",
+        Condition: {
+          StringEquals: { "aws:PrincipalArn": { "Fn::GetAtt": ["ApiExecutionRole", "Arn"] } },
+        },
         Action: ["s3:GetObject", "s3:GetObjectVersion"],
         Resource: {
           "Fn::Sub":
@@ -808,6 +814,26 @@ test("production API binds the internal updater only through one complete disabl
       ],
     },
   );
+});
+
+test("S3 gateway API reads reject unsupported principals and broadened role conditions", () => {
+  for (const sid of ["ApiReadsCommittedMemberPhotos", "ApiReadsExactInternalUnsignedDistribution"]) {
+    for (const mutate of [
+      (statement) => { statement.Principal = { AWS: { "Fn::GetAtt": ["ApiExecutionRole", "Arn"] } }; },
+      (statement) => { delete statement.Condition; },
+      (statement) => { statement.Condition.StringEquals["aws:PrincipalArn"] = "*"; },
+      (statement) => { statement.Condition.StringEquals["aws:PrincipalArn"] = { "Fn::GetAtt": ["AdminExecutionRole", "Arn"] }; },
+      (statement) => { statement.Condition = { StringLike: { "aws:PrincipalArn": "arn:aws:iam::*:role/lawos-*" } }; },
+      (statement) => { statement.Action.push("s3:PutObject"); },
+      (statement) => { statement.Resource = "*"; },
+    ]) {
+      const template = buildJsonPostgresProductionTemplate(reference);
+      const statements = template.Resources.S3GatewayEndpoint.Properties.PolicyDocument.Statement
+        .map((item) => item["Fn::If"]?.[1] ?? item);
+      mutate(statements.find((item) => item.Sid === sid));
+      assert.throws(() => validateJsonPostgresProductionTemplate(template), /member photo|internal-update S3 endpoint/u);
+    }
+  }
 });
 
 test("production template fails closed on public RDS, synthetic content, wildcard IAM and default traffic", () => {

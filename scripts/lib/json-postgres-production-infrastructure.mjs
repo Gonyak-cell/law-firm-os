@@ -3037,7 +3037,10 @@ export function buildJsonPostgresProductionTemplate(stagingTemplate) {
       {
         Sid: "ApiReadsExactInternalUnsignedDistribution",
         Effect: "Allow",
-        Principal: { AWS: { "Fn::GetAtt": ["ApiExecutionRole", "Arn"] } },
+        Principal: "*",
+        Condition: {
+          StringEquals: { "aws:PrincipalArn": { "Fn::GetAtt": ["ApiExecutionRole", "Arn"] } },
+        },
         Action: ["s3:GetObject", "s3:GetObjectVersion"],
         Resource: {
           "Fn::Sub":
@@ -3277,7 +3280,10 @@ export function validateJsonPostgresProductionTemplate(template) {
     || stableJson(memberPhotoEndpointRead) !== stableJson([{
       Sid: "ApiReadsCommittedMemberPhotos",
       Effect: "Allow",
-      Principal: { AWS: { "Fn::GetAtt": ["ApiExecutionRole", "Arn"] } },
+      Principal: "*",
+      Condition: {
+        StringEquals: { "aws:PrincipalArn": { "Fn::GetAtt": ["ApiExecutionRole", "Arn"] } },
+      },
       Action: ["s3:GetObject", "s3:GetObjectVersion"],
       Resource: {
         "Fn::Sub": "${DmsBucket.Arn}/approved-real-migration/member-photos/objects/*",
@@ -4111,8 +4117,10 @@ export function validateJsonPostgresProductionTemplate(template) {
   }
   if (internalUpdateRead?.Sid !== "ApiReadsExactInternalUnsignedDistribution"
     || internalUpdateRead?.Effect !== "Allow"
-    || internalUpdateRead?.Principal?.AWS?.["Fn::GetAtt"]?.[0]
-      !== "ApiExecutionRole"
+    || internalUpdateRead?.Principal !== "*"
+    || stableJson(internalUpdateRead?.Condition) !== stableJson({
+      StringEquals: { "aws:PrincipalArn": { "Fn::GetAtt": ["ApiExecutionRole", "Arn"] } },
+    })
     || JSON.stringify(internalUpdateRead?.Action)
       !== JSON.stringify(["s3:GetObject", "s3:GetObjectVersion"])
     || internalUpdateRead?.Resource?.["Fn::Sub"]
