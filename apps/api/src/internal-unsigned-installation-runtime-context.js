@@ -33,7 +33,7 @@ export async function createInternalUnsignedInstallationRuntimeFromEnv({
   env = process.env, pool, tenant_id, schema_migration_count, resolveSecret = resolveAwsJsonSecret,
   verifyAuthority = verifyInternalUnsignedInstallationAuthorityReadback,
 } = {}) {
-  if (![79, 80, 81].includes(schema_migration_count)) {
+  if (![79, 80, 81, 82].includes(schema_migration_count)) {
     throw new TypeError("Internal installation authority requires a verified migration count");
   }
   const secretId = String(env[`${CONFIG_PREFIX}SECRET_ID`] ?? "").trim();
@@ -49,7 +49,7 @@ export async function createInternalUnsignedInstallationRuntimeFromEnv({
   if (secretId && !region) {
     throw new TypeError("Internal installation signer configuration is incomplete");
   }
-  await verifyAuthority(pool);
+  await verifyAuthority(pool, { schemaMigrationCount: schema_migration_count });
   if (!secretId) return createPostgresInternalUnsignedInstallationAuthority({ pool, tenant_id });
   const secret = await resolveSecret({ secretId, region });
   const signerFields = ["key_id", "private_key_pem", "public_key_sha256"];

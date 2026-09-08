@@ -56,7 +56,7 @@ function combinedCatalog() {
   return Object.freeze([
     ...listPostgresFoundationMigrations(),
     ...listEmailDmsPostgresMigrations()
-      .filter(({ id }) => id !== "010_internal_unsigned_installation_authority")
+      .filter(({ id }) => !["010_internal_unsigned_installation_authority", "011_internal_unsigned_s3_version"].includes(id))
       .map((migration) => Object.freeze({
       ...migration,
       id: CLIENT_IDS[migration.id],

@@ -30,6 +30,8 @@ const INTERNAL_INSTALLATION_HISTORICAL_CATALOG_SHA256 =
   "43c6a087834d9dd2177be0b63fc94cf723181b93b04f40a65689b6431bd44556";
 const INTERNAL_INSTALLATION_CATALOG_SHA256 =
   "2ef366427d98ed297ab376c8fc7e6a255cf6a054d0eaa660dc6fb7e13c814f79";
+const S3_VERSION_CATALOG_SHA256 = "3bddab69c6ea4e34386ad60067d46f70966692d488dea593455a631e1625c1db";
+const S3_VERSION_LEDGER_SHA256 = "e3979c840e5d3bff819f24bb0fe92636e566e41ba12a42711f133f47a3db5dc0";
 const CORPORATE_WORKSPACE_CATALOG_SHA256 =
   "8de3211a545ebb7c50813990d15f6abc215ffd23a7d09ba2149d9b37fd96e8c7";
 const HISTORICAL_LEDGER_SHA256 =
@@ -57,6 +59,12 @@ function isReviewedCorporateWorkspaceAppend(catalog) {
       "d21181c7a79b1cb6a895f1305279013dc8fd194fc56a0089d265d487b346e334"
     && isReviewedInternalInstallationAppend(catalog.filter(({ id }) =>
       id !== "016_dms_corporate_workspace"));
+}
+
+function isReviewedS3VersionAppend(catalog) {
+  return catalog.length === 82
+    && hashDomainValue(catalog) === "1c2453d45af3d8da4a85b7c65dd64dcefe84343857789fb1524299f3ef57b083"
+    && isReviewedCorporateWorkspaceAppend(catalog.slice(0, -1));
 }
 
 export function createOutlookPostgresCommitUnknownError() {
@@ -167,7 +175,8 @@ export async function runPostgresMigrations(pool, {
   const callbackCatalog = closeOutlookAuthorityMigrationCatalog(ordered);
   const reviewedInternalAppend = isReviewedInternalInstallationAppend(callbackCatalog);
   const reviewedCorporateAppend = isReviewedCorporateWorkspaceAppend(callbackCatalog);
-  const reviewedAuthorityTarget = reviewedInternalAppend || reviewedCorporateAppend;
+  const reviewedS3Append = isReviewedS3VersionAppend(callbackCatalog);
+  const reviewedAuthorityTarget = reviewedInternalAppend || reviewedCorporateAppend || reviewedS3Append;
   if (historicalOutlookBootstrapSha256 !== undefined
       && (!/^[a-f0-9]{64}$/u.test(historicalOutlookBootstrapSha256)
         || !reviewedAuthorityTarget || !authorityCallbacksEnabled)) {
@@ -183,7 +192,7 @@ export async function runPostgresMigrations(pool, {
   if ((internalAuthorityPresent
         || onInternalUnsignedInstallationAuthorityPostMigration !== undefined)
       && (!authorityCallbacksEnabled || !reviewedAuthorityTarget
-        || migrationCatalogSha256 !== (reviewedCorporateAppend
+        || migrationCatalogSha256 !== (reviewedS3Append ? S3_VERSION_CATALOG_SHA256 : reviewedCorporateAppend
           ? CORPORATE_WORKSPACE_CATALOG_SHA256 : INTERNAL_INSTALLATION_CATALOG_SHA256)
         || typeof onInternalUnsignedInstallationAuthorityPostMigration !== "function")) {
     throw new TypeError("Internal installation postflight requires the exact reviewed catalog");
@@ -285,7 +294,9 @@ export async function runPostgresMigrations(pool, {
       const ledgerSha = hashDomainValue(historyResult.rows.map(({ migration_id, checksum }) => ({
         id: migration_id, checksum,
       })));
-      const allowedLedgers = reviewedCorporateAppend
+      const allowedLedgers = reviewedS3Append
+        ? [CORPORATE_WORKSPACE_LEDGER_SHA256, S3_VERSION_LEDGER_SHA256]
+        : reviewedCorporateAppend
         ? [INTERNAL_INSTALLATION_LEDGER_SHA256, CORPORATE_WORKSPACE_LEDGER_SHA256]
         : [HISTORICAL_LEDGER_SHA256, INTERNAL_INSTALLATION_LEDGER_SHA256];
       if (!allowedLedgers.includes(ledgerSha)) {

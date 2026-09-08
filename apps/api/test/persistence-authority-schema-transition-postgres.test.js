@@ -32,7 +32,7 @@ const TARGET_SHA = "d".repeat(64);
 const TENANT = "tenant_amic_matter_vault";
 const ACTOR = Object.freeze({ tenant_id: TENANT, user_id: "transition-user", entra_subject_id: "transition-subject" });
 const digest = (value) => createHash("sha256").update(value).digest("hex");
-const historical = listClientOperationsPostgresMigrations().filter(({ id }) => ![CORPORATE, INTERNAL].includes(id));
+const historical = listClientOperationsPostgresMigrations().filter(({ id }) => ![CORPORATE, INTERNAL, "310_client_internal_unsigned_s3_version"].includes(id));
 
 function adapterOptions(migrationCatalogSha256) {
   return {
@@ -195,7 +195,7 @@ async function schemaSnapshot(state) {
 
 function assertSchema(snapshot, count) {
   const expected = listClientOperationsPostgresMigrations().filter(({ id }) =>
-    (count === 81 || id !== CORPORATE) && (count !== 79 || id !== INTERNAL));
+    id !== "310_client_internal_unsigned_s3_version" && (count === 81 || id !== CORPORATE) && (count !== 79 || id !== INTERNAL));
   assert.equal(snapshot.ledger.length, count);
   assert.deepEqual(snapshot.ledger.map(({ migration_id, checksum }) => ({ migration_id, checksum })),
     expected.map(({ id, sql }) => ({ migration_id: id, checksum: checksumPostgresMigration(sql) })));

@@ -68,8 +68,10 @@ const SOURCE_TREE = "b".repeat(40);
 const PACKET_SHA = "c".repeat(64);
 const ARTIFACT_SHA = "d".repeat(64);
 const KMS = "arn:aws:kms:ap-northeast-2:770880870480:key/75868150-c892-47fc-8bea-17caa1808127";
-const OFFICIAL_MIGRATION_CATALOG_COUNT = 81;
+const OFFICIAL_MIGRATION_CATALOG_COUNT = 82;
 const OFFICIAL_MIGRATION_CATALOG_SHA256 =
+  "3bddab69c6ea4e34386ad60067d46f70966692d488dea593455a631e1625c1db";
+const COMBINED_81_CATALOG_SHA256 =
   "8de3211a545ebb7c50813990d15f6abc215ffd23a7d09ba2149d9b37fd96e8c7";
 
 assert.equal(
@@ -2015,8 +2017,8 @@ function retainedOutlookRun(harness, mode, freshTarget = false) {
   });
   return createOutlookAuthorityMigrationRunReceipt({
     identity: OUTLOOK_RECEIPT_IDENTITY,
-    migrations: listClientOperationsPostgresMigrations().map(({ id, sql }) => ({
-      id, checksum: checksumPostgresMigration(sql), applied: applied === 1 && id === "016_dms_corporate_workspace",
+    migrations: selectClientOperationsMigrationTarget(harness.migrationCatalog.catalog_sha256).catalog.migrations.map(({ id, checksum }) => ({
+      id, checksum, applied: applied === 1 && id === "016_dms_corporate_workspace",
     })),
     progress: {
       outlook_authority_replay_verified: true,
@@ -2040,7 +2042,7 @@ function retainedOutlookRun(harness, mode, freshTarget = false) {
 
 function retainedOutlookHarness(mode, { forge = null, postflightFailure = false, freshTarget = false, nativeRds = false } = {}) {
   const harness = syntheticFreshOutlookHarness({
-    migrationCatalogSha256: CLIENT_OPERATIONS_MIGRATION_CATALOG_SHA256,
+    migrationCatalogSha256: COMBINED_81_CATALOG_SHA256,
   });
   if (nativeRds) {
     harness.readiness = syntheticNativeRdsReadiness(harness.readiness.role_bootstrap, {
@@ -2743,18 +2745,18 @@ test("production schema ledger readback is SELECT-only and authoritative", async
   );
   assert.equal(
     result.final_migration_id,
-    "309_client_internal_unsigned_installation_authority",
+    "310_client_internal_unsigned_s3_version",
   );
   assert.deepEqual(
     CLIENT_OPERATIONS_SCHEMA_MANIFEST.entries.at(-2),
     {
-      id: "308_client_outlook_desktop_legacy_windows_compatibility",
-      checksum: "64cbb3e6575e0af33b7b8e315797000ab5597498a0e9e5eed77c1ad19b23a715",
+      id: "309_client_internal_unsigned_installation_authority",
+      checksum: "171ecf90f09903ba802e2693cea65f8b98f0a26a0690292749936d3bcd1569e1",
     },
   );
   assert.equal(
     result.final_migration_checksum,
-    "171ecf90f09903ba802e2693cea65f8b98f0a26a0690292749936d3bcd1569e1",
+    "6cf4951e066e6aec1ac2c3505c5d7c66c2ba6e09d3e0af152d56c4b8a72f80c6",
   );
   for (const key of [
     "production_data_write_count",
@@ -2835,6 +2837,7 @@ test("final-source schema readback binds each signed target to its complete exac
     "43c6a087834d9dd2177be0b63fc94cf723181b93b04f40a65689b6431bd44556",
     "2ef366427d98ed297ab376c8fc7e6a255cf6a054d0eaa660dc6fb7e13c814f79",
     "8de3211a545ebb7c50813990d15f6abc215ffd23a7d09ba2149d9b37fd96e8c7",
+    OFFICIAL_MIGRATION_CATALOG_SHA256,
   ]) {
     const target = selectClientOperationsMigrationReadback(targetSha);
     const signed = authorization();
@@ -2866,7 +2869,7 @@ test("final-source schema readback binds each signed target to its complete exac
     if (target.normalized.migration_catalog_count === 79) {
       assert.throws(() => selectClientOperationsMigrationTarget(targetSha), TypeError);
     }
-    selectedRows = target.normalized.migration_catalog_count < 81
+    selectedRows = target.normalized.migration_catalog_count < OFFICIAL_MIGRATION_CATALOG_COUNT
       ? CLIENT_OPERATIONS_SCHEMA_MANIFEST.entries
       : CLIENT_OPERATIONS_SCHEMA_MANIFEST.entries.filter(({ id }) => id !== "016_dms_corporate_workspace");
     await assert.rejects(readJsonPostgresProductionSchemaLedger(options),

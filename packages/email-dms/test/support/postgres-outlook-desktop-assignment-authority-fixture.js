@@ -67,6 +67,7 @@ export async function createOutlookAssignmentAuthorityFixture(t, {
   userId = "user-jwsuh-canary-a",
   entraSubjectId = "subject-jwsuh-canary-a",
   releaseLifetimeMilliseconds = 86_400_000,
+  throughMigrationId,
 } = {}) {
   const ownedPools = [];
   t.after(async () => {
@@ -101,7 +102,11 @@ export async function createOutlookAssignmentAuthorityFixture(t, {
     embedded_release_ticket_signature_sha256:
       createHash("sha256").update(releaseTicketSignature).digest("hex"),
   });
-  const migrations = listEmailDmsPostgresMigrations();
+  const sourceMigrations = listEmailDmsPostgresMigrations();
+  const finalIndex = throughMigrationId === undefined ? sourceMigrations.length - 1
+    : sourceMigrations.findIndex(({ id }) => id === throughMigrationId);
+  if (finalIndex < 0) throw new TypeError("fixture final migration is absent");
+  const migrations = sourceMigrations.slice(0, finalIndex + 1);
   const assignmentIndex = migrations.findIndex(
     ({ id }) => id === "007_outlook_desktop_assignment",
   );
