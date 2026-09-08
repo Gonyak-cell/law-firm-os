@@ -1283,6 +1283,7 @@ function requestUsesProductRuntime(req) {
   const pathname = new URL(req.url || "/", `http://${HOST}`).pathname.replace(/\/+$/, "") || "/";
   return !["/api/health", "/health"].includes(pathname)
     && !pathname.startsWith("/api/auth")
+    && pathname !== INTERNAL_UNSIGNED_UPDATE_AUTHORIZE_PATH
     && !isOutlookDesktopInstallationApiPath(pathname)
     && !isInternalUnsignedInstallationApiPath(pathname);
 }

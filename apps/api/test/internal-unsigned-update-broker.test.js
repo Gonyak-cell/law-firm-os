@@ -518,8 +518,15 @@ test("real HTTP dispatch re-reads trusted installation before invoking the broke
     authority_snapshot_at: "2026-09-04T05:00:00.000Z",
   });
   let installationReads = 0;
+  let productRuntimeReads = 0;
   const server = createApiServer({
     internalUnsignedUpdateBroker: broker,
+    requestRuntimeAuthority: {
+      async run() {
+        productRuntimeReads += 1;
+        throw new Error("Update authorization must not materialize product domains");
+      },
+    },
     outlookDesktopRuntime: Object.freeze({
       entitlement_roster: roster,
       installation_service: Object.freeze({
@@ -555,6 +562,7 @@ test("real HTTP dispatch re-reads trusted installation before invoking the broke
   });
   assert.equal(allowed.status, 200, await allowed.text());
   assert.equal(installationReads, 1);
+  assert.equal(productRuntimeReads, 0);
   assert.equal(s3Commands.length, 7);
 
   trusted = null;
@@ -576,4 +584,11 @@ test("real HTTP dispatch re-reads trusted installation before invoking the broke
   );
   assert.equal(unauthenticated.status, 401);
   assert.equal(installationReads, 2);
+  assert.equal(productRuntimeReads, 0);
+
+  const productRead = await fetch(`${baseUrl}/api/hrx/employees`, {
+    headers: { authorization: "Bearer signed-desktop-session" },
+  });
+  assert.equal(productRead.status, 500);
+  assert.equal(productRuntimeReads, 1, "Product routes must retain their runtime authority");
 });
