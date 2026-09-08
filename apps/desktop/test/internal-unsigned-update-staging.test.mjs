@@ -20,7 +20,7 @@ function candidate(bytes, overrides = {}) {
     artifactFilename: "AMIC-OS-internal-0.1.32-win-x64.exe",
     artifactSha256: sha256(bytes),
     artifactBytes: bytes.byteLength,
-    artifactVersionId: "s3-version-target-001",
+    artifactVersionId: "_s3-version-target-001",
     ...overrides,
   };
 }
@@ -57,7 +57,7 @@ test("internal-unsigned installer streams to an exclusive app-owned cache and op
       version: "0.1.32",
       artifactSha256: sha256(bytes),
       artifactBytes: bytes.byteLength,
-      artifactVersionId: "s3-version-target-001",
+      artifactVersionId: "_s3-version-target-001",
       localPathIncluded: false,
       automaticReplacement: false,
     });

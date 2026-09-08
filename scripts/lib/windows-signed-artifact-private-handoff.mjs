@@ -1864,7 +1864,7 @@ export function createWindowsSignedArtifactAwsCliAdapter({
         "s3api", "head-object",
         "--bucket", bucket,
         "--key", key,
-        "--version-id", versionId,
+        `--version-id=${versionId}`,
         "--expected-bucket-owner", expectedOwner,
         "--checksum-mode", "ENABLED",
       ]);
@@ -1877,7 +1877,7 @@ export function createWindowsSignedArtifactAwsCliAdapter({
           "s3api", "get-object",
           "--bucket", bucket,
           "--key", key,
-          "--version-id", versionId,
+          `--version-id=${versionId}`,
           "--expected-bucket-owner", expectedOwner,
           "--checksum-mode", "ENABLED",
           bodyPath,
