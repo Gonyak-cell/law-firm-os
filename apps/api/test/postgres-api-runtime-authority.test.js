@@ -34,6 +34,7 @@ import {
   runWithRequestFailureCompensation,
 } from "../src/postgres-api-runtime-authority.js";
 import { handleAiApiRequest } from "../src/ai-runtime-context.js";
+import { createFailClosedExternalReadRuntime, handleExternalReadApiRequest } from "../src/external-read-runtime-context.js";
 import { handleAnalyticsApiRequest } from "../src/analytics-runtime-context.js";
 import { handleCrmIntakeApiRequest } from "../src/crm-intake-runtime-context.js";
 import { handleFinanceApiRequest } from "../src/finance-runtime-context.js";
@@ -141,7 +142,7 @@ async function importHrxAuthorityBaseline(ledger, tenantId) {
   }
 }
 
-async function importMatterAssignmentIdentityBaseline(ledger, tenantId, { employeeId, userId }) {
+async function importMatterAssignmentIdentityBaseline(ledger, tenantId, { employeeId, userId, legalEntityId = null }) {
   const store = createFileHrxStore();
   try {
     runHrxMigrations(store);
@@ -165,6 +166,11 @@ async function importMatterAssignmentIdentityBaseline(ledger, tenantId, { employ
         user_id: userId,
         purpose: "login_mapping",
         source_ref: "postgres-matter-assignment-test",
+      });
+      if (legalEntityId) tx.createEmploymentProfile({
+        tenant_id: tenantId, profile_id: `profile-${employeeId}`, employee_id: employeeId,
+        employment_type: "full_time", status: "active", legal_entity_id: legalEntityId,
+        start_date: "2026-07-31", effective_from: "2026-07-31",
       });
     });
     await ledger.importSnapshot(createHrxDomainSnapshot({ store, tenant_id: tenantId }).snapshot);
@@ -291,7 +297,8 @@ test("PostgreSQL employee directory reads isolate HRX and retain durable denial 
   const ledger = createPostgresDomainLedger({ pool: fixture.appPool });
   const employeeId = "employee-directory-bounded";
   const userId = "user-directory-bounded";
-  await importMatterAssignmentIdentityBaseline(ledger, TENANT_A, { employeeId, userId });
+  const legalEntityId = "company-directory-bounded";
+  await importMatterAssignmentIdentityBaseline(ledger, TENANT_A, { employeeId, userId, legalEntityId });
   const scope = { tenant_id: TENANT_A, domain_id: "hrx" };
   const capture = async () => ({ records: await ledger.list(scope), audit: await ledger.listAudit(scope),
     idempotency: await ledger.listIdempotency(scope), outbox: await ledger.listOutbox(scope) });
@@ -336,7 +343,29 @@ test("PostgreSQL employee directory reads isolate HRX and retain durable denial 
     },
   });
   assert.equal(photo.toString(), "synthetic handler response");
+  for (const allowed of [true, false]) {
+    const entities = await authority.run({ tenant_id: TENANT_A,
+      request_context: { method: "GET", pathname: "/api/external-read/legal-entities", actor_id: userId },
+      command({ hrxRuntime, matterRuntime }) {
+        assert.equal(matterRuntime, undefined);
+        return handleExternalReadApiRequest({
+          pathname: "/api/external-read/legal-entities", method: "GET", requestId: "bounded-legal-entities",
+          runtime: createFailClosedExternalReadRuntime(), legalEntityDirectory: hrxRuntime.repository,
+          context: { principal: { tenant_id: TENANT_A, user_id: userId },
+            rules: allowed ? [{ id: "directory-read", effect: "allow", action: "external_read.legal_entity.list" }] : [],
+            object_acl: [] },
+        });
+      },
+    });
+    assert.equal(entities.status, allowed ? 200 : 403);
+    if (allowed) assert.deepEqual(entities.body.items, [{ legal_entity_id: legalEntityId }]);
+    else assert.deepEqual(entities.body.safe_error_codes, ["EXTERNAL_READ_PERMISSION_DENIED"]);
+  }
   assert.deepEqual(await capture(), before);
+  await assert.rejects(authority.run({ tenant_id: TENANT_B,
+    request_context: { method: "GET", pathname: "/api/external-read/legal-entities" },
+    command() { assert.fail("unready tenant cannot read legal entities"); },
+  }), { safe_error_code: "HRX_POSTGRES_AUTHORITY_NOT_READY" });
   await assert.rejects(authority.run({ tenant_id: TENANT_B,
     request_context: { method: "GET", pathname: "/api/hrx/employees" },
     command() { assert.fail("unready tenant cannot reach the handler"); },

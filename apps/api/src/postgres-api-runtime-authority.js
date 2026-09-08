@@ -774,7 +774,7 @@ export function createPostgresApiRuntimeAuthority({
         },
       });
     }
-    if (method === "GET" && (["/api/hrx/employees", "/api/hrx/org-chart"].includes(pathname)
+    if (method === "GET" && (["/api/hrx/employees", "/api/hrx/org-chart", "/api/external-read/legal-entities"].includes(pathname)
       || /^\/api\/hrx\/employees\/[A-Za-z0-9][A-Za-z0-9._:-]{0,159}\/photo$/u.test(pathname))) {
       return runPostgresReadWithBaselineRetry({
         method,
