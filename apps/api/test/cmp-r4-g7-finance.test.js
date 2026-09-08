@@ -48,16 +48,16 @@ test("AMIC bank initials extend the canonical HRX member roster", () => {
         return [displayName, employee?.payroll_category];
       })),
     {
-      테스트 구성원 01: "partner",
-      테스트 구성원 02: "partner",
-      테스트 구성원 04: "partner",
-      테스트 구성원 07: "partner",
-      테스트 구성원 05: "partner",
-      테스트 구성원 06: "partner",
-      테스트 구성원 03: "staff",
-      테스트 구성원 10: "staff",
-      테스트 구성원 09: "staff",
-      테스트 구성원 08: "advisor",
+      "테스트 구성원 01": "partner",
+      "테스트 구성원 02": "partner",
+      "테스트 구성원 04": "partner",
+      "테스트 구성원 07": "partner",
+      "테스트 구성원 05": "partner",
+      "테스트 구성원 06": "partner",
+      "테스트 구성원 03": "staff",
+      "테스트 구성원 10": "staff",
+      "테스트 구성원 09": "staff",
+      "테스트 구성원 08": "advisor",
     },
   );
 });
