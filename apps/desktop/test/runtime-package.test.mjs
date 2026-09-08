@@ -80,7 +80,7 @@ test("desktop runtime staging is identical by channel and excludes local data fr
       repoRoot: fixtureRoot,
       rosterSourcePath: rosterPath,
       photoSourcePath: photosPath,
-      registrationSeedSourcePath: registrationSeedPath
+      env: { LAWOS_IDENTITY_REGISTRATION_SOURCE_PATH: registrationSeedPath }
     });
     assert.equal(internal.included, true);
     assert.equal(existsSync(join(internalApp, "runtime/apps/api/src/server.js")), true);
