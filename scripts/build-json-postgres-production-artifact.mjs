@@ -45,6 +45,7 @@ import {
 import {
   HRX_PUBLIC_PROFILE_ROSTER_SOURCE_PATH,
   publicProfessionalProfileCatalog,
+  readPinnedHrxRosterBytes,
 } from "./lib/hrx-public-professional-profile.mjs";
 
 const RDS_CA_URL = "https://truststore.pki.rds.amazonaws.com/global/global-bundle.pem";
@@ -197,6 +198,18 @@ if (sourceSha !== required(option("--source-sha", sourceSha), "--source-sha")
 if (git("status", "--porcelain=v1", "--untracked-files=all")) {
   throw new Error("production artifact build requires a clean exact-head worktree");
 }
+const externalRosterPath = String(option(
+  "--public-profile-roster", process.env.LAWOS_HRX_MEMBER_ROSTER_SOURCE_PATH,
+) ?? "").trim();
+const externalRosterSha256 = String(option(
+  "--public-profile-roster-sha256", process.env.LAWOS_HRX_MEMBER_ROSTER_SOURCE_SHA256,
+) ?? "").trim();
+if (!externalRosterPath && externalRosterSha256) {
+  throw new Error("external HRX roster hash requires an explicit source path");
+}
+const publicProfileRosterBytes = externalRosterPath
+  ? readPinnedHrxRosterBytes(externalRosterPath, externalRosterSha256)
+  : gitBytes("show", `${sourceSha}:${HRX_PUBLIC_PROFILE_ROSTER_SOURCE_PATH}`);
 const outputDir = outsideRepository(option("--output-dir"), "--output-dir");
 const providedCaPath = option("--rds-ca-bundle")
   ? providedCaBundlePath(option("--rds-ca-bundle"))
@@ -234,10 +247,7 @@ try {
   }
 
   const publicProfessionalProfiles = publicProfessionalProfileCatalog(
-    JSON.parse(
-      gitBytes("show", `${sourceSha}:${HRX_PUBLIC_PROFILE_ROSTER_SOURCE_PATH}`)
-        .toString("utf8"),
-    ),
+    JSON.parse(publicProfileRosterBytes.toString("utf8")),
     { opaqueEmployeeRefs: true },
   );
   const publicProfessionalProfileText = `${JSON.stringify(publicProfessionalProfiles, null, 2)}\n`;
@@ -361,6 +371,12 @@ try {
     packaged_account_seed_count: 0,
     packaged_roster_count: 0,
     packaged_public_professional_profile_count: publicProfessionalProfiles.profiles.length,
+    public_professional_profile_source: {
+      kind: externalRosterPath ? "private-external-pinned" : "exact-git-blob",
+      sha256: sha256(publicProfileRosterBytes),
+      byte_size: publicProfileRosterBytes.length,
+      catalog_sha256: sha256(publicProfessionalProfileText),
+    },
     data_scope: "approved-immutable-inputs-only",
     operational_authority: "postgres-v2",
     json_fallback: false,
