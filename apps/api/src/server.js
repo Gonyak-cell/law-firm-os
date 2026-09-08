@@ -1284,6 +1284,7 @@ function requestUsesProductRuntime(req) {
   return !["/api/health", "/health"].includes(pathname)
     && !pathname.startsWith("/api/auth")
     && pathname !== INTERNAL_UNSIGNED_UPDATE_AUTHORIZE_PATH
+    && !(req.method === "GET" && pathname === "/api/external-read/providers")
     && !isOutlookDesktopInstallationApiPath(pathname)
     && !isInternalUnsignedInstallationApiPath(pathname);
 }

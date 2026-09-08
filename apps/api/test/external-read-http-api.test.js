@@ -11,7 +11,7 @@ import {
   MATTER_VAULT_REGISTERED_TENANT_ID,
 } from "../src/matter-vault-account-registry.js";
 import { PERMISSION_CONTEXT_HEADER } from "../src/permission-gate.js";
-import { startApiServer } from "../src/server.js";
+import { createApiServer, startApiServer } from "../src/server.js";
 import { apiSessionHeaders } from "./helpers/session.js";
 
 const ACCOUNT = highestPrivilegeRegisteredAccount();
@@ -19,6 +19,53 @@ assert.ok(ACCOUNT);
 const TENANT = MATTER_VAULT_REGISTERED_TENANT_ID;
 const KEY = "http-server-synthetic-key";
 const ROTATED_KEY = "http-server-synthetic-rotated-key";
+
+test("provider catalog reads preserve authentication and permissions without loading product domains", async (t) => {
+  let productRuntimeReads = 0;
+  const principal = { tenant_id: TENANT, user_id: ACCOUNT.user_id, role_ids: ACCOUNT.role_ids };
+  const server = createApiServer({
+    requestRuntimeAuthority: {
+      async run({ command }) {
+        productRuntimeReads += 1;
+        return command({});
+      },
+    },
+    sessionAuth: {
+      capabilities: {},
+      async resolvePermissionContextFromHeaders(headers) {
+        if (!headers.authorization) return { ok: false, status: 401 };
+        return { ok: true, principal, context: {
+          principal,
+          rules: headers.authorization === "Bearer allowed-catalog-session"
+            ? [{ id: "allow-catalog", effect: "allow", action: "*" }] : [],
+          object_acl: [],
+        } };
+      },
+    },
+  });
+  await new Promise((resolve, reject) => {
+    server.once("error", reject);
+    server.listen(0, "127.0.0.1", resolve);
+  });
+  t.after(() => new Promise((resolve) => server.close(resolve)));
+  const url = `http://127.0.0.1:${server.address().port}/api/external-read/providers`;
+  for (const [authorization, expectedStatus] of [[null, 401], ["Bearer denied-catalog-session", 403], ["Bearer allowed-catalog-session", 200]]) {
+    const response = await fetch(url, { headers: authorization ? { authorization } : {} });
+    const body = await response.json();
+    assert.equal(response.status, expectedStatus, JSON.stringify(body));
+    if (expectedStatus === 200) {
+      assert.equal(body.provider_count, 0);
+      assert.equal(body.api_key_onboarding_available, false);
+      assert.deepEqual(body.items, []);
+    }
+    assert.equal(productRuntimeReads, 0);
+  }
+  const headers = { authorization: "Bearer allowed-catalog-session", "content-type": "application/json" };
+  assert.equal((await fetch(url, { method: "POST", headers, body: "{}" })).status, 405);
+  assert.equal(productRuntimeReads, 1, "non-GET requests retain the existing runtime boundary");
+  assert.equal((await fetch(url.replace(/providers$/u, "connections"), { method: "POST", headers, body: "{}" })).status, 409);
+  assert.equal(productRuntimeReads, 2, "connection mutations retain product authority");
+});
 
 function runtime() {
   const secrets = new Map();
