@@ -54,6 +54,7 @@ test("desktop installation migration defines tokenless tenant-RLS lifecycle auth
       "008_outlook_desktop_trusted_current_read",
       "009_outlook_desktop_legacy_windows_compatibility",
       "010_internal_unsigned_installation_authority",
+      "011_internal_unsigned_s3_version",
     ],
   );
   const migration = migrations.find(

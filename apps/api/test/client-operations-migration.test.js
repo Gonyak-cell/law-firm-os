@@ -26,18 +26,18 @@ test("Client catalog, registry provenance, and rollback defaults are stable", as
   });
   assert.equal(
     CLIENT_OPERATIONS_SCHEMA_MANIFEST.schema_migration_count,
-    81,
+    82,
   );
   assert.equal(
     CLIENT_OPERATIONS_SCHEMA_MANIFEST.client_schema_migration_count,
-    10,
+    11,
   );
   assert.equal(
     CLIENT_OPERATIONS_SCHEMA_MANIFEST.schema_sha256,
-    "29530ec602b720deeb1e26625c85a3dcc1268e2bfc116b6b86bfada761cb38a7",
+    "e3979c840e5d3bff819f24bb0fe92636e566e41ba12a42711f133f47a3db5dc0",
   );
   assert.deepEqual(
-  CLIENT_OPERATIONS_SCHEMA_MANIFEST.entries.slice(-10).map(
+  CLIENT_OPERATIONS_SCHEMA_MANIFEST.entries.slice(-11).map(
       ({ id }) => id,
     ),
     [
@@ -51,6 +51,7 @@ test("Client catalog, registry provenance, and rollback defaults are stable", as
       "307_client_outlook_desktop_trusted_current_read",
       "308_client_outlook_desktop_legacy_windows_compatibility",
       "309_client_internal_unsigned_installation_authority",
+      "310_client_internal_unsigned_s3_version",
     ],
   );
   assert.deepEqual(CLIENT_OPERATIONS_MIGRATION_ID_MAP, {
@@ -73,6 +74,7 @@ test("Client catalog, registry provenance, and rollback defaults are stable", as
       "308_client_outlook_desktop_legacy_windows_compatibility",
     "010_internal_unsigned_installation_authority":
       "309_client_internal_unsigned_installation_authority",
+    "011_internal_unsigned_s3_version": "310_client_internal_unsigned_s3_version",
   });
   assert.equal(
     CLIENT_OPERATIONS_MODEL_REGISTRY.entries.find(

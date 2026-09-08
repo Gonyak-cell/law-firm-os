@@ -4,6 +4,11 @@ import {
   INTERNAL_UNSIGNED_INSTALLATION_SECURITY_DEFINER_FUNCTIONS,
 } from "./internal-unsigned-installation-authority-catalog.js";
 
+import {
+  INTERNAL_UNSIGNED_S3_VERSION_AUTHORITY_CATALOG_SHA256,
+  INTERNAL_UNSIGNED_S3_VERSION_SECURITY_DEFINER_FUNCTIONS,
+} from "./internal-unsigned-s3-version-authority-catalog.js";
+
 const FUNCTIONS = INTERNAL_UNSIGNED_INSTALLATION_SECURITY_DEFINER_FUNCTIONS;
 const TABLES = ["internal_unsigned_release_authorizations", "internal_unsigned_release_revocations", "internal_unsigned_installation_bindings"];
 const CALLER_ROLES = ["lawos_app", "lawos_outlook_control_operator", "lawos_outlook_assignment_worker", "lawos_outlook_lifecycle_verifier"];
@@ -36,6 +41,15 @@ const EXPECTED = Object.freeze({
   temporary_privileges: [{ owner_schema_create: false, self_grant: false }],
 });
 
+const S3_VERSION_EXPECTED = Object.freeze({
+  ...EXPECTED,
+  functions: EXPECTED.functions.map((entry) => ({
+    ...entry,
+    definition_sha256: INTERNAL_UNSIGNED_S3_VERSION_SECURITY_DEFINER_FUNCTIONS
+      .find(({ signature }) => signature === entry.signature).pg_get_functiondef_sha256,
+  })),
+});
+
 function failure() {
   return Object.assign(new Error("Internal installation authority metadata readback failed"), {
     code: "LAWOS_INTERNAL_INSTALLATION_AUTHORITY_READBACK",
@@ -43,7 +57,8 @@ function failure() {
   });
 }
 
-export async function readInternalUnsignedInstallationAuthorityReadback(client) {
+export async function readInternalUnsignedInstallationAuthorityReadback(client, { schemaMigrationCount = 82 } = {}) {
+  if (![80, 81, 82].includes(schemaMigrationCount)) throw failure();
   if (!client || typeof client.query !== "function") throw failure();
   try {
     const functions = (await client.query(
@@ -132,17 +147,19 @@ export async function readInternalUnsignedInstallationAuthorityReadback(client) 
             AND member='lawos_admin'::regrole AND grantor='lawos_admin'::regrole) AS self_grant`,
     )).rows;
     const facts = { functions, tables, roles, role_access: roleAccess, temporary_privileges: temporaryPrivileges };
-    if (hashDomainValue(facts) !== hashDomainValue(EXPECTED)) throw failure();
+    if (hashDomainValue(facts) !== hashDomainValue(schemaMigrationCount === 82 ? S3_VERSION_EXPECTED : EXPECTED)) throw failure();
     return Object.freeze({
       schema_version: "lawos.internal-unsigned-installation-authority-readback.v1",
-      authority_catalog_sha256: INTERNAL_UNSIGNED_INSTALLATION_AUTHORITY_CATALOG_SHA256,
+      authority_catalog_sha256: schemaMigrationCount === 82
+        ? INTERNAL_UNSIGNED_S3_VERSION_AUTHORITY_CATALOG_SHA256
+        : INTERNAL_UNSIGNED_INSTALLATION_AUTHORITY_CATALOG_SHA256,
       function_count: FUNCTIONS.length, table_count: TABLES.length,
       authority_facts_sha256: hashDomainValue(facts),
     });
   } catch { throw failure(); }
 }
 
-export async function verifyInternalUnsignedInstallationAuthorityReadback(pool) {
+export async function verifyInternalUnsignedInstallationAuthorityReadback(pool, options) {
   if (!pool || typeof pool.connect !== "function") throw failure();
   let client;
   let releaseError;
@@ -150,7 +167,7 @@ export async function verifyInternalUnsignedInstallationAuthorityReadback(pool) 
     client = await pool.connect();
     await client.query("BEGIN ISOLATION LEVEL SERIALIZABLE READ ONLY");
     await client.query("SET LOCAL statement_timeout = 15000");
-    const receipt = await readInternalUnsignedInstallationAuthorityReadback(client);
+    const receipt = await readInternalUnsignedInstallationAuthorityReadback(client, options);
     await client.query("COMMIT");
     return receipt;
   } catch {

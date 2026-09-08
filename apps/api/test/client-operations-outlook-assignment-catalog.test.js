@@ -51,7 +51,7 @@ test("combined migration 306 binds the exact Outlook assignment authority catalo
     hashDomainValue(OUTLOOK_DESKTOP_ASSIGNMENT_AUTHORITY_CATALOG),
   );
 
-  assert.equal(CLIENT_OPERATIONS_MIGRATION_CATALOG.migration_count, 81);
+  assert.equal(CLIENT_OPERATIONS_MIGRATION_CATALOG.migration_count, 82);
   assert.equal(Object.isFrozen(CLIENT_OPERATIONS_MIGRATION_CATALOG), true);
   assert.equal(
     Object.isFrozen(CLIENT_OPERATIONS_MIGRATION_CATALOG.migrations),
@@ -63,7 +63,7 @@ test("combined migration 306 binds the exact Outlook assignment authority catalo
   );
   assert.equal(
     CLIENT_OPERATIONS_MIGRATION_CATALOG_SHA256,
-    "8de3211a545ebb7c50813990d15f6abc215ffd23a7d09ba2149d9b37fd96e8c7",
+    "3bddab69c6ea4e34386ad60067d46f70966692d488dea593455a631e1625c1db",
   );
   const normalizedCatalog = normalizeClientOperationsMigrationCatalog();
   assert.equal(
@@ -80,25 +80,25 @@ test("combined migration 306 binds the exact Outlook assignment authority catalo
   );
   assert.equal(
     normalizedCatalog.ledger_sha256,
-    "29530ec602b720deeb1e26625c85a3dcc1268e2bfc116b6b86bfada761cb38a7",
+    "e3979c840e5d3bff819f24bb0fe92636e566e41ba12a42711f133f47a3db5dc0",
   );
   assert.equal(
-    hashDomainValue(CLIENT_OPERATIONS_SCHEMA_MANIFEST.entries.filter(({ id }) => id !== "016_dms_corporate_workspace").slice(0, -1)),
+    hashDomainValue(CLIENT_OPERATIONS_SCHEMA_MANIFEST.entries.filter(({ id }) => !["016_dms_corporate_workspace", "310_client_internal_unsigned_s3_version"].includes(id)).slice(0, -1)),
     "fe0b9c53de1617361fd607692beb7e462b28159321e7830d507836948fcfdbc3",
   );
   const assignmentCatalogRow =
-    CLIENT_OPERATIONS_MIGRATION_CATALOG.migrations.at(-4);
+    CLIENT_OPERATIONS_MIGRATION_CATALOG.migrations.find(({ id }) => id === "306_client_outlook_desktop_assignment");
   const assignmentSchemaRow =
-    CLIENT_OPERATIONS_SCHEMA_MANIFEST.entries.at(-4);
+    CLIENT_OPERATIONS_SCHEMA_MANIFEST.entries.find(({ id }) => id === "306_client_outlook_desktop_assignment");
   assert.equal(
-    hashDomainValue(CLIENT_OPERATIONS_SCHEMA_MANIFEST.entries.filter(({ id }) => id !== "016_dms_corporate_workspace").slice(0, -4)),
+    hashDomainValue(CLIENT_OPERATIONS_SCHEMA_MANIFEST.entries.filter(({ id }) => id !== "016_dms_corporate_workspace").slice(0, -5)),
     "ae6b2ffa029916bb364772dfa64bb507a6aafc4627aabe49127957c55381421b",
   );
   assert.equal(
-    hashDomainValue(CLIENT_OPERATIONS_SCHEMA_MANIFEST.entries.filter(({ id }) => id !== "016_dms_corporate_workspace").slice(0, -3)),
+    hashDomainValue(CLIENT_OPERATIONS_SCHEMA_MANIFEST.entries.filter(({ id }) => id !== "016_dms_corporate_workspace").slice(0, -4)),
     "65da3dccd4e9f0079abbbe9d4176776624df697dccb52923bdf9f889e3553c91",
   );
-  assert.deepEqual(CLIENT_OPERATIONS_SCHEMA_MANIFEST.entries.at(-5), {
+  assert.deepEqual(CLIENT_OPERATIONS_SCHEMA_MANIFEST.entries.at(-6), {
     id: "305_client_outlook_desktop_release_trust",
     checksum:
       "86921d4c43544858ae67a95c2c6cc8fb5deeef2731693285fcb4ffa22fd115c7",
@@ -138,7 +138,7 @@ test("combined migration 306 binds the exact Outlook assignment authority catalo
   assert.equal(Object.isFrozen(assignmentCatalogRow), true);
   assert.equal(
     CLIENT_OPERATIONS_MIGRATION_CATALOG.migrations
-      .slice(0, -4)
+      .slice(0, -5)
       .some(({ outlook_assignment_authority: authority }) => authority),
     false,
   );
@@ -196,7 +196,7 @@ test("combined migration 306 rejects dynamic authority facts and a read-only ass
     },
   ]) {
     const catalog = structuredClone(CLIENT_OPERATIONS_MIGRATION_CATALOG);
-    mutate(catalog.migrations.at(-4).outlook_assignment_authority);
+    mutate(catalog.migrations.find(({ id }) => id === "306_client_outlook_desktop_assignment").outlook_assignment_authority);
     assert.throws(
       () => normalizeClientOperationsMigrationCatalog(catalog),
       /Outlook assignment catalog binding is invalid/u,
@@ -208,7 +208,7 @@ test("final source selects only the exact authority80 and combined81 target cata
   const authority = selectClientOperationsMigrationTarget(
     "2ef366427d98ed297ab376c8fc7e6a255cf6a054d0eaa660dc6fb7e13c814f79",
   );
-  const combined = selectClientOperationsMigrationTarget();
+  const combined = selectClientOperationsMigrationTarget("8de3211a545ebb7c50813990d15f6abc215ffd23a7d09ba2149d9b37fd96e8c7");
   assert.equal(authority.normalized.migration_catalog_count, 80);
   assert.equal(authority.normalized.ledger_sha256,
     "4d2b71686f05f483fee882b742e363ee4ce24e95879dce267a81083adc47287f");

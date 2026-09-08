@@ -220,7 +220,7 @@ test("migration adapter fails closed and clears its caller-owned secret", () => 
   assert.ok(catalogInput.secret.every((byte) => byte === 0));
 });
 
-test("the complete 80-row and 81-row catalogs cannot bypass authority callbacks", async () => {
+test("the complete 80-row and 82-row catalogs cannot bypass authority callbacks", async () => {
   let connected = false;
   await assert.rejects(runClientOperationsPostgresMigrations({ async connect() {
     connected = true;
@@ -497,7 +497,7 @@ test("migration adapter preserves the signed 79-row authority while appending on
   } finally { wrongPhase.dispose(); }
 });
 
-test("signed native RDS history appends 79 to 80 to 81 without rewriting roles or the original receipt", async (t) => {
+test("signed native RDS history appends 79 to 80 to 81 to 82 without rewriting roles or the original receipt", async (t) => {
   const state = await fixture(t, "native-rds-history-append", { nativeRdsBootstrap: true });
   if (!state) return;
   await runHistoricalCatalog(state);
@@ -595,7 +595,16 @@ test("signed native RDS history appends 79 to 80 to 81 without rewriting roles o
   }
   assert.equal((await state.admin.query("SELECT count(*)::int AS n FROM lawos_meta.schema_migrations")).rows[0].n, 79);
   for (const migrationCatalogSha256 of [CATALOG_SHA,
-    "8de3211a545ebb7c50813990d15f6abc215ffd23a7d09ba2149d9b37fd96e8c7"]) {
+    "8de3211a545ebb7c50813990d15f6abc215ffd23a7d09ba2149d9b37fd96e8c7",
+    "3bddab69c6ea4e34386ad60067d46f70966692d488dea593455a631e1625c1db"]) {
+    const priorCount = (await state.admin.query("SELECT count(*)::int AS n FROM lawos_meta.schema_migrations")).rows[0].n;
+    if (priorCount < 81) {
+      await assert.rejects(run({ migrationCatalogSha256:
+        "3bddab69c6ea4e34386ad60067d46f70966692d488dea593455a631e1625c1db" }),
+      /exact prior or replay catalog/u);
+      assert.equal((await state.admin.query("SELECT count(*)::int AS n FROM lawos_meta.schema_migrations")).rows[0].n, priorCount);
+      assert.deepEqual(await snapshot(), before);
+    }
     const result = await run({ migrationCatalogSha256 });
     assert.equal(result.migration_applied_count, 1);
     assert.equal(result.role_configuration_transaction_committed_count, 0);
@@ -604,7 +613,7 @@ test("signed native RDS history appends 79 to 80 to 81 without rewriting roles o
     assert.equal(replay.postgres_mutation_committed_count, 0);
     assert.deepEqual(await snapshot(), before);
   }
-  assert.equal((await state.admin.query("SELECT count(*)::int AS n FROM lawos_meta.schema_migrations")).rows[0].n, 81);
+  assert.equal((await state.admin.query("SELECT count(*)::int AS n FROM lawos_meta.schema_migrations")).rows[0].n, 82);
 });
 
 test("internal authority postflight failure retains the committed 79-to-80 append", async (t) => {
@@ -662,34 +671,45 @@ test("internal authority postflight failure retains the committed 79-to-80 appen
     assert.equal(receipt.postgres_mutation_committed_count, 0);
   } finally { replay.dispose(); }
 });
-test("309 COMMIT response loss remains unknown after the exact 79-row catalog", async (t) => {
-  const state = await fixture(t, "internal-commit-unknown-79-80");
+for (const { targetId, targetCount, targetSha, priorTargets } of [
+  { targetId: "309_client_internal_unsigned_installation_authority", targetCount: 80, targetSha: CATALOG_SHA, priorTargets: [] },
+  { targetId: "310_client_internal_unsigned_s3_version", targetCount: 82,
+    targetSha: "3bddab69c6ea4e34386ad60067d46f70966692d488dea593455a631e1625c1db",
+    priorTargets: [CATALOG_SHA, "8de3211a545ebb7c50813990d15f6abc215ffd23a7d09ba2149d9b37fd96e8c7"] },
+]) {
+test(`${targetId} COMMIT response loss remains unknown until exact replay`, async (t) => {
+  const state = await fixture(t, `internal-commit-unknown-${targetCount}`);
   if (!state) return;
   await runHistoricalCatalog(state);
+  for (const priorSha of priorTargets) {
+    const prior = createJsonPostgresOutlookAuthorityMigrationAdapter({ ...options().value, migrationCatalogSha256: priorSha });
+    try { prior.normalizeRunReceipt(await runClientOperationsPostgresMigrations(state.admin, prior.runnerOptions)); }
+    finally { prior.dispose(); }
+  }
   let appendPending = false;
   const lossyPool = { async connect() {
     const client = await state.admin.connect();
     return { async query(sql, values) {
       if (String(sql).startsWith("INSERT INTO lawos_meta.schema_migrations")
-          && values[0] === "309_client_internal_unsigned_installation_authority") {
+          && values[0] === targetId) {
         appendPending = true;
       }
       const result = await client.query(sql, values);
       if (appendPending && sql === "COMMIT") {
         appendPending = false;
-        throw new Error("synthetic 309 COMMIT response loss");
+        throw new Error(`synthetic ${targetId} COMMIT response loss`);
       }
       return result;
     }, release: client.release.bind(client) };
   } };
   const input = options();
-  const adapter = createJsonPostgresOutlookAuthorityMigrationAdapter(input.value);
+  const adapter = createJsonPostgresOutlookAuthorityMigrationAdapter({ ...input.value, migrationCatalogSha256: targetSha });
   try {
     await assert.rejects(runClientOperationsPostgresMigrations(lossyPool,
       adapter.runnerOptions), (error) => {
       const receipt = adapter.normalizeFailureReceipt(error);
       assert.equal(receipt.failure_safe_error_code, "OUTLOOK_POSTGRES_COMMIT_UNKNOWN");
-      assert.equal(receipt.migration_catalog_sha256, CATALOG_SHA);
+      assert.equal(receipt.migration_catalog_sha256, targetSha);
       assert.equal(receipt.outcome, "partial");
       assert.equal(receipt.migration_applied_count, 0);
       assert.equal(receipt.role_configuration_transaction_committed_count, 0);
@@ -700,5 +720,12 @@ test("309 COMMIT response loss remains unknown after the exact 79-row catalog", 
   } finally { adapter.dispose(); }
   assert.equal((await state.admin.query(
     "SELECT count(*)::int AS count FROM lawos_meta.schema_migrations",
-  )).rows[0].count, 80);
+  )).rows[0].count, targetCount);
+  const replay = createJsonPostgresOutlookAuthorityMigrationAdapter({ ...options().value, migrationCatalogSha256: targetSha });
+  try {
+    const result = replay.normalizeRunReceipt(await runClientOperationsPostgresMigrations(state.admin, replay.runnerOptions));
+    assert.equal(result.migration_applied_count, 0);
+    assert.equal(result.postgres_mutation_committed_count, 0);
+  } finally { replay.dispose(); }
 });
+}

@@ -4,6 +4,10 @@ export const CLIENT_OPERATIONS_MIGRATION_CATALOG_VERSION =
   "law-firm-os.json-postgres-rehearsal-migration-catalog.v1";
 
 export const CLIENT_OPERATIONS_REVIEWED_MIGRATION_TARGETS = Object.freeze({
+  "3bddab69c6ea4e34386ad60067d46f70966692d488dea593455a631e1625c1db": Object.freeze({
+    migration_count: 82,
+    ledger_sha256: "e3979c840e5d3bff819f24bb0fe92636e566e41ba12a42711f133f47a3db5dc0",
+  }),
   "2ef366427d98ed297ab376c8fc7e6a255cf6a054d0eaa660dc6fb7e13c814f79": Object.freeze({
     migration_count: 80,
     ledger_sha256: "4d2b71686f05f483fee882b742e363ee4ce24e95879dce267a81083adc47287f",
@@ -27,6 +31,8 @@ const LEGACY_SOURCE_MIGRATION_ID =
   "009_outlook_desktop_legacy_windows_compatibility";
 const FINAL_MIGRATION_ID = "309_client_internal_unsigned_installation_authority";
 const FINAL_SOURCE_MIGRATION_ID = "010_internal_unsigned_installation_authority";
+const S3_VERSION_MIGRATION_ID = "310_client_internal_unsigned_s3_version";
+const S3_VERSION_SOURCE_MIGRATION_ID = "011_internal_unsigned_s3_version";
 const INTERNAL_UNSIGNED_READ_SIGNATURE =
   "lawos_email_dms.read_current_internal_unsigned_installation(text,text,text)";
 const ASSIGNMENT_STATE_READ_SIGNATURE =
@@ -98,7 +104,7 @@ export function normalizeClientOperationsMigrationCatalogMaterial(
           ...MIGRATION_ROW_KEYS,
           "outlook_trusted_current_read_authority",
         ]
-        : entry?.id === FINAL_MIGRATION_ID
+        : [FINAL_MIGRATION_ID, S3_VERSION_MIGRATION_ID].includes(entry?.id)
           ? [...MIGRATION_ROW_KEYS, "internal_unsigned_installation_authority"]
           : MIGRATION_ROW_KEYS;
     if (!exactKeys(entry, expectedKeys)
@@ -115,7 +121,7 @@ export function normalizeClientOperationsMigrationCatalogMaterial(
     !== ledgerEntries.length) {
     throw new TypeError("Client operations migration catalog IDs are invalid");
   }
-  const assignmentSource = migrations.at(-4);
+  const assignmentSource = migrations.find(({ id }) => id === ASSIGNMENT_MIGRATION_ID);
   const assignmentBinding =
     assignmentSource.outlook_assignment_authority;
   if (assignmentSource.id !== ASSIGNMENT_MIGRATION_ID
@@ -165,8 +171,8 @@ export function normalizeClientOperationsMigrationCatalogMaterial(
     );
   }
 
-  const trustedCurrentSource = migrations.at(-3);
-  const legacySource = migrations.at(-2);
+  const trustedCurrentSource = migrations.find(({ id }) => id === TRUSTED_CURRENT_MIGRATION_ID);
+  const legacySource = migrations.find(({ id }) => id === LEGACY_MIGRATION_ID);
   const finalSource = migrations.at(-1);
   const final = ledgerEntries.at(-1);
   const binding =
@@ -211,13 +217,15 @@ export function normalizeClientOperationsMigrationCatalogMaterial(
       "Client operations Outlook legacy Windows compatibility migration is invalid",
     );
   }
+  const finalId = target.migration_count === 82 ? S3_VERSION_MIGRATION_ID : FINAL_MIGRATION_ID;
+  const finalSourceId = target.migration_count === 82 ? S3_VERSION_SOURCE_MIGRATION_ID : FINAL_SOURCE_MIGRATION_ID;
   const internalBinding = finalSource.internal_unsigned_installation_authority;
-  if (final.id !== FINAL_MIGRATION_ID
-    || finalSource.source_migration_id !== FINAL_SOURCE_MIGRATION_ID
-    || finalSource.file_name !== "./010_internal_unsigned_installation_authority.sql"
+  if (final.id !== finalId
+    || finalSource.source_migration_id !== finalSourceId
+    || finalSource.file_name !== `./${finalSourceId}.sql`
     || !exactKeys(internalBinding, TRUSTED_CURRENT_READ_AUTHORITY_BINDING_KEYS)
-    || internalBinding.source_migration_id !== FINAL_SOURCE_MIGRATION_ID
-    || internalBinding.client_migration_id !== FINAL_MIGRATION_ID
+    || internalBinding.source_migration_id !== finalSourceId
+    || internalBinding.client_migration_id !== finalId
     || !SHA256.test(internalBinding.authority_catalog_sha256)
     || internalBinding.exposed_security_definer_function_count !== 5
     || !SHA256.test(internalBinding.exposed_security_definer_function_catalog_sha256)

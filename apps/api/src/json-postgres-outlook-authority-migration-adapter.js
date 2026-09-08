@@ -21,7 +21,8 @@ const HISTORICAL_MIGRATION_CATALOG_SHA256 = hashDomainValue({
   migration_count: 79,
   migrations: CLIENT_OPERATIONS_MIGRATION_CATALOG.migrations.filter(({ id }) =>
     id !== "016_dms_corporate_workspace"
-      && id !== "309_client_internal_unsigned_installation_authority"),
+      && id !== "309_client_internal_unsigned_installation_authority"
+      && id !== "310_client_internal_unsigned_s3_version"),
 });
 
 function fail(message) {
@@ -83,7 +84,7 @@ export function createJsonPostgresOutlookAuthorityMigrationAdapter(options = {})
     try { target = selectClientOperationsMigrationTarget(migrationSha); } catch {
       fail("migration manifest does not match the reviewed catalog");
     }
-    if (hasHistoricalBootstrap && ![80, 81].includes(target.catalog.migration_count)) {
+    if (hasHistoricalBootstrap && ![80, 81, 82].includes(target.catalog.migration_count)) {
       fail("historical Outlook bootstrap requires a reviewed append target");
     }
     const catalog = Object.freeze(target.catalog.migrations.map((row) => Object.freeze({
@@ -245,7 +246,7 @@ export function createJsonPostgresOutlookAuthorityMigrationAdapter(options = {})
       },
       async onInternalUnsignedInstallationAuthorityPostMigration(client, callbackCatalog) {
         assertCallback(client, callbackCatalog, "internal");
-        const internal = await readInternalUnsignedInstallationAuthorityReadback(client);
+        const internal = await readInternalUnsignedInstallationAuthorityReadback(client, { schemaMigrationCount: target.catalog.migration_count });
         phase = "complete";
         return Object.freeze({
           role_bootstrap_sha256: assignmentPostflight.role_bootstrap_sha256,

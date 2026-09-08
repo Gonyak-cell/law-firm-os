@@ -10,6 +10,9 @@ const INTERNAL_INSTALLATION_CATALOG_SHA256 =
   "2ef366427d98ed297ab376c8fc7e6a255cf6a054d0eaa660dc6fb7e13c814f79";
 const CORPORATE_WORKSPACE_CATALOG_SHA256 =
   "8de3211a545ebb7c50813990d15f6abc215ffd23a7d09ba2149d9b37fd96e8c7";
+const S3_VERSION_CATALOG_SHA256 = "3bddab69c6ea4e34386ad60067d46f70966692d488dea593455a631e1625c1db";
+const S3_VERSION_LEDGER_SHA256 = "e3979c840e5d3bff819f24bb0fe92636e566e41ba12a42711f133f47a3db5dc0";
+const S3_VERSION_MIGRATION_ID = "310_client_internal_unsigned_s3_version";
 const CORPORATE_WORKSPACE_MIGRATION_ID = "016_dms_corporate_workspace";
 const FAILURE_SCHEMA =
   "lawos.outlook-authority-migration-failure-receipt.v1";
@@ -108,6 +111,11 @@ function copyFrozen(value) {
 }
 
 function reviewedAppendMigrationId(value) {
+  if (value.migrations?.length === 82) {
+    return value.migration_catalog_sha256 === S3_VERSION_CATALOG_SHA256
+      && hashDomainValue(value.migrations.map(({ id, checksum }) => ({ id, checksum }))) === S3_VERSION_LEDGER_SHA256
+      ? S3_VERSION_MIGRATION_ID : null;
+  }
   const corporate = value.migrations?.length === 81;
   if ((!corporate && value.migrations?.length !== 80)
       || value.migration_catalog_sha256 !== (corporate
@@ -131,6 +139,30 @@ function isCorporateWorkspaceGap(value) {
 
 function isCorporateWorkspaceFailureBoundary(value) {
   if (!Array.isArray(value.migrations)) return false;
+  if (value.migration_catalog_sha256 === S3_VERSION_CATALOG_SHA256) {
+    if (value.role_configuration_transaction_committed_count !== 0
+        || value.outlook_assignment_transaction_committed !== false) return false;
+    if (value.migrations.length === 0) {
+      return value.migration_applied_count === 0
+        && value.postgres_mutation_attempt_count === 0
+        && value.postgres_mutation_committed_count === 0;
+    }
+    if (value.migrations.length === 81) {
+      return value.failure_phase === "migration" && value.migration_applied_count === 0
+        && [0, 1].includes(value.postgres_mutation_attempt_count)
+        && [0, null].includes(value.postgres_mutation_committed_count)
+        && value.migrations.every(({ applied }) => applied === false)
+        && hashDomainValue(value.migrations.map(({ id, checksum }) => ({ id, checksum })))
+          === "29530ec602b720deeb1e26625c85a3dcc1268e2bfc116b6b86bfada761cb38a7";
+    }
+    return reviewedAppendMigrationId(value) === S3_VERSION_MIGRATION_ID
+      && value.failure_phase === "internal_installation_postflight"
+      && value.postgres_mutation_attempt_count === value.migration_applied_count
+      && value.postgres_mutation_committed_count === value.migration_applied_count
+      && [0, 1].includes(value.migration_applied_count)
+      && value.migrations.every(({ id, applied }) => applied ===
+        (value.migration_applied_count === 1 && id === S3_VERSION_MIGRATION_ID));
+  }
   if (value.migration_catalog_sha256 !== CORPORATE_WORKSPACE_CATALOG_SHA256) {
     return value.migrations.length !== 81;
   }
@@ -216,10 +248,10 @@ export function assertOutlookAuthorityMigrationRunReceipt(value, expected) {
       || !nonnegative(value.migration_applied_count)
       || value.migration_applied_count !==
         value.migrations.filter(({ applied }) => applied === true).length
-      || ((historical || appended || [80, 81].includes(value.migrations.length))
+      || ((historical || appended || [80, 81, 82].includes(value.migrations.length))
         && reviewedAppendId === null)
       || (committed && (
-        reviewedAppendId === CORPORATE_WORKSPACE_MIGRATION_ID
+        [CORPORATE_WORKSPACE_MIGRATION_ID, S3_VERSION_MIGRATION_ID].includes(reviewedAppendId)
         || value.role_configuration_transaction_committed_count !== 1
         || value.postgres_mutation_attempt_count !==
           value.migration_applied_count + 1

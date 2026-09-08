@@ -32,6 +32,12 @@ import {
   INTERNAL_UNSIGNED_INSTALLATION_SECURITY_DEFINER_FUNCTIONS_SHA256,
 } from "../../../packages/email-dms/src/internal-unsigned-installation-authority-catalog.js";
 import {
+  INTERNAL_UNSIGNED_S3_VERSION_AUTHORITY_CATALOG,
+  INTERNAL_UNSIGNED_S3_VERSION_AUTHORITY_CATALOG_SHA256,
+  INTERNAL_UNSIGNED_S3_VERSION_SECURITY_DEFINER_FUNCTIONS,
+  INTERNAL_UNSIGNED_S3_VERSION_SECURITY_DEFINER_FUNCTIONS_SHA256,
+} from "../../../packages/email-dms/src/internal-unsigned-s3-version-authority-catalog.js";
+import {
   CLIENT_OPERATIONS_MIGRATION_CATALOG_VERSION,
   normalizeClientOperationsMigrationCatalogMaterial,
 } from "./client-operations-migration-catalog.js";
@@ -61,6 +67,7 @@ const INTERNAL_UNSIGNED_SOURCE_MIGRATION_ID =
   "010_internal_unsigned_installation_authority";
 const INTERNAL_UNSIGNED_CLIENT_MIGRATION_ID =
   "309_client_internal_unsigned_installation_authority";
+const S3_VERSION_CLIENT_MIGRATION_ID = "310_client_internal_unsigned_s3_version";
 const INTERNAL_UNSIGNED_READ_SIGNATURE =
   "lawos_email_dms.read_current_internal_unsigned_installation(text,text,text)";
 
@@ -80,6 +87,7 @@ export const CLIENT_OPERATIONS_MIGRATION_ID_MAP = Object.freeze({
   [OUTLOOK_LEGACY_WINDOWS_COMPATIBILITY_SOURCE_MIGRATION_ID]:
     OUTLOOK_LEGACY_WINDOWS_COMPATIBILITY_CLIENT_MIGRATION_ID,
   [INTERNAL_UNSIGNED_SOURCE_MIGRATION_ID]: INTERNAL_UNSIGNED_CLIENT_MIGRATION_ID,
+  "011_internal_unsigned_s3_version": S3_VERSION_CLIENT_MIGRATION_ID,
 });
 
 function clientSchemaMigrations() {
@@ -245,16 +253,21 @@ function createOutlookTrustedCurrentReadAuthorityBinding() {
 export const CLIENT_OPERATIONS_OUTLOOK_TRUSTED_CURRENT_READ_AUTHORITY_BINDING =
   createOutlookTrustedCurrentReadAuthorityBinding();
 
-function createInternalUnsignedInstallationAuthorityBinding() {
-  const catalog = INTERNAL_UNSIGNED_INSTALLATION_AUTHORITY_CATALOG;
-  const functions = INTERNAL_UNSIGNED_INSTALLATION_SECURITY_DEFINER_FUNCTIONS;
+function createInternalUnsignedInstallationAuthorityBinding({
+  catalog = INTERNAL_UNSIGNED_INSTALLATION_AUTHORITY_CATALOG,
+  functions = INTERNAL_UNSIGNED_INSTALLATION_SECURITY_DEFINER_FUNCTIONS,
+  catalogSha256 = INTERNAL_UNSIGNED_INSTALLATION_AUTHORITY_CATALOG_SHA256,
+  functionsSha256 = INTERNAL_UNSIGNED_INSTALLATION_SECURITY_DEFINER_FUNCTIONS_SHA256,
+  sourceMigrationId = INTERNAL_UNSIGNED_SOURCE_MIGRATION_ID,
+  clientMigrationId = INTERNAL_UNSIGNED_CLIENT_MIGRATION_ID,
+} = {}) {
   const read = functions.find(({ signature }) => signature === INTERNAL_UNSIGNED_READ_SIGNATURE);
-  if (hashDomainValue(catalog) !== INTERNAL_UNSIGNED_INSTALLATION_AUTHORITY_CATALOG_SHA256
-    || catalog.source_migration_id !== INTERNAL_UNSIGNED_SOURCE_MIGRATION_ID
-    || catalog.source_migration_file_name !== "./010_internal_unsigned_installation_authority.sql"
+  if (hashDomainValue(catalog) !== catalogSha256
+    || catalog.source_migration_id !== sourceMigrationId
+    || catalog.source_migration_file_name !== `./${sourceMigrationId}.sql`
     || catalog.security_definer_functions !== functions
-    || catalog.security_definer_functions_sha256 !== INTERNAL_UNSIGNED_INSTALLATION_SECURITY_DEFINER_FUNCTIONS_SHA256
-    || hashDomainValue(functions) !== INTERNAL_UNSIGNED_INSTALLATION_SECURITY_DEFINER_FUNCTIONS_SHA256
+    || catalog.security_definer_functions_sha256 !== functionsSha256
+    || hashDomainValue(functions) !== functionsSha256
     || catalog.exposed_security_definer_function_count !== 5 || functions.length !== 5
     || new Set(functions.map(({ signature }) => signature)).size !== 5
     || catalog.raw_release_binding_table_grants.length !== 0
@@ -264,17 +277,27 @@ function createInternalUnsignedInstallationAuthorityBinding() {
     throw new Error("Internal unsigned installation authority catalog is not closed");
   }
   return Object.freeze({
-    source_migration_id: INTERNAL_UNSIGNED_SOURCE_MIGRATION_ID,
-    client_migration_id: INTERNAL_UNSIGNED_CLIENT_MIGRATION_ID,
-    authority_catalog_sha256: INTERNAL_UNSIGNED_INSTALLATION_AUTHORITY_CATALOG_SHA256,
+    source_migration_id: sourceMigrationId,
+    client_migration_id: clientMigrationId,
+    authority_catalog_sha256: catalogSha256,
     exposed_security_definer_function_count: functions.length,
-    exposed_security_definer_function_catalog_sha256: INTERNAL_UNSIGNED_INSTALLATION_SECURITY_DEFINER_FUNCTIONS_SHA256,
+    exposed_security_definer_function_catalog_sha256: functionsSha256,
     trusted_current_read: Object.freeze({ signature: INTERNAL_UNSIGNED_READ_SIGNATURE, transaction_mode: "serializable_read_only" }),
   });
 }
 
 export const CLIENT_OPERATIONS_INTERNAL_UNSIGNED_INSTALLATION_AUTHORITY_BINDING =
   createInternalUnsignedInstallationAuthorityBinding();
+
+export const CLIENT_OPERATIONS_INTERNAL_UNSIGNED_S3_VERSION_AUTHORITY_BINDING =
+  createInternalUnsignedInstallationAuthorityBinding({
+    catalog: INTERNAL_UNSIGNED_S3_VERSION_AUTHORITY_CATALOG,
+    functions: INTERNAL_UNSIGNED_S3_VERSION_SECURITY_DEFINER_FUNCTIONS,
+    catalogSha256: INTERNAL_UNSIGNED_S3_VERSION_AUTHORITY_CATALOG_SHA256,
+    functionsSha256: INTERNAL_UNSIGNED_S3_VERSION_SECURITY_DEFINER_FUNCTIONS_SHA256,
+    sourceMigrationId: "011_internal_unsigned_s3_version",
+    clientMigrationId: S3_VERSION_CLIENT_MIGRATION_ID,
+  });
 
 function packetMigrationCatalogMaterial(migrations) {
   return Object.freeze({
@@ -292,6 +315,9 @@ function packetMigrationCatalogMaterial(migrations) {
           outlook_assignment_authority:
             CLIENT_OPERATIONS_OUTLOOK_ASSIGNMENT_AUTHORITY_BINDING,
         }
+        : {}),
+      ...(migration.id === S3_VERSION_CLIENT_MIGRATION_ID
+        ? { internal_unsigned_installation_authority: CLIENT_OPERATIONS_INTERNAL_UNSIGNED_S3_VERSION_AUTHORITY_BINDING }
         : {}),
       ...(migration.id === INTERNAL_UNSIGNED_CLIENT_MIGRATION_ID
         ? { internal_unsigned_installation_authority: CLIENT_OPERATIONS_INTERNAL_UNSIGNED_INSTALLATION_AUTHORITY_BINDING }
@@ -320,7 +346,9 @@ export function normalizeClientOperationsMigrationCatalog(
   return normalizeClientOperationsMigrationCatalogMaterial(catalog, {
     expectedCatalogSha256: catalog?.migration_count === 80
       ? "2ef366427d98ed297ab376c8fc7e6a255cf6a054d0eaa660dc6fb7e13c814f79"
-      : CLIENT_OPERATIONS_MIGRATION_CATALOG_SHA256,
+      : catalog?.migration_count === 81
+        ? "8de3211a545ebb7c50813990d15f6abc215ffd23a7d09ba2149d9b37fd96e8c7"
+        : CLIENT_OPERATIONS_MIGRATION_CATALOG_SHA256,
   });
 }
 
@@ -329,8 +357,10 @@ export function selectClientOperationsMigrationTarget(
 ) {
   const migrations = migrationCatalogSha256 ===
     "2ef366427d98ed297ab376c8fc7e6a255cf6a054d0eaa660dc6fb7e13c814f79"
-    ? Object.freeze(OPERATIONAL_MIGRATIONS.filter(({ id }) => id !== "016_dms_corporate_workspace"))
-    : OPERATIONAL_MIGRATIONS;
+    ? Object.freeze(OPERATIONAL_MIGRATIONS.filter(({ id }) => !["016_dms_corporate_workspace", S3_VERSION_CLIENT_MIGRATION_ID].includes(id)))
+    : migrationCatalogSha256 === "8de3211a545ebb7c50813990d15f6abc215ffd23a7d09ba2149d9b37fd96e8c7"
+      ? Object.freeze(OPERATIONAL_MIGRATIONS.filter(({ id }) => id !== S3_VERSION_CLIENT_MIGRATION_ID))
+      : OPERATIONAL_MIGRATIONS;
   const catalog = packetMigrationCatalogMaterial(migrations);
   const normalized = normalizeClientOperationsMigrationCatalogMaterial(catalog, {
     expectedCatalogSha256: migrationCatalogSha256,
@@ -343,7 +373,7 @@ export function selectClientOperationsMigrationReadback(migrationCatalogSha256) 
     return selectClientOperationsMigrationTarget(migrationCatalogSha256);
   }
   const migrations = Object.freeze(OPERATIONAL_MIGRATIONS.filter(({ id }) =>
-    !["016_dms_corporate_workspace", "309_client_internal_unsigned_installation_authority"].includes(id)));
+    !["016_dms_corporate_workspace", "309_client_internal_unsigned_installation_authority", S3_VERSION_CLIENT_MIGRATION_ID].includes(id)));
   const catalog = packetMigrationCatalogMaterial(migrations);
   const entries = Object.freeze(migrations.map(({ id, sql }) =>
     Object.freeze({ id, checksum: checksumPostgresMigration(sql) })));
@@ -412,7 +442,7 @@ export function runClientOperationsPostgresMigrations(
       "013_dms_precedent_search",
       "014_docusign_outbox",
       "015_external_tenant_provisioning",
-      ...(target.normalized.migration_catalog_count === 81
+      ...(target.normalized.migration_catalog_count >= 81
         ? ["016_dms_corporate_workspace"] : []),
       "149_hrx_049_hrx_directory_authority",
     ],
