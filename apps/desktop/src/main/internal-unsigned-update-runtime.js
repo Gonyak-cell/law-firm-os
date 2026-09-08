@@ -35,7 +35,7 @@ const SAFE_STAGE_ID = /^[a-f0-9-]{36}$/u;
 const SHA256 = /^[a-f0-9]{64}$/u;
 const GIT_OBJECT = /^[a-f0-9]{40}$/u;
 const VERSION = /^\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?$/u;
-const VERSION_ID = /^[A-Za-z0-9][A-Za-z0-9._+=/-]{0,1023}$/u;
+const VERSION_ID = /^[A-Za-z0-9._+=/-]{1,1024}$/u;
 const CLOUDFRONT_HOST = /^d[a-z0-9]{3,62}\.cloudfront\.net$/u;
 const DOCUMENT_LIMIT = 64 * 1024;
 const SIGNATURE_BYTES = 64;

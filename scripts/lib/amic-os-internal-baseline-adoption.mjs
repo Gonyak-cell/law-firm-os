@@ -58,7 +58,7 @@ export function validateAmicInternalBaselineAdoptionRequest(value, { now = Date.
   exact(request.bootstrapMarker, ["kind", "key", "version_id", "sha256", "bytes"], "bootstrap marker");
   assert.equal(request.bootstrapMarker.kind, "managed_bootstrap_marker");
   assert.equal(request.bootstrapMarker.key, amicInternalManagedBootstrapScopeKey(request.bootstrapRelease));
-  assert.match(request.bootstrapMarker.version_id, /^[A-Za-z0-9][A-Za-z0-9._+=/-]{0,1023}$/u);
+  assert.match(request.bootstrapMarker.version_id, /^[A-Za-z0-9._+=/-]{1,1024}$/u);
   assert.notEqual(request.bootstrapMarker.version_id, "null");
   assert.match(request.bootstrapMarker.sha256, SHA256);
   assert.ok(Number.isSafeInteger(request.bootstrapMarker.bytes) && request.bootstrapMarker.bytes > 0 && request.bootstrapMarker.bytes <= 2 * 1024 * 1024);
@@ -193,7 +193,7 @@ export function parseAmicInternalAdoptionBundle(base64, environment, { now = Dat
   exact(ref, ["kind", "key", "version_id", "sha256", "bytes"], "installed receipt reference");
   assert.equal(ref.kind, "windows_installed_receipt");
   assert.equal(ref.key, `internal-unsigned/baseline/adoption-inputs/${approved.requestSha256}/installed.json`, "installed receipt escaped its request scope");
-  assert.match(ref.version_id, /^[A-Za-z0-9][A-Za-z0-9._+=/-]{0,1023}$/u);
+  assert.match(ref.version_id, /^[A-Za-z0-9._+=/-]{1,1024}$/u);
   assert.notEqual(ref.version_id, "null");
   assert.equal(ref.sha256, approved.request.installedReceiptSha256);
   assert.ok(Number.isSafeInteger(ref.bytes) && ref.bytes > 0 && ref.bytes <= 16 * 1024 * 1024);

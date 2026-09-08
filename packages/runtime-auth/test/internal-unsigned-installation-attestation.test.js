@@ -63,6 +63,21 @@ test("pinned signed current installation binds exact request and returns an immu
   assert.ok(Object.isFrozen(verified.installation));
 });
 
+test("signed installation preserves punctuation-prefixed S3 versions and rejects invalid boundaries", () => {
+  for (const version of ["_version-1", "-version-1", ".version-1", "+version-1", "=version-1", "/version-1", "_".repeat(1024)]) {
+    const source = document();
+    source.installation.installer_version_id = version;
+    assert.equal(verifyEnvelope(createEnvelope(source, { now: NOW }))
+      .installation.installer_version_id, version);
+  }
+  for (const version of ["", "null", "_".repeat(1025), " version", "version\n", "version?other=1", "version#fragment", 12, null]) {
+    const source = document();
+    source.installation.installer_version_id = version;
+    assert.throws(() => createEnvelope(source, { now: NOW }), /attestation is invalid/u);
+    assert.throws(() => verifyEnvelope(signedUnchecked(source)), /attestation is invalid/u);
+  }
+});
+
 test("attestation rejects replay to another request, adoption, installation, issuer, or key", () => {
   const envelope = createEnvelope(document(), { now: NOW });
   for (const changes of [
