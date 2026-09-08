@@ -522,7 +522,10 @@ function permissionContextFromPrincipal(
       session_principal_source: "api_signed_session",
       session_source_ref: principal.directory_source ?? MATTER_VAULT_ACCOUNT_REGISTRY_SOURCE,
     }),
-    rules: permissionRulesFromScopes(principal.scopes),
+    rules: permissionRulesFromScopes([
+      ...principal.scopes,
+      ...(principal.hrx_scopes ?? []).filter((scope) => typeof scope === "string" && scope.startsWith("hrx.")),
+    ]),
     object_acl:
       objectAclAuthority?.object_acl
       ?? Object.freeze([]),
