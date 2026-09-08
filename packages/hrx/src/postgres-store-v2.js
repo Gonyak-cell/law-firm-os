@@ -26,6 +26,7 @@ export const HRX_DOMAIN_ID = "hrx";
 
 const MIGRATION_RECORD_TYPE = "__hrx_schema_migration";
 const materializedBaselines = new WeakMap();
+const verifiedMaterializedStates = new WeakMap();
 
 function requiredText(value, name) {
   const text = String(value ?? "").trim();
@@ -464,6 +465,11 @@ export function assertHrxPostgresAuthorityReady({ store, tenant_id } = {}) {
       central_metadata_equal: comparison?.equal === true,
     });
   }
+  verifiedMaterializedStates.set(store, {
+    tenant_id: tenantId,
+    state_hash: hashDomainValue(state),
+    source: clone(source),
+  });
   return Object.freeze({ source, baseline, migration_count: expected.length });
 }
 
@@ -476,6 +482,11 @@ export function getHrxMaterializedBaseline(store) {
 export function createHrxOperationalDomainSnapshot({ store, tenant_id, request_context } = {}) {
   const tenantId = requiredText(tenant_id, "tenant_id");
   const baseline = getHrxMaterializedBaseline(store);
+  const verified = verifiedMaterializedStates.get(store);
+  if (verified?.tenant_id === tenantId
+      && hashDomainValue(store.snapshot()) === verified.state_hash) {
+    return createDomainSnapshot(verified.source);
+  }
   const base = applyCommittedStateVersions(
     createHrxDomainSnapshot({ store, tenant_id: tenantId }).snapshot,
     baseline,
@@ -557,12 +568,15 @@ function shadowDifference(comparison) {
 }
 
 async function compareCommittedReadback({ ledger, tenantId, source }) {
-  const comparison = await compareDomainSnapshotWithLedgerReadback({
-    ledger,
-    source,
-    tenant_id: tenantId,
-    domain_id: HRX_DOMAIN_ID,
-  });
+  const comparison = await ledger.transaction(
+    { tenant_id: tenantId, domain_id: HRX_DOMAIN_ID },
+    (tx) => compareDomainSnapshotWithLedgerReadback({
+      ledger: tx,
+      source,
+      tenant_id: tenantId,
+      domain_id: HRX_DOMAIN_ID,
+    }),
+  );
   if (!comparison.equal) throw shadowDifference(comparison);
   return comparison;
 }

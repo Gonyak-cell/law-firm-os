@@ -7,7 +7,9 @@ import { createMigratedPostgresFixture } from "../../persistence/test/helpers/di
 import { reportDomainReceiptEvidence } from "../../persistence/test/helpers/domain-receipt-evidence.js";
 import { runHrxMigrations } from "../src/migrations/index.js";
 import {
+  assertHrxPostgresAuthorityReady,
   createHrxDomainSnapshot,
+  createHrxOperationalDomainSnapshot,
   createPostgresHrxStorePortV2,
   flushHrxStoreToPostgres,
   materializeHrxStoreFromPostgres,
@@ -39,18 +41,29 @@ test("unchanged HRX reads skip write replay but still reject changed PostgreSQL 
     sourceStore.close();
   }
   const store = await materializeHrxStoreFromPostgres({ ledger, tenant_id: TENANT });
+  assertHrxPostgresAuthorityReady({ store, tenant_id: TENANT });
   const readbackCalls = [];
+  let readbackTransactions = 0;
   const readOnlyLedger = {
     ...ledger,
-    transaction() { assert.fail("unchanged HRX read must not replay a write transaction"); },
-    ...Object.fromEntries(["list", "listIdempotency", "listAudit"].map((method) => [method, async (scope) => {
-      readbackCalls.push(method);
-      return ledger[method](scope);
+    transaction(input, callback) {
+      assert.deepEqual(input, { tenant_id: TENANT, domain_id: "hrx" });
+      readbackTransactions += 1;
+      return ledger.transaction(input, (tx) => callback(Object.fromEntries(
+        ["list", "listIdempotency", "listAudit"].map((method) => [method, (...args) => {
+          readbackCalls.push(method);
+          return tx[method](...args);
+        }]),
+      )));
+    },
+    ...Object.fromEntries(["list", "listIdempotency", "listAudit"].map((method) => [method, () => {
+      assert.fail("HRX readback must share one authenticated transaction");
     }])),
   };
   try {
     const flush = await flushHrxStoreToPostgres({ ledger: readOnlyLedger, store, tenant_id: TENANT });
     assert.equal(flush.comparison.equal, true);
+    assert.equal(readbackTransactions, 1);
     assert.deepEqual(readbackCalls, ["list", "listIdempotency", "listAudit"]);
     const employee = store.query("selectOne", { table: "hrx_employees", where: { tenant_id: TENANT } });
     await runHrxPostgresCommand({
@@ -69,6 +82,43 @@ test("unchanged HRX reads skip write replay but still reject changed PostgreSQL 
       flushHrxStoreToPostgres({ ledger: readOnlyLedger, store, tenant_id: TENANT }),
       (error) => error.safe_error_code === "DOMAIN_SHADOW_DIFFERENCE" && error.status === 409,
     );
+  } finally {
+    store.close();
+  }
+});
+
+test("verified HRX snapshots reuse unchanged state without hiding mutations or sharing mutable results", async () => {
+  const sourceStore = currentSourceStore();
+  const source = createHrxDomainSnapshot({ store: sourceStore, tenant_id: TENANT }).snapshot;
+  sourceStore.close();
+  const ledger = {
+    list: async () => source.records,
+    listIdempotency: async () => source.idempotency_entries,
+    listAudit: async () => source.audit_events,
+  };
+  const store = await materializeHrxStoreFromPostgres({ ledger, tenant_id: TENANT });
+  try {
+    const verified = assertHrxPostgresAuthorityReady({ store, tenant_id: TENANT });
+    const request_context = { method: "POST", pathname: "test/cached-hrx-mutation", idempotency_key: "cached-hrx-mutation" };
+    const readSnapshot = () => createHrxOperationalDomainSnapshot({ store, tenant_id: TENANT, request_context });
+    const first = readSnapshot();
+    assert.deepEqual(first, verified.source);
+    const record = first.records.find(row => row.record_type === "hrx_employees");
+    const employeeId = record.payload.employee_id;
+    record.payload.display_name = "Caller changed a returned copy";
+    verified.source.records.find(row => row.record_type === "hrx_employees").payload.display_name = "Caller changed authority result";
+    assert.notEqual(readSnapshot().records.find(row => row.record_id === record.record_id).payload.display_name, record.payload.display_name);
+    store.query("updateOne", { table: "hrx_employees", where: { tenant_id: TENANT, employee_id: employeeId }, patch: { display_name: "Changed in the request" } });
+    const changed = readSnapshot();
+    const changedRecord = changed.records.find(row => row.record_id === record.record_id);
+    assert.equal(changedRecord.payload.display_name, "Changed in the request");
+    assert.equal(changedRecord.state_version, record.state_version + 1);
+    assert.equal(changed.audit_events.some(event => event.event_type === "hrx.api.mutation_committed"), true);
+    assert.notEqual(changed.snapshot_hash, first.snapshot_hash);
+    const invalid = store.snapshot();
+    invalid.tables.hrx_employees = [];
+    store.restoreSnapshot(invalid);
+    assert.throws(readSnapshot, /employee not found|hrx_employees reference not found/iu);
   } finally {
     store.close();
   }
