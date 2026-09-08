@@ -316,7 +316,10 @@
             {
               "Sid": "ApiReadsCommittedMemberPhotos",
               "Effect": "Allow",
-              "Principal": { "AWS": { "Fn::GetAtt": ["ApiExecutionRole", "Arn"] } },
+              "Principal": "*",
+              "Condition": {
+                "StringEquals": { "aws:PrincipalArn": { "Fn::GetAtt": ["ApiExecutionRole", "Arn"] } }
+              },
               "Action": ["s3:GetObject", "s3:GetObjectVersion"],
               "Resource": { "Fn::Sub": "${DmsBucket.Arn}/synthetic-member-photos/objects/*" }
             }
