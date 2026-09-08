@@ -183,7 +183,8 @@ export function createJsonPostgresOutlookAuthorityOperationBinding({
   const hasHistoricalBootstrap = Object.hasOwn(target, "historical_outlook_bootstrap_sha256");
   if (hasHistoricalBootstrap && (legacy || !SHA256.test(historicalBootstrap ?? "")
       || !["2ef366427d98ed297ab376c8fc7e6a255cf6a054d0eaa660dc6fb7e13c814f79",
-        "8de3211a545ebb7c50813990d15f6abc215ffd23a7d09ba2149d9b37fd96e8c7"]
+        "8de3211a545ebb7c50813990d15f6abc215ffd23a7d09ba2149d9b37fd96e8c7",
+        "3bddab69c6ea4e34386ad60067d46f70966692d488dea593455a631e1625c1db"]
         .includes(bindings.migration_catalog_sha256))) {
     fail("historical Outlook bootstrap is not bound to a reviewed current target");
   }
