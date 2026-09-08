@@ -26,7 +26,9 @@ const SAFE_READER_ERROR_CODES = new Set([
 export async function readProductionMigrationCatalogWithAuthority(pool) {
   const catalog = await readPostgresMigrationCatalogReadback(pool);
   if (catalog.migrations.some(({ id }) => id === "309_client_internal_unsigned_installation_authority")) {
-    await verifyInternalUnsignedInstallationAuthorityReadback(pool);
+    await verifyInternalUnsignedInstallationAuthorityReadback(pool, {
+      schemaMigrationCount: catalog.migrations.some(({ id }) => id === "310_client_internal_unsigned_s3_version") ? 82 : 80,
+    });
   }
   return catalog;
 }

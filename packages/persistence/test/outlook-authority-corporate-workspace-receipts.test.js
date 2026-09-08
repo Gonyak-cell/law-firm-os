@@ -85,7 +85,9 @@ function failureReceipt(options = {}) {
 }
 
 test("reviewed receipt pins match the exact source catalogs", () => {
-  assert.equal(hashDomainValue(CLIENT_OPERATIONS_MIGRATION_CATALOG), COMBINED_81);
+  assert.equal(hashDomainValue(CLIENT_OPERATIONS_MIGRATION_CATALOG),
+    "3bddab69c6ea4e34386ad60067d46f70966692d488dea593455a631e1625c1db");
+  assert.equal(hashDomainValue(selectClientOperationsMigrationTarget(COMBINED_81).catalog), COMBINED_81);
   assert.equal(hashDomainValue(selectClientOperationsMigrationTarget(AUTHORITY_80).catalog), AUTHORITY_80);
   assert.equal(catalog().length, 81);
   assert.deepEqual(catalog()[15], {

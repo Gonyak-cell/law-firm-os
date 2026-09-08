@@ -28,7 +28,7 @@ const CORPORATE = "016_dms_corporate_workspace";
 const INTERNAL = "309_client_internal_unsigned_installation_authority";
 const AUTHORITY_CATALOG_SHA256 = "2ef366427d98ed297ab376c8fc7e6a255cf6a054d0eaa660dc6fb7e13c814f79";
 const HISTORICAL_CATALOG_SHA256 = "43c6a087834d9dd2177be0b63fc94cf723181b93b04f40a65689b6431bd44556";
-const beforeAuthority = ({ id }) => ![CORPORATE, INTERNAL].includes(id);
+const beforeAuthority = ({ id }) => ![CORPORATE, INTERNAL, "310_client_internal_unsigned_s3_version"].includes(id);
 const HISTORICAL_MIGRATIONS = listClientOperationsPostgresMigrations().filter(beforeAuthority);
 assert.equal(hashDomainValue({ ...CLIENT_OPERATIONS_MIGRATION_CATALOG,
   migration_count: 79, migrations: CLIENT_OPERATIONS_MIGRATION_CATALOG.migrations.filter(beforeAuthority),
@@ -137,7 +137,8 @@ export async function runOutlookAuthorityPostgresMigrations(fixture, {
   let result;
   for (const [stage, digest] of [
     ...(initialCount < 80 ? [["authority80", AUTHORITY_CATALOG_SHA256]] : []),
-    ["combined81", CLIENT_OPERATIONS_MIGRATION_CATALOG_SHA256],
+    ...(initialCount < 81 ? [["combined81", "8de3211a545ebb7c50813990d15f6abc215ffd23a7d09ba2149d9b37fd96e8c7"]] : []),
+    ["version82", CLIENT_OPERATIONS_MIGRATION_CATALOG_SHA256],
   ]) {
     const adapter = createJsonPostgresOutlookAuthorityMigrationAdapter(authorityOptions(fixture, digest));
     try {

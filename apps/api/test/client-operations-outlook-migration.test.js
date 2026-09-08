@@ -29,6 +29,7 @@ const HISTORICAL_GAP_IDS = Object.freeze([
   "013_dms_precedent_search",
   "014_docusign_outbox",
   "015_external_tenant_provisioning",
+  "016_dms_corporate_workspace",
 ]);
 
 function clientOperationsPrefixThrough305() {

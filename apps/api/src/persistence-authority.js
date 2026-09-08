@@ -52,14 +52,18 @@ export async function verifyOperationalPostgresBridgeMigrationState(pool) {
     code: "LAWOS_POSTGRES_MIGRATION_HISTORY_DIVERGED",
     safe_error_code: "POSTGRES_MIGRATION_HISTORY_DIVERGED", status: 500,
   });
-  const authorityMigrations = migrations.filter(({ id }) => id !== "016_dms_corporate_workspace");
+  const corporateMigrations = migrations.filter(({ id }) => id !== "310_client_internal_unsigned_s3_version");
+  const corporateEntries = entries.filter(({ id }) => id !== "310_client_internal_unsigned_s3_version");
+  const authorityMigrations = corporateMigrations.filter(({ id }) => id !== "016_dms_corporate_workspace");
   const historicalMigrations = authorityMigrations.filter(({ id }) =>
     id !== "309_client_internal_unsigned_installation_authority");
-  const authorityEntries = entries.filter(({ id }) => id !== "016_dms_corporate_workspace");
+  const authorityEntries = corporateEntries.filter(({ id }) => id !== "016_dms_corporate_workspace");
   const historicalEntries = authorityEntries.filter(({ id }) =>
     id !== "309_client_internal_unsigned_installation_authority");
-  if (migrations.length !== 81 || entries.length !== 81
-      || hashDomainValue(entries) !==
+  if (migrations.length !== 82 || entries.length !== 82
+      || hashDomainValue(entries) !== "e3979c840e5d3bff819f24bb0fe92636e566e41ba12a42711f133f47a3db5dc0"
+      || corporateEntries.length !== 81
+      || hashDomainValue(corporateEntries) !==
         "29530ec602b720deeb1e26625c85a3dcc1268e2bfc116b6b86bfada761cb38a7"
       || authorityEntries.length !== 80
       || hashDomainValue(authorityEntries) !==
@@ -84,9 +88,9 @@ export async function verifyOperationalPostgresBridgeMigrationState(pool) {
       "SELECT count(*)::integer AS migration_count FROM lawos_meta.schema_migrations",
     )).rows;
     const count = rows.length === 1 ? rows[0].migration_count : null;
-    if (![79, 80, 81].includes(count)) throw historyError();
+    if (![79, 80, 81, 82].includes(count)) throw historyError();
     const verified = await verifyPostgresMigrationState(client, {
-      migrations: count === 79 ? historicalMigrations : count === 80 ? authorityMigrations : migrations,
+      migrations: count === 79 ? historicalMigrations : count === 80 ? authorityMigrations : count === 81 ? corporateMigrations : migrations,
     });
     await client.query("COMMIT");
     return verified;
@@ -276,7 +280,7 @@ export async function preparePersistenceAuthority({
     const migrations = typeof connection.connect === "function"
       ? await verifyOperationalPostgresBridgeMigrationState(connection)
       : [];
-    if (![80, 81].includes(migrations.length)
+    if (![80, 81, 82].includes(migrations.length)
         && String(env.LAWOS_INTERNAL_INSTALLATION_ATTESTATION_SECRET_ID ?? "").trim()) {
       throw Object.assign(new Error("Internal installation signing requires an exact schema containing installation authority"), {
         code: "LAWOS_INTERNAL_INSTALLATION_SCHEMA_REQUIRED",

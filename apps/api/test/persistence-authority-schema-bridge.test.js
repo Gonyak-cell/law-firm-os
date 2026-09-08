@@ -19,7 +19,8 @@ const SIGNER_SECRET = "synthetic-schema-bridge-attestation-signer";
 const complete = listClientOperationsPostgresMigrations().map(({ id, sql }) => ({
   migration_id: id, checksum: checksumPostgresMigration(sql),
 }));
-const authority = complete.filter(({ migration_id }) => migration_id !== CORPORATE);
+const corporate = complete.filter(({ migration_id }) => migration_id !== "310_client_internal_unsigned_s3_version");
+const authority = corporate.filter(({ migration_id }) => migration_id !== CORPORATE);
 const historical = authority.filter(({ migration_id }) => migration_id !== INTERNAL);
 
 // These are closed query fixtures. Real DDL and role snapshots are exercised in
@@ -82,11 +83,11 @@ function startupOptions(observed, requests, attestation = false) {
   };
 }
 
-test("schema bridge selects only exact historical79, authority80, and combined81 snapshots", async (t) => {
+test("schema bridge selects only exact historical79, authority80, combined81 and version82 snapshots", async (t) => {
   assert.equal(historical.length, 79);
   assert.equal(authority.length, 80);
-  assert.equal(complete.length, 81);
-  for (const rows of [historical, authority, complete]) {
+  assert.equal(complete.length, 82);
+  for (const rows of [historical, authority, corporate, complete]) {
     await t.test(`${rows.length} exact rows permit config-off startup in one read-only snapshot`, async () => {
       const bridge = snapshotPool(rows);
       assert.equal((await verifyOperationalPostgresBridgeMigrationState(bridge.pool)).length, rows.length);
@@ -102,8 +103,8 @@ test("schema bridge selects only exact historical79, authority80, and combined81
       assert.deepEqual(requests, [DATABASE_SECRET, TENANT_SECRET]);
 
       const strict = snapshotPool(rows);
-      if (rows.length === 81) {
-        assert.equal((await verifyOperationalPostgresMigrationState(strict.pool)).length, 81);
+      if (rows.length === 82) {
+        assert.equal((await verifyOperationalPostgresMigrationState(strict.pool)).length, 82);
       } else {
         await assert.rejects(verifyOperationalPostgresMigrationState(strict.pool), { code: HISTORY_ERROR });
       }
@@ -129,7 +130,7 @@ test("schema bridge rejects DMS-only80, incomplete, extra, malformed, and checks
   const drift = (rows, id) => rows.map((row) => row.migration_id === id ? { ...row, checksum: "0".repeat(64) } : row);
   for (const scenario of [
     { name: "DMS-only80 has 016 and no 309", rows: complete.filter(({ migration_id }) => migration_id !== INTERNAL) },
-    { name: "unknown 82nd row", rows: [...complete, { migration_id: "999_unknown_bridge", checksum: "f".repeat(64) }] },
+    { name: "unknown 83rd row", rows: [...complete, { migration_id: "999_unknown_bridge", checksum: "f".repeat(64) }] },
     { name: "partial 78-row prefix", rows: historical.slice(0, -1) },
     { name: "79 rows with a directory hole and 309", rows: authority.filter(({ migration_id }) => migration_id !== "149_hrx_049_hrx_directory_authority") },
     { name: "authority80 checksum drift", rows: drift(authority, INTERNAL), code: CHECKSUM_ERROR },

@@ -3,7 +3,7 @@ import { createHash, generateKeyPairSync } from "node:crypto";
 import test from "node:test";
 
 import { hashDomainValue } from "../../persistence/src/domain-ledger.js";
-import { INTERNAL_UNSIGNED_INSTALLATION_SECURITY_DEFINER_FUNCTIONS } from "../src/internal-unsigned-installation-authority-catalog.js";
+import { INTERNAL_UNSIGNED_S3_VERSION_SECURITY_DEFINER_FUNCTIONS as INTERNAL_UNSIGNED_INSTALLATION_SECURITY_DEFINER_FUNCTIONS } from "../src/internal-unsigned-s3-version-authority-catalog.js";
 import { withPostgresTransaction } from "../../persistence/src/postgres/transaction.js";
 import { listEmailDmsPostgresMigrations } from "../src/migrations/index.js";
 import {
@@ -13,6 +13,8 @@ import {
   roleJsonCall,
 } from "./support/postgres-outlook-desktop-assignment-authority-fixture.js";
 import { roleQuery } from "./support/postgres-outlook-desktop-positive-role-fixture.js";
+import { createEmailDmsMigrationAdminPool, runEmailDmsMigrationAsAdmin } from "./support/postgres-email-dms-migration-fixture.js";
+import { verifyInternalUnsignedInstallationAuthorityReadback } from "../src/internal-unsigned-installation-authority-readback.js";
 
 const TABLES = [
   "internal_unsigned_release_authorizations",
@@ -238,6 +240,68 @@ test("internal unsigned PostgreSQL authority registers, reads, renews, and retir
     "outlook_desktop_installation_idempotency", "outlook_desktop_installation_audit_events"]) {
     assert.equal(finalRows[table].length, 3, table);
   }
+});
+
+test("forward S3 version migration preserves existing grants and installation records", async (t) => {
+  let admin;
+  t.after(async () => { await admin?.end(); });
+  const authority = await createOutlookAssignmentAuthorityFixture(t, {
+    tenantId: "tenant-internal-version-upgrade", throughMigrationId: "010_internal_unsigned_installation_authority",
+  });
+  assert.ok(authority, "actual temporary PostgreSQL is required");
+  const pair = device();
+  const original = await grantFor(authority, pair, "version-upgrade-original");
+  const authorized = await authorize(authority, original);
+  await apply(authority, transition(authority, original, pair, "version-upgrade-register"));
+  const before = await rows(authority);
+  await verifyInternalUnsignedInstallationAuthorityReadback(authority.appPool, { schemaMigrationCount: 81 });
+  await assert.rejects(verifyInternalUnsignedInstallationAuthorityReadback(authority.appPool, { schemaMigrationCount: 82 }));
+
+  const migration = listEmailDmsPostgresMigrations().find(({ id }) => id === "011_internal_unsigned_s3_version");
+  admin = createEmailDmsMigrationAdminPool(t, authority);
+  await runEmailDmsMigrationAsAdmin(admin, migration.sql);
+  assert.deepEqual(await rows(authority), before);
+  assert.deepEqual(await authorize(authority, original), authorized);
+  assert.equal((await readCurrent(authority)).installation.installer_version_id, original.installer_version_id);
+  await verifyInternalUnsignedInstallationAuthorityReadback(authority.appPool, { schemaMigrationCount: 82 });
+  await assert.rejects(verifyInternalUnsignedInstallationAuthorityReadback(authority.appPool, { schemaMigrationCount: 81 }));
+
+  for (const [index, version] of ["_version", "-version", ".version", "+version", "=version", "/version", "_".repeat(1024)].entries()) {
+    const grant = await grantFor(authority, device(), `punctuation-${index}`, { installer_version_id: version });
+    assert.equal((await authorize(authority, grant)).release_authority_sha256, grant.release_authority_sha256);
+  }
+  const unchanged = await rows(authority);
+  for (const version of ["", "null", "_".repeat(1025), "version with spaces", "version\n", "version?other=1", "version#fragment"]) {
+    const grant = await grantFor(authority, device(), "invalid-version", { installer_version_id: version });
+    await assert.rejects(authorize(authority, grant), postgresCode("LIU08"));
+    assert.deepEqual(await rows(authority), unchanged);
+  }
+  await assert.rejects(runEmailDmsMigrationAsAdmin(admin, migration.sql), /exact prior function/u);
+  assert.deepEqual(await rows(authority), unchanged);
+  await verifyInternalUnsignedInstallationAuthorityReadback(authority.appPool);
+});
+
+test("S3 version migration refuses altered prior definitions and rolls back its temporary privileges", async (t) => {
+  let admin;
+  t.after(async () => { await admin?.end(); });
+  const authority = await createOutlookAssignmentAuthorityFixture(t, {
+    tenantId: "tenant-internal-version-drift", throughMigrationId: "010_internal_unsigned_installation_authority",
+  });
+  assert.ok(authority, "actual temporary PostgreSQL is required");
+  admin = createEmailDmsMigrationAdminPool(t, authority);
+  const migration = listEmailDmsPostgresMigrations().find(({ id }) => id === "011_internal_unsigned_s3_version");
+  const sqlFunction = "lawos_email_dms.authorize_internal_unsigned_release(text,jsonb)";
+  await authority.observerPool.query(`ALTER FUNCTION ${sqlFunction} COST 200`);
+  try {
+    await assert.rejects(runEmailDmsMigrationAsAdmin(admin, migration.sql), /exact prior function/u);
+  } finally { await authority.observerPool.query(`ALTER FUNCTION ${sqlFunction} COST 100`); }
+  const before = await rows(authority);
+  await authority.observerPool.query(`GRANT EXECUTE ON FUNCTION ${sqlFunction} TO PUBLIC`);
+  try {
+    await assert.rejects(runEmailDmsMigrationAsAdmin(admin, migration.sql), /function catalog mismatch/u);
+    assert.deepEqual(await rows(authority), before);
+  } finally { await authority.observerPool.query(`REVOKE EXECUTE ON FUNCTION ${sqlFunction} FROM PUBLIC`); }
+  await verifyInternalUnsignedInstallationAuthorityReadback(authority.appPool, { schemaMigrationCount: 81 });
 });
 
 test("internal unsigned authority rejects tenant, principal, device, receipt, and request conflicts without writes", async (t) => {
