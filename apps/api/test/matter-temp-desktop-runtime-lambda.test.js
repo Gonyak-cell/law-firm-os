@@ -95,12 +95,12 @@ test("temporary desktop runtime health exposes AWS no-domain synthetic boundary"
   assert.equal(body.production_ready_completed, false);
   assert.equal(body.public_release_completed, false);
   assert.equal(body.registered_account_count, 12);
-  assert.equal(body.highest_privilege_account, "jwsuh@amic.kr");
+  assert.equal(body.highest_privilege_account, "member06@runtime.example.test");
 
   const accounts = json(await handler(event({ path: "/api/desktop/accounts", headers: authHeaders() })));
-  const hanJehee = accounts.users.find((user) => user.email === "jh731@amic.kr");
+  const hanJehee = accounts.users.find((user) => user.email === "member08@runtime.example.test");
   assert.equal(accounts.count, 12);
-  assert.equal(hanJehee?.display_name, "한제희");
+  assert.equal(hanJehee?.display_name, "테스트 구성원 08");
   assert.equal(hanJehee?.source_title, "고문변호사");
   assert.ok(hanJehee?.role_ids.includes("attorney"));
 });
@@ -132,7 +132,7 @@ test("configured SESv2 reset delivery sends registered reset mail without return
               host: "runtime.example.test",
               "x-forwarded-proto": "https"
             },
-            body: { email: "jwsuh@amic.kr" }
+            body: { email: "member06@runtime.example.test" }
           })
         );
         const requestBody = json(request);
@@ -149,7 +149,7 @@ test("configured SESv2 reset delivery sends registered reset mail without return
         assert.equal(sesCall.command_name, "SendEmailCommand");
         const sesPayload = sesCall.input;
         assert.equal(sesPayload.FromEmailAddress, "Matter Desktop App Services <matter@amic.kr>");
-        assert.deepEqual(sesPayload.Destination.ToAddresses, ["jwsuh@amic.kr"]);
+        assert.deepEqual(sesPayload.Destination.ToAddresses, ["member06@runtime.example.test"]);
         assert.equal(sesPayload.Content.Simple, undefined);
         assert.ok(sesPayload.Content.Raw.Data);
         const rawEmail = Buffer.from(sesPayload.Content.Raw.Data).toString("utf8");
@@ -180,7 +180,7 @@ test("configured SESv2 reset delivery sends registered reset mail without return
             method: "POST",
             path: "/api/desktop/password-reset/latest-email",
             headers: authHeaders(),
-            body: { email: "jwsuh@amic.kr" }
+            body: { email: "member06@runtime.example.test" }
           })
         );
         assert.equal(json(latestEmail).email_message.delivery.status, "sent");
@@ -206,13 +206,13 @@ test("configured SESv2 reset delivery sends registered reset mail without return
 });
 
 test("temporary desktop runtime requires operator bearer token for runtime routes", async () => {
-  const missing = await handler(event({ method: "POST", path: "/api/desktop/login", body: { email: "jwsuh@amic.kr" } }));
+  const missing = await handler(event({ method: "POST", path: "/api/desktop/login", body: { email: "member06@runtime.example.test" } }));
   const invalid = await handler(
     event({
       method: "POST",
       path: "/api/desktop/login",
       headers: authHeaders("wrong-token"),
-      body: { email: "jwsuh@amic.kr" }
+      body: { email: "member06@runtime.example.test" }
     })
   );
 
@@ -228,7 +228,7 @@ test("temporary desktop runtime requires password reset before ledger account lo
       method: "POST",
       path: "/api/desktop/login",
       headers: authHeaders(),
-      body: { email: "jwsuh@amic.kr", password: "new-jwsuh-password", actor_email: "jwsuh@amic.kr" }
+      body: { email: "member06@runtime.example.test", password: "new-jwsuh-password", actor_email: "member06@runtime.example.test" }
     })
   );
   const missingPassword = await handler(
@@ -236,7 +236,7 @@ test("temporary desktop runtime requires password reset before ledger account lo
       method: "POST",
       path: "/api/desktop/login",
       headers: authHeaders(),
-      body: { email: "jwsuh@amic.kr" }
+      body: { email: "member06@runtime.example.test" }
     })
   );
   const loginBeforeReset = await handler(
@@ -244,7 +244,7 @@ test("temporary desktop runtime requires password reset before ledger account lo
       method: "POST",
       path: "/api/desktop/login",
       headers: authHeaders(),
-      body: { email: "jwsuh@amic.kr", password: "new-jwsuh-password" }
+      body: { email: "member06@runtime.example.test", password: "new-jwsuh-password" }
     })
   );
 
@@ -263,7 +263,7 @@ test("temporary desktop runtime completes reset email, password setup, and passw
       method: "POST",
       path: "/api/desktop/password-reset/request",
       headers: authHeaders(),
-      body: { email: "jwsuh@amic.kr" }
+      body: { email: "member06@runtime.example.test" }
     })
   );
   const requestBody = json(request);
@@ -279,7 +279,7 @@ test("temporary desktop runtime completes reset email, password setup, and passw
       method: "POST",
       path: "/api/desktop/password-reset/latest-email",
       headers: authHeaders(),
-      body: { email: "jwsuh@amic.kr" }
+      body: { email: "member06@runtime.example.test" }
     })
   );
   const latestBody = json(latestEmail);
@@ -305,7 +305,7 @@ test("temporary desktop runtime completes reset email, password setup, and passw
       method: "POST",
       path: "/api/desktop/login",
       headers: authHeaders(),
-      body: { email: "jwsuh@amic.kr", password: "wrong-password" }
+      body: { email: "member06@runtime.example.test", password: "wrong-password" }
     })
   );
   assert.equal(wrongPassword.statusCode, 401);
@@ -316,14 +316,14 @@ test("temporary desktop runtime completes reset email, password setup, and passw
       method: "POST",
       path: "/api/desktop/login",
       headers: authHeaders(),
-      body: { email: "jwsuh@amic.kr", password: "new-jwsuh-password" }
+      body: { email: "member06@runtime.example.test", password: "new-jwsuh-password" }
     })
   );
   const loginBody = json(login);
 
   assert.equal(login.statusCode, 200);
   assert.equal(loginBody.ok, true);
-  assert.equal(loginBody.session.email, "jwsuh@amic.kr");
+  assert.equal(loginBody.session.email, "member06@runtime.example.test");
   assert.ok(loginBody.session.role_ids.includes("system_super_admin"));
   assert.equal(loginBody.session.credential_provider, "lawos-internal-password-provider-v1");
   assert.equal(typeof loginBody.session.credential_rev, "number");
@@ -398,7 +398,7 @@ test("temporary desktop runtime bounds synthetic reset state for Secrets Manager
         method: "POST",
         path: "/api/desktop/password-reset/request",
         headers: authHeaders(),
-        body: { email: "jwsuh@amic.kr" }
+        body: { email: "member06@runtime.example.test" }
       })
     );
     assert.equal(request.statusCode, 200);
@@ -418,7 +418,7 @@ test("temporary desktop runtime bounds synthetic reset state for Secrets Manager
       method: "POST",
       path: "/api/desktop/password-reset/latest-email",
       headers: authHeaders(),
-      body: { email: "jwsuh@amic.kr" }
+      body: { email: "member06@runtime.example.test" }
     })
   );
   assert.equal(latestEmail.statusCode, 200);
@@ -431,7 +431,7 @@ test("temporary desktop runtime denies highest privilege feature for non-jwsuh a
       method: "POST",
       path: "/api/matter-vault/smoke",
       headers: authHeaders(),
-      body: { email: "ytkim@amic.kr", feature_id: "matter_vault_admin" }
+      body: { email: "member01@runtime.example.test", feature_id: "matter_vault_admin" }
     })
   );
   const allowed = await handler(
@@ -439,7 +439,7 @@ test("temporary desktop runtime denies highest privilege feature for non-jwsuh a
       method: "POST",
       path: "/api/matter-vault/smoke",
       headers: authHeaders(),
-      body: { email: "jwsuh@amic.kr", feature_id: "matter_vault_admin" }
+      body: { email: "member06@runtime.example.test", feature_id: "matter_vault_admin" }
     })
   );
 

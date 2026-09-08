@@ -166,7 +166,7 @@ test("CL-P1-W01-T01 authorized XLSX preview reports file hash, account, new and 
 
 test("CL-P1-W01-T01 XLSX preview fails closed for staff, malformed workbooks, and misleading file types", async () => {
   const repository = createFinanceRepository();
-  const staff = findRegisteredAccountByEmail("yjlee@amic.kr");
+  const staff = findRegisteredAccountByEmail("member10@runtime.example.test");
   assert.ok(staff);
   await withServer(repository, async (baseUrl) => {
     const denied = await postPreview(baseUrl, staff, previewForm(workbookBuffer()));

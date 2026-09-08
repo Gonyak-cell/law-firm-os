@@ -53,7 +53,7 @@ test("POST /api/hrx/ai/assistant returns cited advisory answer for allowed sourc
 test("POST /api/hrx/ai/assistant enforces signed-session AI scope and bounds denied RAG sources", async () => {
   const missingAiScope = await json("/api/hrx/ai/assistant", {
     method: "POST",
-    account: registeredAccount("yjlee@amic.kr"),
+    account: registeredAccount("member10@runtime.example.test"),
     body: JSON.stringify({
       interaction_id: "ai-api-scope-denied",
       question: "Summarize leave policy guidance",
@@ -67,7 +67,7 @@ test("POST /api/hrx/ai/assistant enforces signed-session AI scope and bounds den
 
   const compensationDenied = await json("/api/hrx/ai/assistant", {
     method: "POST",
-    account: registeredAccount("bj.park@amic.kr"),
+    account: registeredAccount("member04@runtime.example.test"),
     body: JSON.stringify({
       interaction_id: "ai-api-comp-denied",
       question: "compensation source metadata",

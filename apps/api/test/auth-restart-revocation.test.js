@@ -40,7 +40,7 @@ test("an operational session observes a cross-instance credential revision and s
   const root = fixtureRoot(t);
   const credentialStorePath = join(root, "credentials.json");
   const passwordResetTokenStorePath = join(root, "password-resets.json");
-  const account = findRegisteredAccountByEmail("jwsuh@amic.kr");
+  const account = findRegisteredAccountByEmail("member06@runtime.example.test");
   assert.ok(account);
   const password = "operational-password-before-rotation";
   const now = Date.parse("2026-07-16T00:00:00.000Z");
@@ -91,7 +91,7 @@ test("PostgreSQL session revocation and account disable survive independent proc
     applicationName: "lawos-identity-second-process-test",
     tenantContextSecret: fixture.tenantContextSecret,
   });
-  const account = findRegisteredAccountByEmail("jwsuh@amic.kr");
+  const account = findRegisteredAccountByEmail("member06@runtime.example.test");
   assert.ok(account);
   const tenantId = "tenant_amic_matter_vault";
   const password = "postgres-operational-password";

@@ -17,7 +17,7 @@ test.before(async () => {
   const started = await startApiServer({ port: 0 });
   server = started.server;
   baseUrl = `http://${started.host}:${started.port}`;
-  tenantBHeaders = await signedHeaders(baseUrl, registeredAccount("qa.tenant-b@amic.kr"));
+  tenantBHeaders = await signedHeaders(baseUrl, registeredAccount("member12@runtime.example.test"));
 });
 
 test.after(() => new Promise((resolve) => server.close(resolve)));

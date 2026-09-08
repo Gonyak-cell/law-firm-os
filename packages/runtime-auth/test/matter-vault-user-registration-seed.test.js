@@ -1,20 +1,9 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
-import path from "node:path";
 import test from "node:test";
-import { fileURLToPath } from "node:url";
 import { createLocalDevAuthProvider, deriveServerPrincipal } from "../src/index.js";
+import { createSyntheticPrivateRuntimeSources } from "../../../scripts/test/helpers/synthetic-private-runtime-sources.mjs";
 
-const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../..");
-const seed = JSON.parse(
-  readFileSync(
-    path.join(
-      ROOT,
-      "docs/reorganization/client-matter-os/matter-vault-r4/launch/matter-vault-user-registration-seed.json",
-    ),
-    "utf8",
-  ),
-);
+const { registration: seed } = createSyntheticPrivateRuntimeSources();
 
 function subjectsFromSeed() {
   return seed.users.map((user) => ({
@@ -26,7 +15,7 @@ function subjectsFromSeed() {
   }));
 }
 
-test("Matter-Vault user registration seed authenticates every listed AMIC account", () => {
+test("Matter-Vault registration authenticates every synthetic account cohort", () => {
   const provider = createLocalDevAuthProvider({ subjects: subjectsFromSeed() });
 
   for (const user of seed.users) {
@@ -47,20 +36,20 @@ test("Matter-Vault user registration seed authenticates every listed AMIC accoun
   }
 });
 
-test("jwsuh@amic.kr is the only Matter-Vault highest privilege account", () => {
+test("member06@runtime.example.test is the only Matter-Vault highest privilege account", () => {
   const highest = seed.users.filter((user) => user.highest_privilege === true);
 
   assert.equal(highest.length, 1);
-  assert.equal(highest[0].email, "jwsuh@amic.kr");
+  assert.equal(highest[0].email, "member06@runtime.example.test");
   assert.equal(highest[0].privilege_rank, 1000);
   assert.ok(highest[0].role_ids.includes("system_super_admin"));
   assert.ok(highest[0].scopes.includes("security.admin"));
   assert.ok(highest[0].scopes.includes("user.admin"));
 
-  for (const user of seed.users.filter((candidate) => candidate.email !== "jwsuh@amic.kr")) {
+  for (const user of seed.users.filter((candidate) => candidate.email !== "member06@runtime.example.test")) {
     assert.equal(user.highest_privilege, false, `${user.email} must not be marked highest privilege`);
     assert.equal(user.role_ids.includes("system_super_admin"), false, `${user.email} must not be system_super_admin`);
-    assert.ok(user.privilege_rank < 1000, `${user.email} must rank below jwsuh@amic.kr`);
+    assert.ok(user.privilege_rank < 1000, `${user.email} must rank below member06@runtime.example.test`);
   }
 });
 

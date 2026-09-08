@@ -64,25 +64,25 @@ test("CL-P0-W01-T04 maps the five Client capability profiles without expanding b
     "outlook.connection.manage",
     "outlook.inquiry.capture",
   ].sort();
-  assert.deepEqual(clientScopes("yjlee@amic.kr"), base);
-  assert.deepEqual(clientScopes("jh731@amic.kr"), [...base, "crm.engagement.decide"].sort());
-  assert.deepEqual(clientScopes("wsjo@amic.kr"), [
+  assert.deepEqual(clientScopes("member10@runtime.example.test"), base);
+  assert.deepEqual(clientScopes("member08@runtime.example.test"), [...base, "crm.engagement.decide"].sort());
+  assert.deepEqual(clientScopes("member02@runtime.example.test"), [
     ...base,
     "analytics.client.export",
     "finance.fee.write",
     "master_data.client.write",
   ].sort());
-  assert.deepEqual(clientScopes("bj.park@amic.kr"), [
+  assert.deepEqual(clientScopes("member04@runtime.example.test"), [
     ...base,
     "analytics.client.export",
     "crm.engagement.decide",
     "finance.fee.write",
     "master_data.client.write",
   ].sort());
-  assert.deepEqual(clientScopes("ytkim@amic.kr"), [...LAWOS_CLIENT_SCOPES].sort());
+  assert.deepEqual(clientScopes("member01@runtime.example.test"), [...LAWOS_CLIENT_SCOPES].sort());
 
-  const staffAssignment = resolveLawosUserRoleAssignment(account("yjlee@amic.kr"));
-  const operationsAssignment = resolveLawosUserRoleAssignment(account("wsjo@amic.kr"));
+  const staffAssignment = resolveLawosUserRoleAssignment(account("member10@runtime.example.test"));
+  const operationsAssignment = resolveLawosUserRoleAssignment(account("member02@runtime.example.test"));
   assert.equal(staffAssignment.scopes.includes("finance.bank.import"), false);
   assert.equal(staffAssignment.scopes.includes("finance.bank.classify"), false);
   assert.equal(operationsAssignment.scopes.includes("finance.bank.import"), false);
@@ -90,7 +90,7 @@ test("CL-P0-W01-T04 maps the five Client capability profiles without expanding b
 });
 
 test("CL-P0-W01-T04 staff signed session can capture and read inquiries but cannot decide engagement or export", async () => {
-  const context = await signedContext("yjlee@amic.kr");
+  const context = await signedContext("member10@runtime.example.test");
   assert.equal(decision(context, "crm:inquiry:list"), "allow");
   assert.equal(decision(context, "crm:inquiry:update"), "allow");
   assert.equal(decision(context, "crm:consultation:create"), "allow");
@@ -109,24 +109,24 @@ test("CL-P0-W01-T04 staff signed session can capture and read inquiries but cann
 });
 
 test("CL-P0-W01-T04 attorney and operations signed sessions have distinct decision and finance authority", async () => {
-  const attorney = await signedContext("jh731@amic.kr");
+  const attorney = await signedContext("member08@runtime.example.test");
   assert.equal(decision(attorney, "crm:engagement:decide"), "allow");
   assert.equal(decision(attorney, "master_data:client:create"), "deny");
   assert.equal(decision(attorney, "finance:fee_commitment:update"), "deny");
   assert.equal(decision(attorney, "analytics:client:export"), "deny");
 
-  const operations = await signedContext("wsjo@amic.kr");
+  const operations = await signedContext("member02@runtime.example.test");
   assert.equal(decision(operations, "crm:engagement:decide"), "deny");
   assert.equal(decision(operations, "master_data:client:create"), "allow");
   assert.equal(decision(operations, "finance:fee_commitment:update"), "allow");
   assert.equal(decision(operations, "finance:deposit_allocation:reallocate"), "allow");
   assert.equal(decision(operations, "analytics:client:export"), "allow");
 
-  const partner = await signedContext("bj.park@amic.kr");
+  const partner = await signedContext("member04@runtime.example.test");
   assert.equal(decision(partner, "master_data:client:review"), "allow");
   assert.equal(decision(partner, "master_data:client:create"), "allow");
 
-  const administrator = await signedContext("ytkim@amic.kr");
+  const administrator = await signedContext("member01@runtime.example.test");
   assert.equal(decision(administrator, "master_data:client:review"), "allow");
   assert.equal(decision(administrator, "master_data:client:create"), "allow");
 });

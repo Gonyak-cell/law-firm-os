@@ -31,7 +31,7 @@ test("operational Entra session authority persists only verified federated ident
   const fixture = await createMigratedPostgresFixture(t);
   if (!fixture) return;
   const now = Date.parse("2026-07-18T04:00:00.000Z");
-  const account = findRegisteredAccountByEmail("jwsuh@amic.kr");
+  const account = findRegisteredAccountByEmail("member06@runtime.example.test");
   assert.ok(account);
   const codeVerifier = "entra-test-pkce-verifier-with-more-than-forty-three-characters";
   const codeChallenge = sha256Base64Url(codeVerifier);

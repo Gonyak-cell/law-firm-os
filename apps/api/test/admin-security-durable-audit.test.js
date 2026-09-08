@@ -34,11 +34,11 @@ async function json(baseUrl, path, options = {}) {
 test("admin security audit events persist to LAWOS_AUDIT_STORE_PATH across server restarts", async () => {
   const root = await mkdtemp(join(tmpdir(), "lawos-security-audit-store-"));
   const auditStorePath = join(root, "audit", "security-audit-events.ndjson");
-  const target = account("yjlee@amic.kr");
+  const target = account("member10@runtime.example.test");
 
   await mkdir(join(root, "audit"), { recursive: true });
   await withServer({ securityAuditStorePath: auditStorePath }, async (baseUrl) => {
-    const adminHeaders = await apiSessionHeaders(baseUrl, account("jwsuh@amic.kr"));
+    const adminHeaders = await apiSessionHeaders(baseUrl, account("member06@runtime.example.test"));
     const disabled = await json(baseUrl, `/api/admin/security/users/${encodeURIComponent(target.user_id)}/disable`, {
       method: "POST",
       headers: { ...adminHeaders, "content-type": "application/json" },
@@ -52,7 +52,7 @@ test("admin security audit events persist to LAWOS_AUDIT_STORE_PATH across serve
   assert.doesNotMatch(rawAudit, /synthetic_token/);
 
   await withServer({ securityAuditStorePath: auditStorePath }, async (baseUrl) => {
-    const adminHeaders = await apiSessionHeaders(baseUrl, account("jwsuh@amic.kr"));
+    const adminHeaders = await apiSessionHeaders(baseUrl, account("member06@runtime.example.test"));
     const audit = await json(baseUrl, "/api/admin/security/audit", { headers: adminHeaders });
     assert.equal(audit.status, 200);
     assert.ok(audit.body.items.some((item) => item.action === "admin.security.user.disabled" && item.object_id === target.user_id));

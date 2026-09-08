@@ -58,9 +58,9 @@ const TOKEN_SECRET =
 const FORMULA_CLIENT =
   "=HYPERLINK(\"https://bad.test\",\"열기\")";
 const HIDDEN_CLIENT = "비공개 고객";
-const OPERATIONS = account("wsjo@amic.kr");
-const STAFF = account("yjlee@amic.kr");
-const PARTNER = account("bj.park@amic.kr");
+const OPERATIONS = account("member02@runtime.example.test");
+const STAFF = account("member10@runtime.example.test");
+const PARTNER = account("member04@runtime.example.test");
 
 function authoritativeObjectAclResolver(
   objectAcl = [],
@@ -1428,7 +1428,7 @@ test("CL-P5-W03-T03 signed deny, cross-tenant, tamper, expiry, user mismatch, ca
       }));
     });
 
-    const capabilityContext = await signedContext("wsjo@amic.kr");
+    const capabilityContext = await signedContext("member02@runtime.example.test");
     const query = Object.fromEntries(
       new URLSearchParams(commonQuery()),
     );
@@ -2155,7 +2155,7 @@ test("CL-P5-W03-T03 partial fixed report preserves validated rows and canonical 
 test("CL-P5-W03-T03 report ACL gates stay separate from ClientGroup row trimming and CSV reauthorization", async () => {
   const sourceFixture = fixture();
   try {
-    const baseContext = await signedContext("wsjo@amic.kr");
+    const baseContext = await signedContext("member02@runtime.example.test");
     const restrictedContext = {
       ...baseContext,
       object_acl: [
@@ -2420,7 +2420,7 @@ test("CL-P5-W03-T03 report ACL gates stay separate from ClientGroup row trimming
 test("CL-P5-W03-T03 fixed report ACL gates ignore wrong-type same-ID allows and denies for screen and CSV", async () => {
   const sourceFixture = fixture();
   try {
-    const baseContext = await signedContext("wsjo@amic.kr");
+    const baseContext = await signedContext("member02@runtime.example.test");
     const reportId = "revenue_ranking";
     const reportPath =
       `/api/reports/clients/fixed/${reportId}`;

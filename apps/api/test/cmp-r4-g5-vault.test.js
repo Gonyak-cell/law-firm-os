@@ -106,7 +106,7 @@ test("G5 Vault document list is permission gated and never leaks raw storage fie
     assert.equal(body.outcome, "passed");
     assert.equal(body.items.length, 1);
     assert.equal(body.items[0].owner_user_id, ACTOR_ID);
-    assert.equal(body.items[0].registered_account.email, "jwsuh@amic.kr");
+    assert.equal(body.items[0].registered_account.email, "member06@runtime.example.test");
     assert.equal(body.items[0].account_linkage.status, "linked");
     assert.equal(body.items[0].current_version_id, "version_doc_rp07_synthetic_001_1");
     assert.equal(body.items[0].current_file_object_id, "file_version_doc_rp07_synthetic_001_1");
@@ -164,7 +164,7 @@ test("G5 Vault upload persists metadata, replays idempotently, and survives rest
     assert.equal(created.body.outcome, "created");
     assert.equal(created.body.item.document_id, "doc_api_upload_001");
     assert.equal(created.body.item.owner_user_id, ACTOR_ID);
-    assert.equal(created.body.item.registered_account.email, "jwsuh@amic.kr");
+    assert.equal(created.body.item.registered_account.email, "member06@runtime.example.test");
     assert.equal(created.body.item.account_linkage.status, "linked");
     assert.equal(created.body.file_object.storage_pointer_ref_included, false);
     uploadedSha256 = created.body.file_object.sha256;

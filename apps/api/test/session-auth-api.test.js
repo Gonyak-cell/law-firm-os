@@ -345,7 +345,7 @@ test("PostgreSQL HRX grants remain effective when stored separately from general
 });
 
 test("Signed-session permission rules enforce verified scopes without a universal allow", async () => {
-  const staff = userByEmail("yjlee@amic.kr");
+  const staff = userByEmail("member10@runtime.example.test");
   const auth = createApiSessionAuth({ secret: "scope-bound-session-test-secret" });
   const signed = await auth.login({
     email: staff.email,
@@ -369,7 +369,7 @@ test("Signed-session permission rules enforce verified scopes without a universa
   assert.equal(decide("outlook:task:create").effect, "deny");
   assert.equal(decide("outlook:task:update").effect, "deny");
 
-  const writer = userByEmail("wsjo@amic.kr");
+  const writer = userByEmail("member02@runtime.example.test");
   const writerSigned = await auth.login({
     email: writer.email,
     password: writer.local_dev.synthetic_token,
@@ -1087,13 +1087,13 @@ test("PostgreSQL identity auth persists reset, step-up, logout, and break-glass 
 });
 
 test("Server role registry maps the 10-person roster outside the login seed", async () => {
-  const staff = userByEmail("yjlee@amic.kr");
+  const staff = userByEmail("member10@runtime.example.test");
   const staffAssignment = resolveLawosUserRoleAssignment(staff);
-  const attorney = userByEmail("jh731@amic.kr");
+  const attorney = userByEmail("member08@runtime.example.test");
   const attorneyAssignment = resolveLawosUserRoleAssignment(attorney);
-  const financeAdminAssignment = resolveLawosUserRoleAssignment(userByEmail("jwsuh@amic.kr"));
-  const financeOperationsAssignment = resolveLawosUserRoleAssignment(userByEmail("wsjo@amic.kr"));
-  const financePartnerAssignment = resolveLawosUserRoleAssignment(userByEmail("bj.park@amic.kr"));
+  const financeAdminAssignment = resolveLawosUserRoleAssignment(userByEmail("member06@runtime.example.test"));
+  const financeOperationsAssignment = resolveLawosUserRoleAssignment(userByEmail("member02@runtime.example.test"));
+  const financePartnerAssignment = resolveLawosUserRoleAssignment(userByEmail("member04@runtime.example.test"));
   assert.equal(listLawosInternalRoleAssignments().length, 10);
   assert.equal(staffAssignment.role_profile_id, "lawos_staff");
   assert.deepEqual(staffAssignment.role_ids, ["lawos_staff"]);
@@ -1124,7 +1124,7 @@ test("Server role registry maps the 10-person roster outside the login seed", as
     assert.equal(response.body.session.hrx_scopes.includes("hrx.payroll.export"), false);
     const attorneyResponse = await login(baseUrl, attorney);
     assert.equal(attorneyResponse.status, 200);
-    assert.equal(attorneyResponse.body.session.display_name, "한제희");
+    assert.equal(attorneyResponse.body.session.display_name, "테스트 구성원 08");
     assert.equal(attorneyResponse.body.session.role_profile_id, "lawos_attorney");
     assert.ok(attorneyResponse.body.session.hrx_scopes.includes("hrx.legal_people.read"));
   });
@@ -1132,7 +1132,7 @@ test("Server role registry maps the 10-person roster outside the login seed", as
 
 test("Signed staff sessions can read only their own HRX records and cannot access payroll or audit", async () => {
   await withServer({}, async (baseUrl) => {
-    const signed = await login(baseUrl, userByEmail("yjlee@amic.kr"));
+    const signed = await login(baseUrl, userByEmail("member10@runtime.example.test"));
     assert.equal(signed.status, 200);
     const headers = { authorization: `Bearer ${signed.body.session_token}` };
 

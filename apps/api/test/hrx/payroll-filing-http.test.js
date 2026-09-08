@@ -60,7 +60,7 @@ async function transitionSeedRunToClosed(runtime) {
 }
 
 async function filingRequestHeaders(baseUrl) {
-  const account = findRegisteredAccountByEmail("jwsuh@amic.kr");
+  const account = findRegisteredAccountByEmail("member06@runtime.example.test");
   assert.ok(account);
   return {
     ...(await apiSessionHeaders(baseUrl, account)),

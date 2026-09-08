@@ -340,7 +340,7 @@ function outlookSessionAuth() {
 }
 
 async function scopeDerivedOutlookSessions() {
-  const registered = ["wsjo@amic.kr", "sypark@amic.kr", "yjlee@amic.kr"]
+  const registered = ["member02@runtime.example.test", "member03@runtime.example.test", "member10@runtime.example.test"]
     .map((email) => findRegisteredAccountByEmail(email));
   assert.equal(registered.every(Boolean), true);
   const accounts = registered

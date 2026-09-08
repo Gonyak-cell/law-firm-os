@@ -70,6 +70,14 @@ test("renderer privacy validation uses external registration values and still re
   result = run();
   assert.notEqual(result.status, 0, "account-only identity leakage must be detected");
   assert.equal(result.stderr.includes(registration.users[0].email), false);
+  writeFileSync(registrationPath, JSON.stringify({ ...registration, users: [{ ...registration.users[0], display_name: "가나다" }] }));
+  writeFileSync(rosterPath, JSON.stringify({ tenant_id: "tenant_private_roster", members: [{ display_name: "라마바", user_id: "user_roster_fixture" }] }));
+  for (const name of ["가나다", "라마바"]) {
+    writeFileSync(page, name);
+    result = run();
+    assert.notEqual(result.status, 0, "three-character Korean identity leakage must be detected");
+    assert.equal(result.stderr.includes(name), false);
+  }
   writeFileSync(page, "Public application shell");
   copyFileSync(join(photos, "synthetic.png"), join(renderer, "copied-photo.bin"));
   assert.notEqual(run().status, 0, "private photo bytes must be rejected regardless of filename");

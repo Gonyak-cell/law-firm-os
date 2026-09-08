@@ -54,7 +54,7 @@ jobs:
         run: npm --workspace apps/web run build
 
       - name: Public renderer HRX roster PII guard
-        run: npm run public-renderer:pii:validate
+        run: node scripts/test/with-synthetic-runtime.mjs node scripts/validate-public-renderer-no-hrx-roster-pii.mjs
 
       - name: HRX UI validator
         run: npm run hrx:ui:validate

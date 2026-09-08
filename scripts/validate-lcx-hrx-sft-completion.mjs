@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { PEOPLE_FEATURE_ITEMS, getPeopleFeatureBySection } from "../apps/web/src/people/peopleFeatureCatalog.js";
+import { isRecordedCurrentPrivateSourceRetirement } from "./lib/current-private-source-retirement.mjs";
 
 function read(path) {
   return readFileSync(resolve(path), "utf8");
@@ -47,7 +48,7 @@ for (const path of [
   ledger.evidence.roster_source_of_truth,
   ledger.evidence.roster_registry
 ]) {
-  assert.ok(fileExists(path), `missing evidence file: ${path}`);
+  assert.ok(fileExists(path) || isRecordedCurrentPrivateSourceRetirement(path), `missing evidence file: ${path}`);
 }
 
 for (const task of ledger.tasks) {

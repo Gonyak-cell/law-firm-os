@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
-import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
@@ -20,6 +20,7 @@ import {
 } from "../src/hrx-runtime-context.js";
 import { startApiServer } from "../src/server.js";
 import { apiSessionHeaders } from "./helpers/session.js";
+import { SYNTHETIC_PROFILE_PNG_BASE64 } from "../../../scripts/test/helpers/synthetic-private-runtime-sources.mjs";
 
 async function withServer(callback, options = {}) {
   const started = await startApiServer({ port: 0, ...options });
@@ -91,16 +92,16 @@ test("Profile API returns session-derived safe profile read model", async () => 
     assert.equal(profile.body.outcome, "passed");
     assert.equal(profile.body.ui_state, "populated");
     assert.equal(profile.body.item.actor_ref, "user_amic_jwsuh");
-    assert.equal(profile.body.item.display_name, "서지원");
-    assert.equal(profile.body.item.english_name, "Jiwon Suh");
+    assert.equal(profile.body.item.display_name, "테스트 구성원 06");
+    assert.equal(profile.body.item.english_name, "Fixture Member 06");
     assert.equal(profile.body.item.primary_role_label, "대표변호사");
     assert.equal(profile.body.item.title, "대표변호사");
     assert.equal(profile.body.item.employee_id, "emp_amic_jwsuh");
-    assert.equal(profile.body.item.work_email, "jwsuh@amic.kr");
+    assert.equal(profile.body.item.work_email, "member06@runtime.example.test");
     assert.equal(profile.body.item.mobile_phone, "");
     assert.equal(profile.body.item.department, "Legal");
-    assert.equal(profile.body.item.affiliation, "AMIC Law");
-    assert.equal(profile.body.item.organization_group, "AMIC Law");
+    assert.equal(profile.body.item.affiliation, "Fixture Legal");
+    assert.equal(profile.body.item.organization_group, "Fixture Legal");
     assert.equal(profile.body.item.country, "대한민국");
     assert.equal(profile.body.item.professional_profile.profile_kind, "attorney");
     assert.match(profile.body.item.photo_url, /^data:image\/png;base64,/);
@@ -120,7 +121,7 @@ test("Profile API returns session-derived safe profile read model", async () => 
       ["people leave", "/api/hrx/leave/me"],
     ]) {
       const protectedRead = await json(baseUrl, path, { headers });
-      assert.equal(protectedRead.status, 200, `${surface} must remain readable for jwsuh@amic.kr`);
+      assert.equal(protectedRead.status, 200, `${surface} must remain readable for member06@runtime.example.test`);
       assert.notEqual(protectedRead.body.ui_state, "denied", `${surface} must not emit a denied UI state`);
     }
   });
@@ -145,14 +146,14 @@ test("Profile photo resolver uses an opaque asset key and rejects unsafe employe
   }
 });
 
-test("Packaged Jiwon portrait keeps enough source pixels for the desktop crop", async () => {
-  const png = await readFile(new URL(
-    "../src/hrx-member-photos/b6ad38508be75403e379885a95ef91c3f77da7d19ac4f8635ba328f6a6da0725.png",
-    import.meta.url,
-  ));
-  assert.equal(png.subarray(1, 4).toString("ascii"), "PNG");
-  assert.ok(png.readUInt32BE(16) >= 1200);
-  assert.ok(png.readUInt32BE(20) >= 1700);
+test("Profile photo resolves the exact explicitly supplied synthetic PNG body", () => {
+  const account = highestPrivilegeRegisteredAccount();
+  const member = findHrxMemberRosterByUserId(account.user_id);
+  assert.equal(memberPhotoDataUrlForEmployeeId(member.employee_id), `data:image/png;base64,${SYNTHETIC_PROFILE_PNG_BASE64}`);
+  const png = Buffer.from(SYNTHETIC_PROFILE_PNG_BASE64, "base64");
+  assert.equal(png.subarray(0, 8).toString("hex"), "89504e470d0a1a0a");
+  assert.equal(png.readUInt32BE(16), 1);
+  assert.equal(png.readUInt32BE(20), 1);
 });
 
 test("Profile resolver joins the signed account to its durable HRX employee", () => {
@@ -161,9 +162,9 @@ test("Profile resolver joins the signed account to its durable HRX employee", ()
     employees: [{
       tenant_id: tenantId,
       employee_id: "emp_runtime_jwsuh",
-      display_name: "서지원",
-      legal_name: "서지원",
-      work_email: "jwsuh@amic.kr",
+      display_name: "테스트 구성원 06",
+      legal_name: "테스트 구성원 06",
+      work_email: "member06@runtime.example.test",
       mobile_phone: "+82-10-0000-0000",
       status: "active",
       source_ref: "durable-hrx-runtime",
@@ -203,8 +204,8 @@ test("Profile resolver joins the signed account to its durable HRX employee", ()
     user_id: "user_amic_jwsuh",
   });
   assert.equal(profile.employee_id, "emp_runtime_jwsuh");
-  assert.equal(profile.display_name, "서지원");
-  assert.equal(profile.work_email, "jwsuh@amic.kr");
+  assert.equal(profile.display_name, "테스트 구성원 06");
+  assert.equal(profile.work_email, "member06@runtime.example.test");
   assert.equal(profile.title, "대표변호사");
   assert.equal(profile.mobile_phone, "+82-10-0000-0000");
   assert.equal(profile.start_date, "2026-06-22");
@@ -269,8 +270,8 @@ test("Profile API streams the signed-in employee photo from scoped versioned sto
     employees: [{
       tenant_id: tenantId,
       employee_id: employeeId,
-      display_name: "서지원",
-      legal_name: "서지원",
+      display_name: "테스트 구성원 06",
+      legal_name: "테스트 구성원 06",
       work_email: member.work_email,
       status: "active",
       source_ref: "postgres-private-bootstrap",
@@ -388,8 +389,8 @@ test("Packaged public professional profile catalog exposes only the employee joi
       employee_id: "emp_amic_jwsuh",
       professional_profile: {
         profile_kind: "attorney",
-        experience: ["법무법인 아믹 대표변호사"],
-        education: ["서울대학교 교육학과 학사"],
+        experience: ["Synthetic experience"],
+        education: ["Synthetic education"],
         qualifications: ["대한민국 변호사"],
       },
     }],
@@ -407,12 +408,12 @@ test("Packaged public professional profile catalog resolves an opaque employee j
       employee_ref: createHash("sha256").update(employeeId).digest("hex"),
       professional_profile: {
         profile_kind: "attorney",
-        experience: ["법무법인 아믹 대표변호사"],
+        experience: ["Synthetic experience"],
       },
     }],
   });
   assert.equal(profile.employee_id, employeeId);
-  assert.deepEqual(profile.professional_profile.experience, ["법무법인 아믹 대표변호사"]);
+  assert.deepEqual(profile.professional_profile.experience, ["Synthetic experience"]);
   assert.equal(findHrxPublicProfessionalProfileByEmployeeId("", { profiles: [] }), null);
 });
 

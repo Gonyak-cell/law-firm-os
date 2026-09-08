@@ -119,7 +119,7 @@ test("signed /me workflow ignores forged employee ids, reserves balance, and exp
     standard_day_minutes: 480,
     duration_mode: "full_day",
   });
-  assert.equal(preview.body.preview.approval_plan.approver.display_name, "윤태리");
+  assert.equal(preview.body.preview.approval_plan.approver.display_name, "테스트 구성원 09");
   const evidenceDocuments = await request(context, "/api/hrx/leave/me/evidence-documents", "GET", {}, staff);
   assert.equal(evidenceDocuments.status, 200);
   assert.ok(evidenceDocuments.body.documents.some((document) => document.document_id === "doc-yjlee-leave-evidence"));
@@ -195,7 +195,7 @@ test("signed /me workflow ignores forged employee ids, reserves balance, and exp
   assert.equal(team.status, 200);
   assert.deepEqual(team.body.absences[0], {
     employee_id: EMPLOYEE_ID,
-    employee_display_name: "이예진",
+    employee_display_name: "테스트 구성원 10",
     start_date: "2026-07-14",
     end_date: "2026-07-14",
   });
@@ -249,7 +249,7 @@ test("delegation API exposes eligible registered approvers and rejects unknown r
     valid_to: "2026-07-15T00:00:00.000Z",
   }, manager);
   assert.equal(created.status, 201);
-  assert.equal(created.body.delegation.delegate.display_name, "서지원");
+  assert.equal(created.body.delegation.delegate.display_name, "테스트 구성원 06");
   assert.equal(created.body.delegation.delegate.email, undefined);
   store.close();
 });

@@ -12,7 +12,7 @@ import { registeredAccount, signedHeaders } from "./helpers/session.js";
 import { signedStepUpHeader } from "./hrx-step-up-test-helper.js";
 
 const SESSION_ACCOUNT = highestPrivilegeRegisteredAccount();
-const NO_HRX_SCOPE_ACCOUNT = registeredAccount("matter.desktop.qa@amic.kr");
+const NO_HRX_SCOPE_ACCOUNT = registeredAccount("member11@runtime.example.test");
 const SESSION_EMPLOYEE_ID = "emp_amic_jwsuh";
 const HRX_AUTH_HEADERS = Object.freeze({
   "x-lawos-tenant-id": MATTER_VAULT_REGISTERED_TENANT_ID,

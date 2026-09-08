@@ -218,48 +218,48 @@ test.after(async () => {
   testStore.close();
 });
 
-test("HRX member roster source of truth preserves the registered AMIC and PETRA roster", () => {
+test("HRX member roster source of truth projects synthetic professional and reporting-line cohorts", () => {
   const roster = listHrxMemberRosterRows();
   assert.equal(roster.length, 10);
   assert.ok(roster.every((member) => member.source_ref === HRX_MEMBER_ROSTER_SOURCE_REF));
   const membersByName = new Map(roster.map((member) => [member.display_name, member]));
-  assert.equal(membersByName.get("김양태")?.title, "대표이사");
-  assert.equal(membersByName.get("김양태")?.professional_profile?.profile_kind, "cpa");
-  assert.equal(membersByName.get("김양태")?.professional_profile?.qualifications?.includes("대한민국 공인회계사"), true);
-  assert.equal(membersByName.get("김양태")?.professional_profile?.qualifications?.includes("대한민국 변호사"), false);
-  assert.equal(membersByName.get("조우상")?.professional_profile?.profile_kind, "deal_advisor");
-  assert.equal(membersByName.get("조우상")?.manager_employee_id, "emp_amic_ytkim");
+  assert.equal(membersByName.get("테스트 구성원 01")?.title, "대표이사");
+  assert.equal(membersByName.get("테스트 구성원 01")?.professional_profile?.profile_kind, "cpa");
+  assert.equal(membersByName.get("테스트 구성원 01")?.professional_profile?.qualifications?.includes("대한민국 공인회계사"), true);
+  assert.equal(membersByName.get("테스트 구성원 01")?.professional_profile?.qualifications?.includes("대한민국 변호사"), false);
+  assert.equal(membersByName.get("테스트 구성원 02")?.professional_profile?.profile_kind, "deal_advisor");
+  assert.equal(membersByName.get("테스트 구성원 02")?.manager_employee_id, "emp_amic_ytkim");
   assert.equal(HRX_MEMBER_CONTACT_SOURCE_PATH, null);
   assert.equal(HRX_MEMBER_CONTACT_SOURCE_OF_TRUTH.contacts.length, 0);
   assert.equal(roster.filter((member) => member.mobile_phone).length, 0);
-  assert.equal(membersByName.get("박서영")?.manager_employee_id, "emp_amic_ytkim");
-  assert.equal(membersByName.get("이예진")?.manager_employee_id, "emp_amic_tryoon");
+  assert.equal(membersByName.get("테스트 구성원 03")?.manager_employee_id, "emp_amic_ytkim");
+  assert.equal(membersByName.get("테스트 구성원 10")?.manager_employee_id, "emp_amic_tryoon");
   assert.deepEqual(
-    ["박병준", "임영훈", "서지원", "조성민", "한제희"].map((displayName) => membersByName.get(displayName)?.professional_profile?.profile_kind),
+    ["테스트 구성원 04", "테스트 구성원 05", "테스트 구성원 06", "테스트 구성원 07", "테스트 구성원 08"].map((displayName) => membersByName.get(displayName)?.professional_profile?.profile_kind),
     ["attorney", "attorney", "attorney", "attorney", "attorney"],
   );
-  for (const displayName of ["박서영", "조우상", "김양태"]) {
+  for (const displayName of ["테스트 구성원 03", "테스트 구성원 02", "테스트 구성원 01"]) {
     const member = membersByName.get(displayName);
-    assert.equal(member?.affiliation, "PETRA BRIDGE PARTNERS");
+    assert.equal(member?.affiliation, "Fixture Advisory");
     assert.equal(member?.department, "Finance");
-    assert.equal(member?.organization_group, "PETRA BRIDGE PARTNERS");
+    assert.equal(member?.organization_group, "Fixture Advisory");
   }
-  for (const displayName of ["박병준", "조성민", "임영훈", "서지원", "한제희"]) {
+  for (const displayName of ["테스트 구성원 04", "테스트 구성원 07", "테스트 구성원 05", "테스트 구성원 06", "테스트 구성원 08"]) {
     const member = membersByName.get(displayName);
-    assert.equal(member?.affiliation, "AMIC Law");
+    assert.equal(member?.affiliation, "Fixture Legal");
     assert.equal(member?.department, "Legal");
-    assert.equal(member?.organization_group, "AMIC Law");
+    assert.equal(member?.organization_group, "Fixture Legal");
   }
-  assert.equal(membersByName.get("한제희")?.work_email, "jh731@amic.kr");
-  assert.equal(membersByName.get("한제희")?.title, "고문변호사");
-  assert.equal(membersByName.get("한제희")?.start_date, "2026-07-06");
-  assert.equal(membersByName.get("한제희")?.professional_profile?.qualifications?.includes("대한민국 변호사"), true);
-  assert.equal(membersByName.get("한제희")?.professional_profile?.qualifications?.includes("대한민국 공인회계사"), true);
-  for (const displayName of ["윤태리", "이예진"]) {
+  assert.equal(membersByName.get("테스트 구성원 08")?.work_email, "member08@runtime.example.test");
+  assert.equal(membersByName.get("테스트 구성원 08")?.title, "고문변호사");
+  assert.equal(membersByName.get("테스트 구성원 08")?.start_date, "2026-07-06");
+  assert.equal(membersByName.get("테스트 구성원 08")?.professional_profile?.qualifications?.includes("대한민국 변호사"), true);
+  assert.equal(membersByName.get("테스트 구성원 08")?.professional_profile?.qualifications?.includes("대한민국 공인회계사"), true);
+  for (const displayName of ["테스트 구성원 09", "테스트 구성원 10"]) {
     const member = membersByName.get(displayName);
-    assert.equal(member?.affiliation, "AMIC Law");
+    assert.equal(member?.affiliation, "Fixture Operations");
     assert.equal(member?.department, "Staff");
-    assert.equal(member?.organization_group, "Staff");
+    assert.equal(member?.organization_group, "Fixture Operations");
   }
 });
 
@@ -289,51 +289,51 @@ test("GET /api/hrx/employees returns synthetic API-backed employee rows", async 
   assert.equal(body.employees.filter((employee) => employee.mobile_phone).length, 0);
   assert.equal(body.employees[0].tenant_id, "tenant_amic_matter_vault");
   assert.deepEqual(body.employees.map((employee) => employee.display_name), [
-    "김양태",
-    "박병준",
-    "박서영",
-    "서지원",
-    "윤태리",
-    "이예진",
-    "임영훈",
-    "조성민",
-    "조우상",
-    "한제희",
+    "테스트 구성원 01",
+    "테스트 구성원 02",
+    "테스트 구성원 03",
+    "테스트 구성원 04",
+    "테스트 구성원 05",
+    "테스트 구성원 06",
+    "테스트 구성원 07",
+    "테스트 구성원 08",
+    "테스트 구성원 09",
+    "테스트 구성원 10",
   ]);
   assert.ok(body.employees.every((employee) => employee.source_ref === HRX_MEMBER_ROSTER_SOURCE_REF));
-  assert.ok(body.employees.some((employee) => employee.work_email === "jwsuh@amic.kr"));
-  assert.ok(body.employees.some((employee) => employee.display_name === "김양태" && employee.title === "대표이사"));
-  assert.ok(body.employees.some((employee) => employee.display_name === "이예진" && employee.title === "대리"));
+  assert.ok(body.employees.some((employee) => employee.work_email === "member06@runtime.example.test"));
+  assert.ok(body.employees.some((employee) => employee.display_name === "테스트 구성원 01" && employee.title === "대표이사"));
+  assert.ok(body.employees.some((employee) => employee.display_name === "테스트 구성원 10" && employee.title === "대리"));
   const employeesByName = new Map(body.employees.map((employee) => [employee.display_name, employee]));
-  assert.equal(employeesByName.get("김양태")?.professional_profile?.profile_kind, "cpa");
-  assert.equal(employeesByName.get("김양태")?.professional_profile?.qualifications?.includes("대한민국 공인회계사"), true);
-  assert.equal(employeesByName.get("김양태")?.professional_profile?.qualifications?.includes("대한민국 변호사"), false);
-  assert.equal(employeesByName.get("조우상")?.professional_profile?.profile_kind, "deal_advisor");
-  assert.equal(employeesByName.get("조우상")?.manager_display_name, "김양태");
-  assert.equal(employeesByName.get("박서영")?.manager_display_name, "김양태");
-  assert.equal(employeesByName.get("이예진")?.manager_display_name, "윤태리");
+  assert.equal(employeesByName.get("테스트 구성원 01")?.professional_profile?.profile_kind, "cpa");
+  assert.equal(employeesByName.get("테스트 구성원 01")?.professional_profile?.qualifications?.includes("대한민국 공인회계사"), true);
+  assert.equal(employeesByName.get("테스트 구성원 01")?.professional_profile?.qualifications?.includes("대한민국 변호사"), false);
+  assert.equal(employeesByName.get("테스트 구성원 02")?.professional_profile?.profile_kind, "deal_advisor");
+  assert.equal(employeesByName.get("테스트 구성원 02")?.manager_display_name, "테스트 구성원 01");
+  assert.equal(employeesByName.get("테스트 구성원 03")?.manager_display_name, "테스트 구성원 01");
+  assert.equal(employeesByName.get("테스트 구성원 10")?.manager_display_name, "테스트 구성원 09");
   assert.deepEqual(
-    ["박병준", "임영훈", "서지원", "조성민", "한제희"].map((displayName) => employeesByName.get(displayName)?.professional_profile?.profile_kind),
+    ["테스트 구성원 04", "테스트 구성원 05", "테스트 구성원 06", "테스트 구성원 07", "테스트 구성원 08"].map((displayName) => employeesByName.get(displayName)?.professional_profile?.profile_kind),
     ["attorney", "attorney", "attorney", "attorney", "attorney"],
   );
-  for (const displayName of ["박서영", "조우상", "김양태"]) {
-    assert.equal(employeesByName.get(displayName)?.affiliation, "PETRA BRIDGE PARTNERS");
+  for (const displayName of ["테스트 구성원 03", "테스트 구성원 02", "테스트 구성원 01"]) {
+    assert.equal(employeesByName.get(displayName)?.affiliation, "Fixture Advisory");
     assert.equal(employeesByName.get(displayName)?.department, "Finance");
-    assert.equal(employeesByName.get(displayName)?.organization_group, "PETRA BRIDGE PARTNERS");
+    assert.equal(employeesByName.get(displayName)?.organization_group, "Fixture Advisory");
   }
-  for (const displayName of ["박병준", "조성민", "임영훈", "서지원", "한제희"]) {
-    assert.equal(employeesByName.get(displayName)?.affiliation, "AMIC Law");
+  for (const displayName of ["테스트 구성원 04", "테스트 구성원 07", "테스트 구성원 05", "테스트 구성원 06", "테스트 구성원 08"]) {
+    assert.equal(employeesByName.get(displayName)?.affiliation, "Fixture Legal");
     assert.equal(employeesByName.get(displayName)?.department, "Legal");
-    assert.equal(employeesByName.get(displayName)?.organization_group, "AMIC Law");
+    assert.equal(employeesByName.get(displayName)?.organization_group, "Fixture Legal");
   }
-  assert.equal(employeesByName.get("한제희")?.work_email, "jh731@amic.kr");
-  assert.equal(employeesByName.get("한제희")?.title, "고문변호사");
-  assert.equal(employeesByName.get("한제희")?.professional_profile?.qualifications?.includes("대한민국 변호사"), true);
-  assert.equal(employeesByName.get("한제희")?.professional_profile?.qualifications?.includes("대한민국 공인회계사"), true);
-  for (const displayName of ["윤태리", "이예진"]) {
-    assert.equal(employeesByName.get(displayName)?.affiliation, "AMIC Law");
+  assert.equal(employeesByName.get("테스트 구성원 08")?.work_email, "member08@runtime.example.test");
+  assert.equal(employeesByName.get("테스트 구성원 08")?.title, "고문변호사");
+  assert.equal(employeesByName.get("테스트 구성원 08")?.professional_profile?.qualifications?.includes("대한민국 변호사"), true);
+  assert.equal(employeesByName.get("테스트 구성원 08")?.professional_profile?.qualifications?.includes("대한민국 공인회계사"), true);
+  for (const displayName of ["테스트 구성원 09", "테스트 구성원 10"]) {
+    assert.equal(employeesByName.get(displayName)?.affiliation, "Fixture Operations");
     assert.equal(employeesByName.get(displayName)?.department, "Staff");
-    assert.equal(employeesByName.get(displayName)?.organization_group, "Staff");
+    assert.equal(employeesByName.get(displayName)?.organization_group, "Fixture Operations");
   }
   assert.ok(body.employees.every((employee) => employee.country === "대한민국"));
 });
@@ -349,16 +349,16 @@ test("GET PATCH /api/hrx/org-chart wires organization units and reporting lines 
   assert.ok(before.body.org_units.some((unit) => unit.org_unit_id === "org_finance" && unit.member_count === 3));
   const beforeById = new Map(before.body.employees.map((employee) => [employee.employee_id, employee]));
   assert.equal(beforeById.get("emp_amic_wsjo").manager_employee_id, "emp_amic_ytkim");
-  assert.equal(beforeById.get("emp_amic_wsjo").manager_display_name, "김양태");
+  assert.equal(beforeById.get("emp_amic_wsjo").manager_display_name, "테스트 구성원 01");
   assert.equal(beforeById.get("emp_amic_wsjo").direct_report_count, 0);
   assert.equal(beforeById.get("emp_amic_sypark").org_unit_id, "org_finance");
   assert.equal(beforeById.get("emp_amic_sypark").manager_employee_id, "emp_amic_ytkim");
-  assert.equal(beforeById.get("emp_amic_sypark").manager_display_name, "김양태");
+  assert.equal(beforeById.get("emp_amic_sypark").manager_display_name, "테스트 구성원 01");
   assert.equal(beforeById.get("emp_amic_tryoon").manager_employee_id, null);
   assert.equal(beforeById.get("emp_amic_tryoon").manager_display_name, null);
   assert.equal(beforeById.get("emp_amic_tryoon").direct_report_count, 1);
   assert.equal(beforeById.get("emp_amic_yjlee").manager_employee_id, "emp_amic_tryoon");
-  assert.equal(beforeById.get("emp_amic_yjlee").manager_display_name, "윤태리");
+  assert.equal(beforeById.get("emp_amic_yjlee").manager_display_name, "테스트 구성원 09");
 
   const updated = await json("/api/hrx/org-chart/employees/emp_amic_yjlee", {
     method: "PATCH",
@@ -372,7 +372,7 @@ test("GET PATCH /api/hrx/org-chart wires organization units and reporting lines 
   assert.equal(updated.body.employment_profile.org_unit_id, "org_legal");
   assert.equal(updated.body.employment_profile.manager_employee_id, "emp_amic_jwsuh");
   const updatedEmployee = updated.body.org_chart.employees.find((employee) => employee.employee_id === "emp_amic_yjlee");
-  assert.equal(updatedEmployee.manager_display_name, "서지원");
+  assert.equal(updatedEmployee.manager_display_name, "테스트 구성원 06");
   assert.ok(updated.body.org_chart.change_events.some((event) => event.action === "hrx.organization.update"));
 
   const invalidSelfManager = await json("/api/hrx/org-chart/employees/emp_amic_yjlee", {
@@ -387,8 +387,8 @@ test("durable HRX seed reconciles stale Matter Vault account seed rows to the me
   const store = createFileHrxStore({ filePath: join(mkdtempSync(join(tmpdir(), "hrx-roster-reconcile-")), "store.json") });
   runHrxMigrations(store);
   const repository = createSqlHrxRepository({ store, clock: () => "2026-06-19T00:00:00.000Z" });
-  const member = listHrxMemberRosterRows().find((row) => row.display_name === "김양태");
-  const parkSeoyoung = listHrxMemberRosterRows().find((row) => row.display_name === "박서영");
+  const member = listHrxMemberRosterRows().find((row) => row.display_name === "테스트 구성원 01");
+  const parkSeoyoung = listHrxMemberRosterRows().find((row) => row.display_name === "테스트 구성원 03");
   assert.ok(member);
   assert.ok(parkSeoyoung);
   const tenant_id = "tenant_amic_matter_vault";
@@ -445,12 +445,12 @@ test("durable HRX seed reconciles stale Matter Vault account seed rows to the me
     });
     const body = await response.json();
     assert.equal(response.status, 200);
-    const kimYangTae = body.employees.find((employee) => employee.display_name === "김양태");
+    const kimYangTae = body.employees.find((employee) => employee.display_name === "테스트 구성원 01");
     assert.equal(kimYangTae.source_ref, HRX_MEMBER_ROSTER_SOURCE_REF);
     assert.equal(kimYangTae.title, "대표이사");
-    assert.equal(kimYangTae.affiliation, "PETRA BRIDGE PARTNERS");
+    assert.equal(kimYangTae.affiliation, "Fixture Advisory");
     assert.equal(kimYangTae.department, "Finance");
-    assert.equal(kimYangTae.organization_group, "PETRA BRIDGE PARTNERS");
+    assert.equal(kimYangTae.organization_group, "Fixture Advisory");
 
     const storedEmployee = repository.getEmployee({ tenant_id, employee_id: member.employee_id });
     assert.equal(storedEmployee.source_ref, HRX_MEMBER_ROSTER_SOURCE_REF);
@@ -486,9 +486,9 @@ test("GET /api/hrx/employees/:id returns profile with compensation masked", asyn
   const { status, body } = await json("/api/hrx/employees/emp_amic_ytkim");
   assert.equal(status, 200);
   assert.equal(body.employee.employee_id, "emp_amic_ytkim");
-  assert.equal(body.employee.affiliation, "PETRA BRIDGE PARTNERS");
+  assert.equal(body.employee.affiliation, "Fixture Advisory");
   assert.equal(body.employee.department, "Finance");
-  assert.equal(body.employee.organization_group, "PETRA BRIDGE PARTNERS");
+  assert.equal(body.employee.organization_group, "Fixture Advisory");
   assert.equal(body.employee.professional_profile.profile_kind, "cpa");
   assert.equal(body.professional_profile.profile_kind, "cpa");
   assert.equal(body.professional_profile.qualifications.includes("대한민국 공인회계사"), true);
@@ -796,7 +796,7 @@ test("GET POST revoke /api/hrx/employee-user-links manages audited login mapping
   const selectableAccount = before.body.candidates.find(
     (candidate) => candidate.user_id === "user_amic_matter_desktop_qa",
   );
-  assert.equal(selectableAccount.account_label, "Matter Desktop QA · matter.desktop.qa@amic.kr");
+  assert.equal(selectableAccount.account_label, "Fixture Member 11 · member11@runtime.example.test");
   assert.doesNotMatch(selectableAccount.account_label, /user_amic_/);
 
   const created = await json("/api/hrx/employee-user-links", {
@@ -1728,5 +1728,5 @@ test("GET /api/hrx/analytics returns aggregate People metrics without row-level 
   assert.ok(body.workload_projection.every((row) => row.workload_source === "time_entry_aggregation"));
   assert.ok(body.workload_projection.some((row) => row.time_entry_count > 0));
   assert.ok(Array.isArray(body.workload_conflicts));
-  assert.equal(JSON.stringify(body.analytics).includes("김양태"), false);
+  assert.equal(JSON.stringify(body.analytics).includes("테스트 구성원 01"), false);
 });

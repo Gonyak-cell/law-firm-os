@@ -37,11 +37,11 @@ import { createTrustedOutlookInstallationTestAuthority } from "./helpers/outlook
 const TENANT = MATTER_VAULT_REGISTERED_TENANT_ID;
 const AS_OF = "2026-07-30T03:00:00.000Z";
 const ROLE_EMAILS = Object.freeze([
-  "yjlee@amic.kr",
-  "jh731@amic.kr",
-  "wsjo@amic.kr",
-  "bj.park@amic.kr",
-  "ytkim@amic.kr",
+  "member10@runtime.example.test",
+  "member08@runtime.example.test",
+  "member02@runtime.example.test",
+  "member04@runtime.example.test",
+  "member01@runtime.example.test",
 ]);
 
 const CAPABILITY_ACTIONS = Object.freeze({
@@ -238,7 +238,7 @@ async function withServer(fixture, callback, { emailDmsRuntime = null, sessionAu
   if (emailDmsRuntime) {
     const outlookPrincipal = {
       tenant_id: TENANT,
-      user_id: account("yjlee@amic.kr").user_id,
+      user_id: account("member10@runtime.example.test").user_id,
     };
     const installationAuthority =
       createTrustedOutlookInstallationTestAuthority([outlookPrincipal]);
@@ -385,7 +385,7 @@ test("CL-P6-W01-T02 production signed sessions revalidate every registered Clien
 test("CL-P6-W01-T01 aggregates only ACL-permitted clients before CRM and finance reads", async () => {
   const fixture = securityFixture({ aggregate: true });
   await withServer(fixture, async (started, baseUrl) => {
-    const headers = await apiSessionHeaders(baseUrl, operationalAccount("yjlee@amic.kr"));
+    const headers = await apiSessionHeaders(baseUrl, operationalAccount("member10@runtime.example.test"));
     const resolved = await started.sessionAuth.resolvePermissionContextFromHeaders(
       headers,
       { requestId: "client-security-aggregate-session", requireSessionToken: true },
@@ -443,7 +443,7 @@ test("CL-P6-W01-T01 Client export scope does not expand into generic analytics e
         dashboard_id: "dashboard-ar-aging",
       },
     });
-    for (const email of ["wsjo@amic.kr", "bj.park@amic.kr"]) {
+    for (const email of ["member02@runtime.example.test", "member04@runtime.example.test"]) {
       const response = await request(baseUrl, "/api/analytics/exports", {
         accountEmail: email,
         method: "POST",
@@ -453,7 +453,7 @@ test("CL-P6-W01-T01 Client export scope does not expand into generic analytics e
       assert.deepEqual(response.body.safe_error_codes, ["ANALYTICS_UNAUTHORIZED_OMISSION"]);
     }
     const crossTenant = await request(baseUrl, "/api/analytics/exports", {
-      accountEmail: "ytkim@amic.kr",
+      accountEmail: "member01@runtime.example.test",
       method: "POST",
       body: bodyFor("attacker", "tenant-attacker"),
     });
@@ -465,7 +465,7 @@ test("CL-P6-W01-T01 Client export scope does not expand into generic analytics e
       "a forged tenant must never receive a denied-route audit",
     );
     const admin = await request(baseUrl, "/api/analytics/exports", {
-      accountEmail: "ytkim@amic.kr",
+      accountEmail: "member01@runtime.example.test",
       method: "POST",
       body: bodyFor("admin"),
     });
@@ -476,11 +476,11 @@ test("CL-P6-W01-T01 Client export scope does not expand into generic analytics e
     assert.equal(deniedAudits.length, 3);
     const crossTenantAudit = deniedAudits.find((event) => event.reason === "cross_tenant_deny");
     assert.ok(crossTenantAudit);
-    assert.equal(crossTenantAudit.actor_id, account("ytkim@amic.kr").user_id);
+    assert.equal(crossTenantAudit.actor_id, account("member01@runtime.example.test").user_id);
     assert.equal(deniedAudits.every((event) => event.metadata.raw_payload_included === false), true);
     console.log(JSON.stringify({
       scenario: "export-permission-non-expansion",
-      denied_roles: ["wsjo@amic.kr", "bj.park@amic.kr"],
+      denied_roles: ["member02@runtime.example.test", "member04@runtime.example.test"],
       admin_status: admin.status,
       cross_tenant_status: crossTenant.status,
       attacker_tenant_audit_events: fixture.analyticsRepository.listAudit({ tenant_id: "tenant-attacker" }).length,
@@ -545,7 +545,7 @@ test("CL-P6-W01-T01 signed MIME reads deny cross-tenant/forged principals and qu
     const cleanId = evidence.clean.evidence.inquiry_email_evidence_id;
     const quarantineId = evidence.quarantined.evidence.inquiry_email_evidence_id;
     const clean = await request(baseUrl, `/api/outlook/inquiries/evidence/${encodeURIComponent(cleanId)}/content?${query({ kind: "original" })}`, {
-      accountEmail: "yjlee@amic.kr",
+      accountEmail: "member10@runtime.example.test",
     });
     assert.equal(clean.status, 200);
     assert.equal(clean.body.item.scan_status, "clean");
@@ -553,14 +553,14 @@ test("CL-P6-W01-T01 signed MIME reads deny cross-tenant/forged principals and qu
     assert.equal(clean.body.item.raw_path_exposed, false);
 
     const crossTenant = await request(baseUrl, `/api/outlook/inquiries/evidence/${encodeURIComponent(cleanId)}/content?${query({ tenant_id: "tenant-attacker", kind: "original" })}`, {
-      accountEmail: "yjlee@amic.kr",
+      accountEmail: "member10@runtime.example.test",
       headers: { "x-lawos-tenant-id": "tenant-attacker", "x-lawos-actor-id": "forged-principal" },
     });
     assert.equal(crossTenant.status, 403);
     assert.equal(JSON.stringify(crossTenant.body).includes("Clean MIME body"), false);
     assert.deepEqual(crossTenant.body.safe_error_codes, ["M365_CONNECTION_TENANT_MISMATCH"]);
 
-    const token = (await apiSessionHeaders(baseUrl, operationalAccount("yjlee@amic.kr"))).authorization.slice("Bearer ".length);
+    const token = (await apiSessionHeaders(baseUrl, operationalAccount("member10@runtime.example.test"))).authorization.slice("Bearer ".length);
     const tamperedToken = `${token.slice(0, -1)}${token.endsWith("a") ? "b" : "a"}`;
     const forged = await request(baseUrl, `/api/outlook/inquiries/evidence/${encodeURIComponent(cleanId)}/content?${query({ kind: "original" })}`, {
       headers: { authorization: `Bearer ${tamperedToken}` },
@@ -569,7 +569,7 @@ test("CL-P6-W01-T01 signed MIME reads deny cross-tenant/forged principals and qu
     assert.deepEqual(forged.body.safe_error_codes, ["AUTH_SESSION_INVALID"]);
 
     const quarantined = await request(baseUrl, `/api/outlook/inquiries/evidence/${encodeURIComponent(quarantineId)}/content?${query({ kind: "original" })}`, {
-      accountEmail: "yjlee@amic.kr",
+      accountEmail: "member10@runtime.example.test",
     });
     assert.equal(quarantined.status, 423);
     assert.deepEqual(quarantined.body.safe_error_codes, ["INQUIRY_EVIDENCE_QUARANTINED"]);
@@ -613,14 +613,14 @@ test("CL-P6-W01-T01 Outlook evidence GET revalidates the linked Lead ACL after r
   };
   await withServer(fixture, async (_started, baseUrl) => {
     const beforeMetadata = await request(baseUrl, `/api/outlook/inquiries?${query({ q: "Visible inquiry" })}`, {
-      accountEmail: "yjlee@amic.kr",
+      accountEmail: "member10@runtime.example.test",
     });
     assert.equal(beforeMetadata.status, 200);
     assert.equal(beforeMetadata.body.items.length, 1);
     assert.equal(beforeMetadata.body.items[0].display_name, "Visible inquiry");
 
     const beforeContent = await request(baseUrl, `/api/outlook/inquiries/evidence/${encodeURIComponent(cleanId)}/content?${query({ kind: "original" })}`, {
-      accountEmail: "yjlee@amic.kr",
+      accountEmail: "member10@runtime.example.test",
     });
     assert.equal(beforeContent.status, 200);
     assert.equal(beforeContent.body.item.content_base64.length > 0, true);
@@ -628,14 +628,14 @@ test("CL-P6-W01-T01 Outlook evidence GET revalidates the linked Lead ACL after r
     revocableSessionAuth.revoke();
 
     const afterMetadata = await request(baseUrl, `/api/outlook/inquiries?${query({ q: "Visible inquiry" })}`, {
-      accountEmail: "yjlee@amic.kr",
+      accountEmail: "member10@runtime.example.test",
     });
     assert.equal(afterMetadata.status, 200);
     assert.deepEqual(afterMetadata.body.items, []);
     assert.equal(JSON.stringify(afterMetadata.body).includes("Visible inquiry"), false);
 
     const revokedContent = await request(baseUrl, `/api/outlook/inquiries/evidence/${encodeURIComponent(cleanId)}/content?${query({ kind: "original" })}`, {
-      accountEmail: "yjlee@amic.kr",
+      accountEmail: "member10@runtime.example.test",
     });
     assert.equal(revokedContent.status, 404);
     assert.deepEqual(revokedContent.body.safe_error_codes, ["INQUIRY_EVIDENCE_NOT_FOUND"]);
@@ -644,7 +644,7 @@ test("CL-P6-W01-T01 Outlook evidence GET revalidates the linked Lead ACL after r
     assert.equal(revokedContent.body.item, null);
 
     const missingContent = await request(baseUrl, `/api/outlook/inquiries/evidence/client-security-missing/content?${query({ kind: "original" })}`, {
-      accountEmail: "yjlee@amic.kr",
+      accountEmail: "member10@runtime.example.test",
     });
     assert.equal(missingContent.status, revokedContent.status);
     assert.deepEqual(missingContent.body.safe_error_codes, revokedContent.body.safe_error_codes);

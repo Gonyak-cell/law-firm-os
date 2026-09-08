@@ -57,7 +57,7 @@ function fixture({
     tid: TENANT_ID,
     aud: CLIENT_ID,
     oid: "entra-subject-jwsuh",
-    preferred_username: "jwsuh@amic.kr",
+    preferred_username: "member06@runtime.example.test",
     nonce: NONCE,
     iat: Math.floor(NOW / 1000),
     nbf: Math.floor(NOW / 1000) - 10,
@@ -151,7 +151,7 @@ test("delegated OAuth requests only Calendars.ReadBasic and validates the signed
     state: "A".repeat(43),
     code_challenge: "B".repeat(43),
     nonce: NONCE,
-    login_hint: "jwsuh@amic.kr",
+    login_hint: "member06@runtime.example.test",
   }));
   const requestedScopes = authorizationUrl.searchParams.get("scope").split(" ");
   assert.deepEqual(requestedScopes, PEOPLE_OUTLOOK_OAUTH_SCOPES);
@@ -159,17 +159,17 @@ test("delegated OAuth requests only Calendars.ReadBasic and validates the signed
   assert.equal(requestedScopes.includes("Mail.Read"), false);
   assert.equal(requestedScopes.includes("User.Read"), false);
   assert.equal(authorizationUrl.searchParams.get("code_challenge_method"), "S256");
-  assert.equal(authorizationUrl.searchParams.get("login_hint"), "jwsuh@amic.kr");
+  assert.equal(authorizationUrl.searchParams.get("login_hint"), "member06@runtime.example.test");
   assert.equal(authorizationUrl.searchParams.has("prompt"), false);
 
   const exchanged = await client.exchange({
     code: "0.ABC_provider_code-20260803",
     code_verifier: "C".repeat(43),
     expected_nonce_hash: digest(NONCE),
-    expected_email_hash: digest("jwsuh@amic.kr"),
+    expected_email_hash: digest("member06@runtime.example.test"),
   });
   assert.equal(exchanged.provider_subject_id, "entra-subject-jwsuh");
-  assert.equal(exchanged.mailbox_address, "jwsuh@amic.kr");
+  assert.equal(exchanged.mailbox_address, "member06@runtime.example.test");
   assert.equal(exchanged.expires_at, "2026-08-03T04:00:00.000Z");
   assert.equal(exchanged.refresh_profile, "people");
   assert.equal(exchanged.refresh_profile_proof, PEOPLE_REFRESH_PROOF);
@@ -224,7 +224,7 @@ test("Client Outlook OAuth profile requests only the Add-in delegated scopes and
     expected_subject_id: "entra-subject-jwsuh",
   });
   assert.equal(exchanged.provider_subject_id, "entra-subject-jwsuh");
-  assert.equal(exchanged.mailbox_address, "jwsuh@amic.kr");
+  assert.equal(exchanged.mailbox_address, "member06@runtime.example.test");
   assert.equal(exchanged.refresh_profile, "client");
   assert.equal(exchanged.refresh_profile_proof, CLIENT_REFRESH_PROOF);
   assert.deepEqual(
@@ -265,7 +265,7 @@ test("single Entra app tokens keep each Outlook connection on its requested scop
     code: "0.ABC_people_union_scope_code-20260806",
     code_verifier: "C".repeat(43),
     expected_nonce_hash: digest(NONCE),
-    expected_email_hash: digest("jwsuh@amic.kr"),
+    expected_email_hash: digest("member06@runtime.example.test"),
   });
   assert.deepEqual(peopleExchange.granted_scopes, ["Calendars.ReadBasic"]);
   const peopleRefresh = await peopleClient.refresh({
@@ -332,7 +332,7 @@ test("delegated OAuth rejects a token carrying broader Graph permissions", async
       code: "0.ABC_provider_code-20260803",
       code_verifier: "C".repeat(43),
       expected_nonce_hash: digest(NONCE),
-      expected_email_hash: digest("jwsuh@amic.kr"),
+      expected_email_hash: digest("member06@runtime.example.test"),
     }),
     (error) => error.safe_error_code === "OUTLOOK_SCOPE_OVERBROAD",
   );
@@ -369,7 +369,7 @@ test("delegated OAuth rejects another mailbox, unbound nonce, and ambiguous audi
         code: "0.ABC_provider_code-20260803",
         code_verifier: "C".repeat(43),
         expected_nonce_hash: digest(NONCE),
-        expected_email_hash: digest("jwsuh@amic.kr"),
+        expected_email_hash: digest("member06@runtime.example.test"),
       }),
       (error) => error.safe_error_code === expectedCode,
     );

@@ -40,7 +40,7 @@ test("signed People Outlook completion enforces its HTTP trust boundary", async 
   const baseUrl = `http://${started.host}:${started.port}`;
   const headers = await apiSessionHeaders(
     baseUrl,
-    registeredAccount("jwsuh@amic.kr"),
+    registeredAccount("member06@runtime.example.test"),
   );
 
   await t.test("accepts the two-field callback body with signed session identity", async () => {
