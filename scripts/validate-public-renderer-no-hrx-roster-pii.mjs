@@ -12,7 +12,8 @@ const rosterPath = path.resolve(
 );
 const registrationPath = path.resolve(
   ROOT,
-  "docs/reorganization/client-matter-os/matter-vault-r4/launch/matter-vault-user-registration-seed.json",
+  String(process.env.LAWOS_IDENTITY_REGISTRATION_SOURCE_PATH ?? "").trim()
+    || "docs/reorganization/client-matter-os/matter-vault-r4/launch/matter-vault-user-registration-seed.json",
 );
 const rendererRoots = [
   path.join(ROOT, "apps/web/dist"),
@@ -38,6 +39,7 @@ const registrationProtectedKeys = ["display_name", "email", "english_name", "use
 const registrationProtectedValues = users
   .flatMap((user) => registrationProtectedKeys.map((key) => String(user?.[key] ?? "").trim()))
   .filter((value) => value.length >= 4);
+assert(registrationProtectedValues.length > 0, "Registration source must contain protected values for PII validation");
 const protectedValues = [...new Set([
   ...rosterProtectedValues,
   ...registrationProtectedValues,
