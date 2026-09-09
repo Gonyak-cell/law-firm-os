@@ -117,6 +117,7 @@ import {
   isDesktopVaultExportApiPath,
 } from "./desktop-vault-export-runtime.js";
 import { handleNativeCorporateExportApiRequest, isNativeCorporateExportApiPath } from "./native-corporate-export-runtime.js";
+import { handleNativeMatterExportApiRequest } from "./native-matter-export-runtime.js";
 import {
   OUTLOOK_VAULT_ATTACHMENT_AUTHORIZE_PATH,
   OUTLOOK_VAULT_ATTACHMENT_COMPLETE_PATH,
@@ -2586,6 +2587,8 @@ async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, mast
       };
       const result = isNativeCorporateExportApiPath(pathname)
         ? await handleNativeCorporateExportApiRequest({ ...common, pathname })
+        : dmsRuntime?.authority === "postgres-v2" && vaultExportProvider == null
+        ? await handleNativeMatterExportApiRequest({ ...common, pathname })
         : pathname === DESKTOP_VAULT_EXPORT_PREFLIGHT_PATH
         ? await handleDesktopVaultExportPreflight(common)
         : pathname === DESKTOP_VAULT_EXPORT_AUTHORIZE_PATH
@@ -3736,6 +3739,7 @@ async function startApiServerImplementation({
           ? createPostgresVaultCapabilityResolver({
               tenantId: startupAuthorityTenantId,
               consumerReadAuthority: dmsConsumerReadAuthority,
+              nativeMatterExportEnabled: resolvedVaultExportProvider == null,
             })
           : resolvedVaultCapabilityResolver,
       });

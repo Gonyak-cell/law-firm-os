@@ -51,6 +51,7 @@ import { createMasterDataRuntimeContext } from "./master-data-context.js";
 import { createMatterRuntimeContext } from "./matter-runtime-context.js";
 import { createVaultDmsRuntimeContext } from "./vault-dms-runtime-context.js";
 import { isNativeCorporateExportApiPath } from "./native-corporate-export-runtime.js";
+import { isDesktopVaultExportApiPath } from "./desktop-vault-export-runtime.js";
 import { createCrmIntakeRuntimeContext } from "./crm-intake-runtime-context.js";
 import { createFinanceRuntimeContext } from "./finance-runtime-context.js";
 import { createAnalyticsRuntimeContext } from "./analytics-runtime-context.js";
@@ -712,19 +713,21 @@ export function createPostgresApiRuntimeAuthority({
       || /^\/api\/vault\/documents\/[^/]+\/download$/u.test(pathname)
     );
     const corporateExport = method === "POST" && isNativeCorporateExportApiPath(pathname);
-    if (corporateRead || corporateExport) {
+    const matterExport = method === "POST" && isDesktopVaultExportApiPath(pathname);
+    if (corporateRead || corporateExport || matterExport) {
       return runPostgresReadWithBaselineRetry({
         method,
         pathname,
-        allowIdempotentWriteRetry: corporateExport,
+        allowIdempotentWriteRetry: corporateExport || (matterExport && pathname !== "/api/vault/desktop/export-download"),
         execute: async () => {
           const { result } = await runRecordRepositoryMultiDomainCommand({
             ledger,
             tenant_id: tenantId,
             domains: PRODUCT_DOMAINS.filter(({ key }) =>
-              ["masterDataRepository", "dmsRepository"].includes(key)),
+              ["masterDataRepository", "dmsRepository", ...(matterExport ? ["matterRepository"] : [])].includes(key)),
             command: (repositories) => command(Object.freeze({
               masterDataRuntime: createMasterDataRuntimeContext({ repository: repositories.masterDataRepository, matterCoreEnrichment: null }),
+              ...(matterExport ? { matterRuntime: Object.freeze({ repository: repositories.matterRepository, authority: "postgres-v2" }) } : {}),
               dmsRuntime: Object.freeze({
                 ...createVaultDmsRuntimeContext({ repository: repositories.dmsRepository, storage: dmsStorage }),
                 authority: "postgres-v2",

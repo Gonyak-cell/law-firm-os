@@ -170,7 +170,7 @@ export async function resolveVaultCapabilityProjection({ principal, resolver, re
   }
 }
 
-export function createPostgresVaultCapabilityResolver({ tenantId, consumerReadAuthority } = {}) {
+export function createPostgresVaultCapabilityResolver({ tenantId, consumerReadAuthority, nativeMatterExportEnabled = false } = {}) {
   if (!text(tenantId)) throw new TypeError("PostgreSQL Vault tenant is required");
   return ({ tenant_id, user_id } = {}) => {
     const authority = consumerReadAuthority?.validate?.();
@@ -188,7 +188,7 @@ export function createPostgresVaultCapabilityResolver({ tenantId, consumerReadAu
       authority_ref: `${POSTGRES_DMS_CONSUMER_READ_AUTHORITY}:${tenantId}`,
       capabilities: Object.freeze({
         read: true, audit: true, download: true,
-        upload: false, attach: false, work: false, governance: false,
+        upload: false, attach: nativeMatterExportEnabled === true, work: false, governance: false,
       }),
     });
   };

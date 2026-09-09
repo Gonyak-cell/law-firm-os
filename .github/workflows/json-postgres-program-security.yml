@@ -87,6 +87,10 @@ jobs:
             apps/api/test/json-postgres-program-inputs.test.js \
             apps/api/test/json-postgres-source-transform.test.js \
             apps/api/test/member-photo-storage-composition.test.js \
+            apps/api/test/native-matter-export-runtime.test.js \
+            apps/api/test/native-corporate-export-runtime.test.js \
+            apps/api/test/vault-capability-projection.test.js \
+            apps/api/test/postgres-vault-capability-startup.test.js \
             apps/api/test/persistence-authority.test.js \
             apps/api/test/persistence-authority-schema-bridge.test.js \
             apps/api/test/persistence-authority-schema-transition-postgres.test.js \
