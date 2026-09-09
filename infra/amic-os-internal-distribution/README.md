@@ -139,6 +139,10 @@ baseline marker and channel pointer use S3 conditional writes: the first write
 requires no current key, and a later pointer update requires the ETag that was
 just verified. The bucket policy rejects unconditional control-key writes, so a
 competing publication cannot silently replace the verified predecessor.
+S3 also requires `s3:GetObject` for an `If-Match` write. The publisher receives
+that permission only for `internal-unsigned/channel/*`; artifact and baseline
+reads still require an exact VersionId. See the
+[AWS conditional-write permissions](https://docs.aws.amazon.com/AmazonS3/latest/userguide/conditional-writes.html).
 
 An expired predecessor control remains usable only as signed immutable lineage;
 it is never returned to a client as active metadata. The successor must carry a

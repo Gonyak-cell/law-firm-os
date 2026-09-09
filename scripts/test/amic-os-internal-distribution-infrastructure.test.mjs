@@ -154,6 +154,28 @@ test("publisher separates encrypted uploads from retention authorization with ac
   assert.deepEqual(grants("s3:PutObjectTagging"), []);
 });
 
+test("publisher permits the current channel read required by conditional If-Match commits without unversioned artifact reads", () => {
+  const template = buildAmicInternalDistributionTemplate();
+  const statements = template.Resources.PublisherRole.Properties.Policies[0].PolicyDocument.Statement;
+  const currentReads = statements.filter(({ Action }) =>
+    (Array.isArray(Action) ? Action : [Action]).includes("s3:GetObject"));
+  assert.deepEqual(currentReads, [{
+    Sid: "ReadCurrentChannelForConditionalCommit",
+    Effect: "Allow",
+    Action: "s3:GetObject",
+    Resource: {
+      "Fn::Sub": `\${ArtifactBucket.Arn}/${AMIC_INTERNAL_DISTRIBUTION_PREFIX}channel/*`,
+    },
+  }]);
+  assert.equal(
+    template.Resources.ReadbackRole.Properties.Policies[0].PolicyDocument.Statement.some(
+      ({ Action }) => (Array.isArray(Action) ? Action : [Action]).includes("s3:GetObject")),
+    false,
+  );
+  currentReads[0].Resource["Fn::Sub"] = `\${ArtifactBucket.Arn}/${AMIC_INTERNAL_DISTRIBUTION_PREFIX}*`;
+  assert.throws(() => validateAmicInternalDistributionTemplate(template), /template drifted/u);
+});
+
 test("publisher can describe only its artifact key directly while cryptographic use remains S3-only", () => {
   const statements = buildAmicInternalDistributionTemplate().Resources.PublisherRole
     .Properties.Policies[0].PolicyDocument.Statement;
