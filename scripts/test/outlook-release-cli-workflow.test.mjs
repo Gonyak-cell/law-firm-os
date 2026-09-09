@@ -171,8 +171,8 @@ test("CI selects every release lane and explicitly executes UPL and focused test
   }
   const runs = workflowRuns(workflow);
   assert.ok(
-    runs.includes("npm --workspace apps/addin run build && node --test --test-concurrency=1 apps/addin/test/*.test.js"),
-    "CI must build the clean checkout and serialize Add-in browser tests",
+    runs.includes("npm --workspace apps/addin run build && node scripts/test/with-synthetic-runtime.mjs node --test --test-concurrency=1 apps/addin/test/*.test.js"),
+    "CI must build the clean checkout and serialize Add-in browser tests with synthetic runtime inputs",
   );
   assert.deepEqual(
     runs.filter((run) => /^node --test .*outlook-release/u.test(run)),
