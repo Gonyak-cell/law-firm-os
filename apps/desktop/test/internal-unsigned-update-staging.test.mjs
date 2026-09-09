@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { spawn } from "node:child_process";
 import { createHash } from "node:crypto";
 import { lstatSync, rmSync } from "node:fs";
 import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
@@ -199,6 +200,56 @@ test("shutdown preserves cleanup errors unless an installer was opened and the e
     failure = "EPERM";
     assert.throws(() => staging.clearSync(), { code: "EPERM" });
   } finally {
+    await rm(basePath, { recursive: true, force: true });
+  }
+});
+
+test("Windows running executable lock defers shutdown cleanup until the next initialization", {
+  skip: process.platform !== "win32",
+  timeout: 30000,
+}, async () => {
+  const basePath = await mkdtemp(path.join(tmpdir(), "amic-os-update-native-lock-"));
+  const bytes = await readFile(path.join(process.env.SystemRoot, "System32", "cmd.exe"));
+  let child, childExit, readyTimer;
+  const staging = createFileSystemInternalUnsignedUpdateStaging({
+    basePath,
+    async openInstaller(nativePath) {
+      child = spawn(nativePath, ["/d", "/q", "/c", "echo AMIC_LOCK_READY & set /p amicFixture="], {
+        windowsHide: true, stdio: ["pipe", "pipe", "pipe"],
+      });
+      childExit = new Promise(resolve => child.once("close", resolve));
+      await new Promise((resolve, reject) => {
+        let output = "";
+        readyTimer = setTimeout(() => reject(new Error("Windows lock fixture did not become ready")), 10000);
+        child.once("error", reject);
+        child.stdout.on("data", chunk => {
+          output += chunk.toString();
+          if (output.includes("AMIC_LOCK_READY")) { clearTimeout(readyTimer); resolve(); }
+        });
+        child.once("close", () => reject(new Error("Windows lock fixture exited before input")));
+      });
+      return "";
+    },
+  });
+  try {
+    await staging.initialize();
+    const staged = await staging.stage({ candidate: candidate(bytes), chunks: chunks(bytes) });
+    await staging.open({ stageId: staged.stageId, confirmed: true, userActivation: true });
+    assert.equal(child.exitCode, null);
+    assert.throws(() => rmSync(staging.rootPath, { recursive: true, force: false }),
+      error => ["EPERM", "EBUSY"].includes(error.code));
+    assert.deepEqual(staging.clearSync(), { cleared: false, deferred: true });
+    const stagedPath = path.join(staging.rootPath, staged.stageId, candidate(bytes).artifactFilename);
+    assert.deepEqual(await readFile(stagedPath), bytes);
+    child.stdin.end("done\r\n");
+    assert.equal(await childExit, 0);
+    const restarted = createFileSystemInternalUnsignedUpdateStaging({ basePath });
+    assert.deepEqual(await restarted.initialize(), { initialized: true, priorCacheRemoved: true });
+    await assert.rejects(readFile(stagedPath), { code: "ENOENT" });
+    assert.deepEqual(restarted.clearSync(), { cleared: true });
+  } finally {
+    clearTimeout(readyTimer);
+    if (child && child.exitCode === null) { child.kill(); await childExit; }
     await rm(basePath, { recursive: true, force: true });
   }
 });

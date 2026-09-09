@@ -75,6 +75,9 @@ jobs:
       - name: Install
         run: npm ci
 
+      - name: Verify real Windows executable lock cleanup
+        run: node --test apps/desktop/test/internal-unsigned-update-staging.test.mjs
+
       - name: Create an ephemeral public update trust anchor for synthetic package QA
         shell: pwsh
         run: |
