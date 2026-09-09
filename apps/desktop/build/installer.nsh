@@ -105,5 +105,9 @@
   ${Else}
     SetRegView 32
   ${EndIf}
+  SetShellVarContext current
   RMDir /r "$LOCALAPPDATA\AMIC OS\OutlookAttachments"
+  ${If} $installMode == "all"
+    SetShellVarContext all
+  ${EndIf}
 !macroend

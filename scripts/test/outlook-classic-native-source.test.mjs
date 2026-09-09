@@ -63,7 +63,7 @@ test("AMIC OS NSIS installer bundles and user-registers the Classic adapter with
   assert.match(nsis, /SetRegView 64/u);
   assert.match(
     nsis,
-    /!macro customUnInstall[\s\S]*\$\{If\} \$\{RunningX64\}\s+SetRegView 64\s+\$\{Else\}\s+SetRegView 32\s+\$\{EndIf\}\s+RMDir \/r "\$LOCALAPPDATA\\AMIC OS\\OutlookAttachments"\s+!macroend/u,
+    /!macro customUnInstall[\s\S]*\$\{If\} \$\{RunningX64\}\s+SetRegView 64\s+\$\{Else\}\s+SetRegView 32\s+\$\{EndIf\}\s+SetShellVarContext current\s+RMDir \/r "\$LOCALAPPDATA\\AMIC OS\\OutlookAttachments"\s+\$\{If\} \$installMode == "all"\s+SetShellVarContext all\s+\$\{EndIf\}\s+!macroend/u,
   );
   assert.match(nsis, /WriteRegStr HKCU "Software\\Microsoft\\Office\\Outlook\\Addins\\\$\{AMIC_OUTLOOK_PROGID\}"/u);
   assert.match(nsis, /WriteRegDWORD HKCU .*"LoadBehavior" 3/u);
