@@ -120,7 +120,8 @@ export async function handleNativeMatterExportApiRequest(args = {}) {
       const { name } = await target(args, input);
       if (action === "preflight") return { status: 200, body: { request_id: requestId, outcome: "preflight_passed", ok: true,
         matter_id: input.matterId, exact_version: input.exactVersion, lawos_permission_checked: true,
-        provider_grant_created: false, raw_bytes_included: false, token_material_returned: false, storage_locator_returned: false } };
+        provider_authority_checked: false, provider_grant_created: false, raw_bytes_included: false,
+        token_material_returned: false, storage_locator_returned: false } };
       const id = operationId(principal, input.requestNonceSha256);
       if (read(repository, principal.tenant_id, id, "final") || read(repository, principal.tenant_id, id, "downloaded")) fail("ALREADY_CONSUMED");
       let state = read(repository, principal.tenant_id, id, "authorized");

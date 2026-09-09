@@ -4,6 +4,7 @@ import test from "node:test";
 import { createDmsAuxiliaryRepository } from "../../../packages/dms/src/central-ledger.js";
 import { createLocalStorageAdapter } from "../../../packages/dms/src/storage/local-storage-adapter.js";
 import { handleNativeMatterExportApiRequest, NATIVE_MATTER_EXPORT_MAX_BYTES as MAX } from "../src/native-matter-export-runtime.js";
+import { createDesktopFileBridgePermissionClient } from "../../desktop/src/main/main.js";
 
 const NOW = Date.parse("2026-09-09T00:00:00.000Z");
 const TENANT = "tenant-native-export";
@@ -48,6 +49,24 @@ function fixture(t, bytes = Buffer.from("Synthetic native Matter contract")) {
   return { repository, runtime, state, matter, principal, context, capabilities, exact, binding, bytes, target,
     call, authorize, download, complete, reads: () => reads, setNow: (value) => { now = value; } };
 }
+
+test("native preflight satisfies the installed desktop permission adapter before attachment", async (t) => {
+  const f = fixture(t);
+  const permissionClient = createDesktopFileBridgePermissionClient({
+    precheckVaultUpload() { throw new Error("Upload must not be invoked"); },
+    async precheckVaultExport(input) {
+      const response = await f.call("preflight", { matter_id: input.matterId, exact_version: input.exactVersion });
+      return { ...response.body, http_status: response.status };
+    },
+  });
+  const request = { actionId: "attach_document_to_classic_outlook", matterId: MATTER, exactVersion: f.exact };
+  assert.equal((await permissionClient.precheckFileBridgeAction(request)).allowed, true);
+  f.context.object_acl.push({ effect: "deny", principal_id: USER, resource_type: "vault_document",
+    resource_id: f.exact.document_id, action: "dms:document:download" });
+  assert.equal((await permissionClient.precheckFileBridgeAction(request)).allowed, false);
+  assert.equal(f.reads(), 0);
+  assert.equal(f.repository.snapshot().idempotency.length, 0);
+});
 
 test("native Matter attach binds the existing desktop protocol and consumes bytes only once", async (t) => {
   const f = fixture(t);
