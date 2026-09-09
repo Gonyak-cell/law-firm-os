@@ -24,6 +24,7 @@ import {
   createDefaultCrmIntakeRuntime,
 } from "../apps/api/src/server.js";
 import { createFinanceRuntimeContext } from "../apps/api/src/finance-runtime-context.js";
+import { createHrxRuntimeContext } from "../apps/api/src/hrx-runtime-context.js";
 import { outlookAddinProofSnapshot } from "../apps/api/src/outlook-addin-runtime-context.js";
 import { createDmsRepository, createFileStorageAdapter } from "../packages/dms/src/index.js";
 import { createMatterRepository } from "../packages/matter/src/index.js";
@@ -42,7 +43,7 @@ import {
 } from "../packages/email-dms/src/m365-connection-model.js";
 import { createOutlookAttachmentReceiptAuthority } from "../apps/api/src/outlook-attachment-receipt-authority.js";
 import { createApiSessionAuth } from "../apps/api/src/session-auth.js";
-import { findRegisteredAccountByEmail } from "../apps/api/src/matter-vault-account-registry.js";
+import { createSyntheticPrivateRuntimeSources } from "./test/helpers/synthetic-private-runtime-sources.mjs";
 import { IDENTITY_LEDGER_CONTRACT_VERSION, IDENTITY_LEDGER_METHODS } from "../packages/runtime-auth/src/identity-ledger.js";
 import { startOutlookAddinStaticServer } from "./lib/outlook-addin-static-server.mjs";
 import { parseOutlookManifest } from "./lib/outlook-manifest-projection.mjs";
@@ -69,8 +70,9 @@ const RELEASE_MANIFEST_PATHS = Object.freeze([
   "apps/addin/manifest.inquiry.xml",
   "apps/addin/manifest.inquiry.production.xml",
 ]);
-const FOREIGN_ACCOUNT = findRegisteredAccountByEmail("qa.tenant-b@amic.kr");
-const SESSION_B_ACCOUNT = findRegisteredAccountByEmail("wsjo@amic.kr");
+const PROOF_USERS = createSyntheticPrivateRuntimeSources().registration.users;
+const FOREIGN_ACCOUNT = PROOF_USERS.find((user) => user.user_id === "user_qa_tenant_b");
+const SESSION_B_ACCOUNT = PROOF_USERS.find((user) => user.user_id === "user_amic_wsjo");
 const ENTRA_TENANT = "entra_upl_c09_c12_synthetic";
 const SESSION_SECRET = "upl-c09-c12-session-secret-at-least-32-characters";
 
@@ -207,7 +209,7 @@ function userTenant(user) {
 
 function createSessionAuthFixture() {
   const users = [
-    findRegisteredAccountByEmail("jwsuh@amic.kr"),
+    PROOF_USERS.find((user) => user.user_id === ACTOR),
     SESSION_B_ACCOUNT,
     FOREIGN_ACCOUNT,
   ].filter(Boolean).map((user) => Object.freeze({
@@ -541,6 +543,7 @@ function createProofRuntime() {
     m365GraphConfig,
     attachmentReceiptAuthority,
     financeRuntime,
+    hrxRuntime: createHrxRuntimeContext({ repository: employeeRepository, seedRuntimeFixtures: false }),
     outlookDesktopRuntime: installationAuthority.runtime,
     sessionAuth: installationAuthority.wrapSessionAuth(auth.sessionAuth),
     foreignSessionAuth: auth.foreignSessionAuth,
@@ -1553,6 +1556,7 @@ const api = await startProofApiServer({
   emailDmsRuntime: proof.runtime.emailDmsRuntime,
   crmIntakeRuntime: proof.runtime.crmIntakeRuntime,
   financeRuntime: proof.runtime.financeRuntime,
+  hrxRuntime: proof.runtime.hrxRuntime,
   m365GraphConfig: proof.runtime.m365GraphConfig,
   sessionAuth: proof.runtime.sessionAuth,
   outlookDesktopRuntime: proof.runtime.outlookDesktopRuntime,
