@@ -25,6 +25,8 @@ import { createPostgresApiRuntimeAuthority } from "../src/postgres-api-runtime-a
 import { createBankImportPreviewTokenAuthority } from "../src/bank-import-preview-token.js";
 import { createApiServer } from "../src/server.js";
 import { createMatterVaultAwsRuntimeClient } from "../../desktop/src/main/aws-runtime.js";
+import { createMatterRepository } from "../../../packages/matter/src/repository.js";
+import { MATTER_DOMAIN_DESCRIPTOR } from "../../../packages/matter/src/central-ledger.js";
 
 const TENANT = "tenant-corporate-warm-api-test";
 const OWNER = "user-corporate-warm-owner";
@@ -147,7 +149,7 @@ test("the same PostgreSQL HTTP server and signed bearers observe external worksp
     idempotency_key: "corporate-warm-source", session_id: "session-corporate-warm", object_id: SOURCE.object_id });
   const sessionAuth = createApiSessionAuth({ profile: "operational", trustedTenantId: TENANT, secret: SECRET,
     vaultCapabilityResolver: async () => ({ authoritative: true, provider_state: "ready", authority_ref: "synthetic-native-export",
-      tenant_binding_state: "bound", user_binding_state: "bound", capabilities: { read: true, download: true } }),
+      tenant_binding_state: "bound", user_binding_state: "bound", capabilities: { read: true, download: true, attach: true } }),
     identityRepository: identity, now: () => NOW, objectAclResolver: createPostgresSessionObjectAclResolver({ ledger }) });
   const authority = createPostgresApiRuntimeAuthority({ ledger, identityRepository: identity, dmsStorage: storage,
     dmsUploadRuntime: uploadRuntime, payrollArtifactSecret: SECRET,
@@ -287,4 +289,84 @@ test("the same PostgreSQL HTTP server and signed bearers observe external worksp
   assert.equal(preserved.document.current_version_id, SOURCE.version_id);
   assert.equal(preserved.file_objects[0].status, "committed");
   assert.equal(baseStorage.statObject({ tenant_id: TENANT, object_id: SOURCE.object_id }).sha256, SOURCE.sha256);
+
+  // Exercise the installed desktop's Matter/Outlook wire protocol against real
+  // PostgreSQL, including fresh request materialization and atomic audit failure.
+  const matterId = "matter-native-outlook-warm";
+  const matterRepository = createMatterRepository({ seedRecords: [{ model_type: "Matter", tenant_id: TENANT,
+    matter_id: matterId, matter_code: "SYNTHETIC/NATIVE/EXPORT", client_id: "client-native-outlook-warm",
+    title: "Synthetic native Outlook Matter", status: "open", created_by: OWNER,
+    created_at: new Date(NOW).toISOString(), permission_envelope_id: "permission-native-outlook",
+    audit_trace_id: "audit-native-outlook" }] });
+  try {
+    await externalLedger.importSnapshot(createRecordRepositoryDomainSnapshot({ descriptor: MATTER_DOMAIN_DESCRIPTOR,
+      repositories: matterRepository, tenant_id: TENANT }).snapshot);
+  } finally { matterRepository.close(); }
+  const matterWorkspace = createDmsWorkspace({ tenant_id: TENANT, matter_id: matterId, workspace_id: "workspace-native-outlook",
+    name: "Synthetic native Outlook", status: "active", permission_envelope_id: "permission-native-outlook",
+    audit_trace_id: "audit-native-outlook" });
+  const workspaceRepository = createDmsAuxiliaryRepository({ seedRecords: [matterWorkspace] });
+  try {
+    const snapshot = createRecordRepositoryDomainSnapshot({ descriptor: DMS_AUXILIARY_DOMAIN_DESCRIPTOR,
+      repositories: workspaceRepository, tenant_id: TENANT }).snapshot;
+    await externalLedger.write({ ...snapshot.records[0], expected_version: 0 });
+  } finally { workspaceRepository.close(); }
+  const matterDocument = await externalUpload.uploadDocument({ document: { tenant_id: TENANT, document_id: "document-native-outlook",
+    current_version_id: "version-native-outlook", workspace_id: matterWorkspace.workspace_id, matter_id: matterId,
+    permission_envelope_id: "permission-native-outlook", audit_trace_id: "audit-native-outlook",
+    title: "Synthetic native contract.pdf", mime_type: "application/pdf" }, bytes: BYTES, actor_id: OWNER,
+    idempotency_key: "source-native-outlook", session_id: "session-native-outlook", object_id: "object-native-outlook" });
+  const exact = { document_id: matterDocument.document.document_id, version_id: matterDocument.version.version_id,
+    file_object_id: matterDocument.file_object.file_object_id, sha256: digest(BYTES), byte_size: BYTES.length, mime_type: "application/pdf" };
+  const attachInput = { matterId, exactVersion: exact, operationKind: "attach_outlook", requestNonceSha256: "1".repeat(64),
+    installationRefSha256: "2".repeat(64), composeTargetSha256: "3".repeat(64), sessionToken: bearers.get(OWNER).slice(7) };
+  await authority.run({ tenant_id: TENANT, request_context: { method: "POST", pathname: "/api/vault/desktop/export-preflight" }, command: () => null });
+  const matterPreflight = await client.precheckVaultExport(attachInput);
+  assert.equal(matterPreflight.http_status, 200, JSON.stringify(matterPreflight));
+  const nativeDownload = await client.downloadVaultExactVersion(attachInput);
+  assert.deepEqual(nativeDownload.bytes, BYTES);
+  const attachComplete = { ...attachInput, operationId: nativeDownload.operation_id, completionStage: "attached" };
+  await assert.rejects(client.completeVaultExport({ ...attachComplete, composeTargetSha256: "4".repeat(64) }));
+  assert.equal((await client.completeVaultExport(attachComplete)).receipt.stage, "attached");
+  const afterAttach = await ledger.listAudit({ tenant_id: TENANT, domain_id: "dms-auxiliary" });
+  assert.equal((await client.completeVaultExport(attachComplete)).outcome, "attached");
+  assert.deepEqual(await ledger.listAudit({ tenant_id: TENANT, domain_id: "dms-auxiliary" }), afterAttach);
+  await assert.rejects(client.downloadVaultExactVersion(attachInput));
+
+  const matterRequest = async (stage, body, headers = {}) => {
+    const response = await fetch(`${baseUrl}/api/vault/desktop/export-${stage}`, { method: "POST",
+      headers: { authorization: bearers.get(OWNER), "content-type": "application/json", ...headers }, body: JSON.stringify(body) });
+    return { status: response.status, body: response.headers.get("content-type")?.includes("application/json")
+      ? await response.json() : Buffer.from(await response.arrayBuffer()) };
+  };
+  const authorizeBody = { matter_id: matterId, exact_version: exact, operation_kind: "attach_outlook",
+    request_nonce_sha256: "5".repeat(64), installation_ref_sha256: attachInput.installationRefSha256,
+    compose_target_sha256: attachInput.composeTargetSha256 };
+  const authorizedMatter = await matterRequest("authorize", authorizeBody);
+  assert.equal(authorizedMatter.status, 200, JSON.stringify(authorizedMatter.body));
+  const docAcl = { tenant_id: TENANT, domain_id: "authz", record_type: "ObjectAcl", record_id: "acl-native-outlook-document" };
+  await externalLedger.write({ ...docAcl, expected_version: 0, payload: { acl_id: docAcl.record_id, tenant_id: TENANT,
+    principal_id: OWNER, resource_type: "vault_document", resource_id: exact.document_id, effect: "deny", action: "dms:document:download" } });
+  const readsBeforeDenied = providerReads;
+  assert.equal((await matterRequest("download", { operation_id: authorizedMatter.body.operation_id },
+    { "idempotency-key": authorizedMatter.body.operation_id })).status, 403);
+  assert.equal(providerReads, readsBeforeDenied);
+  await externalLedger.write({ ...docAcl, expected_version: 1, payload: { acl_id: docAcl.record_id, tenant_id: TENANT,
+    principal_id: OWNER, resource_type: "vault_document", resource_id: exact.document_id, effect: "allow", action: "dms:document:download" } });
+  const requests = await Promise.all([0, 1].map(() => matterRequest("download", { operation_id: authorizedMatter.body.operation_id },
+    { "idempotency-key": authorizedMatter.body.operation_id })));
+  assert.equal(requests.filter((result) => result.status === 200).length, 1, "concurrent download must deliver only one response");
+  const beforeFailure = await ledger.listIdempotency({ tenant_id: TENANT, domain_id: "dms-auxiliary" });
+  await fixture.adminPool.query(`CREATE FUNCTION lawos_domain.synthetic_matter_export_audit_failure() RETURNS trigger
+    LANGUAGE plpgsql AS $$ BEGIN IF NEW.event_id LIKE 'lawos.native-matter-export.v1:%' THEN
+      RAISE EXCEPTION 'synthetic Matter export audit failure'; END IF; RETURN NEW; END $$;
+    CREATE TRIGGER synthetic_matter_export_audit_failure BEFORE INSERT ON lawos_domain.audit_events
+      FOR EACH ROW EXECUTE FUNCTION lawos_domain.synthetic_matter_export_audit_failure()`);
+  try {
+    assert.equal((await matterRequest("authorize", { ...authorizeBody, request_nonce_sha256: "6".repeat(64) })).status, 503);
+  } finally {
+    await fixture.adminPool.query("DROP TRIGGER synthetic_matter_export_audit_failure ON lawos_domain.audit_events; DROP FUNCTION lawos_domain.synthetic_matter_export_audit_failure()");
+  }
+  assert.deepEqual(await ledger.listIdempotency({ tenant_id: TENANT, domain_id: "dms-auxiliary" }), beforeFailure);
+  assert.equal(baseStorage.statObject({ tenant_id: TENANT, object_id: "object-native-outlook" }).sha256, exact.sha256);
 });

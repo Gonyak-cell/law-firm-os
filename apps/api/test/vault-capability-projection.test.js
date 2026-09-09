@@ -23,6 +23,10 @@ test("native PostgreSQL capabilities require a probed authority and exact tenant
   const ready = await read();
   assert.equal(ready.authoritative, true);
   assert.deepEqual(ready.capabilities.filter((item) => item.allowed).map((item) => item.id), ["read", "download", "audit"]);
+  const native = createPostgresVaultCapabilityResolver({ tenantId: "tenant_amic",
+    consumerReadAuthority: { validate: () => contract }, nativeMatterExportEnabled: true });
+  assert.equal(decisions(await resolveVaultCapabilityProjection({ principal: principal(["vault.read"]), resolver: native })).attach.allowed, true);
+  assert.equal(decisions(await resolveVaultCapabilityProjection({ principal: principal([]), resolver: native })).attach.allowed, false);
   assert.ok((await read(principal([]))).capabilities.every((item) => !item.allowed));
   assert.equal((await read({ ...principal(["vault.read"]), tenant_id: "tenant_other" })).authoritative, false);
   assert.equal(resolver({ tenant_id: "tenant_amic", user_id: " " }), null);

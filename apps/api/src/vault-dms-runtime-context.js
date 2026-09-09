@@ -277,7 +277,7 @@ function routeGate({ context, query, requestId, action, resource, repository }) 
   return response;
 }
 
-function documentRouteGate({ context, query, requestId, action, document, runtime }) {
+export function documentRouteGate({ context, query, requestId, action, document, runtime }) {
   const invalid = validateCommonQuery(query, requestId);
   if (invalid) return invalid;
   const decision = evaluateVaultCorporatePermission({

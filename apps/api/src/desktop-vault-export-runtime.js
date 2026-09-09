@@ -87,7 +87,7 @@ function exactVersion(value) {
   });
 }
 
-function normalizeAuthorizeBody(body) {
+export function normalizeAuthorizeBody(body) {
   const operationKind = body?.operation_kind === "attach_outlook"
     ? "attach_outlook"
     : "export_exact_version";
@@ -125,7 +125,7 @@ function normalizeAuthorizeBody(body) {
   });
 }
 
-function normalizePreflightBody(body) {
+export function normalizePreflightBody(body) {
   exactObjectKeys(
     body,
     ["matter_id", "exact_version"],
@@ -138,7 +138,7 @@ function normalizePreflightBody(body) {
   });
 }
 
-function normalizeDownloadBody(body) {
+export function normalizeDownloadBody(body) {
   exactObjectKeys(body, ["operation_id"], "desktop Vault export download");
   assertNoClientSuppliedVaultAuthority(body);
   if (!OPERATION_ID.test(body.operation_id ?? "")) {
@@ -147,7 +147,7 @@ function normalizeDownloadBody(body) {
   return Object.freeze({ operationId: body.operation_id });
 }
 
-function normalizeCompleteBody(body) {
+export function normalizeCompleteBody(body) {
   const operationKind = body?.operation_kind === "attach_outlook"
     ? "attach_outlook"
     : "export_exact_version";
@@ -243,7 +243,7 @@ function requirePermission({ context, tenantId, matterId, action }) {
   }
 }
 
-async function requireDownloadAuthority({
+export async function requireDownloadAuthority({
   sessionAuth,
   principal,
   context,
