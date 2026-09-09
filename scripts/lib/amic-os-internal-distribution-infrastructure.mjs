@@ -710,6 +710,14 @@ export function buildAmicInternalDistributionTemplate() {
           },
           exactVersionReadStatement(),
           {
+            Sid: "ReadCurrentChannelForConditionalCommit",
+            Effect: "Allow",
+            Action: "s3:GetObject",
+            Resource: {
+              "Fn::Sub": `\${ArtifactBucket.Arn}/${AMIC_INTERNAL_DISTRIBUTION_PREFIX}channel/*`,
+            },
+          },
+          {
             Sid: "InspectInternalUnsignedArtifactKey",
             Effect: "Allow",
             Action: "kms:DescribeKey",
