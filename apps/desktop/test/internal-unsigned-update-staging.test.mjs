@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
+import { lstatSync, rmSync } from "node:fs";
 import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
@@ -137,6 +138,66 @@ test("internal-unsigned staging rehashes immediately before opening and rejects 
       (error) => error.code === "UPDATE_CACHE_FILE_HASH_MISMATCH",
     );
     assert.equal(opened, false);
+  } finally {
+    await rm(basePath, { recursive: true, force: true });
+  }
+});
+
+test("shutdown defers an opened installer's locked cache and a later launch cleans it", async (t) => {
+  for (const code of ["EPERM", "EBUSY"]) {
+    await t.test(code, async () => {
+      const basePath = await mkdtemp(path.join(tmpdir(), "amic-os-update-locked-"));
+      const bytes = Buffer.from("verified-running-installer");
+      const staging = createFileSystemInternalUnsignedUpdateStaging({
+        basePath,
+        rmSyncImpl() { throw Object.assign(new Error("installer is running"), { code }); },
+      });
+      try {
+        await staging.initialize();
+        const staged = await staging.stage({ candidate: candidate(bytes), chunks: chunks(bytes) });
+        await staging.open({ stageId: staged.stageId, confirmed: true, userActivation: true });
+        assert.deepEqual(staging.clearSync(), { cleared: false, deferred: true });
+        assert.deepEqual(await readFile(path.join(staging.rootPath, staged.stageId, candidate(bytes).artifactFilename)), bytes);
+        const restarted = createFileSystemInternalUnsignedUpdateStaging({ basePath });
+        assert.deepEqual(await restarted.initialize(), { initialized: true, priorCacheRemoved: true });
+        assert.deepEqual(restarted.clearSync(), { cleared: true });
+      } finally {
+        await rm(basePath, { recursive: true, force: true });
+      }
+    });
+  }
+});
+
+test("shutdown preserves cleanup errors unless an installer was opened and the error is a file lock", async () => {
+  const basePath = await mkdtemp(path.join(tmpdir(), "amic-os-update-clear-errors-"));
+  let failure = "EPERM";
+  let unsafeRoot = false;
+  const staging = createFileSystemInternalUnsignedUpdateStaging({
+    basePath,
+    lstatSyncImpl(nativePath) {
+      return unsafeRoot ? { isSymbolicLink: () => true } : lstatSync(nativePath);
+    },
+    rmSyncImpl(...args) {
+      if (failure) throw Object.assign(new Error("cleanup failed"), { code: failure });
+      return rmSync(...args);
+    },
+  });
+  try {
+    await staging.initialize();
+    assert.throws(() => staging.clearSync(), { code: "EPERM" });
+    const bytes = Buffer.from("verified-installer");
+    const staged = await staging.stage({ candidate: candidate(bytes), chunks: chunks(bytes) });
+    await staging.open({ stageId: staged.stageId, confirmed: true, userActivation: true });
+    unsafeRoot = true;
+    assert.throws(() => staging.clearSync(), { code: "UPDATE_CACHE_ROOT_UNSAFE" });
+    unsafeRoot = false;
+    failure = "EIO";
+    assert.throws(() => staging.clearSync(), { code: "EIO" });
+    failure = null;
+    assert.deepEqual(staging.clearSync(), { cleared: true });
+    await staging.initialize();
+    failure = "EPERM";
+    assert.throws(() => staging.clearSync(), { code: "EPERM" });
   } finally {
     await rm(basePath, { recursive: true, force: true });
   }

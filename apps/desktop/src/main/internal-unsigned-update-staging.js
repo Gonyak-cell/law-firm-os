@@ -95,6 +95,7 @@ export function createFileSystemInternalUnsignedUpdateStaging({
   const rootPath = join(resolve(basePath), INTERNAL_UNSIGNED_UPDATE_CACHE_DIRECTORY);
   const stages = new Map();
   let initialized = false;
+  let installerOpened = false;
 
   async function rootStat() {
     let stat;
@@ -114,6 +115,7 @@ export function createFileSystemInternalUnsignedUpdateStaging({
     if (await rootStat()) await rmImpl(rootPath, { recursive: true, force: false });
     stages.clear();
     initialized = false;
+    installerOpened = false;
   }
 
   async function verifyEntry(entry) {
@@ -223,6 +225,7 @@ export function createFileSystemInternalUnsignedUpdateStaging({
       if (typeof result === "string" && result) {
         fail("UPDATE_INSTALLER_OPEN_FAILED", "Windows refused to open the staged internal installer");
       }
+      installerOpened = true;
       return Object.freeze({
         state: "installer_opened",
         stageId: entry.stageId,
@@ -266,9 +269,19 @@ export function createFileSystemInternalUnsignedUpdateStaging({
       if (stat?.isSymbolicLink?.() || stat?.isDirectory?.() !== true) {
         fail("UPDATE_CACHE_ROOT_UNSAFE", "Refusing to clear an unsafe internal update cache root");
       }
-      rmSyncImpl(rootPath, { recursive: true, force: false });
+      try {
+        rmSyncImpl(rootPath, { recursive: true, force: false });
+      } catch (error) {
+        // Windows keeps a running installer locked until its process exits.
+        // The next initialization retries cleanup of this same owned cache.
+        if (installerOpened && ["EPERM", "EBUSY"].includes(error?.code)) {
+          return Object.freeze({ cleared: false, deferred: true });
+        }
+        throw error;
+      }
       stages.clear();
       initialized = false;
+      installerOpened = false;
       return Object.freeze({ cleared: true });
     },
   });
