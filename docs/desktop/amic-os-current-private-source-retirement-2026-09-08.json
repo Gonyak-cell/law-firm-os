@@ -1,0 +1,57 @@
+{
+  "schema_version": "law-firm-os.current-private-source-retirement.v1",
+  "status": "retired-from-current-source",
+  "source_sha": "192fa4e2b2440cee91ed0e3c7f98dcd93a239aae",
+  "retired_at": "2026-09-09T04:54:51.312119+00:00",
+  "files": [
+    {
+      "path": "docs/reorganization/client-matter-os/matter-vault-r4/launch/hrx-member-roster-source-of-truth.json",
+      "sha256": "e55d5ffcf270215aabc0a8fdcfad2b118ab0bdfeb43747d27c0aa3ac20ea504f",
+      "bytes": 16550
+    },
+    {
+      "path": "apps/api/src/hrx-member-photos/167499af06d33e69afce9bf8047ec0233c4037aecda34e3056ba83f287af103f.png",
+      "sha256": "aa0101f42796600165456da3d11421a68082cb796a8c93be3e583d11282aebf0",
+      "bytes": 125419
+    },
+    {
+      "path": "apps/api/src/hrx-member-photos/729b8639553bbcfd2b721efd1f8c06ab4c2e1d9c52679b64950322979548fb81.png",
+      "sha256": "7c47cb43d316eb9fda99714cf7469551b9c4857f78eeac81ab54d47f9ffd0c0a",
+      "bytes": 121058
+    },
+    {
+      "path": "apps/api/src/hrx-member-photos/b6ad38508be75403e379885a95ef91c3f77da7d19ac4f8635ba328f6a6da0725.png",
+      "sha256": "f4acd6e74675d86e250fe41bdf410b8fa51f9ec6bc2c7598707764a8b34011e7",
+      "bytes": 1186083
+    },
+    {
+      "path": "apps/api/src/hrx-member-photos/c1fd85d4f8d574a98a743afea034d702d3b4242a9c57ecf2c0ecad9e5cd31ad8.png",
+      "sha256": "66118c72870f05474dd6725e9686d7871c277d818cb474dd04e3d88d53b1fcad",
+      "bytes": 133800
+    },
+    {
+      "path": "apps/api/src/hrx-member-photos/e72b1c79fcf11f443a3d347924ffc6e8a339b004c824395d756f273f2422e9e7.png",
+      "sha256": "1207e8e720de0d19a14373395b6c7e109c5920f16e6d146f52054cf71e8a742c",
+      "bytes": 144726
+    },
+    {
+      "path": "docs/reorganization/client-matter-os/matter-vault-r4/launch/matter-vault-user-registration-seed.json",
+      "sha256": "4737f0a60cd206e5bbd9a22ea8f6d749181c425c5a79bc9ac4d612f11cdd7473",
+      "bytes": 15128
+    }
+  ],
+  "private_backup": {
+    "archive_sha256": "85c8bc1d8f82358cd06cc00e6942938d19c8d042566a53a20b94ac18fe583309",
+    "restored_file_count": 7,
+    "digest_mismatch_count": 0
+  },
+  "verification_receipt_sha256": {
+    "corporate_readback": "6213408372d9e5278574177805601db471ca062dff19aa0b09e63f9f67fe596a",
+    "photo_readback": "dfa5aa683ba82c5421c7c0bd1ec479a15dab05ab9f865dba6ab91d2745a4a465",
+    "private_input_validation": "1fc6f4044f93c2c77d9f65172fa53c5ab445a453f13421e968fd1b35e5a02252",
+    "privacy_scan": "d16ad7f0897959a449f5165005003c7c05eb990b98d04b1f06115098f1f81fd8"
+  },
+  "downloads_originals_removed": false,
+  "git_history_rewritten": false,
+  "other_worktrees_removed": false
+}
