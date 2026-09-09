@@ -99,7 +99,7 @@ for (const [path, content, markers] of [
   ["apps/web/src/people/hrxApiClient.ts", apiClient, ["professional_profile", "fetchHrxEmployeeProfile"]],
   ["apps/web/src/people/employees/EmployeeProfile.tsx", employeeProfile, ["ProfessionalProfileSection", "data-people-professional-profile-kind={profileKind}", "주요 경력", "학력", "자격"]],
   ["apps/web/src/styles.css", styles, [".people-professional-profile", ".people-professional-list"]],
-  ["apps/api/test/hrx-runtime-api.test.js", hrxRuntimeTest, ["professional_profile", "김양태", "조우상"]],
+  ["apps/api/test/hrx-runtime-api.test.js", hrxRuntimeTest, ["professional_profile", 'professional_profile?.profile_kind, "cpa"', 'professional_profile?.profile_kind, "deal_advisor"']],
   ["apps/web/test/ui-regression.test.mjs", uiRegressionTest, ["professional_profile", "data-people-professional-profile-kind"]],
   ["scripts/validate-lcx-hrx-sft-roster-source.mjs", rosterValidator, ["professional_profile", "김양태", "조우상"]],
   ["scripts/validate-hrx-ui-api-backed.mjs", uiValidator, ["ProfessionalProfileSection", "professionalKindLabel"]]
