@@ -25,6 +25,7 @@ import { createPostgresApiRuntimeAuthority } from "../src/postgres-api-runtime-a
 import { createBankImportPreviewTokenAuthority } from "../src/bank-import-preview-token.js";
 import { createApiServer } from "../src/server.js";
 import { createMatterVaultAwsRuntimeClient } from "../../desktop/src/main/aws-runtime.js";
+import { createDesktopFileBridgePermissionClient } from "../../desktop/src/main/main.js";
 import { createMatterRepository } from "../../../packages/matter/src/repository.js";
 import { MATTER_DOMAIN_DESCRIPTOR } from "../../../packages/matter/src/central-ledger.js";
 
@@ -321,8 +322,14 @@ test("the same PostgreSQL HTTP server and signed bearers observe external worksp
   const attachInput = { matterId, exactVersion: exact, operationKind: "attach_outlook", requestNonceSha256: "1".repeat(64),
     installationRefSha256: "2".repeat(64), composeTargetSha256: "3".repeat(64), sessionToken: bearers.get(OWNER).slice(7) };
   await authority.run({ tenant_id: TENANT, request_context: { method: "POST", pathname: "/api/vault/desktop/export-preflight" }, command: () => null });
-  const matterPreflight = await client.precheckVaultExport(attachInput);
-  assert.equal(matterPreflight.http_status, 200, JSON.stringify(matterPreflight));
+  const nativePermissionClient = createDesktopFileBridgePermissionClient({
+    precheckVaultUpload() { throw new Error("Upload must not be invoked"); },
+    precheckVaultExport: (input) => client.precheckVaultExport({ ...input, sessionToken: attachInput.sessionToken }),
+  });
+  const matterPreflight = await nativePermissionClient.precheckFileBridgeAction({
+    actionId: "attach_document_to_classic_outlook", matterId, exactVersion: exact,
+  });
+  assert.equal(matterPreflight.allowed, true, JSON.stringify(matterPreflight));
   const nativeDownload = await client.downloadVaultExactVersion(attachInput);
   assert.deepEqual(nativeDownload.bytes, BYTES);
   const attachComplete = { ...attachInput, operationId: nativeDownload.operation_id, completionStage: "attached" };
