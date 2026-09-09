@@ -14,7 +14,7 @@ const PASSWORD = "synthetic-vault-capability-password";
 const MEMBERSHIP = { status: "active", role_ids: ["lawos_staff"], group_ids: [],
   scopes: ["vault.read", "audit.read"], hrx_scopes: [], source_ref: "synthetic-vault-capability-startup" };
 
-test("operational startup publishes native Vault reads without an external provider and honors explicit resolver overrides", { timeout: 90_000 }, async (t) => {
+test("operational startup publishes native Vault reads and attachment without an external provider and honors explicit resolver overrides", { timeout: 90_000 }, async (t) => {
   const fixture = await createOutlookAuthorityPostgresFixture(t, { appPoolMax: 1 });
   if (!fixture) return;
   await runHistoricalHrxPostgresMigrations(fixture.adminPool);
@@ -35,7 +35,7 @@ test("operational startup publishes native Vault reads without an external provi
       tenant_binding_state: "bound", user_binding_state: "bound", capabilities: { download: true } };
   };
   for (const [label, extra, allowed] of [
-    ["native", {}, ["read", "download", "audit"]],
+    ["native", {}, ["read", "download", "attach", "audit"]],
     ["disabled", { vaultCapabilityResolver: null }, []],
     ["external", { vaultUploadProvider: { resolveCapabilities: providerResolver } }, ["download"]],
   ]) {
