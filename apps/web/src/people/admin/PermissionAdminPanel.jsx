@@ -1,9 +1,11 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Database, KeyRound, Lock, PlugZap, RefreshCw, ShieldCheck, UserPlus } from "lucide-react";
 import { DataTable, Panel, Property } from "../../components/primitives.jsx";
 import {
   assignPermissionSet,
+  adminUserProfile,
   approveAdminBreakGlass,
+  createPersonInvitation,
   createConnectedApp,
   createPermissionSet,
   disableAdminSecurityUser,
@@ -12,6 +14,7 @@ import {
   fetchAdminPermissionAudit,
   fetchAdminSecurityAudit,
   fetchAdminSecurityUsers,
+  fetchPersonInvitationOptions,
   fetchConnectedApps,
   fetchObjectManagerFields,
   fetchObjectManagerObjects,
@@ -85,6 +88,122 @@ function statusClass(result) {
   return "live-data-state";
 }
 
+function UserProfileEditor({ users }) {
+  const [userId, setUserId] = useState("");
+  const [draft, setDraft] = useState(null);
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState("");
+  const attempt = useRef(null);
+  const fields = [["display_name", "표시 이름"], ["legal_name", "법적 이름"], ["english_name", "영문 이름"], ["mobile_phone", "연락처"], ["contact_email", "연락용 이메일"]];
+  function fromItem(item) {
+    return { ...Object.fromEntries(fields.map(([key]) => [key, item[key] ?? ""])), bio: item.professional_profile?.bio ?? "" };
+  }
+  useEffect(() => {
+    let cancelled = false;
+    setDraft(null);
+    setMessage("");
+    attempt.current = null;
+    if (userId) {
+      setBusy(true);
+      adminUserProfile({ userId }).then(result => {
+        if (cancelled) return;
+        setBusy(false);
+        if (result.kind === "data") setDraft(fromItem(result.item));
+        else setMessage("프로필을 불러오지 못했습니다.");
+      });
+    }
+    return () => { cancelled = true; };
+  }, [userId]);
+  async function save() {
+    const fingerprint = JSON.stringify(draft);
+    if (attempt.current?.fingerprint !== fingerprint) attempt.current = { fingerprint, key: crypto.randomUUID() };
+    setBusy(true);
+    const { bio, ...profile } = draft;
+    const result = await adminUserProfile({ userId, patch: { ...profile, professional_profile: { bio } }, idempotencyKey: attempt.current.key });
+    setBusy(false);
+    if (result.kind === "data") { setDraft(fromItem(result.item)); attempt.current = null; setMessage("저장됨"); }
+    else setMessage("저장을 확인하지 못했습니다. 다시 시도해 주세요.");
+  }
+  return <div className="person-profile-admin-editor matter-profile-field-list" data-admin-person-profile="true">
+    <label>프로필 수정 대상
+      <select value={userId} disabled={busy} onChange={event => setUserId(event.target.value)}>
+        <option value="">사용자 선택</option>
+        {users.map(user => <option key={user.user_id} value={user.user_id}>{user.display_name}</option>)}
+      </select>
+    </label>
+    {draft && <fieldset disabled={busy}>
+      <legend>프로필</legend>
+      {fields.map(([key, label]) => <label key={key} className="matter-profile-field-row matter-profile-field-row-edit">
+        <span>{label}</span><input value={draft[key]} maxLength={key === "mobile_phone" ? 80 : 254} onChange={event => setDraft(current => ({ ...current, [key]: event.target.value }))} />
+      </label>)}
+      <label className="matter-profile-field-row matter-profile-field-row-edit"><span>소개</span>
+        <textarea value={draft.bio} maxLength={4000} onChange={event => setDraft(current => ({ ...current, bio: event.target.value }))} />
+      </label>
+      <button type="button" className="secondary-button" disabled={!draft.display_name.trim()} onClick={save}>프로필 저장</button>
+    </fieldset>}
+    <span role="status">{busy ? "처리 중" : message}</span>
+  </div>;
+}
+
+function PersonOnboardingForm({ clientGroups, onCreated }) {
+  const empty = { type: "internal", email: "", display_name: "", legal_name: "", mobile_phone: "", contact_email: "", professional_profile: { bio: "" },
+    employment_type: "full_time", title: "", org_unit_id: "", effective_from: new Date().toISOString().slice(0, 10), client_group_id: "" };
+  const [draft, setDraft] = useState(empty);
+  const [busy, setBusy] = useState(false);
+  const [receipt, setReceipt] = useState(null);
+  const attempt = useRef(null);
+  function change(key, value) { setDraft(current => ({ ...current, [key]: value })); setReceipt(null); }
+  async function submit(event) {
+    event.preventDefault();
+    const fingerprint = JSON.stringify(draft);
+    if (attempt.current?.fingerprint !== fingerprint) attempt.current = { fingerprint, key: crypto.randomUUID() };
+    setBusy(true);
+    const result = await createPersonInvitation({ input: draft, idempotencyKey: attempt.current.key });
+    setBusy(false);
+    if (result.kind === "data") {
+      setReceipt(result);
+      attempt.current = null;
+      onCreated?.();
+    } else setReceipt({ kind: "error", safeErrorCodes: result.safeErrorCodes });
+  }
+  return <form className="person-onboarding-form matter-profile-field-list" data-person-onboarding="true" onSubmit={submit}>
+    <label>사용자 유형
+      <select value={draft.type} disabled={busy} onChange={event => change("type", event.target.value)}>
+        <option value="internal">내부 구성원</option>
+        <option value="external">외부 사용자</option>
+      </select>
+    </label>
+    <label>로그인 이메일<input type="email" required value={draft.email} onChange={event => change("email", event.target.value)} /></label>
+    <label>표시 이름<input required value={draft.display_name} onChange={event => change("display_name", event.target.value)} /></label>
+    <label>법적 이름<input value={draft.legal_name} onChange={event => change("legal_name", event.target.value)} /></label>
+    <label>연락처<input value={draft.mobile_phone} onChange={event => change("mobile_phone", event.target.value)} /></label>
+    <label>연락용 이메일<input type="email" value={draft.contact_email} onChange={event => change("contact_email", event.target.value)} /></label>
+    <label>소개<textarea maxLength={4000} value={draft.professional_profile.bio}
+      onChange={event => change("professional_profile", { bio: event.target.value })} /></label>
+    {draft.type === "internal" ? <>
+      <label>고용 형태<select value={draft.employment_type} onChange={event => change("employment_type", event.target.value)}>
+        <option value="full_time">정규직</option><option value="part_time">시간제</option><option value="contractor">계약직</option><option value="intern">인턴</option>
+      </select></label>
+      <label>직함<input value={draft.title} onChange={event => change("title", event.target.value)} /></label>
+      <label>조직 ID<input value={draft.org_unit_id} onChange={event => change("org_unit_id", event.target.value)} /></label>
+      <label>시작일<input type="date" required value={draft.effective_from} onChange={event => change("effective_from", event.target.value)} /></label>
+    </> : <>
+      <label>고객 그룹<select required value={draft.client_group_id} onChange={event => change("client_group_id", event.target.value)}>
+        <option value="">고객 그룹 선택</option>
+        {clientGroups.map(group => <option key={group.client_group_id} value={group.client_group_id}>{group.display_name}</option>)}
+      </select></label>
+      <p>사건 접근 권한은 별도 지정 전까지 차단됩니다. 초대 후 해당 사건에서 명시적으로 권한을 부여하세요.</p>
+    </>}
+    <button type="submit" className="secondary-button" disabled={busy}>{busy ? "초대 생성 중" : "사용자 초대"}</button>
+    <div role="status" data-person-onboarding-result="true">
+      {receipt?.kind === "error" && "초대를 만들지 못했습니다."}
+      {receipt?.kind === "data" && <>{receipt.idempotent_replay ? "기존 초대를 확인했습니다." : "초대를 만들었습니다."}
+        {receipt.invitation?.setup_url && <><br /><a href={receipt.invitation.setup_url}>로컬 테스트 계정 설정 링크</a></>}
+        {receipt.access?.matter_access === "denied_until_explicit_acl" && <><br />사건 접근: 별도 권한 지정 전까지 차단</>}</>}
+    </div>
+  </form>;
+}
+
 export function PermissionAdminPanel() {
   const [refreshKey, setRefreshKey] = useState(0);
   const [activeObject, setActiveObject] = useState("Client");
@@ -98,6 +217,7 @@ export function PermissionAdminPanel() {
   const [securityUsers, setSecurityUsers] = useState([]);
   const [breakGlassRequests, setBreakGlassRequests] = useState([]);
   const [securityAuditRows, setSecurityAuditRows] = useState([]);
+  const [clientGroups, setClientGroups] = useState([]);
   const [ethicsResult, setEthicsResult] = useState(null);
   const [results, setResults] = useState({});
   const [activeSecurityResultKey, setActiveSecurityResultKey] = useState(null);
@@ -116,6 +236,7 @@ export function PermissionAdminPanel() {
       fetchAdminSecurityUsers(),
       fetchAdminBreakGlassRequests(),
       fetchAdminSecurityAudit(),
+      fetchPersonInvitationOptions(),
       fetchLegalPeopleEthics()
     ]).then(async ([
       sets,
@@ -126,6 +247,7 @@ export function PermissionAdminPanel() {
       securityUserResult,
       breakGlassResult,
       securityAuditResult,
+      invitationOptions,
       ethics
     ]) => {
       if (cancelled) return;
@@ -140,6 +262,7 @@ export function PermissionAdminPanel() {
       setSecurityUsers(securityUserResult.kind === "data" ? securityUserResult.items : []);
       setBreakGlassRequests(breakGlassResult.kind === "data" ? breakGlassResult.items : []);
       setSecurityAuditRows(securityAuditResult.kind === "data" ? securityAuditResult.items : []);
+      setClientGroups(invitationOptions.kind === "data" ? invitationOptions.items : []);
       setEthicsResult(ethics);
       setFields(fieldResult.kind === "data" ? fieldResult.items : []);
       setActiveObject(objectName);
@@ -323,6 +446,8 @@ export function PermissionAdminPanel() {
       </Panel>
 
       <Panel title="사용자 운영" meta={`${securityUsers.length}명`} className="people-admin-panel">
+        <PersonOnboardingForm clientGroups={clientGroups} onCreated={() => setRefreshKey(keyValue => keyValue + 1)} />
+        <UserProfileEditor users={securityUsers} />
         <DataTable
           columns={["사용자", "역할", "상태", "로그인"]}
           rows={securityUsers.map((item) => [

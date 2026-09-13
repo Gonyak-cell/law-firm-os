@@ -139,6 +139,13 @@ export function createClientPortalRepository({
     const normalized = normalizeRecord(record);
     const key = recordKey(normalized);
     if (!overwrite && records.has(key)) throw new Error(`${normalized.model_type} already exists: ${primaryIdOf(normalized)}`);
+    if (normalized.model_type === "ExternalUser") {
+      const conflict = [...records.values()].find(current => current.model_type === "ExternalUser"
+        && current.tenant_id === normalized.tenant_id && current.external_user_id !== normalized.external_user_id
+        && ((normalized.user_id && current.user_id === normalized.user_id)
+          || (normalized.person_id && current.person_id === normalized.person_id)));
+      if (conflict) throw new Error("ExternalUser account/person link conflict");
+    }
     records.set(key, clone(normalized));
     persist();
     return Object.freeze(clone(normalized));
@@ -173,6 +180,12 @@ export function createClientPortalRepository({
       if (!current) throw new Error(`${ref.model_type} not found: ${ref.id ?? ref.resource_id}`);
       return put({ ...current, ...patch, tenant_id: current.tenant_id, model_type: current.model_type, updates_database_rows: true }, { overwrite: true });
     },
+    delete(ref) {
+      assertOpen();
+      const removed = records.delete(refKey(ref));
+      if (removed) persist();
+      return removed;
+    },
     get(ref) {
       assertOpen();
       return Object.freeze(clone(records.get(refKey(ref))));
@@ -199,6 +212,12 @@ export function createClientPortalRepository({
     getIdempotency(ref = {}) {
       assertOpen();
       return Object.freeze(clone(idempotency.get(`${ref.tenant_id}:${ref.idempotency_key}`)));
+    },
+    deleteIdempotency(ref = {}) {
+      assertOpen();
+      const removed = idempotency.delete(`${ref.tenant_id}:${ref.idempotency_key}`);
+      if (removed) persist();
+      return removed;
     },
     appendAudit(event = {}) {
       assertOpen();

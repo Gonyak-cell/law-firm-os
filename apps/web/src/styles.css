@@ -5774,6 +5774,38 @@ button.dashboard-record-row:focus-visible {
   font-weight: 400;
 }
 
+.matter-profile-editor-fields {
+  padding-top: 10px;
+}
+
+.matter-profile-photo-field {
+  position: relative;
+}
+
+.matter-profile-photo-picker {
+  width: 100%;
+  justify-content: center;
+  color: var(--am-text);
+  cursor: pointer;
+}
+
+.matter-profile-photo-picker[aria-disabled="true"] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.matter-profile-photo-input {
+  position: absolute;
+  width: 1px !important;
+  height: 1px;
+  margin: -1px;
+  padding: 0 !important;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0 !important;
+}
+
 .matter-profile-surface > .live-data-state {
   width: min(1180px, 100%);
   margin-top: 14px;
@@ -5900,10 +5932,13 @@ button.dashboard-record-row:focus-visible {
 }
 
 .matter-profile-field-row strong {
+  min-width: 0;
+  max-width: 100%;
   justify-self: end;
   color: var(--am-text);
   font-size: 13px;
   text-align: right;
+  overflow-wrap: anywhere;
 }
 
 .matter-profile-practice-list,
@@ -5931,6 +5966,16 @@ button.dashboard-record-row:focus-visible {
 
 .matter-profile-contact-column {
   display: grid;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.matter-profile-contact-column span {
+  min-width: 0;
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .matter-profile-timeline {
@@ -15950,6 +15995,71 @@ html[data-theme="dark"] .public-preview {
 
 .people-admin-panel {
   min-width: 0;
+}
+
+.person-onboarding-form,
+.person-profile-admin-editor {
+  min-width: 0;
+  gap: 8px;
+  padding: 0 0 14px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid var(--am-border-soft);
+}
+
+.person-onboarding-form label,
+.person-profile-admin-editor > label {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(88px, 0.55fr) minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  color: var(--am-text-muted);
+  font-size: var(--am-font-size-meta);
+}
+
+.person-onboarding-form input,
+.person-onboarding-form select,
+.person-onboarding-form textarea,
+.person-profile-admin-editor select,
+.person-profile-admin-editor textarea {
+  width: 100%;
+  min-width: 0;
+  min-height: var(--am-control-height);
+  padding: 7px 9px;
+  border: 1px solid var(--am-border);
+  border-radius: var(--am-radius-sm);
+  background: var(--am-surface);
+  color: var(--am-text);
+  font: inherit;
+}
+
+.person-onboarding-form textarea,
+.person-profile-admin-editor textarea {
+  min-height: 74px;
+  resize: vertical;
+}
+
+.person-onboarding-form > p,
+.person-onboarding-form > [role="status"] {
+  margin: 0;
+  color: var(--am-text-muted);
+  font-size: var(--am-font-size-meta);
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.person-onboarding-form > .secondary-button {
+  width: 100%;
+  justify-content: center;
+}
+
+.person-profile-admin-editor fieldset {
+  min-width: 0;
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 10px;
+  border: 1px solid var(--am-border-soft);
 }
 
 .admin-action-row,

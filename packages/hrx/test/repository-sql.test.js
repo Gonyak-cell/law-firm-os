@@ -55,6 +55,13 @@ test("SQL HRX repository roundtrips Employee and EmploymentProfile through store
   store.close();
 });
 
+test("SQL HRX repository rejects two Employee rows for one canonical Person", () => {
+  const { repository, store } = createDurableRepo();
+  repository.createEmployee({ ...employeeInput, person_id: "person-001" });
+  assert.throws(() => repository.createEmployee({ ...employeeInput, employee_id: "emp-002", person_id: "person-001" }), /Person link conflict/);
+  store.close();
+});
+
 test("SQL HRX repository persists EmployeeUserLink login mapping only", () => {
   const { repository, store } = createDurableRepo();
   repository.createEmployee(employeeInput);

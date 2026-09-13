@@ -61,6 +61,7 @@ export const API_AUTH_BOUNDED_CONTEXT = Object.freeze({
     "GET /api/auth/password-reset/open",
     "POST /api/auth/password-reset/request",
     "POST /api/auth/password-reset/confirm",
+    "POST /api/auth/invitations/accept",
   ]),
   roster_source: "runtime-selected-account-directory",
   role_registry_source: LAWOS_ROLE_REGISTRY_SOURCE,
@@ -166,7 +167,10 @@ function allowRule(id, input = {}) {
 
 function permissionRulesFromScopes(scopes = []) {
   const granted = new Set(scopes);
-  const rules = [allowRule("profile-read", { action: "profile:read" })];
+  const rules = [
+    allowRule("profile-read", { action: "profile:read" }),
+    allowRule("profile-self-write", { action: "profile:write" }),
+  ];
   if (granted.has("tenant.admin")) {
     rules.push(allowRule("external-read-admin", {
       action_prefix: "external_read.",
@@ -584,7 +588,7 @@ function subjectsFromSeed(seed, { trustedTenantId = seed.tenant_id } = {}) {
 }
 
 function resolveSessionRoleAssignment(user, { tenantId = MATTER_VAULT_REGISTERED_TENANT_ID } = {}) {
-  if (user?.directory_source !== "postgres-v2") {
+  if (!["postgres-v2", "local-synthetic-invitation"].includes(user?.directory_source)) {
     return resolveLawosUserRoleAssignment(user, { tenantId });
   }
   const membership = (user.tenant_memberships ?? []).find((entry) => entry?.tenant_id === tenantId && entry?.status === "active");
@@ -839,6 +843,7 @@ export function createApiSessionAuth({
     user.user_id,
     user.status === "disabled" || (!syntheticLoginEnabled && user.production_status === "disabled") ? "disabled" : "active",
   ]));
+  const localInvitationUsers = new Map();
   const breakGlassRequests = new Map();
   const revokedSessionJtis = new Set();
   const securityAuditStore = createSecurityAuditEventStore({ filePath: securityAuditStorePath });
@@ -850,13 +855,17 @@ export function createApiSessionAuth({
     if (centralIdentityRepository) {
       return centralIdentityRepository.findDirectoryUserByEmail({ tenant_id: tenantId, email });
     }
-    return findRegisteredAccountByEmail(email, seed);
+    const normalized = normalizeLoginKey(email);
+    return [...localInvitationUsers.values()].find(user => homeTenantIdForUser(user, trustedTenantId) === tenantId
+      && normalizeLoginKey(user.email) === normalized) ?? findRegisteredAccountByEmail(email, seed);
   }
 
   async function directoryUserByUserId(userId, tenantId = trustedTenantId) {
     if (centralIdentityRepository) {
       return centralIdentityRepository.findDirectoryUserByUserId({ tenant_id: tenantId, user_id: userId });
     }
+    const invited = localInvitationUsers.get(userId);
+    if (invited && homeTenantIdForUser(invited, trustedTenantId) === tenantId) return invited;
     return findRegisteredAccountByUserId(userId, seed);
   }
 
@@ -864,7 +873,7 @@ export function createApiSessionAuth({
     if (centralIdentityRepository) {
       return centralIdentityRepository.listDirectoryUsers({ tenant_id: tenantId });
     }
-    return Object.freeze([...seed.users]);
+    return Object.freeze([...seed.users, ...[...localInvitationUsers.values()].filter(user => homeTenantIdForUser(user, trustedTenantId) === tenantId)]);
   }
 
   function identitySeed(user = {}) {
@@ -1369,6 +1378,108 @@ export function createApiSessionAuth({
         production_ready_claim: false,
       }),
     });
+  }
+
+  async function provisionLocalInvitation(input = {}) {
+    if (!syntheticLoginEnabled || centralIdentityRepository) throw new Error("LOCAL_INVITATION_RUNTIME_REQUIRED");
+    const tenantId = String(input.tenant_id ?? "").trim();
+    const userId = String(input.user_id ?? "").trim();
+    const email = normalizeLoginKey(input.email);
+    if (tenantId !== trustedTenantId) throw new Error("LOCAL_INVITATION_TENANT_DENIED");
+    if (!userId || !email || await directoryUserByUserId(userId, tenantId) || await directoryUserByEmail(email, tenantId)) {
+      throw new Error("LOCAL_INVITATION_IDENTITY_CONFLICT");
+    }
+    const membership = Object.freeze({
+      tenant_id: tenantId,
+      status: "active",
+      role_ids: Object.freeze([...(input.role_ids ?? [])]),
+      group_ids: Object.freeze([...(input.group_ids ?? [])]),
+      scopes: Object.freeze([...(input.scopes ?? [])]),
+      hrx_scopes: Object.freeze([...(input.hrx_scopes ?? [])]),
+      role_profile_id: input.person_role === "external" ? "external_user" : "staff",
+      source_ref: "local-synthetic-person-invitation",
+    });
+    const user = Object.freeze({
+      user_id: userId,
+      email,
+      display_name: String(input.display_name ?? "").trim(),
+      directory_source: "local-synthetic-invitation",
+      person_role: input.person_role,
+      tenant_id: tenantId,
+      tenant_memberships: Object.freeze([membership]),
+      role_ids: membership.role_ids,
+      group_ids: membership.group_ids,
+      scopes: membership.scopes,
+      hrx_scopes: membership.hrx_scopes,
+      status: "invited",
+      highest_privilege: false,
+    });
+    const token = createPasswordResetToken(tenantId);
+    localInvitationUsers.set(userId, user);
+    accountStatusByUserId.set(userId, "invited");
+    try {
+      const challenge = operationalPasswordResetStore.create({ user, token, ttlMs: passwordResetTtlMs });
+      await appendSecurityAudit({ action: "auth.invitation.created", object_id: userId,
+        context: { principal: { tenant_id: tenantId, user_id: input.actor_id ?? userId } },
+        details: { person_role: input.person_role, expires_at: challenge.expires_at } });
+      return Object.freeze({ user, setup_url: `/?view=auth&authStep=login&invitation_token=${encodeURIComponent(token)}`,
+        expires_at: challenge.expires_at, token_material_returned: true, local_test_mailbox_only: true });
+    } catch (error) {
+      localInvitationUsers.delete(userId);
+      accountStatusByUserId.delete(userId);
+      throw error;
+    }
+  }
+
+  async function cancelLocalInvitation({ user_id } = {}) {
+    const user = localInvitationUsers.get(user_id);
+    if (!user || accountStatusByUserId.get(user_id) === "active") return false;
+    operationalPasswordResetStore.revokeForUser({ userId: user_id, reason: "onboarding_compensated" });
+    localInvitationUsers.delete(user_id);
+    accountStatusByUserId.delete(user_id);
+    return true;
+  }
+
+  async function acceptLocalInvitation(body = {}, { requestId = "req_unset" } = {}) {
+    if (!syntheticLoginEnabled || centralIdentityRepository) {
+      return Object.freeze({ status: 404, body: errorBody(requestId, "AUTH_ROUTE_NOT_FOUND", "auth_route_not_found") });
+    }
+    const token = String(body.token ?? "").trim();
+    const password = String(body.password ?? "");
+    if (!token) return Object.freeze({ status: 400, body: errorBody(requestId, "AUTH_PASSWORD_RESET_TOKEN_REQUIRED", "password_reset_token_required") });
+    if (password.length < passwordResetMinLength) return Object.freeze({ status: 400, body: errorBody(requestId, "AUTH_PASSWORD_TOO_SHORT", "password_too_short") });
+    const consumed = operationalPasswordResetStore.consume({ token });
+    if (!consumed.ok) return Object.freeze({ status: consumed.status ?? 401, body: errorBody(requestId, consumed.safe_error_code, consumed.reason) });
+    const user = await directoryUserByUserId(consumed.record.user_id, passwordResetTokenTenantId(token, trustedTenantId));
+    if (!user || normalizeLoginKey(user.email) !== consumed.record.email || accountStatusByUserId.get(user.user_id) !== "invited") {
+      return Object.freeze({ status: 401, body: errorBody(requestId, "AUTH_PASSWORD_RESET_TOKEN_INVALID", "invalid_reset_token") });
+    }
+    let credential;
+    try {
+      credential = await setOperationalPassword(user, password);
+    } catch (error) {
+      const remainingTtl = Math.max(1, Date.parse(consumed.record.expires_at) - now());
+      operationalPasswordResetStore.create({ user, token, ttlMs: remainingTtl });
+      throw error;
+    }
+    accountStatusByUserId.set(user.user_id, "active");
+    try {
+      await appendSecurityAudit({ action: "auth.invitation.accepted", object_id: user.user_id,
+        context: { principal: { tenant_id: user.tenant_id, user_id: user.user_id } }, details: { credential_rev: credential.credential_rev } });
+    } catch (error) {
+      accountStatusByUserId.set(user.user_id, "invited");
+      try {
+        operationalCredentialStore.deleteByUserId(user.user_id);
+        const remainingTtl = Math.max(1, Date.parse(consumed.record.expires_at) - now());
+        operationalPasswordResetStore.create({ user, token, ttlMs: remainingTtl });
+      } catch (rollbackError) {
+        error.invitation_acceptance_rollback_failed = true;
+        error.cause ??= rollbackError;
+      }
+      throw error;
+    }
+    return Object.freeze({ status: 200, body: Object.freeze({ request_id: requestId, outcome: "accepted", ok: true,
+      activated: true, user_id: user.user_id, token_material_returned: false, production_ready_claim: false }) });
   }
 
   function createToken({ principal, user }) {
@@ -1978,7 +2089,8 @@ export function createApiSessionAuth({
     if (await accountStatus(user) !== "active") {
       return Object.freeze({ ok: false, status: 403, body: await disabledAccountBody(requestId, user) });
     }
-    const credential = syntheticLoginEnabled
+    const localInvitationCredential = syntheticLoginEnabled && user.directory_source === "local-synthetic-invitation";
+    const credential = syntheticLoginEnabled && !localInvitationCredential
       ? null
       : await validateOperationalSession(
           user,
@@ -1998,7 +2110,7 @@ export function createApiSessionAuth({
         return Object.freeze({ ok: false, status: active.status ?? 401, body: errorBody(requestId, active.safe_error_code ?? "AUTH_SESSION_REVOKED", active.reason ?? "auth_session_revoked") });
       }
     }
-    const derivedPrincipal = provider
+    const derivedPrincipal = provider && !localInvitationCredential
       ? deriveServerPrincipal({
           request: { headers: { authorization: `Bearer ${user.local_dev.synthetic_token}` } },
           provider,
@@ -2061,7 +2173,7 @@ export function createApiSessionAuth({
     const lock = await failedLoginState(email, user);
     let principal;
     let credentialResult = null;
-    if (syntheticLoginEnabled) {
+    if (syntheticLoginEnabled && user?.directory_source !== "local-synthetic-invitation") {
       const eligible = Boolean(user) && !lock.locked && await accountStatus(user) === "active";
       if (eligible) {
         const homeTenantId = homeTenantIdForUser(user, trustedTenantId);
@@ -2074,7 +2186,7 @@ export function createApiSessionAuth({
       }
     } else {
       credentialResult = await verifyOperationalPassword(user, credential);
-      const syntheticCredential = Boolean(user) && safeEqual(credential, user.local_dev?.synthetic_token ?? "");
+      const syntheticCredential = Boolean(user?.local_dev?.synthetic_token) && safeEqual(credential, user.local_dev.synthetic_token);
       if (user && !lock.locked && credentialResult.ok && !syntheticCredential) {
         const homeTenantId = homeTenantIdForUser(user, trustedTenantId);
         principal = principalFromSignedSession({
@@ -2447,6 +2559,10 @@ export function createApiSessionAuth({
       }
       return confirmPasswordReset(body, { requestId });
     }
+    if (pathname === "/api/auth/invitations/accept") {
+      if (method !== "POST") return Object.freeze({ status: 405, body: errorBody(requestId, "AUTH_METHOD_NOT_ALLOWED", "auth_method_not_allowed") });
+      return acceptLocalInvitation(body, { requestId });
+    }
     return Object.freeze({ status: 404, body: errorBody(requestId, "AUTH_ROUTE_NOT_FOUND", "auth_route_not_found") });
   }
 
@@ -2736,6 +2852,9 @@ export function createApiSessionAuth({
     requestPasswordReset,
     processPasswordResetQueue,
     confirmPasswordReset,
+    provisionLocalInvitation,
+    cancelLocalInvitation,
+    acceptLocalInvitation,
     verifyToken,
     verifyOutlookCallbackPrincipal,
     resolveVaultCapabilities,
@@ -2744,5 +2863,15 @@ export function createApiSessionAuth({
     handleAuthApiRequest,
     validateStepUpChallenge,
     handleSecurityAdminApiRequest,
+    async getProfileSubject({ tenant_id, user_id }) {
+      const user = await directoryUserByUserId(user_id, tenant_id);
+      if (!user || homeTenantIdForUser(user, trustedTenantId) !== tenant_id) return null;
+      return { tenant_id, user_id: user.user_id, email: user.email, display_name: user.display_name };
+    },
+    async findProfileSubjectByEmail({ tenant_id, email }) {
+      const user = await directoryUserByEmail(email, tenant_id);
+      if (!user || homeTenantIdForUser(user, trustedTenantId) !== tenant_id) return null;
+      return { tenant_id, user_id: user.user_id, email: user.email, display_name: user.display_name };
+    },
   });
 }

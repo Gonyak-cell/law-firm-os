@@ -174,6 +174,7 @@ test("Auth descriptor exposes the Wave-1 API session surface", async () => {
       "GET /api/auth/password-reset/open",
       "POST /api/auth/password-reset/request",
       "POST /api/auth/password-reset/confirm",
+      "POST /api/auth/invitations/accept",
     ]);
     assert.equal(authContext.fail_closed, true);
     assert.equal(authContext.production_ready_claim, false);

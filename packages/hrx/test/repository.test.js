@@ -70,6 +70,12 @@ test("in-memory HRX repository enforces Employee/Profile boundaries", () => {
   );
 });
 
+test("in-memory HRX repository rejects two Employee rows for one canonical Person", () => {
+  const repo = createInMemoryHrxRepository();
+  repo.createEmployee({ ...employeeInput, person_id: "person-001" });
+  assert.throws(() => repo.createEmployee({ ...employeeInput, employee_id: "emp-002", person_id: "person-001" }), /Person link conflict/);
+});
+
 test("in-memory HRX repository supports EmployeeUserLink lifecycle without identity conflation", () => {
   const repo = createInMemoryHrxRepository();
   repo.createEmployee(employeeInput);

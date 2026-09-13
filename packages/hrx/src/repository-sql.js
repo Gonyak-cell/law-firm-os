@@ -45,6 +45,8 @@ export function createSqlHrxRepository({ store, clock = () => new Date().toISOSt
     createEmployee(input) {
       const now = clock();
       const employee = rowWithTimestamps(createEmployee(input), now);
+      if (employee.person_id && store.query("select", { table: EMPLOYEE_TABLE, where: { tenant_id: employee.tenant_id } })
+        .some(current => current.person_id === employee.person_id)) throw new Error(`Employee Person link conflict: ${employee.person_id}`);
       return store.query("insert", { table: EMPLOYEE_TABLE, row: employee });
     },
 
@@ -71,6 +73,10 @@ export function createSqlHrxRepository({ store, clock = () => new Date().toISOSt
         tenant_id: current.tenant_id,
         employee_id: current.employee_id,
       });
+      if (next.person_id && store.query("select", { table: EMPLOYEE_TABLE, where: { tenant_id: next.tenant_id } })
+        .some(employee => employee.employee_id !== next.employee_id && employee.person_id === next.person_id)) {
+        throw new Error(`Employee Person link conflict: ${next.person_id}`);
+      }
       return store.query("updateOne", {
         table: EMPLOYEE_TABLE,
         where: ref,
@@ -96,6 +102,7 @@ export function createSqlHrxRepository({ store, clock = () => new Date().toISOSt
         where: { tenant_id: profile.tenant_id, employee_id: profile.employee_id },
       });
       if (!employee) throw new ReferenceError(`EmploymentProfile employee not found: ${profile.employee_id}`);
+      if (employee.person_id && profile.person_id !== employee.person_id) throw new Error(`EmploymentProfile Person link conflict: ${profile.person_id}`);
       return store.query("insert", { table: PROFILE_TABLE, row: profile });
     },
 

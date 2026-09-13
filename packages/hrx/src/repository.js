@@ -37,6 +37,8 @@ export function createInMemoryHrxRepository(seed = {}) {
       const employee = createEmployee(input);
       const employeeKey = key(employee.tenant_id, employee.employee_id);
       if (employees.has(employeeKey)) throw new Error(`Employee already exists: ${employee.employee_id}`);
+      if (employee.person_id && [...employees.values()].some(current => current.tenant_id === employee.tenant_id
+        && current.person_id === employee.person_id)) throw new Error(`Employee Person link conflict: ${employee.person_id}`);
       employees.set(employeeKey, clone(employee));
       return clone(employee);
     },
@@ -66,6 +68,10 @@ export function createInMemoryHrxRepository(seed = {}) {
         tenant_id: current.tenant_id,
         employee_id: current.employee_id,
       });
+      if (next.person_id && [...employees.values()].some(employee => employee.tenant_id === next.tenant_id
+        && employee.employee_id !== next.employee_id && employee.person_id === next.person_id)) {
+        throw new Error(`Employee Person link conflict: ${next.person_id}`);
+      }
       employees.set(employeeKey, clone(next));
       return clone(next);
     },
@@ -93,6 +99,7 @@ export function createInMemoryHrxRepository(seed = {}) {
       if (!employee) {
         throw new ReferenceError(`EmploymentProfile employee not found: ${profile.employee_id}`);
       }
+      if (employee.person_id && profile.person_id !== employee.person_id) throw new Error(`EmploymentProfile Person link conflict: ${profile.person_id}`);
       const profileKey = key(profile.tenant_id, profile.profile_id);
       if (profiles.has(profileKey)) throw new Error(`EmploymentProfile already exists: ${profile.profile_id}`);
       profiles.set(profileKey, clone(profile));

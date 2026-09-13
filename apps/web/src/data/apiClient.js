@@ -432,6 +432,15 @@ export async function confirmLawosPasswordReset({ token, password } = {}, { sour
   }
 }
 
+export async function confirmLawosInvitation({ token, password } = {}) {
+  try {
+    const response = await fetch(apiRequestUrl("/api/auth/invitations/accept"), {
+      method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ token, password })
+    });
+    return passwordResetResult(await response.json(), response.status, { confirmation: true });
+  } catch { return passwordResetResult({ reason: "network_or_parse_error" }, 0, { confirmation: true }); }
+}
+
 function sessionAuthorizedHeaders(headers = {}) {
   const requestHeaders = plainHeaders(headers);
   for (const name of [
@@ -1398,6 +1407,74 @@ export async function hydrateAuthenticatedProfilePhoto(item, headers = {}) {
   } catch {
     return { ...item, photo_url: null, photo_included: false };
   }
+}
+
+export async function saveUserProfile({ patch, idempotencyKey }) {
+  try {
+    const response = await apiFetch("/api/profile/me", { method: "PATCH",
+      headers: { "content-type": "application/json", "idempotency-key": idempotencyKey }, body: JSON.stringify(patch) });
+    const saved = await response.json();
+    if (!response.ok || saved.outcome !== "passed" || !saved.item) return { kind: "error", safeErrorCodes: saved.safe_error_codes ?? [] };
+    const result = await fetchUserProfile();
+    return result.kind === "data" && Object.keys(patch).every(key => JSON.stringify(result.item[key]) === JSON.stringify(saved.item[key]))
+      ? result : { kind: "error", uiState: "error" };
+  } catch { return { kind: "error", uiState: "error" }; }
+}
+
+export async function uploadUserProfilePhoto({ file, idempotencyKey }) {
+  if (file?.type !== "image/png" || file.size > 5 * 1024 * 1024 || file.size < 33) return { kind: "error" };
+  try {
+    const response = await apiFetch("/api/profile/me/photo", { method: "PUT",
+      headers: { "content-type": "image/png", "idempotency-key": idempotencyKey }, body: file });
+    if (!response.ok) return { kind: "error", safeErrorCodes: (await response.json()).safe_error_codes ?? [] };
+    const result = await fetchUserProfile();
+    return result.item?.photo_included ? result : { kind: "error" };
+  } catch { return { kind: "error" }; }
+}
+
+export async function adminUserProfile({ userId, patch, idempotencyKey }) {
+  const path = `/api/profile/users/${encodeURIComponent(userId)}`;
+  try {
+    if (patch) {
+      const saved = await apiFetch(path, { method: "PATCH", headers: { "content-type": "application/json", "idempotency-key": idempotencyKey }, body: JSON.stringify(patch) });
+      if (!saved.ok) return { kind: "error" };
+    }
+    const response = await apiFetch(path);
+    const body = await response.json();
+    return response.ok && body.outcome === "passed" ? { kind: "data", item: body.item } : { kind: "error" };
+  } catch { return { kind: "error" }; }
+}
+
+export function buildPersonInvitationPayload(input = {}) {
+  const sharedKeys = ["email", "display_name", "legal_name", "english_name", "mobile_phone", "contact_email", "professional_profile"];
+  const roleKeys = input.type === "internal" ? ["title", "employment_type", "org_unit_id", "effective_from"] : ["client_group_id"];
+  const values = { ...input };
+  if (values.professional_profile && !Object.values(values.professional_profile).some(value => Array.isArray(value) ? value.length : String(value ?? "").trim())) {
+    values.professional_profile = undefined;
+  }
+  return Object.fromEntries([["type", input.type], ...[...sharedKeys, ...roleKeys]
+    .filter(key => values[key] !== undefined && values[key] !== null && values[key] !== "")
+    .map(key => [key, values[key]])]);
+}
+
+export async function fetchPersonInvitationOptions() {
+  try {
+    const response = await apiFetch("/api/admin/security/person-invitations");
+    const body = await response.json();
+    return response.ok && body.outcome === "passed" && Array.isArray(body.items)
+      ? { kind: "data", items: body.items } : { kind: "error", safeErrorCodes: body.safe_error_codes ?? [] };
+  } catch { return { kind: "error" }; }
+}
+
+export async function createPersonInvitation({ input, idempotencyKey } = {}) {
+  try {
+    const response = await apiFetch("/api/admin/security/person-invitations", { method: "POST",
+      headers: { "content-type": "application/json", "idempotency-key": idempotencyKey },
+      body: JSON.stringify(buildPersonInvitationPayload(input)) });
+    const body = await response.json();
+    return response.ok && ["created", "passed"].includes(body.outcome)
+      ? { kind: "data", ...body } : { kind: "error", status: response.status, safeErrorCodes: body.safe_error_codes ?? [] };
+  } catch { return { kind: "error" }; }
 }
 
 export async function fetchUserProfile({

@@ -88,6 +88,15 @@ export function createMasterDataRepository({ filePath, seedRecords = [], preserv
     if (closed) throw new Error("Master Data repository is closed");
   }
 
+  function assertPersonAccountUnique(record) {
+    if (record.model_type !== "Person" || !record.account_user_id) return;
+    if (!/^[A-Za-z0-9][A-Za-z0-9._:-]{0,159}$/u.test(record.account_user_id)) throw new TypeError("PERSON_ACCOUNT_LINK_INVALID");
+    if (state.records.some(other => other.model_type === "Person" && other.tenant_id === record.tenant_id
+      && other.account_user_id === record.account_user_id && other.person_id !== record.person_id)) {
+      throw Object.assign(new Error("PERSON_ACCOUNT_LINK_CONFLICT"), { status: 409 });
+    }
+  }
+
   function flush({ createBackup = true, force = false } = {}) {
     if (!filePath || (transactionDepth > 0 && !force)) return;
     try {
@@ -105,6 +114,7 @@ export function createMasterDataRepository({ filePath, seedRecords = [], preserv
   function upsert(input) {
     ensureOpen();
     const record = normalizeRecord(input);
+    assertPersonAccountUnique(record);
     const index = state.records.findIndex((current) => sameIdentity(current, record));
     if (index === -1) state.records.push(record);
     else state.records[index] = record;
@@ -115,6 +125,7 @@ export function createMasterDataRepository({ filePath, seedRecords = [], preserv
   function seedIfMissing(input) {
     ensureOpen();
     const record = normalizeRecord(input);
+    assertPersonAccountUnique(record);
     if (!state.records.some((current) => sameIdentity(current, record))) {
       state.records.push(record);
       flush({ createBackup: false });
@@ -137,6 +148,7 @@ export function createMasterDataRepository({ filePath, seedRecords = [], preserv
     create(input) {
       ensureOpen();
       const record = normalizeRecord(input);
+      assertPersonAccountUnique(record);
       if (state.records.some((current) => sameIdentity(current, record))) {
         throw new Error(`${record.model_type} already exists: ${primaryIdOf(record)}`);
       }
@@ -176,9 +188,19 @@ export function createMasterDataRepository({ filePath, seedRecords = [], preserv
         model_type: current.model_type,
         [primaryIdField(current.model_type)]: primaryIdOf(current),
       });
+      assertPersonAccountUnique(next);
       state.records[index] = next;
       flush();
       return Object.freeze(clone(next));
+    },
+
+    delete(ref = {}) {
+      ensureOpen();
+      const index = state.records.findIndex((current) => matchesRef(current, ref));
+      if (index === -1) return false;
+      state.records.splice(index, 1);
+      flush();
+      return true;
     },
 
     recordIdempotency(entry = {}) {
@@ -277,6 +299,7 @@ export function createMasterDataRepository({ filePath, seedRecords = [], preserv
   let seedChanged = false;
   for (const record of seedRecords) {
     const normalized = normalizeRecord(record);
+    assertPersonAccountUnique(normalized);
     const key = identityKey(normalized);
     if (seedIdentities.has(key)) continue;
     state.records.push(preserveSeedRecords ? clone(record) : normalized);

@@ -19,7 +19,7 @@ import { MatterSplash } from "./MatterSplash.jsx";
 import { MatterLogo } from "./MatterLogo.jsx";
 import { Field } from "./primitives.jsx";
 import { HomeSurface } from "./HomeSurface.jsx";
-import { confirmLawosPasswordReset, requestLawosPasswordReset } from "../data/apiClient.js";
+import { confirmLawosInvitation, confirmLawosPasswordReset, requestLawosPasswordReset } from "../data/apiClient.js";
 
 const LOGIN_INTRO_DURATION_MS = 2100;
 const PASSWORD_RESET_TOKEN_PATTERN = /^(?=.{16,256}$)[A-Za-z0-9_-]+(?:\.[A-Za-z0-9_-]+)?$/;
@@ -285,6 +285,22 @@ export function AuthForm({ labels, locale, step, authError = "", onLogin = () =>
   const loginEmailInputRef = useRef(null);
   const resetPasswordInputRef = useRef(null);
   const resetTokenRef = useRef("");
+  const invitationTokenRef = useRef(false);
+
+  useEffect(() => {
+    if (step !== "login") return;
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get("invitation_token") ?? "";
+    if (!PASSWORD_RESET_TOKEN_PATTERN.test(token)) return;
+    resetTokenRef.current = token;
+    invitationTokenRef.current = true;
+    params.delete("invitation_token");
+    window.history.replaceState(window.history.state, "", `${window.location.pathname}?${params.toString()}${window.location.hash}`);
+    setResetPassword("");
+    setResetPasswordConfirm("");
+    setRecoveryMessage("");
+    setRecoveryState("confirm");
+  }, [step]);
 
   useEffect(() => {
     if (step !== "login" || typeof window.matterSession?.onPasswordResetDeepLink !== "function") return undefined;
@@ -359,12 +375,13 @@ export function AuthForm({ labels, locale, step, authError = "", onLogin = () =>
     setSubmitting(true);
     setRecoveryMessage("");
     try {
-      const result = await confirmLawosPasswordReset({
+      const result = await (invitationTokenRef.current ? confirmLawosInvitation : confirmLawosPasswordReset)({
         token: resetTokenRef.current,
         password: resetPassword
       });
       if (result.ok) {
         resetTokenRef.current = "";
+        invitationTokenRef.current = false;
         setResetPassword("");
         setResetPasswordConfirm("");
         setRecoveryState("success");

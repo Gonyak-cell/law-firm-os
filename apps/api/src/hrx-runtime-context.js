@@ -459,7 +459,8 @@ function employeeRosterReadFields(
     title: profile?.title,
     employment_type: profile?.employment_type,
     legal_entity_id: profile?.legal_entity_id ?? null,
-    photo_url: profile?.tenant_id === employee.tenant_id && profile?.legal_entity_id && employee.photo_object_id && employee.photo_sha256
+    photo_url: employee.person_id && employee.profile_photo ? `/api/hrx/employees/${employee.employee_id}/photo`
+      : profile?.tenant_id === employee.tenant_id && profile?.legal_entity_id && employee.photo_object_id && employee.photo_sha256
       && employee.photo_byte_size && employee.photo_version_id && employee.photo_content_type === "image/png"
       && /^[A-Za-z0-9][A-Za-z0-9._:-]{0,159}$/u.test(employee.employee_id)
       ? `/api/hrx/employees/${employee.employee_id}/photo` : null,
@@ -477,7 +478,7 @@ function employeeRosterReadFields(
       ?? (allowStaticRosterFallback ? "대한민국" : null),
     mobile_phone: employee?.mobile_phone ?? member?.mobile_phone ?? null,
     start_date: profile?.start_date ?? null,
-    professional_profile: parsedProfessionalProfile(profile?.professional_profile)
+    professional_profile: employee.person_id ? employee.professional_profile : parsedProfessionalProfile(profile?.professional_profile)
       ?? member?.professional_profile
       ?? publicProfile?.professional_profile
       ?? null,
@@ -4043,6 +4044,9 @@ function persistClosedOffboarding(context, next, employeeLinks) {
 }
 
 function createEmployeeThroughRepository(context, actorContext, body = {}) {
+  if (Object.hasOwn(body, "person_id")) {
+    throw safeHrxRuntimeError(400, "HRX_EMPLOYEE_INPUT_INVALID", "Canonical Person links cannot be assigned through the HRX employee API");
+  }
   const employeeId = typeof body.employee_id === "string" ? body.employee_id.trim() : "";
   if (employeeId && context.repository.getEmployee({ tenant_id: actorContext.tenant_id, employee_id: employeeId })) {
     throw safeHrxRuntimeError(409, "HRX_EMPLOYEE_ID_ALREADY_EXISTS", "Employee identifier already exists");
@@ -4074,6 +4078,9 @@ function createEmployeeThroughRepository(context, actorContext, body = {}) {
 }
 
 function updateEmployeeThroughRepository(context, actorContext, employeeId, body = {}) {
+  if (Object.hasOwn(body, "person_id")) {
+    throw safeHrxRuntimeError(400, "HRX_EMPLOYEE_INPUT_INVALID", "Canonical Person links cannot be changed through the HRX employee API");
+  }
   const current = context.repository.getEmployee({ tenant_id: actorContext.tenant_id, employee_id: employeeId });
   if (!current) return null;
   let employee;
@@ -5062,6 +5069,11 @@ export function handleHrxApiRequest({
       if (selfGuard) return selfGuard;
       const employee = context.repository.getEmployee({ tenant_id: tenantId, employee_id: employeeId });
       const profile = employee && currentEmploymentProfile(context.repository, tenantId, employeeId);
+      if (employee?.tenant_id === tenantId && employee.person_id && employee.profile_photo && context.personPhotoStorage) {
+        return context.personPhotoStorage.readPhoto({ tenant_id: tenantId, person_id: employee.person_id, photo: employee.profile_photo })
+          .then(readback => ({ status: 200, body: readback.bytes, content_type: readback.content_type, byte_size: readback.byte_size }))
+          .catch(() => response(503, { outcome: "blocked", safe_error_code: "HRX_EMPLOYEE_PHOTO_UNAVAILABLE" }));
+      }
       const fields = employee && employeeRosterReadFields(employee, profile, { allowStaticRosterFallback: false });
       if (!fields?.photo_url || employee.tenant_id !== tenantId || !context.memberPhotoStorage) {
         return response(404, { outcome: "not_found", safe_error_code: "HRX_EMPLOYEE_PHOTO_NOT_FOUND" });

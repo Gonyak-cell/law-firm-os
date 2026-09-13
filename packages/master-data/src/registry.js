@@ -505,6 +505,13 @@ export const MASTER_DATA_MODEL_DEFINITIONS = Object.freeze({
     owner_module: "MasterData",
     required_fields: Object.freeze(["person_id", "tenant_id", "entity_id", "display_name", "status", "owner_user_id"]),
     optional_fields: Object.freeze([
+      "account_user_id",
+      "legal_name",
+      "english_name",
+      "mobile_phone",
+      "contact_email",
+      "professional_profile",
+      "profile_photo",
       "matter_id",
       "party_id",
       "email",

@@ -95,6 +95,9 @@ export function createMasterDataPerson(input) {
   return freezeRecord({
     ...baseRecord("Person", input),
     person_id: input.person_id,
+    // Preserve legacy record hashes until a canonical profile is explicitly saved.
+    ...Object.fromEntries(["account_user_id", "legal_name", "english_name", "mobile_phone", "contact_email", "professional_profile", "profile_photo"]
+      .filter(key => Object.hasOwn(input, key)).map(key => [key, input[key]])),
     party_id: input.party_id ?? null,
     entity_id: input.entity_id,
     display_name: input.display_name,

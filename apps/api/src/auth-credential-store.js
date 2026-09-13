@@ -69,7 +69,7 @@ export function createScryptPasswordHash(password, {
 }
 
 export function verifyScryptPasswordHash(passwordHash = {}, password) {
-  if (passwordHash.algorithm !== "node:crypto.scrypt" || !passwordHash.salt || !passwordHash.digest) return false;
+  if (!passwordHash || typeof passwordHash !== "object" || passwordHash.algorithm !== "node:crypto.scrypt" || !passwordHash.salt || !passwordHash.digest) return false;
   const params = Object.freeze({ ...LAWOS_AUTH_SCRYPT_PARAMS, ...(passwordHash.params ?? {}) });
   const expected = Buffer.from(String(passwordHash.digest), "base64url");
   const candidate = digestForPassword(password, passwordHash.salt, params);
@@ -219,6 +219,15 @@ export function createAuthCredentialStore({
     return next;
   }
 
+  function deleteByUserId(userId) {
+    refresh();
+    const normalizedUserId = String(userId ?? "").trim();
+    if (!normalizedUserId || !byUserId.has(normalizedUserId)) return false;
+    byUserId.delete(normalizedUserId);
+    persist();
+    return true;
+  }
+
   return Object.freeze({
     provider_id: LAWOS_INTERNAL_PASSWORD_PROVIDER_ID,
     schema_version: LAWOS_AUTH_CREDENTIAL_STORE_SCHEMA_VERSION,
@@ -232,5 +241,6 @@ export function createAuthCredentialStore({
     validateSessionCredential,
     setPassword,
     requirePasswordReset,
+    deleteByUserId,
   });
 }

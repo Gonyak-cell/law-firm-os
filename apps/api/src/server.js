@@ -16,6 +16,10 @@ const PROCESS_INSTANCE_FINGERPRINT = randomUUID().replaceAll("-", "");
 import { runHrxMigrations } from "../../../packages/hrx/src/migrations/index.js";
 import { PEOPLE_FEATURE_FLAG_NAMES } from "../../../packages/hrx/src/people-feature-flags.js";
 import { createHrxMemberPhotoStorage } from "../../../packages/hrx/src/member-photo-storage.js";
+import { PERSON_PHOTO_MAX_BYTES } from "../../../packages/master-data/src/person-photo-storage.js";
+import { handlePersonProfileRequest } from "./person-profile-context.js";
+import { createPersonOnboardingService } from "./person-onboarding-service.js";
+import { withCanonicalPersonProfiles } from "./canonical-person-hrx.js";
 import { createFileHrxStore } from "../../../packages/hrx/src/store/file-store.js";
 import { HRX_DURABLE_CORE_TABLES, HRX_DURABLE_WORKFLOW_TABLES } from "../../../packages/hrx/src/store/port.js";
 import { createMasterDataRepository } from "../../../packages/master-data/src/repository.js";
@@ -1041,6 +1045,16 @@ export const PROFILE_BOUNDED_CONTEXT = Object.freeze({
     public_renderer_literals_allowed: false,
   }),
   runtime_persistence: "read_only_session_projection",
+  local_profile_contract_ref: "docs/runbooks/person-profile-local-rd.md",
+  local_profile_endpoints: Object.freeze([
+    "PATCH /api/profile/me",
+    "PUT /api/profile/me/photo",
+    "GET /api/profile/users/:user_id",
+    "PATCH /api/profile/users/:user_id",
+    "GET /api/admin/security/person-invitations",
+    "POST /api/admin/security/person-invitations",
+  ]),
+  local_profile_mutation_gate: "local-dev + file-current only",
   runtime_write_ready: false,
   production_ready_claim: false,
   fail_closed: true,
@@ -1885,6 +1899,9 @@ async function handleProfileApiRequest({ pathname, method, query, context, reque
 }
 
 async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, masterDataRuntime, matterRuntime, dmsRuntime, emailDmsRuntime, docusignRuntime = null, crmIntakeRuntime, financeRuntime, financeRuntimeUnavailable = null, analyticsRuntime, aiRuntime, portalRuntime, uiReadinessRuntime, homeDashboardRuntime, enterpriseReadinessRuntime, externalReadRuntime, internalUnsignedUpdateBroker, precedentSearchRuntime = null, m365GraphConfig = null, outlookConversationRuntime = null, outlookGraphSyncReadiness = null, outlookDesktopRuntime = null, sessionAuth, stepUpAuthority, outlookAttachmentReceiptAuthority, vaultUploadProvider = null, vaultExportProvider = null, outlookVaultDeliveryAuthority = null, outlookVaultDeliveryPublicOrigin = null, outlookVaultHostVerifier = null, payrollStatementProviderVerifier = null, payrollStatementProviderAudit = null, leaveProviderVerifier = null, runtimeProfile = LAWOS_RUNTIME_PROFILES.localDev, persistenceAuthority = LAWOS_PERSISTENCE_AUTHORITIES.fileCurrent, persistenceCapabilities = null, dataScope = null } = {}) {
+  if (runtimeProfile === LAWOS_RUNTIME_PROFILES.localDev && persistenceAuthority === LAWOS_PERSISTENCE_AUTHORITIES.fileCurrent) {
+    hrxRuntime = withCanonicalPersonProfiles(hrxRuntime, masterDataRuntime?.repository, portalRuntime?.repository, dmsRuntime?.storage);
+  }
   const url = new URL(req.url || "/", `http://${HOST}`);
   const pathname = url.pathname.replace(/\/+$/, "") || "/";
   const query = queryToObject(url.searchParams);
@@ -2230,6 +2247,14 @@ async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, mast
     });
     return;
   }
+  if (isHrxPath && portalRuntime?.repository?.list({ tenant_id: sessionContext.principal.tenant_id, model_type: "ExternalUser" })
+    .some(user => user.user_id === sessionContext.principal.user_id)) {
+    await appendHrxDeniedRouteAudit({ runtime: hrxRuntime,
+      context: { tenant_id: sessionContext.principal.tenant_id, actor_id: sessionContext.principal.user_id },
+      route: pathname, decision: { effect: "deny", reason: "external_user_workforce_access_denied" } });
+    sendJson(req, res, 403, { request_id: requestId, outcome: "denied", safe_error_codes: ["HRX_PERMISSION_DENIED"], production_ready_claim: false });
+    return;
+  }
   if (
     sessionContext.token_payload?.surface === "outlook_addin"
     && !isOutlookPath
@@ -2511,7 +2536,42 @@ async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, mast
 
   if (isProfilePath) {
     const context = requestPermissionContext();
-    const result = await handleProfileApiRequest({ pathname, method: req.method, query, context, requestId, runtime: hrxRuntime });
+    const readLegacy = (userId, photo = false) => handleProfileApiRequest({
+      pathname: photo ? "/api/profile/me/photo" : "/api/profile/me", method: "GET", query,
+      context: userId ? { ...context, principal: { ...context.principal, user_id: userId } } : context,
+      requestId, runtime: hrxRuntime,
+    });
+    let bytes;
+    if (req.method === "PUT" && pathname === "/api/profile/me/photo") {
+      const chunks = [];
+      let size = 0;
+      for await (const chunk of req) {
+        size += chunk.length;
+        if (size > PERSON_PHOTO_MAX_BYTES) throw requestBodyTooLargeError();
+        chunks.push(chunk);
+      }
+      bytes = Buffer.concat(chunks);
+    }
+    const body = req.method === "PATCH" ? await readRequestBody(req, { maxBytes: 64 * 1024, injectAuthenticatedActor: false }) : undefined;
+    const profileAction = req.method === "GET" ? "profile:read" : "profile:write";
+    const decision = evaluateRouteDecision({ context, resource: { tenant_id: query.tenant_id ?? context.principal.tenant_id,
+      resource_type: "user_profile", resource_id: context.principal.user_id }, action: profileAction });
+    if (decision.effect !== "allow" && masterDataRuntime?.repository) {
+      masterDataRuntime.repository.appendAudit({ event_id: `profile_${randomUUID()}`, tenant_id: context.principal.tenant_id,
+        actor_id: context.principal.user_id, action: "person.profile.denied", outcome: "blocked" });
+    }
+    if (decision.effect !== "allow" && req.method !== "GET") {
+      sendJson(req, res, 403, { request_id: requestId, outcome: "denied", item: null,
+        safe_error_codes: ["PROFILE_PERMISSION_DENIED"], ui_state: "denied", production_ready_claim: false });
+      return;
+    }
+    const result = decision.effect !== "allow" ? await readLegacy() : await handlePersonProfileRequest({
+      pathname, method: req.method, query, body, bytes, headers: req.headers, context, requestId,
+      repository: masterDataRuntime?.repository, storage: dmsRuntime?.storage, portalRepository: portalRuntime?.repository,
+      hasEmployeeLink: subject => (hrxRuntime?.repository?.listEmployeeUserLinks({ tenant_id: subject.tenant_id, user_id: subject.user_id })?.length ?? 0) > 0,
+      getSubject: ref => sessionAuth.getProfileSubject(ref), readLegacy,
+      enabled: runtimeProfile === LAWOS_RUNTIME_PROFILES.localDev && persistenceAuthority === LAWOS_PERSISTENCE_AUTHORITIES.fileCurrent,
+    });
     if (result.status === 200 && Buffer.isBuffer(result.body)) {
       sendProfilePhotoBinary(req, res, result);
     } else {
@@ -2769,6 +2829,48 @@ async function handle(req, res, { hrxRuntime, hrxRuntimeUnavailable = null, mast
   if (isAdminPermissionPath) {
     const context = requestPermissionContext();
     const body = hasJsonRequestBody(req.method) ? await readRequestBody(req) : {};
+    if (pathname === "/api/admin/security/person-invitations") {
+      const onboardingAdmin = (context.principal?.scopes ?? []).some(scope => ["security.admin", "tenant.admin"].includes(scope))
+        || (context.principal?.role_ids ?? []).some(role => ["security_admin", "system_super_admin", "lawos_admin"].includes(role));
+      if (!onboardingAdmin) {
+        sendJson(req, res, 403, { request_id: requestId, outcome: "denied", safe_error_codes: ["ONBOARDING_PERMISSION_DENIED"], production_ready_claim: false });
+        return;
+      }
+      if (!['GET', 'POST'].includes(req.method)) {
+        sendJson(req, res, 405, { request_id: requestId, outcome: "blocked", safe_error_codes: ["ONBOARDING_METHOD_NOT_ALLOWED"], production_ready_claim: false });
+        return;
+      }
+      if (runtimeProfile !== LAWOS_RUNTIME_PROFILES.localDev || persistenceAuthority !== LAWOS_PERSISTENCE_AUTHORITIES.fileCurrent) {
+        sendJson(req, res, 503, { request_id: requestId, outcome: "blocked", safe_error_codes: ["ONBOARDING_LOCAL_SYNTHETIC_ONLY"], production_ready_claim: false });
+        return;
+      }
+      if (req.method === "GET") {
+        const items = masterDataRuntime.repository.list({ tenant_id: context.principal.tenant_id, model_type: "ClientGroup" })
+          .filter(item => item.status === "active")
+          .map(item => ({ client_group_id: item.client_group_id, display_name: item.display_name }));
+        sendJson(req, res, 200, { request_id: requestId, outcome: "passed", items, safe_error_codes: [], production_ready_claim: false });
+        return;
+      }
+      try {
+        const service = createPersonOnboardingService({
+          masterRepository: masterDataRuntime.repository,
+          hrxRepository: hrxRuntime.repository,
+          portalRepository: portalRuntime.repository,
+          identityGateway: {
+            findByEmail: input => sessionAuth.findProfileSubjectByEmail(input),
+            findByUserId: input => sessionAuth.getProfileSubject(input),
+            provisionInvitation: input => sessionAuth.provisionLocalInvitation(input),
+            cancelInvitation: input => sessionAuth.cancelLocalInvitation(input),
+          },
+        });
+        const item = await service.onboard({ actor: context.principal, input: body, idempotency_key: req.headers["idempotency-key"] });
+        sendJson(req, res, item.idempotent_replay ? 200 : 201, { request_id: requestId, ...item, safe_error_codes: [] });
+      } catch (error) {
+        const code = error.safe_error_code ?? (String(error.message).startsWith("LOCAL_INVITATION_") ? "ONBOARDING_IDENTITY_CONFLICT" : "ONBOARDING_UNAVAILABLE");
+        sendJson(req, res, error.status ?? (code.endsWith("CONFLICT") ? 409 : 503), { request_id: requestId, outcome: "blocked", safe_error_codes: [code], production_ready_claim: false });
+      }
+      return;
+    }
     if (pathname.startsWith("/api/admin/security")) {
       const result = await sessionAuth.handleSecurityAdminApiRequest({
         pathname,
@@ -3181,6 +3283,14 @@ export function createApiServer({
     objectAclResolver: sessionObjectAclResolver,
     vaultCapabilityResolver,
   });
+  if (runtimeProfile === LAWOS_RUNTIME_PROFILES.localDev
+      && persistenceAuthority === LAWOS_PERSISTENCE_AUTHORITIES.fileCurrent
+      && typeof masterDataRuntime?.repository?.seed === "function"
+      && masterDataRuntime.repository.list({ tenant_id: resolvedSessionAuth.trusted_tenant_id, model_type: "ClientGroup" }).length === 0) {
+    masterDataRuntime.repository.seed({ model_type: "ClientGroup", tenant_id: resolvedSessionAuth.trusted_tenant_id,
+      client_group_id: "client_group_person_onboarding_synthetic", display_name: "Synthetic onboarding client",
+      status: "active", owner_user_id: "local_synthetic_fixture", synthetic_only: true });
+  }
   const resolvedPayrollStatementProviderAudit = payrollStatementProviderAudit
     ?? (typeof resolvedSessionAuth.appendProviderCallbackAudit === "function"
       ? resolvedSessionAuth.appendProviderCallbackAudit.bind(resolvedSessionAuth)
